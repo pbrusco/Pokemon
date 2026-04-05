@@ -32,6 +32,7 @@ import { TeamMenuUI } from './components/TeamMenuUI';
 import { DialogueBox } from './components/DialogueBox';
 import { PokedexUI } from './components/PokedexUI';
 import { PCStorageUI } from './components/PCStorageUI';
+import { Joystick } from './components/Joystick';
 
 // --- Constants & Data ---
 
@@ -732,6 +733,44 @@ export default function App() {
     gameState.current = { playerPos, direction, isMoving, dialogue, isBattle, currentMap, playerTeam, maps, teleports, npcs, defeatedTrainers, inventory, storyStep };
   }, [playerPos, direction, isMoving, dialogue, isBattle, currentMap, playerTeam, maps, teleports, npcs, defeatedTrainers, inventory, storyStep]);
 
+  const resetGame = useCallback(() => {
+    localStorage.clear();
+    setCurrentMap('PALLET_TOWN');
+    setPlayerPos({ x: 10, y: 10 });
+    setDirection('down');
+    setIsMoving(false);
+    setDialogue("¡Bienvenido a Pueblo Paleta! Usa las flechas para moverte.");
+    setShowMenu(false);
+    setShowInventory(false);
+    setShowTeam(false);
+    setShowShop(false);
+    setShowMoves(false);
+    setShowPokedex(false);
+    setShowPC(false);
+    setHasPokedex(false);
+    setHasParcel(false);
+    setPokedex({});
+    setPcStorage([]);
+    setBadges([]);
+    setDefeatedTrainers([]);
+    setIsBattle(false);
+    setShowBattleTransition(false);
+    setPlayerTeam([]);
+    setEnemyPokemon(null);
+    setBattleLog("");
+    setPlayerAnim('idle');
+    setEnemyAnim('idle');
+    setScreenFlash(false);
+    setHitEffect(null);
+    setProjectile(null);
+    setDamageNumber(null);
+    setBattleShake(false);
+    setIsCatching(false);
+    setStoryStep('START');
+    setInventory(['POTION', 'POKEBALL']);
+    soundManager.play('SELECT');
+  }, []);
+
   const handleMove = useCallback((dir: Direction) => {
     const { isMoving, dialogue, isBattle, direction, playerPos, currentMap, playerTeam, maps, teleports, npcs, defeatedTrainers, inventory, storyStep } = gameState.current;
     if (isMoving || dialogue || isBattle) return;
@@ -875,7 +914,7 @@ export default function App() {
         soundManager.play('HIT');
         setScreenFlash(true);
         
-        const enemyDamage = Math.floor((enemyMove.power * (enemyPokemon.level / 5)) + 2);
+        const enemyDamage = Math.floor((enemyMove.power * (enemyPokemon.level / 4)) + 4);
         setHitEffect({ x: 30, y: 70, type: enemyMove.type }); // Approximate player position
         setDamageNumber({ x: 30, y: 60, value: enemyDamage });
         setBattleShake(true);
@@ -1075,7 +1114,7 @@ export default function App() {
     }
 
     setTimeout(() => {
-      const damage = Math.floor((move.power * (playerPkmn.level / 5)) + 2);
+      const damage = Math.floor((move.power * (playerPkmn.level / 6)) + 1);
       const newEnemyHP = Math.max(0, enemyPokemon.hp - damage);
       
       setEnemyAnim('hit');
@@ -1415,37 +1454,8 @@ export default function App() {
 
       {/* Mobile Controls (Visible on small screens) */}
       <div className="fixed bottom-0 left-0 w-full p-6 lg:hidden flex justify-between items-end z-30 pointer-events-none">
-        {/* D-Pad */}
-        <div className="flex flex-col gap-1 pointer-events-auto">
-          <div className="flex justify-center">
-            <button 
-              onPointerDown={(e) => { e.preventDefault(); handleMove('up'); }} 
-              className="w-16 h-16 bg-slate-800/80 backdrop-blur-md rounded-xl flex items-center justify-center text-white active:bg-red-500 shadow-lg border-2 border-white/10"
-            >
-              <ChevronUp size={32} />
-            </button>
-          </div>
-          <div className="flex gap-1">
-            <button 
-              onPointerDown={(e) => { e.preventDefault(); handleMove('left'); }} 
-              className="w-16 h-16 bg-slate-800/80 backdrop-blur-md rounded-xl flex items-center justify-center text-white active:bg-red-500 shadow-lg border-2 border-white/10"
-            >
-              <ChevronLeft size={32} />
-            </button>
-            <button 
-              onPointerDown={(e) => { e.preventDefault(); handleMove('down'); }} 
-              className="w-16 h-16 bg-slate-800/80 backdrop-blur-md rounded-xl flex items-center justify-center text-white active:bg-red-500 shadow-lg border-2 border-white/10"
-            >
-              <ChevronDown size={32} />
-            </button>
-            <button 
-              onPointerDown={(e) => { e.preventDefault(); handleMove('right'); }} 
-              className="w-16 h-16 bg-slate-800/80 backdrop-blur-md rounded-xl flex items-center justify-center text-white active:bg-red-500 shadow-lg border-2 border-white/10"
-            >
-              <ChevronRight size={32} />
-            </button>
-          </div>
-        </div>
+        {/* Joystick */}
+        <Joystick onMove={(dir) => dir && handleMove(dir)} />
 
         {/* Action Buttons */}
         <div className="flex gap-4 pointer-events-auto mb-4">
@@ -1513,6 +1523,9 @@ export default function App() {
                 { icon: Settings, label: 'Guardar', color: 'bg-slate-500', action: () => {
                   soundManager.play('SELECT');
                   setDialogue("¡Partida guardada correctamente!");
+                } },
+                { icon: X, label: 'Reiniciar', color: 'bg-red-500', action: () => {
+                  resetGame();
                 } },
               ].map((item, i) => (
                 <button 
