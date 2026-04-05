@@ -10,6 +10,8 @@ export interface Move {
   type: string;
   power: number;
   accuracy: number;
+  statusEffect?: 'paralyzed' | 'sleep' | 'poison' | 'burn' | 'frozen';
+  statusChance?: number;
 }
 
 export interface Pokemon {
@@ -23,6 +25,16 @@ export interface Pokemon {
   sprite: string;
   exp?: number;
   expToNextLevel?: number;
+  status?: 'none' | 'paralyzed' | 'sleep' | 'poison' | 'burn' | 'frozen';
+  evolutionLevel?: number;
+  evolvesTo?: string;
+  movesToLearn?: { level: number, move: Move }[];
+}
+
+export interface PokemonSummary {
+  id: string;
+  name: string;
+  sprite: string;
 }
 
 export interface InventoryItem {
@@ -141,3 +153,41 @@ for (let i = 0; i < GRID_SIZE; i++) {
   }
 }
 MAP_POKEMART[15][10] = { type: 'carpet', walkable: true }; // Exit
+
+// --- VIRIDIAN FOREST ---
+export const MAP_VIRIDIAN_FOREST = createEmptyMap('grass', true);
+for (let i = 0; i < GRID_SIZE; i++) {
+  for (let j = 0; j < GRID_SIZE; j++) {
+    if (j < 3 || j > 16 || i < 2 || i > 17) {
+      MAP_VIRIDIAN_FOREST[i][j] = { type: 'tree', walkable: false };
+    }
+    // Add some random trees inside
+    if (Math.random() < 0.1 && j > 5 && j < 14 && i > 5 && i < 14) {
+      MAP_VIRIDIAN_FOREST[i][j] = { type: 'tree', walkable: false };
+    }
+  }
+}
+
+// --- PEWTER CITY ---
+export const MAP_PEWTER_CITY = createEmptyMap('path', true);
+for (let i = 0; i < GRID_SIZE; i++) {
+  for (let j = 0; j < GRID_SIZE; j++) {
+    if (i < 2 || i > 17 || j < 2 || j > 17) {
+      MAP_PEWTER_CITY[i][j] = { type: 'wall', walkable: false };
+    }
+  }
+}
+addHouse(MAP_PEWTER_CITY, 4, 4, 4, 4); // PokeCenter
+addHouse(MAP_PEWTER_CITY, 12, 4, 4, 4); // PokeMart
+addHouse(MAP_PEWTER_CITY, 8, 10, 5, 4); // Pewter Gym
+
+// --- PEWTER GYM ---
+export const MAP_PEWTER_GYM = createEmptyMap('floor', true);
+for (let i = 0; i < GRID_SIZE; i++) {
+  for (let j = 0; j < GRID_SIZE; j++) {
+    if (i < 5 || i > 15 || j < 5 || j > 15) {
+      MAP_PEWTER_GYM[i][j] = { type: 'wall', walkable: false };
+    }
+  }
+}
+MAP_PEWTER_GYM[15][10] = { type: 'carpet', walkable: true }; // Exit
