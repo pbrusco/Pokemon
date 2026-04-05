@@ -395,15 +395,15 @@ const DialogueBox = ({ text, onComplete }: { text: string, onComplete: () => voi
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 100, opacity: 0 }}
-      className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[95%] max-w-3xl bg-white border-[6px] border-[#58c8f8] rounded-[2.5rem] p-8 shadow-2xl z-50 cursor-pointer pk-dialogue-shadow"
+      className="fixed bottom-40 sm:bottom-8 left-1/2 -translate-x-1/2 w-[95%] max-w-3xl bg-white border-[4px] sm:border-[6px] border-[#58c8f8] rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-8 shadow-2xl z-50 cursor-pointer pk-dialogue-shadow"
       onClick={() => {
         soundManager.play('SELECT');
         onComplete();
       }}
     >
-      <div className="flex items-start gap-6">
+      <div className="flex items-start gap-3 sm:gap-6">
         <div className="flex-1">
-          <p className="text-2xl font-bold text-[#383838] leading-relaxed font-sans tracking-tight">
+          <p className="text-lg sm:text-2xl font-bold text-[#383838] leading-relaxed font-sans tracking-tight">
             {text}
           </p>
           <div className="mt-4 flex justify-end">
@@ -435,7 +435,22 @@ export default function App() {
   const [defeatedTrainers, setDefeatedTrainers] = useState<string[]>([]);
   const [isBattle, setIsBattle] = useState(false);
   const [showBattleTransition, setShowBattleTransition] = useState(false);
-  const [windowSize, setWindowSize] = useState({ width: typeof window !== 'undefined' ? window.innerWidth : 1200, height: typeof window !== 'undefined' ? window.innerHeight : 800 });
+  const [windowSize, setWindowSize] = useState({ 
+    width: typeof window !== 'undefined' ? window.innerWidth : 1200, 
+    height: typeof window !== 'undefined' ? window.innerHeight : 800 
+  });
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+    handleResize(); // Update on mount
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Pokémon State
   const [playerTeam, setPlayerTeam] = useState<Pokemon[]>([]);
@@ -1047,7 +1062,7 @@ export default function App() {
   }, [handleMove, handleAction, dialogue, isBattle]);
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center overflow-hidden font-sans selection:bg-red-500 selection:text-white">
+    <div className="h-screen bg-slate-900 flex flex-col items-center justify-center overflow-hidden font-sans selection:bg-red-500 selection:text-white">
       
       {/* Scanline Effect */}
       <div className="scanline" />
@@ -1064,7 +1079,7 @@ export default function App() {
       </div>
 
       {/* World Container */}
-      <div className="relative w-full h-full flex items-center justify-center">
+      <div className="relative flex-1 w-full overflow-hidden">
         {/* HP HUD */}
         <AnimatePresence>
           {playerTeam.length > 0 && !isBattle && (
@@ -1072,15 +1087,15 @@ export default function App() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="fixed top-24 left-8 z-20 bg-white/90 backdrop-blur-md p-4 rounded-2xl border-2 border-slate-800 shadow-xl w-48"
+              className="fixed top-24 sm:top-24 left-4 sm:left-8 z-20 bg-white/90 backdrop-blur-md p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-slate-800 shadow-xl w-32 sm:w-48"
             >
               <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-black text-slate-800 uppercase tracking-tighter">{playerTeam[0].name}</span>
-                <span className="text-[10px] font-mono font-bold text-slate-500">Lv {playerTeam[0].level}</span>
+                <span className="text-[8px] sm:text-[10px] font-black text-slate-800 uppercase tracking-tighter">{playerTeam[0].name}</span>
+                <span className="text-[8px] sm:text-[10px] font-mono font-bold text-slate-500">Lv {playerTeam[0].level}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[8px] font-black text-yellow-600">HP</span>
-                <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-300">
+                <span className="text-[6px] sm:text-[8px] font-black text-yellow-600">HP</span>
+                <div className="flex-1 h-1.5 sm:h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-300">
                   <motion.div 
                     initial={false}
                     animate={{ width: `${(playerTeam[0].hp / playerTeam[0].maxHp) * 100}%` }}
@@ -1088,15 +1103,16 @@ export default function App() {
                   />
                 </div>
               </div>
-              <div className="text-right mt-1">
-                <span className="text-[10px] font-mono font-bold text-slate-600">{playerTeam[0].hp}/{playerTeam[0].maxHp}</span>
+              <div className="text-right mt-0.5 sm:mt-1">
+                <span className="text-[8px] sm:text-[10px] font-mono font-bold text-slate-600">{playerTeam[0].hp}/{playerTeam[0].maxHp}</span>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         <motion.div 
-          className="relative bg-emerald-50 rounded-[2rem] shadow-2xl overflow-hidden border-8 border-slate-800"
+          className="absolute bg-emerald-50 rounded-[2rem] shadow-2xl overflow-hidden border-8 border-slate-800"
+          initial={false}
           animate={{ 
             x: -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2),
             y: -playerPos.y * TILE_SIZE + (windowSize.height / 2) - (TILE_SIZE / 2)
@@ -1361,16 +1377,16 @@ export default function App() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1, x: battleShake ? [0, -10, 10, -10, 10, 0] : 0 }}
             exit={{ opacity: 0, scale: 1.1 }}
-            className="fixed inset-0 z-[90] bg-slate-900 flex flex-col items-center justify-center p-8"
+            className="fixed inset-0 z-[90] bg-slate-900 flex flex-col items-center justify-center p-4 sm:p-8"
           >
-            <div className="w-full max-w-4xl flex flex-col gap-8">
+            <div className="w-full max-w-4xl flex flex-col gap-4 sm:gap-8">
               {/* Enemy */}
               <div className="flex justify-end">
-                <div className="bg-white/10 p-8 rounded-3xl border-2 border-white/20 flex items-center gap-8">
+                <div className="bg-white/10 p-4 sm:p-8 rounded-3xl border-2 border-white/20 flex items-center gap-4 sm:gap-8">
                   <div className="text-right">
-                    <h3 className="text-white font-bold text-2xl uppercase">{enemyPokemon?.name}</h3>
-                    <p className="text-emerald-400 font-mono">Lv {enemyPokemon?.level}</p>
-                    <div className="w-48 h-2 bg-slate-700 rounded-full mt-2 overflow-hidden">
+                    <h3 className="text-white font-bold text-lg sm:text-2xl uppercase">{enemyPokemon?.name}</h3>
+                    <p className="text-emerald-400 font-mono text-xs sm:text-base">Lv {enemyPokemon?.level}</p>
+                    <div className="w-32 sm:w-48 h-2 bg-slate-700 rounded-full mt-2 overflow-hidden">
                       <motion.div 
                         initial={{ width: '100%' }}
                         animate={{ width: `${(enemyPokemon?.hp || 0) / (enemyPokemon?.maxHp || 1) * 100}%` }}
@@ -1378,7 +1394,7 @@ export default function App() {
                       />
                     </div>
                   </div>
-                  <div className="w-32 h-32 bg-white/5 rounded-full flex items-center justify-center text-4xl">
+                  <div className="w-20 h-20 sm:w-32 sm:h-32 bg-white/5 rounded-full flex items-center justify-center text-2xl sm:text-4xl">
                     <motion.div 
                       variants={{
                         idle: { 
@@ -1533,8 +1549,8 @@ export default function App() {
 
               {/* Player */}
               <div className="flex justify-start">
-                <div className="bg-white/10 p-8 rounded-3xl border-2 border-white/20 flex items-center gap-8">
-                  <div className="w-32 h-32 bg-white/5 rounded-full flex items-center justify-center text-4xl">
+                <div className="bg-white/10 p-4 sm:p-8 rounded-3xl border-2 border-white/20 flex items-center gap-4 sm:gap-8">
+                  <div className="w-20 h-20 sm:w-32 sm:h-32 bg-white/5 rounded-full flex items-center justify-center text-2xl sm:text-4xl">
                     <motion.div 
                       variants={{
                         idle: { 
@@ -1566,9 +1582,9 @@ export default function App() {
                     </motion.div>
                   </div>
                   <div>
-                    <h3 className="text-white font-bold text-2xl uppercase">{playerTeam[0]?.name}</h3>
-                    <p className="text-emerald-400 font-mono">Lv {playerTeam[0]?.level}</p>
-                    <div className="w-48 h-2 bg-slate-700 rounded-full mt-2 overflow-hidden">
+                    <h3 className="text-white font-bold text-lg sm:text-2xl uppercase">{playerTeam[0]?.name}</h3>
+                    <p className="text-emerald-400 font-mono text-xs sm:text-base">Lv {playerTeam[0]?.level}</p>
+                    <div className="w-32 sm:w-48 h-2 bg-slate-700 rounded-full mt-2 overflow-hidden">
                       <motion.div 
                         initial={{ width: '100%' }}
                         animate={{ width: `${(playerTeam[0]?.hp || 0) / (playerTeam[0]?.maxHp || 1) * 100}%` }}
@@ -1576,7 +1592,7 @@ export default function App() {
                       />
                     </div>
                     {/* EXP Bar */}
-                    <div className="w-48 h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                    <div className="w-32 sm:w-48 h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
                       <motion.div 
                         initial={{ width: '0%' }}
                         animate={{ width: `${(playerTeam[0]?.exp || 0) / (playerTeam[0]?.expToNextLevel || 100) * 100}%` }}
@@ -1665,7 +1681,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Overlay Vignette */}
-      <div className="fixed inset-0 pointer-events-none shadow-[inset_0_0_200px_rgba(0,0,0,0.5)] z-10" />
+      <div className="fixed inset-0 pointer-events-none shadow-[inset_0_0_40px_rgba(0,0,0,0.2)] z-10" />
     </div>
   );
 }
