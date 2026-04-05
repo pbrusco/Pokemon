@@ -1,0 +1,1671 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  User, 
+  Home, 
+  Trees as Tree, 
+  DoorOpen, 
+  MessageSquare, 
+  ChevronUp, 
+  ChevronDown, 
+  ChevronLeft, 
+  ChevronRight,
+  Backpack,
+  Settings,
+  Map as MapIcon,
+  Package,
+  Zap,
+  Circle,
+  X,
+  Gamepad2
+} from 'lucide-react';
+import { Direction, Position, TILE_SIZE, GRID_SIZE, MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, NPC, Entity, Pokemon, Move, InventoryItem } from './types';
+import { soundManager } from './lib/sounds';
+
+// --- Constants & Data ---
+
+const ITEMS_DATABASE: Record<string, InventoryItem> = {
+  OAK_PARCEL: { id: 'OAK_PARCEL', name: 'PAQUETE OAK', description: 'Un paquete para el Prof. Oak.', icon: '📦', type: 'key_item' },
+  POTION: { id: 'POTION', name: 'POCIÓN', description: 'Restaura 20 PS de un Pokémon.', icon: '🧪', type: 'potion' },
+  POKEBALL: { id: 'POKEBALL', name: 'POKÉ BALL', description: 'Sirve para atrapar Pokémon salvajes.', icon: '🔴', type: 'pokeball' },
+};
+
+const MOVES: Record<string, Move> = {
+  TACKLE: { name: 'PLACAJE', type: 'normal', power: 40, accuracy: 100 },
+  THUNDERSHOCK: { name: 'IMPACTRUENO', type: 'electric', power: 40, accuracy: 100 },
+  SCRATCH: { name: 'ARAÑAZO', type: 'normal', power: 40, accuracy: 100 },
+  GROWL: { name: 'GRUÑIDO', type: 'normal', power: 0, accuracy: 100 },
+  GUST: { name: 'TORNADO', type: 'flying', power: 40, accuracy: 100 },
+  STRING_SHOT: { name: 'DISP. SEDA', type: 'bug', power: 0, accuracy: 95 },
+  PECK: { name: 'PICOTAZO', type: 'flying', power: 35, accuracy: 100 },
+};
+
+const STARTERS: Pokemon[] = [
+  { id: 'bulbasaur', name: 'BULBASAUR', level: 5, hp: 20, maxHp: 20, type: 'grass', moves: [MOVES.TACKLE, MOVES.GROWL], sprite: '🍃', exp: 0, expToNextLevel: 100 },
+  { id: 'charmander', name: 'CHARMANDER', level: 5, hp: 20, maxHp: 20, type: 'fire', moves: [MOVES.SCRATCH, MOVES.GROWL], sprite: '🔥', exp: 0, expToNextLevel: 100 },
+  { id: 'squirtle', name: 'SQUIRTLE', level: 5, hp: 20, maxHp: 20, type: 'water', moves: [MOVES.TACKLE, MOVES.GROWL], sprite: '💧', exp: 0, expToNextLevel: 100 },
+];
+
+const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {
+  MAP_ROUTE_1: [
+    { id: 'pidgey', name: 'PIDGEY', level: 3, hp: 16, maxHp: 16, type: 'flying', moves: [MOVES.TACKLE, MOVES.GUST], sprite: '🐦', exp: 0, expToNextLevel: 60 },
+    { id: 'rattata', name: 'RATTATA', level: 3, hp: 15, maxHp: 15, type: 'normal', moves: [MOVES.TACKLE, MOVES.SCRATCH], sprite: '🐭', exp: 0, expToNextLevel: 60 },
+    { id: 'caterpie', name: 'CATERPIE', level: 2, hp: 14, maxHp: 14, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: '🐛', exp: 0, expToNextLevel: 40 },
+    { id: 'weedle', name: 'WEEDLE', level: 2, hp: 14, maxHp: 14, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: '🐝', exp: 0, expToNextLevel: 40 },
+    { id: 'spearow', name: 'SPEAROW', level: 4, hp: 18, maxHp: 18, type: 'flying', moves: [MOVES.PECK, MOVES.GROWL], sprite: '🦅', exp: 0, expToNextLevel: 80 },
+    { id: 'mankey', name: 'MANKEY', level: 4, hp: 22, maxHp: 22, type: 'fighting', moves: [MOVES.SCRATCH, MOVES.TACKLE], sprite: '🐒', exp: 0, expToNextLevel: 80 },
+    { id: 'pikachu', name: 'PIKACHU', level: 5, hp: 25, maxHp: 25, type: 'electric', moves: [MOVES.THUNDERSHOCK, MOVES.GROWL], sprite: '⚡', exp: 0, expToNextLevel: 100 },
+  ]
+};
+
+// --- Components ---
+
+const NPCComponent = ({ npc }: { npc: NPC, key?: string }) => {
+  return (
+    <motion.div
+      className="absolute top-0 left-0 z-20 flex items-center justify-center"
+      animate={{ 
+        x: npc.position.x * TILE_SIZE, 
+        y: npc.position.y * TILE_SIZE,
+      }}
+      style={{ width: TILE_SIZE, height: TILE_SIZE }}
+    >
+      <div className="relative">
+        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-2 bg-black/20 rounded-full blur-sm" />
+        <div className="w-11 h-13 bg-white rounded-lg border-[3px] border-[#383838] shadow-md flex flex-col items-center overflow-hidden">
+          {/* Hair/Head */}
+          <div className="w-full h-1/3 bg-[#d8d8d8] border-b-2 border-[#383838]" />
+          {/* Face */}
+          <div className="w-full h-1/3 bg-[#f8d8b0] flex items-center justify-center gap-1">
+            <div className="w-0.5 h-0.5 bg-[#383838] rounded-full" />
+            <div className="w-0.5 h-0.5 bg-[#383838] rounded-full" />
+          </div>
+          {/* Body */}
+          <div className="w-full h-1/3 bg-[#f8f8f8]" />
+        </div>
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white/90 px-3 py-1 rounded-full border-2 border-[#58c8f8] shadow-sm">
+          <span className="text-[11px] font-black text-[#383838] whitespace-nowrap uppercase tracking-wider">{npc.name}</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const ShopUI = ({ onBuy, onClose }: { onBuy: (itemId: string) => void, onClose: () => void }) => {
+  const shopItems = ['POTION', 'POKEBALL'];
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-800">
+        <div className="bg-blue-600 p-6 text-white flex justify-between items-center">
+          <h2 className="text-xl font-black italic tracking-tighter uppercase">Poké Mart</h2>
+          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors"><X size={20} /></button>
+        </div>
+        <div className="p-6 space-y-4">
+          {shopItems.map(id => {
+            const item = ITEMS_DATABASE[id];
+            return (
+              <button 
+                key={id}
+                onClick={() => {
+                  onBuy(id);
+                  soundManager.play('SELECT');
+                }}
+                className="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 transition-all group"
+              >
+                <span className="text-2xl">{item.icon}</span>
+                <div className="flex-1 text-left">
+                  <h3 className="font-bold text-slate-800 uppercase text-sm">{item.name}</h3>
+                  <p className="text-[10px] text-slate-500">Objeto útil para tu viaje</p>
+                </div>
+                <span className="font-mono font-bold text-blue-600">$200</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const BattleTransition = ({ onComplete }: { onComplete: () => void }) => {
+  return (
+    <motion.div 
+      initial={{ scale: 0, rotate: 0, opacity: 0 }}
+      animate={{ 
+        scale: [0, 1.5, 1], 
+        rotate: [0, 360, 720], 
+        opacity: [0, 1, 1] 
+      }}
+      exit={{ opacity: 0, scale: 2 }}
+      onAnimationComplete={onComplete}
+      className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+    >
+      <div className="w-full h-full bg-[radial-gradient(circle,rgba(255,255,255,0.2)_0%,transparent_70%)]" />
+      <motion.div 
+        animate={{ scale: [1, 1.2, 1] }}
+        transition={{ repeat: Infinity, duration: 0.5 }}
+        className="absolute text-white font-black text-6xl italic tracking-tighter"
+      >
+        ¡BATTLE!
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const InventoryUI = ({ items, onClose, onUse }: { items: string[], onClose: () => void, onUse?: (itemId: string) => void }) => {
+  const inventoryItems = items.map(id => ITEMS_DATABASE[id]).filter(Boolean);
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 50 }}
+      className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4"
+    >
+      <div className="w-full max-w-2xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
+        <div className="bg-red-600 p-6 flex justify-between items-center text-white">
+          <div className="flex items-center gap-3">
+            <Backpack size={32} />
+            <h2 className="text-2xl font-black italic uppercase tracking-tighter">Mochila</h2>
+          </div>
+          <button onClick={() => {
+            soundManager.play('SELECT');
+            onClose();
+          }} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+            <X size={24} />
+          </button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-6">
+          {inventoryItems.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4">
+              <Package size={64} strokeWidth={1} />
+              <p className="font-bold uppercase tracking-widest text-sm">Tu mochila está vacía</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {items.map((id, i) => {
+                const item = ITEMS_DATABASE[id];
+                if (!item) return null;
+                return (
+                  <motion.div 
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    onClick={() => {
+                      if (onUse) onUse(id);
+                      onClose();
+                    }}
+                    className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border-2 border-slate-100 hover:border-red-200 hover:bg-red-50 transition-all group cursor-pointer"
+                  >
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform">
+                      {item.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-black text-slate-800 uppercase text-sm">{item.name}</h3>
+                      <p className="text-xs text-slate-500 leading-tight">{item.description}</p>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        
+        <div className="bg-slate-50 p-4 border-t border-slate-100 text-center">
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Selecciona un objeto para usarlo</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+interface TileProps {
+  type: string;
+  key?: string;
+}
+
+const GameTile = ({ type }: TileProps) => {
+  const getTileStyle = () => {
+    switch (type) {
+      case 'grass': return 'bg-[#88d8b0] border-[#78c8a0]/30';
+      case 'path': return 'bg-[#e0f8d0] border-[#d0e8c0]/50';
+      case 'wall': return 'bg-[#f8f8f8] border-[#d8d8d8]';
+      case 'door': return 'bg-[#a05030] border-[#803010]';
+      case 'floor': return 'bg-[#f0f0f0] border-[#e0e0e0]';
+      case 'carpet': return 'bg-[#f85858] border-[#d83838]';
+      case 'table': return 'bg-[#d8d8d8] border-[#383838]';
+      case 'tree': return 'bg-[#88d8b0] border-[#78c8a0]/30';
+      case 'sign': return 'bg-[#e0f8d0] border-[#d0e8c0]/50';
+      default: return 'bg-white';
+    }
+  };
+
+  return (
+    <div 
+      className={`w-[${TILE_SIZE}px] h-[${TILE_SIZE}px] border-[0.5px] relative overflow-hidden transition-colors duration-500 ${getTileStyle()}`}
+      style={{ width: TILE_SIZE, height: TILE_SIZE }}
+    >
+      {type === 'sign' && (
+        <div className="w-full h-full flex flex-col items-center justify-center relative">
+          <div className="w-1 h-3 bg-[#a05030] border-x-2 border-[#383838] absolute bottom-2" />
+          <div className="w-10 h-8 bg-[#d8b888] border-2 border-[#383838] rounded-sm absolute bottom-5 flex flex-col items-center justify-center gap-1">
+            <div className="w-6 h-0.5 bg-[#383838]/20" />
+            <div className="w-6 h-0.5 bg-[#383838]/20" />
+          </div>
+        </div>
+      )}
+      {type === 'tree' && (
+        <div className="w-full h-full flex flex-col items-center justify-center relative">
+          <div className="absolute bottom-1 w-4 h-6 bg-[#a05030] border-x-2 border-b-2 border-[#383838]" />
+          <div className="absolute bottom-4 w-12 h-12 bg-[#88d8b0] border-2 border-[#383838] rounded-full flex flex-col items-center justify-center gap-1 shadow-sm">
+            <div className="w-8 h-1 bg-white/20 rounded-full" />
+            <div className="w-6 h-1 bg-white/20 rounded-full" />
+          </div>
+        </div>
+      )}
+      {type === 'grass' && (
+        <div className="absolute inset-0 opacity-40">
+          <div className="w-full h-full bg-[radial-gradient(circle,#58a880_1px,transparent_1px)] bg-[size:12px_12px]" />
+          <div className="absolute top-2 left-2 w-1 h-2 bg-[#58a880] rounded-full rotate-12" />
+          <div className="absolute bottom-3 right-4 w-1 h-3 bg-[#58a880] rounded-full -rotate-12" />
+        </div>
+      )}
+      {type === 'wall' && (
+        <div className="w-full h-full flex flex-col items-center justify-center">
+          <div className="w-full h-1/3 bg-[#f85858] border-b-2 border-[#383838]" />
+          <div className="w-full h-2/3 bg-[#f8f8f8] flex items-center justify-center">
+             <div className="w-4 h-4 border-2 border-[#d8d8d8] rounded-sm" />
+          </div>
+        </div>
+      )}
+      {type === 'door' && (
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="w-10 h-12 bg-[#a05030] border-2 border-[#383838] rounded-t-sm flex items-center justify-center">
+            <div className="w-2 h-2 bg-yellow-400 rounded-full ml-4" />
+          </div>
+        </div>
+      )}
+      {type === 'carpet' && (
+        <div className="w-full h-full flex items-center justify-center opacity-40">
+          <div className="w-8 h-2 bg-white/30 rounded-full" />
+        </div>
+      )}
+      {type === 'table' && (
+        <div className="w-full h-full flex flex-col items-center justify-center">
+          <div className="w-full h-1/2 bg-[#d8d8d8] border-b-2 border-[#383838]" />
+          <div className="w-full h-1/2 bg-[#b8b8b8]" />
+        </div>
+      )}
+      {type === 'path' && (
+        <div className="absolute inset-0 opacity-20">
+          <div className="w-full h-full bg-[radial-gradient(circle,#c0d8b0_1px,transparent_1px)] bg-[size:16px_16px]" />
+        </div>
+      )}
+    </div>
+  );
+};
+
+const Player = ({ position, direction, isMoving }: { position: Position, direction: Direction, isMoving: boolean }) => {
+  const getRotation = () => {
+    switch (direction) {
+      case 'up': return 0;
+      case 'down': return 180;
+      case 'left': return -90;
+      case 'right': return 90;
+      default: return 0;
+    }
+  };
+
+  return (
+    <motion.div
+      className="absolute top-0 left-0 z-30 flex items-center justify-center"
+      initial={false}
+      animate={{ 
+        x: position.x * TILE_SIZE, 
+        y: position.y * TILE_SIZE,
+      }}
+      transition={{ 
+        type: "spring", 
+        stiffness: 300, 
+        damping: 30,
+        mass: 0.8
+      }}
+      style={{ width: TILE_SIZE, height: TILE_SIZE }}
+    >
+      <div className="relative">
+        {/* Floating Indicator */}
+        <motion.div 
+          animate={{ y: [0, -10, 0] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+          className="absolute -top-12 left-1/2 -translate-x-1/2 text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]"
+        >
+          <ChevronDown size={32} strokeWidth={3} />
+        </motion.div>
+
+        {/* Shadow */}
+        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-10 h-3 bg-black/40 rounded-full blur-sm" />
+        
+        {/* Character Body - Pokémon Red Style */}
+        <motion.div 
+          animate={{ 
+            rotate: getRotation(),
+            scale: isMoving ? [1, 1.1, 1] : 1,
+            y: isMoving ? [0, -4, 0] : 0
+          }}
+          transition={{ 
+            scale: { repeat: Infinity, duration: 0.2 },
+            y: { repeat: Infinity, duration: 0.2 }
+          }}
+          className="w-12 h-14 bg-[#f85858] rounded-xl border-[3px] border-[#383838] shadow-lg flex flex-col items-center overflow-hidden"
+        >
+          {/* Hat */}
+          <div className="w-full h-1/3 bg-[#f85858] border-b-2 border-[#383838] flex items-center justify-center">
+            <div className="w-6 h-2 bg-white rounded-full mt-1" />
+          </div>
+          {/* Face */}
+          <div className="w-full h-1/3 bg-[#f8d8b0] flex items-center justify-center gap-2">
+            <div className="w-1 h-1 bg-[#383838] rounded-full" />
+            <div className="w-1 h-1 bg-[#383838] rounded-full" />
+          </div>
+          {/* Jacket */}
+          <div className="w-full h-1/3 bg-[#58c8f8] flex items-center justify-center">
+            <div className="w-4 h-full bg-white/30" />
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
+
+const DialogueBox = ({ text, onComplete }: { text: string, onComplete: () => void }) => {
+  return (
+    <motion.div 
+      initial={{ y: 100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: 100, opacity: 0 }}
+      className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[95%] max-w-3xl bg-white border-[6px] border-[#58c8f8] rounded-[2.5rem] p-8 shadow-2xl z-50 cursor-pointer pk-dialogue-shadow"
+      onClick={() => {
+        soundManager.play('SELECT');
+        onComplete();
+      }}
+    >
+      <div className="flex items-start gap-6">
+        <div className="flex-1">
+          <p className="text-2xl font-bold text-[#383838] leading-relaxed font-sans tracking-tight">
+            {text}
+          </p>
+          <div className="mt-4 flex justify-end">
+            <motion.div 
+              animate={{ y: [0, 6, 0] }}
+              transition={{ repeat: Infinity, duration: 1 }}
+              className="text-[#f85858]"
+            >
+              <div className="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-current" />
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// --- Main App ---
+
+export default function App() {
+  const [currentMap, setCurrentMap] = useState<'PALLET_TOWN' | 'OAKS_LAB' | 'ROUTE_1' | 'VIRIDIAN_CITY'>('PALLET_TOWN');
+  const [playerPos, setPlayerPos] = useState<Position>({ x: 10, y: 10 });
+  const [direction, setDirection] = useState<Direction>('down');
+  const [isMoving, setIsMoving] = useState(false);
+  const [dialogue, setDialogue] = useState<string | null>("¡Bienvenido a Pueblo Paleta! Usa las flechas para moverte.");
+  const [showMenu, setShowMenu] = useState(false);
+  const [showInventory, setShowInventory] = useState(false);
+  const [showShop, setShowShop] = useState(false);
+  const [defeatedTrainers, setDefeatedTrainers] = useState<string[]>([]);
+  const [isBattle, setIsBattle] = useState(false);
+  const [showBattleTransition, setShowBattleTransition] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: typeof window !== 'undefined' ? window.innerWidth : 1200, height: typeof window !== 'undefined' ? window.innerHeight : 800 });
+  
+  // Pokémon State
+  const [playerTeam, setPlayerTeam] = useState<Pokemon[]>([]);
+  const [enemyPokemon, setEnemyPokemon] = useState<Pokemon | null>(null);
+  const [battleLog, setBattleLog] = useState("");
+  const [playerAnim, setPlayerAnim] = useState<'idle' | 'attack' | 'hit' | 'faint'>('idle');
+  const [enemyAnim, setEnemyAnim] = useState<'idle' | 'attack' | 'hit' | 'faint'>('idle');
+  const [screenFlash, setScreenFlash] = useState(false);
+  const [hitEffect, setHitEffect] = useState<{ x: number, y: number, type: string } | null>(null);
+  const [projectile, setProjectile] = useState<{ type: string, from: 'player' | 'enemy' } | null>(null);
+  const [damageNumber, setDamageNumber] = useState<{ x: number, y: number, value: number } | null>(null);
+  const [battleShake, setBattleShake] = useState(false);
+  const [isCatching, setIsCatching] = useState(false);
+
+  // Story State
+  const [storyStep, setStoryStep] = useState<'START' | 'OAK_STOPPED' | 'IN_LAB' | 'PICKED_STARTER' | 'RIVAL_BATTLE' | 'EXPLORING'>('START');
+  const [inventory, setInventory] = useState<string[]>(['POTION', 'POKEBALL']);
+
+  const moveTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (isBattle) {
+      soundManager.play('BATTLE_START');
+    }
+  }, [isBattle]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (moveTimeout.current) clearTimeout(moveTimeout.current);
+    };
+  }, []);
+
+  const maps = {
+    PALLET_TOWN: MAP_PALLET_TOWN,
+    OAKS_LAB: MAP_OAKS_LAB,
+    ROUTE_1: MAP_ROUTE_1,
+    VIRIDIAN_CITY: MAP_VIRIDIAN_CITY,
+    POKECENTER: MAP_POKECENTER,
+    POKEMART: MAP_POKEMART
+  };
+
+  const npcs: Record<string, NPC[]> = {
+    PALLET_TOWN: [
+      { id: 'mom', name: 'MAMÁ', type: 'npc', position: { x: 7, y: 10 }, direction: 'down', dialogue: ["¡Ten cuidado ahí fuera, hijo!", "Recuerda que el Prof. Oak te está buscando."] },
+      { id: 'oak_pallet', name: 'PROF. OAK', type: 'npc', position: { x: 10, y: 4 }, direction: 'down', dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."] }
+    ],
+    OAKS_LAB: [
+      { id: 'oak', name: 'PROF. OAK', type: 'npc', position: { x: 10, y: 7 }, direction: 'down', dialogue: ["¡Hola Pablo! Por fin llegas.", "Toma uno de estos POKÉMON, te ayudará en tu viaje."] },
+      { id: 'rival', name: 'AZUL', type: 'npc', position: { x: 11, y: 7 }, direction: 'left', dialogue: ["¡Abuelo! ¡Yo también quiero un POKÉMON!", "¡Ja! Mi POKÉMON es mucho más fuerte que el tuyo."], isRival: true }
+    ],
+    ROUTE_1: [
+      { 
+        id: 'youngster_chano', 
+        name: 'JOVEN CHANO', 
+        type: 'npc', 
+        position: { x: 12, y: 10 }, 
+        direction: 'left', 
+        dialogue: ["¡Eh! ¡Tú! ¡Mis POKÉMON son de lo mejor!", "¡No me ignores cuando te hablo!"],
+        isTrainer: true,
+        trainerTeam: [
+          { id: 'rattata_t', name: 'RATTATA', level: 4, hp: 18, maxHp: 18, type: 'normal', moves: [MOVES.TACKLE, MOVES.SCRATCH], sprite: '🐭', exp: 0, expToNextLevel: 80 }
+        ]
+      },
+      { 
+        id: 'bug_catcher', 
+        name: 'CAZABICHOS', 
+        type: 'npc', 
+        position: { x: 7, y: 5 }, 
+        direction: 'right', 
+        dialogue: ["¿Te gustan los POKÉMON bicho?", "¡Son los más guays del mundo!"],
+        isTrainer: true,
+        trainerTeam: [
+          { id: 'caterpie_t', name: 'CATERPIE', level: 3, hp: 16, maxHp: 16, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: '🐛', exp: 0, expToNextLevel: 60 }
+        ]
+      }
+    ],
+    VIRIDIAN_CITY: [
+      { id: 'citizen', name: 'CIUDADANO', type: 'npc', position: { x: 10, y: 12 }, direction: 'down', dialogue: ["¡Bienvenido a Ciudad Verde!", "Aquí puedes curar a tus POKÉMON en el Centro."] }
+    ],
+    POKECENTER: [
+      { id: 'joy', name: 'ENFERMERA JOY', type: 'npc', position: { x: 10, y: 7 }, direction: 'down', dialogue: ["¡Hola! Bienvenida al CENTRO POKÉMON.", "Curaremos a tus POKÉMON hasta que estén a tope."] }
+    ],
+    POKEMART: [
+      { id: 'clerk', name: 'DEPENDIENTE', type: 'npc', position: { x: 7, y: 7 }, direction: 'down', dialogue: ["¡Hola! ¿En qué puedo ayudarte?", "Tengo un paquete para el PROF. OAK. ¿Se lo llevarías?"], questId: 'parcel' }
+    ]
+  };
+
+  const teleports: Record<string, Entity[]> = {
+    PALLET_TOWN: [
+      { id: 'to_lab', type: 'teleport', position: { x: 10, y: 14 }, direction: 'up', targetMap: 'OAKS_LAB', targetPos: { x: 10, y: 14 } },
+      { id: 'to_route1', type: 'teleport', position: { x: 10, y: 5 }, direction: 'up', targetMap: 'ROUTE_1', targetPos: { x: 10, y: 19 } }
+    ],
+    OAKS_LAB: [
+      { id: 'to_pallet', type: 'teleport', position: { x: 10, y: 15 }, direction: 'down', targetMap: 'PALLET_TOWN', targetPos: { x: 10, y: 14 } }
+    ],
+    ROUTE_1: [
+      { id: 'to_pallet_from_route1', type: 'teleport', position: { x: 10, y: 19 }, direction: 'down', targetMap: 'PALLET_TOWN', targetPos: { x: 10, y: 6 } },
+      { id: 'to_viridian', type: 'teleport', position: { x: 10, y: 0 }, direction: 'up', targetMap: 'VIRIDIAN_CITY', targetPos: { x: 10, y: 19 } }
+    ],
+    VIRIDIAN_CITY: [
+      { id: 'to_route1_from_viridian', type: 'teleport', position: { x: 10, y: 19 }, direction: 'down', targetMap: 'ROUTE_1', targetPos: { x: 10, y: 1 } },
+      { id: 'to_center', type: 'teleport', position: { x: 7, y: 8 }, direction: 'up', targetMap: 'POKECENTER', targetPos: { x: 10, y: 14 } },
+      { id: 'to_mart', type: 'teleport', position: { x: 14, y: 8 }, direction: 'up', targetMap: 'POKEMART', targetPos: { x: 10, y: 14 } }
+    ],
+    POKECENTER: [
+      { id: 'to_viridian', type: 'teleport', position: { x: 10, y: 16 }, direction: 'down', targetMap: 'VIRIDIAN_CITY', targetPos: { x: 7, y: 9 } }
+    ],
+    POKEMART: [
+      { id: 'to_viridian', type: 'teleport', position: { x: 10, y: 16 }, direction: 'down', targetMap: 'VIRIDIAN_CITY', targetPos: { x: 14, y: 9 } }
+    ]
+  };
+
+  const items: Record<string, Entity[]> = {
+    OAKS_LAB: [
+      { id: 'starter_1', type: 'item', position: { x: 9, y: 8 }, direction: 'down', sprite: STARTERS[0].sprite },
+      { id: 'starter_2', type: 'item', position: { x: 10, y: 8 }, direction: 'down', sprite: STARTERS[1].sprite },
+      { id: 'starter_3', type: 'item', position: { x: 11, y: 8 }, direction: 'down', sprite: STARTERS[2].sprite },
+    ],
+    PALLET_TOWN: [
+      { id: 'sign_home', type: 'object', position: { x: 8, y: 10 }, direction: 'down', sprite: '🪧' },
+      { id: 'sign_rival', type: 'object', position: { x: 12, y: 10 }, direction: 'down', sprite: '🪧' },
+      { id: 'sign_lab', type: 'object', position: { x: 11, y: 14 }, direction: 'down', sprite: '🪧' },
+    ],
+    ROUTE_1: [
+      { id: 'sign_route1', type: 'object', position: { x: 8, y: 15 }, direction: 'down', sprite: '🪧' },
+    ],
+    VIRIDIAN_CITY: []
+  };
+
+  const handleAction = useCallback(() => {
+    soundManager.play('SELECT');
+    if (dialogue) {
+      setDialogue(null);
+      return;
+    }
+    if (isBattle) return;
+
+    // Check what's in front of the player
+    let targetX = playerPos.x;
+    let targetY = playerPos.y;
+    switch (direction) {
+      case 'up': targetY--; break;
+      case 'down': targetY++; break;
+      case 'left': targetX--; break;
+      case 'right': targetX++; break;
+    }
+
+    // Check for NPC
+    const npc = npcs[currentMap].find(n => n.position.x === targetX && n.position.y === targetY);
+    if (npc) {
+      if (npc.id === 'mom' || npc.id === 'joy') {
+        const name = npc.id === 'mom' ? 'MAMÁ' : 'JOY';
+        setDialogue(`${name}: ¡Hola hijo! Pareces cansado. Deberías descansar un poco...`);
+        if (npc.id === 'joy') setDialogue("JOY: ¡Bienvenida al CENTRO POKÉMON! Curaremos a tus POKÉMON.");
+        
+        setTimeout(() => {
+          setDialogue("... ... ... ¡Tus POKÉMON están en plena forma!");
+          const healedTeam = playerTeam.map(p => ({ ...p, hp: p.maxHp }));
+          setPlayerTeam(healedTeam);
+          soundManager.play('SELECT');
+        }, 2000);
+      } else if (npc.id === 'clerk' && currentMap === 'POKEMART') {
+        setDialogue("DEPENDIENTE: ¡Hola! ¿Quieres comprar algo?");
+        setTimeout(() => setShowShop(true), 1000);
+      } else {
+        setDialogue(npc.dialogue[0]);
+      }
+      
+      if (npc.questId === 'parcel' && !inventory.includes('OAK_PARCEL')) {
+        setInventory(prev => [...prev, 'OAK_PARCEL']);
+        soundManager.play('SELECT');
+        setDialogue("DEPENDIENTE: ¡Gracias! Por favor, entrégaselo al PROF. OAK.");
+      }
+      return;
+    }
+
+    // Check for Item/Object
+    const item = items[currentMap].find(i => i.position.x === targetX && i.position.y === targetY);
+    if (item) {
+      if (item.type === 'item' && currentMap === 'OAKS_LAB' && playerTeam.length === 0) {
+        const starter = STARTERS.find(s => s.sprite === item.sprite);
+        if (starter) {
+          setPlayerTeam([starter]);
+          setDialogue(`¡Has elegido a ${starter.name}!`);
+          setStoryStep('PICKED_STARTER');
+          soundManager.play('SELECT');
+          setTimeout(() => {
+            setDialogue("AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!");
+            setEnemyPokemon({ ...STARTERS[1], name: 'RIVAL ' + STARTERS[1].name });
+            soundManager.play('BATTLE_START');
+            setShowBattleTransition(true);
+          }, 1500);
+        }
+      } else if (item.type === 'object') {
+        if (item.id === 'sign_home') setDialogue("CASA DE PABLO: Hogar, dulce hogar.");
+        if (item.id === 'sign_rival') setDialogue("CASA DE AZUL: ¡No pasar!");
+        if (item.id === 'sign_lab') setDialogue("LABORATORIO DEL PROF. OAK: Investigando POKÉMON.");
+        if (item.id === 'sign_route1') setDialogue("RUTA 1: Hacia CIUDAD VERDE.");
+      }
+      return;
+    }
+
+    // Check for hidden items in specific tiles
+    const map = maps[currentMap];
+    if (targetX >= 0 && targetX < GRID_SIZE && targetY >= 0 && targetY < GRID_SIZE) {
+      const tile = map[targetY][targetX];
+      if (tile.type === 'tree') {
+        setDialogue("Es un árbol muy robusto.");
+      } else if (tile.type === 'table') {
+        setDialogue("Hay muchos libros sobre POKÉMON aquí.");
+      } else if (tile.type === 'grass' && Math.random() < 0.05) {
+        if (!inventory.includes('POTION')) {
+          setInventory(prev => [...prev, 'POTION']);
+          soundManager.play('SELECT');
+          setDialogue("¡Has encontrado una POCIÓN escondida en la hierba!");
+        }
+      }
+    }
+  }, [playerPos, direction, currentMap, dialogue, isBattle, playerTeam, inventory, npcs, items, maps, storyStep]);
+
+  const handleMove = useCallback((dir: Direction) => {
+    if (isMoving || dialogue || isBattle) return;
+
+    setDirection(dir);
+    
+    let nextX = playerPos.x;
+    let nextY = playerPos.y;
+
+    switch (dir) {
+      case 'up': nextY--; break;
+      case 'down': nextY++; break;
+      case 'left': nextX--; break;
+      case 'right': nextX++; break;
+    }
+
+    // Story: Oak stops player
+    if (currentMap === 'PALLET_TOWN' && nextY === 5 && playerTeam.length === 0) {
+      setDialogue("OAK: ¡Espera! ¡No vayas por ahí!");
+      setStoryStep('OAK_STOPPED');
+      setTimeout(() => {
+        setCurrentMap('OAKS_LAB');
+        setPlayerPos({ x: 10, y: 14 });
+        setDialogue("OAK: ¡Es peligroso ir solo! Ven, elige un POKÉMON.");
+      }, 1000);
+      return;
+    }
+
+    // Boundary and collision check
+    const map = maps[currentMap];
+    if (
+      nextX >= 0 && nextX < GRID_SIZE && 
+      nextY >= 0 && nextY < GRID_SIZE && 
+      map[nextY][nextX].walkable
+    ) {
+      soundManager.play('MOVE');
+      setIsMoving(true);
+      setPlayerPos({ x: nextX, y: nextY });
+      
+      if (moveTimeout.current) clearTimeout(moveTimeout.current);
+      moveTimeout.current = setTimeout(() => {
+        setIsMoving(false);
+      }, 200);
+
+      // Check for teleports
+      const teleport = teleports[currentMap].find(t => t.position.x === nextX && t.position.y === nextY);
+      if (teleport && teleport.targetMap && teleport.targetPos) {
+        soundManager.play('SELECT');
+        setTimeout(() => {
+          setCurrentMap(teleport.targetMap as any);
+          setPlayerPos(teleport.targetPos!);
+        }, 200);
+      }
+
+      // Check for trainers
+      const currentMapTrainers = npcs[currentMap].filter(n => n.isTrainer && !defeatedTrainers.includes(n.id));
+      for (const trainer of currentMapTrainers) {
+        for (let i = 1; i <= 3; i++) {
+          let visionX = trainer.position.x;
+          let visionY = trainer.position.y;
+          if (trainer.direction === 'up') visionY -= i;
+          if (trainer.direction === 'down') visionY += i;
+          if (trainer.direction === 'left') visionX -= i;
+          if (trainer.direction === 'right') visionX += i;
+          
+          if (visionX === nextX && visionY === nextY) {
+            setDialogue(`${trainer.name}: ¡Eh! ¡Te he visto! ¡Vamos a luchar!`);
+            setTimeout(() => {
+              soundManager.play('BATTLE_START');
+              setEnemyPokemon(trainer.trainerTeam![0]);
+              setBattleLog(`¡${trainer.name} te desafía!`);
+              setShowBattleTransition(true);
+            }, 1500);
+            break;
+          }
+        }
+      }
+
+      // Random encounter chance in grass
+      if (map[nextY][nextX].type === 'grass' && Math.random() < 0.1 && playerTeam.length > 0) {
+        // Don't start battle if all pokemon are fainted
+        if (playerTeam.every(p => p.hp === 0)) return;
+
+        const routeWilds = WILD_POKEMON_DATABASE[currentMap] || WILD_POKEMON_DATABASE['MAP_ROUTE_1'];
+        const randomPkmn = routeWilds[Math.floor(Math.random() * routeWilds.length)];
+        const levelVariation = Math.floor(Math.random() * 3) - 1; // -1, 0, or +1
+        const finalLevel = Math.max(2, randomPkmn.level + levelVariation);
+        
+        soundManager.play('BATTLE_START');
+        setEnemyPokemon({ 
+          ...randomPkmn, 
+          level: finalLevel,
+          hp: randomPkmn.maxHp + (finalLevel - randomPkmn.level) * 2,
+          maxHp: randomPkmn.maxHp + (finalLevel - randomPkmn.level) * 2
+        });
+        setBattleLog(`¡Un ${randomPkmn.name} salvaje apareció!`);
+        setShowBattleTransition(true);
+      }
+    }
+  }, [playerPos, isMoving, dialogue, isBattle, currentMap, playerTeam, inventory]);
+
+  const handleEnemyTurn = () => {
+    if (!enemyPokemon || playerTeam.length === 0) return;
+    const playerPkmn = playerTeam[0];
+    
+    setTimeout(() => {
+      setEnemyAnim('attack');
+      const enemyMove = enemyPokemon.moves[0];
+      
+      if (enemyMove.type !== 'normal') {
+        setProjectile({ type: enemyMove.type, from: 'enemy' });
+        setTimeout(() => setProjectile(null), 600);
+      }
+
+      soundManager.play('HIT');
+      
+      setTimeout(() => {
+        setEnemyAnim('idle');
+        setPlayerAnim('hit');
+        soundManager.play('HIT');
+        setScreenFlash(true);
+        
+        const enemyDamage = Math.floor(Math.random() * 8) + 3;
+        setHitEffect({ x: 30, y: 70, type: enemyMove.type }); // Approximate player position
+        setDamageNumber({ x: 30, y: 60, value: enemyDamage });
+        setBattleShake(true);
+        setTimeout(() => {
+          setScreenFlash(false);
+          setHitEffect(null);
+          setDamageNumber(null);
+          setBattleShake(false);
+        }, 400);
+        const newPlayerHP = Math.max(0, playerPkmn.hp - enemyDamage);
+        const updatedTeam = [...playerTeam];
+        updatedTeam[0] = { ...playerPkmn, hp: newPlayerHP };
+        setPlayerTeam(updatedTeam);
+        setBattleLog(`¡${enemyPokemon.name} usó ${enemyPokemon.moves[0].name}! Causó ${enemyDamage} de daño.`);
+        
+        setTimeout(() => {
+          if (newPlayerHP === 0) {
+            const anyAlive = updatedTeam.some(p => p.hp > 0);
+            
+            if (!anyAlive) {
+              soundManager.play('FAINT');
+              setPlayerAnim('faint');
+              setBattleLog(`¡${playerPkmn.name} se debilitó! ¡No te quedan POKÉMON sanos!`);
+              
+              setTimeout(() => {
+                setDialogue("¡Te has quedado sin POKÉMON! ¡Te desmayaste!");
+                setIsBattle(false);
+                setShowBattleTransition(false);
+                setPlayerAnim('idle');
+                setPlayerPos({ x: 10, y: 10 });
+                setCurrentMap('PALLET_TOWN');
+                
+                // Heal entire team
+                const healedTeam = playerTeam.map(p => ({ ...p, hp: p.maxHp }));
+                setPlayerTeam(healedTeam);
+              }, 2000);
+            } else {
+              soundManager.play('FAINT');
+              setPlayerAnim('faint');
+              setBattleLog(`¡${playerPkmn.name} se debilitó! Huyes del combate...`);
+              setTimeout(() => {
+                setIsBattle(false);
+                setShowBattleTransition(false);
+                setPlayerAnim('idle');
+              }, 1500);
+            }
+          } else {
+            setPlayerAnim('idle');
+          }
+        }, 500);
+      }, 300);
+    }, 1000);
+  };
+
+  const handleCatch = () => {
+    if (!enemyPokemon) return;
+    
+    // Remove pokeball from inventory
+    setInventory(prev => {
+      const index = prev.indexOf('POKEBALL');
+      if (index > -1) {
+        const next = [...prev];
+        next.splice(index, 1);
+        return next;
+      }
+      return prev;
+    });
+
+    setBattleLog(`¡Pablo lanzó una POKÉ BALL!`);
+    setIsCatching(true);
+    soundManager.play('SELECT');
+    
+    // Catch logic: higher chance if HP is low
+    const hpPercent = enemyPokemon.hp / enemyPokemon.maxHp;
+    const catchRate = (1 - hpPercent) * 0.7 + 0.1; // 10% base, up to 80% at 0 HP
+    const roll = Math.random();
+    
+    setTimeout(() => {
+      if (roll < catchRate) {
+        soundManager.play('SELECT');
+        setBattleLog(`¡Ya está! ¡${enemyPokemon.name} atrapado!`);
+        
+        setTimeout(() => {
+          if (playerTeam.length < 6) {
+            setPlayerTeam(prev => [...prev, { ...enemyPokemon, hp: enemyPokemon.hp }]);
+          }
+          setIsBattle(false);
+          setShowBattleTransition(false);
+          setIsCatching(false);
+        }, 2000);
+      } else {
+        setBattleLog(`¡Oh, no! ¡El POKÉMON se ha escapado!`);
+        setTimeout(() => {
+          setIsCatching(false);
+          handleEnemyTurn();
+        }, 1500);
+      }
+    }, 2000);
+  };
+
+  const handleUseItem = (itemId: string) => {
+    if (!isBattle) {
+      if (itemId === 'POTION') {
+        const healedTeam = playerTeam.map(p => ({ ...p, hp: Math.min(p.maxHp, p.hp + 20) }));
+        setPlayerTeam(healedTeam);
+        setInventory(prev => {
+          const index = prev.indexOf('POTION');
+          if (index > -1) {
+            const next = [...prev];
+            next.splice(index, 1);
+            return next;
+          }
+          return prev;
+        });
+        setDialogue("¡Usaste una POCIÓN! Tus POKÉMON recuperaron salud.");
+      }
+      return;
+    }
+
+    if (itemId === 'POKEBALL') {
+      handleCatch();
+    } else if (itemId === 'POTION') {
+      // Use potion on first pokemon
+      const playerPkmn = playerTeam[0];
+      const newHP = Math.min(playerPkmn.maxHp, playerPkmn.hp + 20);
+      const updatedTeam = [...playerTeam];
+      updatedTeam[0] = { ...playerPkmn, hp: newHP };
+      setPlayerTeam(updatedTeam);
+      
+      setInventory(prev => {
+        const index = prev.indexOf('POTION');
+        if (index > -1) {
+          const next = [...prev];
+          next.splice(index, 1);
+          return next;
+        }
+        return prev;
+      });
+      
+      setBattleLog(`¡Usaste una POCIÓN en ${playerPkmn.name}!`);
+      handleEnemyTurn();
+    }
+  };
+
+  const handleAttack = () => {
+    if (!enemyPokemon || playerTeam.length === 0 || playerAnim !== 'idle' || enemyAnim !== 'idle') return;
+
+    const playerPkmn = playerTeam[0];
+    const damage = Math.floor(Math.random() * 10) + 5;
+    const newEnemyHP = Math.max(0, enemyPokemon.hp - damage);
+    
+    // Player Attack Animation
+    setPlayerAnim('attack');
+    const move = playerPkmn.moves[0];
+    
+    // Show Projectile for special moves
+    if (move.type !== 'normal') {
+      setProjectile({ type: move.type, from: 'player' });
+      setTimeout(() => setProjectile(null), 600);
+    }
+
+    soundManager.play('HIT');
+    
+    setTimeout(() => {
+      setPlayerAnim('idle');
+      setEnemyAnim('hit');
+      setScreenFlash(true);
+      setHitEffect({ x: 70, y: 30, type: move.type }); // Approximate enemy position
+      setDamageNumber({ x: 70, y: 20, value: damage });
+      setBattleShake(true);
+      setTimeout(() => {
+        setScreenFlash(false);
+        setHitEffect(null);
+        setDamageNumber(null);
+        setBattleShake(false);
+      }, 400);
+      
+      setEnemyPokemon({ ...enemyPokemon, hp: newEnemyHP });
+      setBattleLog(`¡${playerPkmn.name} usó ${playerPkmn.moves[0].name}! Causó ${damage} de daño.`);
+
+      setTimeout(() => {
+        if (newEnemyHP === 0) {
+          soundManager.play('FAINT');
+          setEnemyAnim('faint');
+          setBattleLog(`¡${enemyPokemon.name} se debilitó!`);
+          
+          // Check if it was a trainer pokemon
+          const trainer = npcs[currentMap].find(n => n.isTrainer && n.trainerTeam?.[0].id === enemyPokemon.id);
+          if (trainer) {
+            setDefeatedTrainers(prev => [...prev, trainer.id]);
+          }
+
+          // EXP Gain
+          const expGain = Math.floor((enemyPokemon.level * 25) / 1);
+          
+          setTimeout(() => {
+            setBattleLog(`¡${playerPkmn.name} ganó ${expGain} puntos de EXP!`);
+            
+            setPlayerTeam(prev => {
+              const updated = [...prev];
+              let pkmn = { ...updated[0] };
+              pkmn.exp = (pkmn.exp || 0) + expGain;
+              
+              const expNeeded = pkmn.expToNextLevel || 100;
+              if (pkmn.exp >= expNeeded) {
+                pkmn.level += 1;
+                pkmn.exp -= expNeeded;
+                pkmn.expToNextLevel = pkmn.level * 100;
+                pkmn.maxHp += 3;
+                pkmn.hp += 3;
+                setTimeout(() => {
+                  setBattleLog(`¡${pkmn.name} subió al nivel ${pkmn.level}!`);
+                  soundManager.play('SELECT');
+                }, 1500);
+              }
+              updated[0] = pkmn;
+              return updated;
+            });
+
+            setTimeout(() => {
+              setIsBattle(false);
+              setShowBattleTransition(false);
+              setEnemyAnim('idle');
+              if (storyStep === 'PICKED_STARTER') {
+                setStoryStep('RIVAL_BATTLE');
+                setDialogue("AZUL: ¡Maldición! ¡He perdido! Pero no volverá a pasar.");
+              }
+            }, 3000);
+          }, 1500);
+        } else {
+          setEnemyAnim('idle');
+          handleEnemyTurn();
+        }
+      }, 500);
+    }, 300);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isBattle) {
+        if (e.key === 'Escape') setIsBattle(false);
+        return;
+      }
+
+      if (dialogue) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'z') setDialogue(null);
+        return;
+      }
+
+      switch (e.key) {
+        case 'ArrowUp': handleMove('up'); break;
+        case 'ArrowDown': handleMove('down'); break;
+        case 'ArrowLeft': handleMove('left'); break;
+        case 'ArrowRight': handleMove('right'); break;
+        case 'z': case 'Enter': case ' ': handleAction(); break;
+        case 'x': case 'Shift': case 'Escape': setShowMenu(prev => !prev); break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleMove, handleAction, dialogue, isBattle]);
+
+  return (
+    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center overflow-hidden font-sans selection:bg-red-500 selection:text-white">
+      
+      {/* Scanline Effect */}
+      <div className="scanline" />
+
+      {/* Game Header */}
+      <div className="absolute top-8 left-8 z-20 flex items-center gap-4">
+        <div className="w-12 h-12 bg-red-600 rounded-xl shadow-lg flex items-center justify-center border-2 border-red-400">
+          <Gamepad2 className="text-white" size={24} />
+        </div>
+        <div>
+          <h1 className="text-white font-bold text-xl tracking-tight">POKÉMON FIRE RED</h1>
+          <p className="text-slate-400 text-xs font-mono uppercase tracking-widest">Modern Remake Engine</p>
+        </div>
+      </div>
+
+      {/* World Container */}
+      <div className="relative w-full h-full flex items-center justify-center">
+        {/* HP HUD */}
+        <AnimatePresence>
+          {playerTeam.length > 0 && !isBattle && (
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="fixed top-24 left-8 z-20 bg-white/90 backdrop-blur-md p-4 rounded-2xl border-2 border-slate-800 shadow-xl w-48"
+            >
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[10px] font-black text-slate-800 uppercase tracking-tighter">{playerTeam[0].name}</span>
+                <span className="text-[10px] font-mono font-bold text-slate-500">Lv {playerTeam[0].level}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[8px] font-black text-yellow-600">HP</span>
+                <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-300">
+                  <motion.div 
+                    initial={false}
+                    animate={{ width: `${(playerTeam[0].hp / playerTeam[0].maxHp) * 100}%` }}
+                    className={`h-full ${playerTeam[0].hp > playerTeam[0].maxHp / 2 ? 'bg-emerald-500' : playerTeam[0].hp > playerTeam[0].maxHp / 5 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                  />
+                </div>
+              </div>
+              <div className="text-right mt-1">
+                <span className="text-[10px] font-mono font-bold text-slate-600">{playerTeam[0].hp}/{playerTeam[0].maxHp}</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.div 
+          className="relative bg-emerald-50 rounded-[2rem] shadow-2xl overflow-hidden border-8 border-slate-800"
+          animate={{ 
+            x: -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2),
+            y: -playerPos.y * TILE_SIZE + (windowSize.height / 2) - (TILE_SIZE / 2)
+          }}
+          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+        >
+          {/* Map Grid */}
+          <div 
+            className="grid" 
+            style={{ 
+              gridTemplateColumns: `repeat(${GRID_SIZE}, ${TILE_SIZE}px)`,
+              width: GRID_SIZE * TILE_SIZE,
+              height: GRID_SIZE * TILE_SIZE
+            }}
+          >
+            {maps[currentMap].map((row, y) => 
+              row.map((tile, x) => (
+                <GameTile key={`${x}-${y}`} type={tile.type} />
+              ))
+            )}
+          </div>
+
+          {/* NPCs */}
+          {npcs[currentMap].map(npc => (
+            <NPCComponent key={npc.id} npc={npc} />
+          ))}
+
+          {/* Items / Pokéballs / Objects */}
+          {items[currentMap].map(item => (
+            <motion.div
+              key={item.id}
+              className="absolute top-0 left-0 z-20 flex items-center justify-center"
+              animate={{ x: item.position.x * TILE_SIZE, y: item.position.y * TILE_SIZE }}
+              style={{ width: TILE_SIZE, height: TILE_SIZE }}
+            >
+              {item.type === 'item' ? (
+                <div className="w-8 h-8 bg-red-500 rounded-full border-2 border-[#383838] flex items-center justify-center relative shadow-md">
+                  <div className="w-full h-0.5 bg-[#383838] absolute top-1/2 -translate-y-1/2" />
+                  <div className="w-2 h-2 bg-white border-2 border-[#383838] rounded-full z-10" />
+                  <div className="absolute -top-4 text-xs font-bold text-slate-400">{item.sprite}</div>
+                </div>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center relative">
+                  <div className="w-1 h-3 bg-[#a05030] border-x-2 border-[#383838] absolute bottom-2" />
+                  <div className="w-10 h-8 bg-[#d8b888] border-2 border-[#383838] rounded-sm absolute bottom-5 flex flex-col items-center justify-center gap-1">
+                    <div className="w-6 h-0.5 bg-[#383838]/20" />
+                    <div className="w-6 h-0.5 bg-[#383838]/20" />
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          ))}
+
+          {/* Player */}
+          <Player position={playerPos} direction={direction} isMoving={isMoving} />
+
+          {/* Interaction Indicator */}
+          <AnimatePresence>
+            {!isBattle && !dialogue && !isMoving && (() => {
+              let targetX = playerPos.x;
+              let targetY = playerPos.y;
+              switch (direction) {
+                case 'up': targetY--; break;
+                case 'down': targetY++; break;
+                case 'left': targetX--; break;
+                case 'right': targetX++; break;
+              }
+              
+              const interactable = 
+                npcs[currentMap].some(npc => npc.position.x === targetX && npc.position.y === targetY) ||
+                items[currentMap].some(item => item.position.x === targetX && item.position.y === targetY) ||
+                (targetX >= 0 && targetX < GRID_SIZE && targetY >= 0 && targetY < GRID_SIZE && 
+                 ['tree', 'table'].includes(maps[currentMap][targetY][targetX].type));
+              
+              if (!interactable) return null;
+
+              return (
+                <motion.div
+                  key="interact-indicator"
+                  initial={{ opacity: 0, y: 10, scale: 0.5 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  className="absolute z-30 pointer-events-none flex flex-col items-center"
+                  style={{ 
+                    left: targetX * TILE_SIZE, 
+                    top: targetY * TILE_SIZE - 24,
+                    width: TILE_SIZE
+                  }}
+                >
+                  <div className="bg-white/90 backdrop-blur-sm rounded-full w-6 h-6 shadow-lg border-2 border-blue-500 flex items-center justify-center animate-bounce">
+                    <span className="text-[10px] font-black text-blue-600">A</span>
+                  </div>
+                  <div className="w-2 h-2 bg-blue-500 rotate-45 -mt-1 shadow-sm" />
+                </motion.div>
+              );
+            })()}
+          </AnimatePresence>
+
+          {/* Fences */}
+          <div className="absolute top-0 left-0 pointer-events-none w-full h-full">
+            {[...Array(10)].map((_, i) => (
+              <div 
+                key={`fence-${i}`}
+                className="absolute w-16 h-8 border-b-4 border-x-2 border-[#383838] bg-[#d8d8d8]/50"
+                style={{ 
+                  top: '40%', 
+                  left: (15 + i * 5) + '%',
+                  zIndex: 20
+                }}
+              />
+            ))}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Mobile Controls (Visible on small screens) */}
+      <div className="fixed bottom-0 left-0 w-full p-6 lg:hidden flex justify-between items-end z-30 pointer-events-none">
+        {/* D-Pad */}
+        <div className="flex flex-col gap-1 pointer-events-auto">
+          <div className="flex justify-center">
+            <button 
+              onPointerDown={(e) => { e.preventDefault(); handleMove('up'); }} 
+              className="w-16 h-16 bg-slate-800/80 backdrop-blur-md rounded-xl flex items-center justify-center text-white active:bg-red-500 shadow-lg border-2 border-white/10"
+            >
+              <ChevronUp size={32} />
+            </button>
+          </div>
+          <div className="flex gap-1">
+            <button 
+              onPointerDown={(e) => { e.preventDefault(); handleMove('left'); }} 
+              className="w-16 h-16 bg-slate-800/80 backdrop-blur-md rounded-xl flex items-center justify-center text-white active:bg-red-500 shadow-lg border-2 border-white/10"
+            >
+              <ChevronLeft size={32} />
+            </button>
+            <button 
+              onPointerDown={(e) => { e.preventDefault(); handleMove('down'); }} 
+              className="w-16 h-16 bg-slate-800/80 backdrop-blur-md rounded-xl flex items-center justify-center text-white active:bg-red-500 shadow-lg border-2 border-white/10"
+            >
+              <ChevronDown size={32} />
+            </button>
+            <button 
+              onPointerDown={(e) => { e.preventDefault(); handleMove('right'); }} 
+              className="w-16 h-16 bg-slate-800/80 backdrop-blur-md rounded-xl flex items-center justify-center text-white active:bg-red-500 shadow-lg border-2 border-white/10"
+            >
+              <ChevronRight size={32} />
+            </button>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-4 pointer-events-auto mb-4">
+          <div className="flex flex-col gap-8">
+             <button 
+              onPointerDown={(e) => { 
+                e.preventDefault(); 
+                soundManager.play('SELECT');
+                setShowMenu(prev => !prev); 
+              }} 
+              className="w-12 h-12 bg-slate-700/80 backdrop-blur-md rounded-full flex items-center justify-center text-white active:bg-slate-500 shadow-lg border-2 border-white/10 text-[10px] font-bold"
+            >
+              START
+            </button>
+          </div>
+          <div className="flex gap-4 items-center">
+            <button 
+              onPointerDown={(e) => { e.preventDefault(); /* B button logic */ }} 
+              className="w-16 h-16 bg-red-700/90 backdrop-blur-md rounded-full flex items-center justify-center text-white active:bg-red-500 shadow-xl border-4 border-black/20 font-black text-2xl"
+            >
+              B
+            </button>
+            <button 
+              onPointerDown={(e) => { e.preventDefault(); handleAction(); }} 
+              className="w-20 h-20 bg-red-600 backdrop-blur-md rounded-full flex items-center justify-center text-white active:bg-red-400 shadow-xl border-4 border-black/20 font-black text-3xl mb-8"
+            >
+              A
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Side Menu */}
+      <AnimatePresence>
+        {showMenu && (
+          <motion.div 
+            initial={{ x: 300, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 300, opacity: 0 }}
+            className="fixed right-8 top-1/2 -translate-y-1/2 w-64 bg-white/95 backdrop-blur-xl border-4 border-slate-800 rounded-3xl p-4 shadow-2xl z-40"
+          >
+            <h2 className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold mb-4 px-2">Menú Principal</h2>
+            <div className="space-y-2">
+              {[
+                { icon: Backpack, label: 'Mochila', color: 'bg-blue-500', action: () => {
+                  soundManager.play('SELECT');
+                  setShowInventory(true);
+                } },
+                { icon: User, label: 'Pablo', color: 'bg-red-500', action: () => {} },
+                { icon: MapIcon, label: 'Mapa', color: 'bg-emerald-500', action: () => {} },
+                { icon: Settings, label: 'Opciones', color: 'bg-slate-500', action: () => {} },
+              ].map((item, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => {
+                    item.action();
+                    setShowMenu(false);
+                  }}
+                  className="w-full flex items-center gap-4 p-3 hover:bg-slate-100 rounded-2xl transition-colors group"
+                >
+                  <div className={`w-10 h-10 ${item.color} rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform`}>
+                    <item.icon className="text-white" size={20} />
+                  </div>
+                  <span className="font-bold text-slate-700">{item.label}</span>
+                </button>
+              ))}
+            </div>
+            
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <h3 className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold mb-2 px-2">Historia</h3>
+              <div className="space-y-2 px-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-slate-600">Paso actual</span>
+                  <span className="text-xs font-bold text-red-500">{storyStep}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-slate-600">Equipo</span>
+                  <span className="text-xs font-mono text-slate-400">{playerTeam.length}/6</span>
+                </div>
+                <div className="mt-2 space-y-1">
+                  {playerTeam.map((p, i) => (
+                    <div key={i} className="flex flex-col gap-1">
+                      <div className="flex justify-between text-[10px] font-bold">
+                        <span>{p.name}</span>
+                        <span>{p.hp}/{p.maxHp}</span>
+                      </div>
+                      <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full transition-all ${p.hp > p.maxHp / 2 ? 'bg-emerald-500' : p.hp > p.maxHp / 5 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                          style={{ width: `${(p.hp / p.maxHp) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-col gap-1 mt-2">
+                  <span className="text-[10px] text-slate-400 uppercase">Inventario</span>
+                  <div className="flex flex-wrap gap-1">
+                    {inventory.map(item => (
+                      <span key={item} className="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{item}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Battle View */}
+      <AnimatePresence>
+        {isBattle && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1, x: battleShake ? [0, -10, 10, -10, 10, 0] : 0 }}
+            exit={{ opacity: 0, scale: 1.1 }}
+            className="fixed inset-0 z-[90] bg-slate-900 flex flex-col items-center justify-center p-8"
+          >
+            <div className="w-full max-w-4xl flex flex-col gap-8">
+              {/* Enemy */}
+              <div className="flex justify-end">
+                <div className="bg-white/10 p-8 rounded-3xl border-2 border-white/20 flex items-center gap-8">
+                  <div className="text-right">
+                    <h3 className="text-white font-bold text-2xl uppercase">{enemyPokemon?.name}</h3>
+                    <p className="text-emerald-400 font-mono">Lv {enemyPokemon?.level}</p>
+                    <div className="w-48 h-2 bg-slate-700 rounded-full mt-2 overflow-hidden">
+                      <motion.div 
+                        initial={{ width: '100%' }}
+                        animate={{ width: `${(enemyPokemon?.hp || 0) / (enemyPokemon?.maxHp || 1) * 100}%` }}
+                        className={`h-full ${(enemyPokemon?.hp || 0) > 10 ? 'bg-emerald-500' : 'bg-red-500'}`} 
+                      />
+                    </div>
+                  </div>
+                  <div className="w-32 h-32 bg-white/5 rounded-full flex items-center justify-center text-4xl">
+                    <motion.div 
+                      variants={{
+                        idle: { 
+                          y: [0, -10, 0], 
+                          transition: { repeat: Infinity, duration: 2, ease: "easeInOut" } 
+                        },
+                        attack: { 
+                          x: [0, -60, 0], 
+                          scale: [1, 1.2, 1],
+                          rotate: [0, -10, 0],
+                          transition: { duration: 0.3 } 
+                        },
+                        hit: { 
+                          x: [0, -15, 15, -15, 15, 0], 
+                          y: [0, -10, 0],
+                          filter: ["brightness(1)", "brightness(2)", "brightness(1)"],
+                          transition: { duration: 0.4 } 
+                        },
+                        faint: { 
+                          y: [0, 20, 100], 
+                          opacity: [1, 1, 0], 
+                          scale: [1, 0.8, 0.5],
+                          transition: { duration: 0.8, ease: "easeIn" } 
+                        }
+                      }}
+                      animate={isCatching ? { opacity: 0, scale: 0 } : enemyAnim}
+                    >
+                      {enemyPokemon?.sprite || '❓'}
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Projectile Effect */}
+              <AnimatePresence>
+                {projectile && (
+                  <motion.div
+                    initial={{ 
+                      left: projectile.from === 'player' ? '30%' : '70%',
+                      top: projectile.from === 'player' ? '70%' : '30%',
+                      scale: 0,
+                      opacity: 0
+                    }}
+                    animate={{ 
+                      left: projectile.from === 'player' ? '70%' : '30%',
+                      top: projectile.from === 'player' ? '30%' : '70%',
+                      scale: [1, 1.5, 1],
+                      opacity: 1,
+                      rotate: projectile.from === 'player' ? 45 : -135
+                    }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="fixed z-[105] text-4xl pointer-events-none"
+                  >
+                    {(() => {
+                      switch (projectile.type) {
+                        case 'fire': return '🔥';
+                        case 'water': return '💧';
+                        case 'grass': return '🍃';
+                        case 'electric': return '⚡';
+                        case 'bug': return '🕸️';
+                        case 'flying': return '🌪️';
+                        default: return '⚪';
+                      }
+                    })()}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Hit Effect Overlay */}
+              <AnimatePresence>
+                {hitEffect && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
+                    exit={{ opacity: 0 }}
+                    className="fixed z-[100] pointer-events-none"
+                    style={{ 
+                      left: `${hitEffect.x}%`, 
+                      top: `${hitEffect.y}%`,
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                  >
+                    <div className="relative">
+                      <div className={`absolute inset-0 blur-xl rounded-full w-32 h-32 opacity-50 ${
+                        hitEffect.type === 'fire' ? 'bg-orange-500' :
+                        hitEffect.type === 'water' ? 'bg-blue-500' :
+                        hitEffect.type === 'grass' ? 'bg-green-500' :
+                        hitEffect.type === 'electric' ? 'bg-yellow-400' :
+                        hitEffect.type === 'bug' ? 'bg-lime-600' :
+                        hitEffect.type === 'flying' ? 'bg-sky-300' :
+                        'bg-slate-400'
+                      }`} />
+                      <div className="text-6xl">
+                        {hitEffect.type === 'fire' ? '🔥' :
+                         hitEffect.type === 'water' ? '🌊' :
+                         hitEffect.type === 'grass' ? '🌿' :
+                         hitEffect.type === 'electric' ? '⚡' :
+                         hitEffect.type === 'bug' ? '🕸️' :
+                         hitEffect.type === 'flying' ? '💨' :
+                         '💥'}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Damage Number Overlay */}
+              <AnimatePresence>
+                {damageNumber && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 0 }}
+                    animate={{ opacity: [0, 1, 1, 0], y: -50 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed z-[110] pointer-events-none font-black text-4xl text-red-500 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
+                    style={{ 
+                      left: `${damageNumber.x}%`, 
+                      top: `${damageNumber.y}%`,
+                    }}
+                  >
+                    -{damageNumber.value}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Poké Ball Catch Animation */}
+              <AnimatePresence>
+                {isCatching && (
+                  <motion.div
+                    initial={{ left: '30%', top: '70%', scale: 0 }}
+                    animate={{ 
+                      left: ['30%', '50%', '70%'],
+                      top: ['70%', '40%', '30%'],
+                      rotate: [0, 720],
+                      scale: [0, 1.5, 1]
+                    }}
+                    className="fixed z-[120] text-5xl pointer-events-none"
+                    transition={{ duration: 1, ease: "easeOut" }}
+                  >
+                    <motion.div
+                      animate={{ 
+                        rotate: [0, -20, 20, -20, 20, 0],
+                        x: [0, -5, 5, -5, 5, 0]
+                      }}
+                      transition={{ delay: 1, duration: 1, repeat: 2 }}
+                    >
+                      🔴
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Player */}
+              <div className="flex justify-start">
+                <div className="bg-white/10 p-8 rounded-3xl border-2 border-white/20 flex items-center gap-8">
+                  <div className="w-32 h-32 bg-white/5 rounded-full flex items-center justify-center text-4xl">
+                    <motion.div 
+                      variants={{
+                        idle: { 
+                          y: [0, -5, 0], 
+                          transition: { repeat: Infinity, duration: 1.5, ease: "easeInOut" } 
+                        },
+                        attack: { 
+                          x: [0, 60, 0], 
+                          scale: [1, 1.2, 1],
+                          rotate: [0, 10, 0],
+                          transition: { duration: 0.3 } 
+                        },
+                        hit: { 
+                          x: [0, -15, 15, -15, 15, 0], 
+                          y: [0, 10, 0],
+                          filter: ["brightness(1)", "brightness(2)", "brightness(1)"],
+                          transition: { duration: 0.4 } 
+                        },
+                        faint: { 
+                          y: [0, 20, 100], 
+                          opacity: [1, 1, 0], 
+                          scale: [1, 0.8, 0.5],
+                          transition: { duration: 0.8, ease: "easeIn" } 
+                        }
+                      }}
+                      animate={playerAnim}
+                    >
+                      {playerTeam[0]?.sprite || '❓'}
+                    </motion.div>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold text-2xl uppercase">{playerTeam[0]?.name}</h3>
+                    <p className="text-emerald-400 font-mono">Lv {playerTeam[0]?.level}</p>
+                    <div className="w-48 h-2 bg-slate-700 rounded-full mt-2 overflow-hidden">
+                      <motion.div 
+                        initial={{ width: '100%' }}
+                        animate={{ width: `${(playerTeam[0]?.hp || 0) / (playerTeam[0]?.maxHp || 1) * 100}%` }}
+                        className={`h-full ${(playerTeam[0]?.hp || 0) > (playerTeam[0]?.maxHp || 0) / 2 ? 'bg-emerald-500' : (playerTeam[0]?.hp || 0) > (playerTeam[0]?.maxHp || 0) / 5 ? 'bg-yellow-500' : 'bg-red-500'}`} 
+                      />
+                    </div>
+                    {/* EXP Bar */}
+                    <div className="w-48 h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                      <motion.div 
+                        initial={{ width: '0%' }}
+                        animate={{ width: `${(playerTeam[0]?.exp || 0) / (playerTeam[0]?.expToNextLevel || 100) * 100}%` }}
+                        className="h-full bg-blue-400" 
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Battle Log */}
+              <div className="bg-white/90 p-4 rounded-2xl border-4 border-slate-800">
+                <p className="text-slate-800 font-bold text-lg">{battleLog}</p>
+              </div>
+
+              {/* Battle Menu */}
+              <div className="grid grid-cols-2 gap-4">
+                {['LUCHAR', 'BOLSA', 'POKÉMON', 'HUIR'].map((action) => (
+                  <button 
+                    key={action}
+                    onClick={() => {
+                      soundManager.play('SELECT');
+                      if (action === 'HUIR') setIsBattle(false);
+                      if (action === 'LUCHAR') handleAttack();
+                      if (action === 'BOLSA') setShowInventory(true);
+                    }}
+                    className="p-6 bg-white/5 hover:bg-red-500 border-2 border-white/10 rounded-2xl text-white font-black text-xl transition-all hover:scale-105 active:scale-95"
+                  >
+                    {action}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Screen Flash Overlay */}
+            <AnimatePresence>
+              {screenFlash && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 0.5, 0] }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-white z-[110] pointer-events-none"
+                />
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Battle Transition */}
+      <AnimatePresence>
+        {showBattleTransition && (
+          <BattleTransition onComplete={() => {
+            setShowBattleTransition(false);
+            setIsBattle(true);
+          }} />
+        )}
+      </AnimatePresence>
+
+      {/* Dialogue */}
+      <AnimatePresence>
+        {dialogue && (
+          <DialogueBox text={dialogue} onComplete={() => setDialogue(null)} />
+        )}
+      </AnimatePresence>
+
+      {/* Inventory */}
+      <AnimatePresence>
+        {showInventory && (
+          <InventoryUI 
+            items={inventory} 
+            onClose={() => setShowInventory(false)} 
+            onUse={handleUseItem}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Shop */}
+      <AnimatePresence>
+        {showShop && (
+          <ShopUI 
+            onClose={() => setShowShop(false)}
+            onBuy={(id) => setInventory(prev => [...prev, id])}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Overlay Vignette */}
+      <div className="fixed inset-0 pointer-events-none shadow-[inset_0_0_200px_rgba(0,0,0,0.5)] z-10" />
+    </div>
+  );
+}
