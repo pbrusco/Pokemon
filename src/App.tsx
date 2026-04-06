@@ -31,6 +31,7 @@ import { MOVES, STARTERS, EVOLUTIONS, WILD_POKEMON_DATABASE, POKEMON_LIST, ITEMS
 import { InventoryUI } from './components/InventoryUI';
 import { TeamMenuUI } from './components/TeamMenuUI';
 import { DialogueBox } from './components/DialogueBox';
+import { MapEditor } from './components/MapEditor';
 import { PokedexUI } from './components/PokedexUI';
 import { PCStorageUI } from './components/PCStorageUI';
 import { BattleScreen } from './components/BattleScreen';
@@ -302,6 +303,7 @@ export default function App() {
   const [showMoves, setShowMoves] = useState(false);
   const [showPokedex, setShowPokedex] = useState(false);
   const [showPC, setShowPC] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
   const [hasPokedex, setHasPokedex] = useState(false);
   const [hasParcel, setHasParcel] = useState(false);
   const [pokedex, setPokedex] = useState<Record<string, { seen: boolean, caught: boolean }>>({});
@@ -1236,6 +1238,13 @@ export default function App() {
         return;
       }
 
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+      
+      if (e.key === 'E' && e.shiftKey) {
+        setShowEditor(prev => !prev);
+        return;
+      }
+
       if (dialogue) {
         if (e.key === 'Enter' || e.key === ' ' || e.key === 'z') setDialogue(null);
         return;
@@ -1611,6 +1620,8 @@ export default function App() {
           }} />
         )}
       </AnimatePresence>
+
+      {showEditor && <MapEditor onClose={() => setShowEditor(false)} />}
 
       {/* Dialogue */}
       <AnimatePresence>
