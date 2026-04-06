@@ -85,6 +85,18 @@ export function getEffectivenessLabel(multiplier: number): string | null {
   return null;
 }
 
+/**
+ * Gen I-style accuracy check.
+ * Uses a 0-255 roll and a truncated 255-based threshold, which preserves
+ * the classic 1/256 miss chance even for nominal 100% accurate moves.
+ */
+export function doesMoveHit(accuracyPercent: number): boolean {
+  const clamped = Math.max(1, Math.min(100, accuracyPercent));
+  const threshold = Math.floor((clamped * 255) / 100);
+  const roll = Math.floor(Math.random() * 256); // 0..255
+  return roll < threshold;
+}
+
 export interface DamageResult {
   damage: number;
   isCritical: boolean;

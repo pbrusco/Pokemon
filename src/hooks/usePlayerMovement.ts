@@ -90,17 +90,24 @@ export const usePlayerMovement = () => {
           if (trainer.direction === 'left') visionX -= i;
           if (trainer.direction === 'right') visionX += i;
           
-          if (visionX === nextX && visionY === nextY) {
-            state.setDialogue(`${trainer.name}: ¡Eh! ¡Te he visto! ¡Vamos a luchar!`);
-            setTimeout(() => {
-              soundManager.play('BATTLE_START');
-              const s = useGameStore.getState();
-              s.setEnemyPokemon(trainer.trainerTeam![0]);
-              s.setShowBattleTransition(true);
-              s.setIsLocked(true);
-            }, 1500);
-            return;
-          }
+          // usePlayerMovement.ts
+
+        if (visionX === nextX && visionY === nextY) {
+          // 1. Lock the player IMMEDIATELY
+          state.setIsLocked(true); 
+          
+          // 2. Trigger the "!" or dialogue
+          state.setDialogue(`${trainer.name}: ¡Eh! ¡Te he visto! ¡Vamos a luchar!`);
+          
+          setTimeout(() => {
+            soundManager.play('BATTLE_START');
+            const s = useGameStore.getState();
+            s.setEnemyPokemon(trainer.trainerTeam![0]);
+            s.setShowBattleTransition(true);
+            // isLocked is already true, so no extra steps are possible
+          }, 1500);
+          return;
+        }
         }
       }
 

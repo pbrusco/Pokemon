@@ -1,28 +1,78 @@
 import { useCallback } from 'react';
-import { useGameStore } from '../store/gameStore';
+import type { Dispatch, SetStateAction } from 'react';
+import type { Direction, Entity, MapID, NPC, Pokemon, Position, Tile } from '../types';
 import { STARTERS } from '../constants';
 import { soundManager } from '../lib/sounds';
+import {
+  BATTLE_TRANSITION,
+  EXPLORING,
+  HEALING,
+  SHOP,
+  type GamePhase,
+} from '../types/gamePhase';
+import { GRID_SIZE } from '../types';
 
-export const useInteractionEngine = () => {
+type HealLocation = { map: MapID; pos: Position };
 
+interface UseInteractionEngineParams {
+  dialogue: string | null;
+  inBattle: boolean;
+  playerPos: Position;
+  direction: Direction;
+  currentMap: MapID;
+  hasParcel: boolean;
+  hasPokedex: boolean;
+  inventory: string[];
+  playerTeam: Pokemon[];
+  npcs: Record<MapID, NPC[]>;
+  items: Record<MapID, Entity[]>;
+  maps: Record<MapID, Tile[][]>;
+  setDialogue: Dispatch<SetStateAction<string | null>>;
+  setPhase: Dispatch<SetStateAction<GamePhase>>;
+  setPlayerTeam: Dispatch<SetStateAction<Pokemon[]>>;
+  setLastHealLocation: Dispatch<SetStateAction<HealLocation>>;
+  setHasParcel: Dispatch<SetStateAction<boolean>>;
+  setHasPokedex: Dispatch<SetStateAction<boolean>>;
+  setInventory: Dispatch<SetStateAction<string[]>>;
+  setPickedItemIds: Dispatch<SetStateAction<string[]>>;
+  setStoryStep: Dispatch<SetStateAction<string>>;
+  setEnemyPokemon: Dispatch<SetStateAction<Pokemon | null>>;
+  setIsTrainerBattle: Dispatch<SetStateAction<boolean>>;
+}
+
+export const useInteractionEngine = ({
+  dialogue,
+  inBattle,
+  playerPos,
+  direction,
+  currentMap,
+  hasParcel,
+  hasPokedex,
+  inventory,
+  playerTeam,
+  npcs,
+  items,
+  maps,
+  setDialogue,
+  setPhase,
+  setPlayerTeam,
+  setLastHealLocation,
+  setHasParcel,
+  setHasPokedex,
+  setInventory,
+  setPickedItemIds,
+  setStoryStep,
+  setEnemyPokemon,
+  setIsTrainerBattle,
+}: UseInteractionEngineParams) => {
   const handleAction = useCallback(() => {
     soundManager.play('SELECT');
-    
-    // Grab completely fresh state!
-    const state = useGameStore.getState();
-    const { 
-      dialogue, isBattle, playerPos, direction, currentMap, 
-      inventory, playerTeam, hasParcel, hasPokedex,
-      getNPCs, items, worldMaps
-    } = state;
-
     if (dialogue) {
-      state.setDialogue(null);
+      setDialogue(null);
       return;
     }
-    if (isBattle) return;
+    if (inBattle) return;
 
-    // What tile are we facing?
     let targetX = playerPos.x;
     let targetY = playerPos.y;
     switch (direction) {
@@ -32,104 +82,140 @@ export const useInteractionEngine = () => {
       case 'right': targetX++; break;
     }
 
-    const currentMapNPCs = getNPCs()[currentMap] || [];
-    const npc = currentMapNPCs.find(n => n.position.x === targetX && n.position.y === targetY);
-    
+    const npc = npcs[currentMap]?.find(n => n.position.x === targetX && n.position.y === targetY);
     if (npc) {
       if (npc.id === 'mom' || npc.id === 'joy') {
         const name = npc.id === 'mom' ? 'MAMÁ' : 'JOY';
-        state.setDialogue(`${name}: ¡Hola! Pareces cansado. Deberías descansar un poco...`);
-        
+        const healPos =
+          npc.id === 'mom'
+            ? { map: 'PALLET_TOWN', pos: { x: 7, y: 11 } }
+            : { map: 'POKECENTER', pos: { x: 10, y: 14 } };
+        setLastHealLocation(healPos);
+        setDialogue(`${name}: ¡Hola! Pareces cansado. Deberías descansar un poco...`);
+
         setTimeout(() => {
-          const s = useGameStore.getState();
-          s.setDialogue("... ... ... ¡Tus POKÉMON están en plena forma!");
-          
-          const healed = s.playerTeam.map(p => ({ ...p, hp: p.maxHp, status: 'none' as const }));
-          s.updateTeam(healed);
-          s.setLastHealLocation({ map: s.currentMap, pos: s.playerPos });
-          soundManager.play('SELECT');
-        }, 2000);
+          setPhase(HEALING);
+          setTimeout(() => {
+            setPlayerTeam(prev =>
+              prev.map(p => ({
+                ...p,
+                hp: p.maxHp,
+                status: 'none',
+                moves: p.moves.map(m => ({ ...m, pp: m.maxPp })),
+              })),
+            );
+            soundManager.play('SELECT');
+          }, 800);
+          setTimeout(() => {
+            setPhase(EXPLORING);
+            setDialogue("... ... ... ¡Tus POKÉMON están en plena forma!");
+          }, 1600);
+        }, 1500);
       } else if (npc.id === 'clerk' && currentMap === 'POKEMART') {
         if (!hasParcel && !hasPokedex) {
-          state.setDialogue("DEPENDIENTE: ¡Ah! ¡Tú vienes de PUEBLO PALETA! Tengo un paquete para el PROF. OAK. ¿Se lo llevarías?");
-          state.addInventoryItem('OAK_PARCEL');
-          useGameStore.setState({ hasParcel: true });
+          setHasParcel(true);
+          setInventory(prev => [...prev, 'OAK_PARCEL']);
+          setDialogue("DEPENDIENTE: ¡Ah! ¡Tú vienes de PUEBLO PALETA! Tengo un paquete para el PROF. OAK. ¿Se lo llevarías?");
         } else {
-          state.setDialogue("DEPENDIENTE: ¡Hola! ¿Quieres comprar algo?");
-          // In the future: trigger shop menu boolean here
+          setDialogue("DEPENDIENTE: ¡Hola! ¿Quieres comprar algo?");
+          setTimeout(() => setPhase(SHOP), 1000);
         }
       } else if (npc.id === 'oak' && hasParcel) {
-        useGameStore.setState({ hasParcel: false, hasPokedex: true });
-        state.removeInventoryItem('OAK_PARCEL');
-        state.setDialogue("PROF. OAK: ¡Oh! ¡Es el paquete que pedí! ¡Gracias! Como recompensa, tomad esto: ¡Una POKÉDEX!");
+        setHasParcel(false);
+        setHasPokedex(true);
+        setInventory(prev => prev.filter(id => id !== 'OAK_PARCEL'));
+        setDialogue("PROF. OAK: ¡Oh! ¡Es el paquete que pedí! ¡Gracias! Como recompensa, tomad esto: ¡Una POKÉDEX!");
       } else {
-        state.setDialogue(npc.dialogue[0]);
+        setDialogue(npc.dialogue[0]);
       }
-      
+
       if (npc.questId === 'parcel' && !inventory.includes('OAK_PARCEL')) {
-        state.addInventoryItem('OAK_PARCEL');
+        setInventory(prev => [...prev, 'OAK_PARCEL']);
         soundManager.play('SELECT');
-        state.setDialogue("DEPENDIENTE: ¡Gracias! Por favor, entrégaselo al PROF. OAK.");
+        setDialogue("DEPENDIENTE: ¡Gracias! Por favor, entrégaselo al PROF. OAK.");
       }
       return;
     }
 
-    const mapItems = items[currentMap] || [];
-    const item = mapItems.find(i => i.position.x === targetX && i.position.y === targetY);
-    
+    const item = items[currentMap]?.find(i => i.position.x === targetX && i.position.y === targetY);
     if (item) {
       if (item.type === 'item' && currentMap === 'OAKS_LAB' && playerTeam.length === 0) {
         const starter = STARTERS.find(s => s.sprite === item.sprite);
         if (starter) {
-          state.updateTeam([starter]);
-          state.setDialogue(`¡Has elegido a ${starter.name}!`);
-          state.setStoryStep('PICKED_STARTER');
+          setPickedItemIds(prev => [...prev, item.id]);
+          setPlayerTeam([starter]);
+          setDialogue(`¡Has elegido a ${starter.name}!`);
+          setStoryStep('PICKED_STARTER');
           soundManager.play('SELECT');
-          
+
           setTimeout(() => {
-            const s = useGameStore.getState();
-            s.setDialogue("AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!");
-            s.setEnemyPokemon({ ...STARTERS[1], name: 'RIVAL ' + STARTERS[1].name });
+            setDialogue("AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!");
+            setEnemyPokemon({ ...STARTERS[1], name: 'RIVAL ' + STARTERS[1].name });
+            setIsTrainerBattle(true);
             soundManager.play('BATTLE_START');
-            s.setShowBattleTransition(true);
-            s.setIsLocked(true);
+            setPhase(BATTLE_TRANSITION);
           }, 1500);
         }
       } else if (item.type === 'item') {
         if (item.id.startsWith('item_potion')) {
-          state.addInventoryItem('POTION');
-          state.setDialogue("¡Has encontrado una POCIÓN!");
+          setPickedItemIds(prev => [...prev, item.id]);
+          setInventory(prev => [...prev, 'POTION']);
+          setDialogue("¡Has encontrado una POCIÓN!");
         } else if (item.id.startsWith('item_pokeball')) {
-          state.addInventoryItem('POKEBALL');
-          state.setDialogue("¡Has encontrado una POKÉ BALL!");
+          setPickedItemIds(prev => [...prev, item.id]);
+          setInventory(prev => [...prev, 'POKEBALL']);
+          setDialogue("¡Has encontrado una POKÉ BALL!");
         }
         soundManager.play('SELECT');
       } else if (item.type === 'object') {
-        if (item.id === 'sign_home') state.setDialogue("CASA DE PABLO: Hogar, dulce hogar.");
-        if (item.id === 'sign_rival') state.setDialogue("CASA DE AZUL: ¡No pasar!");
-        if (item.id === 'sign_lab') state.setDialogue("LABORATORIO DEL PROF. OAK: Investigando POKÉMON.");
-        if (item.id === 'sign_route1') state.setDialogue("RUTA 1: Hacia CIUDAD VERDE.");
+        if (item.id === 'sign_home') setDialogue("CASA DE PABLO: Hogar, dulce hogar.");
+        if (item.id === 'sign_rival') setDialogue("CASA DE AZUL: ¡No pasar!");
+        if (item.id === 'sign_lab') setDialogue("LABORATORIO DEL PROF. OAK: Investigando POKÉMON.");
+        if (item.id === 'sign_route1') setDialogue("RUTA 1: Hacia CIUDAD VERDE.");
       }
       return;
     }
 
-    // Hidden Items
-    const map = worldMaps[currentMap];
-    if (targetX >= 0 && targetX < 20 && targetY >= 0 && targetY < 20) {
+    const map = maps[currentMap];
+    if (map && targetX >= 0 && targetX < GRID_SIZE && targetY >= 0 && targetY < GRID_SIZE) {
       const tile = map[targetY][targetX];
       if (tile.type === 'tree') {
-        state.setDialogue("Es un árbol muy robusto.");
+        setDialogue("Es un árbol muy robusto.");
       } else if (tile.type === 'table') {
-        state.setDialogue("Hay muchos libros sobre POKÉMON aquí.");
+        setDialogue("Hay muchos libros sobre POKÉMON aquí.");
       } else if (tile.type === 'grass' && Math.random() < 0.05) {
         if (!inventory.includes('POTION')) {
-          state.addInventoryItem('POTION');
+          setInventory(prev => [...prev, 'POTION']);
           soundManager.play('SELECT');
-          state.setDialogue("¡Has encontrado una POCIÓN escondida en la hierba!");
+          setDialogue("¡Has encontrado una POCIÓN escondida en la hierba!");
         }
       }
     }
-  }, []);
+  }, [
+    dialogue,
+    inBattle,
+    playerPos,
+    direction,
+    currentMap,
+    hasParcel,
+    hasPokedex,
+    inventory,
+    playerTeam,
+    npcs,
+    items,
+    maps,
+    setDialogue,
+    setPhase,
+    setPlayerTeam,
+    setLastHealLocation,
+    setHasParcel,
+    setHasPokedex,
+    setInventory,
+    setPickedItemIds,
+    setStoryStep,
+    setEnemyPokemon,
+    setIsTrainerBattle,
+  ]);
 
   return { handleAction };
 };

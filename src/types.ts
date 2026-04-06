@@ -1,4 +1,19 @@
+import type { worldMaps } from './data/maps';
+
 export type Direction = 'up' | 'down' | 'left' | 'right';
+export type MapID = keyof typeof worldMaps;
+export const MAP_IDS = [
+  'PALLET_TOWN',
+  'OAKS_LAB',
+  'ROUTE_1',
+  'VIRIDIAN_CITY',
+  'POKECENTER',
+  'POKEMART',
+  'VIRIDIAN_FOREST',
+  'PEWTER_CITY',
+  'PEWTER_GYM',
+  'ROUTE_3',
+] as const satisfies readonly MapID[];
 
 export interface Position {
   x: number;
@@ -18,6 +33,7 @@ export interface Move {
   accuracy: number;
   pp: number;
   maxPp: number;
+  sfxType?: 'pulse' | 'noise' | 'glissando';
   statusEffect?: 'paralyzed' | 'sleep' | 'poison' | 'burn' | 'frozen';
   statusChance?: number;
   statChange?: StatChange;
@@ -87,7 +103,7 @@ export interface Entity {
   position: Position;
   direction: Direction;
   sprite?: string;
-  targetMap?: string;
+  targetMap?: MapID;
   targetPos?: Position;
 }
 

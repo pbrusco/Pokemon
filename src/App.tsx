@@ -24,12 +24,12 @@ import {
   X,
   Gamepad2
 } from 'lucide-react';
-import { Direction, Position, TILE_SIZE, GRID_SIZE, NPC, Entity, Pokemon, Move, InventoryItem, Tile } from './types';
+import { Direction, Position, TILE_SIZE, GRID_SIZE, NPC, Entity, Pokemon, Move, InventoryItem, Tile, MapID, MAP_IDS } from './types';
 import { GamePhase, BattlePhase, EXPLORING, MENU, INVENTORY, TEAM, SHOP, POKEDEX, PC, EDITOR, BATTLE_TRANSITION, BLACKOUT, HEALING, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM } from './types/gamePhase';
 import { MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, MAP_VIRIDIAN_FOREST, MAP_PEWTER_CITY, MAP_PEWTER_GYM, MAP_ROUTE_3 } from './data/maps';
 import { soundManager } from './lib/sounds';
 import { MOVES, STARTERS, EVOLUTIONS, WILD_POKEMON_DATABASE, POKEMON_LIST, ITEMS_DATABASE, BASE_STATS, makePokemon } from './constants';
-import { calculateDamage, calcHp, ZERO_BOOSTS } from './lib/damage';
+import { calculateDamage, calcHp, doesMoveHit, ZERO_BOOSTS } from './lib/damage';
 import { InventoryUI } from './components/InventoryUI';
 import { TeamMenuUI } from './components/TeamMenuUI';
 import { DialogueBox } from './components/DialogueBox';
@@ -38,6 +38,7 @@ import { PokedexUI } from './components/PokedexUI';
 import { PCStorageUI } from './components/PCStorageUI';
 import { BattleScreen } from './components/BattleScreen';
 import { Joystick } from './components/Joystick';
+import { useInteractionEngine } from './hooks/useInteractionEngine';
 
 // --- Constants & Data ---
 
@@ -343,7 +344,7 @@ const Player = ({ position, direction, isMoving }: { position: Position, directi
 // --- Main App ---
 
 export default function App() {
-  const [currentMap, setCurrentMap] = useState<'PALLET_TOWN' | 'OAKS_LAB' | 'ROUTE_1' | 'VIRIDIAN_CITY' | 'VIRIDIAN_FOREST' | 'PEWTER_CITY' | 'PEWTER_GYM' | 'ROUTE_3'>('PALLET_TOWN');
+  const [currentMap, setCurrentMap] = useState<MapID>('PALLET_TOWN');
   const [playerPos, setPlayerPos] = useState<Position>({ x: 10, y: 10 });
   const [direction, setDirection] = useState<Direction>('down');
   const [isMoving, setIsMoving] = useState(false);
@@ -392,15 +393,18 @@ export default function App() {
   const [healNumber, setHealNumber] = useState<{ x: number, y: number, value: number } | null>(null);
   const [battleShake, setBattleShake] = useState(false);
   // isCatching, isBlackout, isHealing, isLevelUp, isEvolving, forcedSwitch replaced by phase
-  const [lastHealLocation, setLastHealLocation] = useState<{ map: string; pos: Position }>({ map: 'PALLET_TOWN', pos: { x: 7, y: 11 } });
+  const [lastHealLocation, setLastHealLocation] = useState<{ map: MapID; pos: Position }>({ map: 'PALLET_TOWN', pos: { x: 7, y: 11 } });
   const [money, setMoney] = useState(3000);
   const [spottedTrainerId, setSpottedTrainerId] = useState<string | null>(null);
+  const [spottedTrainerPos, setSpottedTrainerPos] = useState<Position | null>(null);
+  const [overworldShake, setOverworldShake] = useState(false);
 
   // Story State
   const [storyStep, setStoryStep] = useState<'START' | 'OAK_STOPPED' | 'IN_LAB' | 'PICKED_STARTER' | 'RIVAL_BATTLE' | 'EXPLORING'>('START');
   const [inventory, setInventory] = useState<string[]>(['POTION', 'POKEBALL']);
 
   const moveTimeout = useRef<NodeJS.Timeout | null>(null);
+  const poisonStepCounter = useRef(0);
 
   // --- Save / Load System ---
   useEffect(() => {
@@ -414,7 +418,7 @@ export default function App() {
       try {
         const data = JSON.parse(savedData);
         setPlayerPos(data.pos);
-        setCurrentMap(data.map);
+        if (MAP_IDS.includes(data.map)) setCurrentMap(data.map);
         setPlayerTeam(data.team);
         setInventory(data.inventory);
         setDefeatedTrainers(data.defeatedTrainers);
@@ -477,7 +481,7 @@ export default function App() {
     };
   }, []);
 
-  const maps = {
+  const maps: Record<MapID, Tile[][]> = {
     PALLET_TOWN: MAP_PALLET_TOWN,
     OAKS_LAB: MAP_OAKS_LAB,
     ROUTE_1: MAP_ROUTE_1,
@@ -490,7 +494,7 @@ export default function App() {
     ROUTE_3: MAP_ROUTE_3
   };
 
-  const npcs: Record<string, NPC[]> = {
+  const npcs: Record<MapID, NPC[]> = {
     PALLET_TOWN: [
       { id: 'mom', name: 'MAMÁ', type: 'npc', position: { x: 7, y: 10 }, direction: 'down', dialogue: ["¡Ten cuidado ahí fuera, hijo!", "Recuerda que el Prof. Oak te está buscando."] },
       ...(playerTeam.length === 0 ? [{ id: 'oak_pallet', name: 'PROF. OAK', type: 'npc' as const, position: { x: 10, y: 4 }, direction: 'down' as const, dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."] }] : [])
@@ -642,7 +646,7 @@ export default function App() {
     ]
   };
 
-  const teleports: Record<string, Entity[]> = {
+  const teleports: Record<MapID, Entity[]> = {
     PALLET_TOWN: [
       { id: 'to_lab', type: 'teleport', position: { x: 10, y: 14 }, direction: 'up', targetMap: 'OAKS_LAB', targetPos: { x: 10, y: 14 } },
       { id: 'to_route1', type: 'teleport', position: { x: 10, y: 5 }, direction: 'up', targetMap: 'ROUTE_1', targetPos: { x: 10, y: 19 } }
@@ -684,7 +688,7 @@ export default function App() {
     ]
   };
 
-  const rawItems: Record<string, Entity[]> = {
+  const rawItems: Record<MapID, Entity[]> = {
     OAKS_LAB: [
       { id: 'starter_1', type: 'item', position: { x: 9, y: 8 }, direction: 'down', sprite: STARTERS[0].sprite },
       { id: 'starter_2', type: 'item', position: { x: 10, y: 8 }, direction: 'down', sprite: STARTERS[1].sprite },
@@ -710,11 +714,11 @@ export default function App() {
     PEWTER_GYM: [],
     ROUTE_3: []
   };
-  const items: Record<string, Entity[]> = Object.fromEntries(
+  const items: Record<MapID, Entity[]> = Object.fromEntries(
     Object.entries(rawItems).map(([map, entities]) => [
       map, entities.filter(e => !pickedItemIds.includes(e.id))
     ])
-  ) as Record<string, Entity[]>;
+  ) as Record<MapID, Entity[]>;
 
   const handlePCSwap = (teamIdx: number, pcIdx: number) => {
     const newTeam = [...playerTeam];
@@ -737,128 +741,31 @@ export default function App() {
     }));
   };
 
-  const handleAction = useCallback(() => {
-    soundManager.play('SELECT');
-    if (dialogue) {
-      setDialogue(null);
-      return;
-    }
-    if (inBattle) return;
-
-    // Check what's in front of the player
-    let targetX = playerPos.x;
-    let targetY = playerPos.y;
-    switch (direction) {
-      case 'up': targetY--; break;
-      case 'down': targetY++; break;
-      case 'left': targetX--; break;
-      case 'right': targetX++; break;
-    }
-
-    // Check for NPC
-    const npc = npcs[currentMap].find(n => n.position.x === targetX && n.position.y === targetY);
-    if (npc) {
-      if (npc.id === 'mom' || npc.id === 'joy') {
-        const name = npc.id === 'mom' ? 'MAMÁ' : 'JOY';
-        const healPos = npc.id === 'mom'
-          ? { map: 'PALLET_TOWN', pos: { x: 7, y: 11 } }
-          : { map: 'POKECENTER', pos: { x: 10, y: 14 } };
-        setLastHealLocation(healPos);
-        setDialogue(`${name}: ¡Hola! Pareces cansado. Deberías descansar un poco...`);
-
-        setTimeout(() => {
-          setPhase(HEALING);
-          setTimeout(() => {
-            setPlayerTeam(prev => prev.map(p => ({ ...p, hp: p.maxHp, status: 'none', moves: p.moves.map(m => ({ ...m, pp: m.maxPp })) })));
-            soundManager.play('SELECT');
-          }, 800);
-          setTimeout(() => {
-            setPhase(EXPLORING);
-            setDialogue("... ... ... ¡Tus POKÉMON están en plena forma!");
-          }, 1600);
-        }, 1500);
-      } else if (npc.id === 'clerk' && currentMap === 'POKEMART') {
-        if (!hasParcel && !hasPokedex) {
-          setHasParcel(true);
-          setInventory(prev => [...prev, 'OAK_PARCEL']);
-          setDialogue("DEPENDIENTE: ¡Ah! ¡Tú vienes de PUEBLO PALETA! Tengo un paquete para el PROF. OAK. ¿Se lo llevarías?");
-        } else {
-          setDialogue("DEPENDIENTE: ¡Hola! ¿Quieres comprar algo?");
-          setTimeout(() => setPhase(SHOP), 1000);
-        }
-      } else if (npc.id === 'oak' && hasParcel) {
-        setHasParcel(false);
-        setHasPokedex(true);
-        setInventory(prev => prev.filter(id => id !== 'OAK_PARCEL'));
-        setDialogue("PROF. OAK: ¡Oh! ¡Es el paquete que pedí! ¡Gracias! Como recompensa, tomad esto: ¡Una POKÉDEX!");
-      } else {
-        setDialogue(npc.dialogue[0]);
-      }
-      
-      if (npc.questId === 'parcel' && !inventory.includes('OAK_PARCEL')) {
-        setInventory(prev => [...prev, 'OAK_PARCEL']);
-        soundManager.play('SELECT');
-        setDialogue("DEPENDIENTE: ¡Gracias! Por favor, entrégaselo al PROF. OAK.");
-      }
-      return;
-    }
-
-    // Check for Item/Object
-    const item = items[currentMap].find(i => i.position.x === targetX && i.position.y === targetY);
-    if (item) {
-      if (item.type === 'item' && currentMap === 'OAKS_LAB' && playerTeam.length === 0) {
-        const starter = STARTERS.find(s => s.sprite === item.sprite);
-        if (starter) {
-          setPickedItemIds(prev => [...prev, item.id]);
-          setPlayerTeam([starter]);
-          setDialogue(`¡Has elegido a ${starter.name}!`);
-          setStoryStep('PICKED_STARTER');
-          soundManager.play('SELECT');
-          setTimeout(() => {
-            setDialogue("AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!");
-            setEnemyPokemon({ ...STARTERS[1], name: 'RIVAL ' + STARTERS[1].name });
-            setIsTrainerBattle(true);
-            soundManager.play('BATTLE_START');
-            setPhase(BATTLE_TRANSITION);
-          }, 1500);
-        }
-      } else if (item.type === 'item') {
-        if (item.id.startsWith('item_potion')) {
-          setPickedItemIds(prev => [...prev, item.id]);
-          setInventory(prev => [...prev, 'POTION']);
-          setDialogue("¡Has encontrado una POCIÓN!");
-        } else if (item.id.startsWith('item_pokeball')) {
-          setPickedItemIds(prev => [...prev, item.id]);
-          setInventory(prev => [...prev, 'POKEBALL']);
-          setDialogue("¡Has encontrado una POKÉ BALL!");
-        }
-        soundManager.play('SELECT');
-      } else if (item.type === 'object') {
-        if (item.id === 'sign_home') setDialogue("CASA DE PABLO: Hogar, dulce hogar.");
-        if (item.id === 'sign_rival') setDialogue("CASA DE AZUL: ¡No pasar!");
-        if (item.id === 'sign_lab') setDialogue("LABORATORIO DEL PROF. OAK: Investigando POKÉMON.");
-        if (item.id === 'sign_route1') setDialogue("RUTA 1: Hacia CIUDAD VERDE.");
-      }
-      return;
-    }
-
-    // Check for hidden items in specific tiles
-    const map = maps[currentMap];
-    if (targetX >= 0 && targetX < GRID_SIZE && targetY >= 0 && targetY < GRID_SIZE) {
-      const tile = map[targetY][targetX];
-      if (tile.type === 'tree') {
-        setDialogue("Es un árbol muy robusto.");
-      } else if (tile.type === 'table') {
-        setDialogue("Hay muchos libros sobre POKÉMON aquí.");
-      } else if (tile.type === 'grass' && Math.random() < 0.05) {
-        if (!inventory.includes('POTION')) {
-          setInventory(prev => [...prev, 'POTION']);
-          soundManager.play('SELECT');
-          setDialogue("¡Has encontrado una POCIÓN escondida en la hierba!");
-        }
-      }
-    }
-  }, [playerPos, direction, currentMap, dialogue, inBattle, playerTeam, inventory, npcs, items, maps, storyStep]);
+  const { handleAction } = useInteractionEngine({
+    dialogue,
+    inBattle,
+    playerPos,
+    direction,
+    currentMap,
+    hasParcel,
+    hasPokedex,
+    inventory,
+    playerTeam,
+    npcs,
+    items,
+    maps,
+    setDialogue,
+    setPhase,
+    setPlayerTeam,
+    setLastHealLocation,
+    setHasParcel,
+    setHasPokedex,
+    setInventory,
+    setPickedItemIds,
+    setStoryStep,
+    setEnemyPokemon,
+    setIsTrainerBattle,
+  });
 
   const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep });
   useEffect(() => {
@@ -937,6 +844,23 @@ export default function App() {
     ) {
       setIsMoving(true);
       setPlayerPos({ x: nextX, y: nextY });
+      const leadPokemon = playerTeam[0];
+      if (leadPokemon?.status === 'poison' && leadPokemon.hp > 1) {
+        poisonStepCounter.current += 1;
+        if (poisonStepCounter.current >= 4) {
+          poisonStepCounter.current = 0;
+          setPlayerTeam(prev => {
+            if (prev.length === 0) return prev;
+            const updated = [...prev];
+            updated[0] = { ...updated[0], hp: Math.max(1, updated[0].hp - 1) };
+            return updated;
+          });
+          setOverworldShake(true);
+          setTimeout(() => setOverworldShake(false), 220);
+        }
+      } else {
+        poisonStepCounter.current = 0;
+      }
 
       if (map[nextY][nextX].type === 'grass') {
         setGrassEffect({ x: nextX, y: nextY });
@@ -953,7 +877,7 @@ export default function App() {
       if (teleport && teleport.targetMap && teleport.targetPos) {
         soundManager.play('SELECT');
         setTimeout(() => {
-          setCurrentMap(teleport.targetMap as any);
+          setCurrentMap(teleport.targetMap);
           setPlayerPos(teleport.targetPos!);
         }, 200);
       }
@@ -971,17 +895,33 @@ export default function App() {
           
           if (visionX === nextX && visionY === nextY) {
             setSpottedTrainerId(trainer.id);
+            setSpottedTrainerPos({ ...trainer.position });
             soundManager.play('TRAINER_SPOTTED');
             setDialogue(`${trainer.name}: ¡Eh! ¡Te he visto! ¡Vamos a luchar!`);
+            const spottedDistance = i;
+            for (let step = 1; step < spottedDistance; step++) {
+              setTimeout(() => {
+                setSpottedTrainerPos(prev => {
+                  if (!prev) return prev;
+                  const next = { ...prev };
+                  if (trainer.direction === 'up') next.y -= 1;
+                  if (trainer.direction === 'down') next.y += 1;
+                  if (trainer.direction === 'left') next.x -= 1;
+                  if (trainer.direction === 'right') next.x += 1;
+                  return next;
+                });
+              }, step * 220);
+            }
             setTimeout(() => {
               setSpottedTrainerId(null);
+              setSpottedTrainerPos(null);
               soundManager.play('BATTLE_START');
               setEnemyPokemon(trainer.trainerTeam![0]);
               updatePokedex(trainer.trainerTeam![0].id);
               setIsTrainerBattle(true);
               setBattleLog(`¡${trainer.name} te desafía!`);
               setPhase(BATTLE_TRANSITION);
-            }, 1500);
+            }, Math.max(1500, spottedDistance * 240));
             break;
           }
         }
@@ -1040,6 +980,14 @@ export default function App() {
     setTimeout(() => {
       setEnemyAnim('attack');
       const enemyMove = enemyPokemon.moves[Math.floor(Math.random() * enemyPokemon.moves.length)];
+      if (!doesMoveHit(enemyMove.accuracy)) {
+        setBattleLog(`¡${enemyPokemon.name} usó ${enemyMove.name}! ¡Pero falló!`);
+        setTimeout(() => {
+          setEnemyAnim('idle');
+          setPhase(battle(B_CHOOSING));
+        }, 700);
+        return;
+      }
 
       // Enemy status move (power === 0)
       if (enemyMove.power === 0) {
@@ -1068,7 +1016,7 @@ export default function App() {
         setTimeout(() => setProjectile(null), 600);
       }
 
-      soundManager.play('HIT');
+      soundManager.playMove(enemyMove.sfxType ?? 'pulse');
 
       setTimeout(() => {
         setEnemyAnim('idle');
@@ -1128,7 +1076,7 @@ export default function App() {
 
                 // Teleport mid-blackout (while screen is dark)
                 setTimeout(() => {
-                  setCurrentMap(lastHealLocation.map as any);
+                  setCurrentMap(lastHealLocation.map);
                   setPlayerPos(lastHealLocation.pos);
                 }, 1200);
 
@@ -1367,10 +1315,19 @@ export default function App() {
       return;
     }
 
+    setPlayerAnim('attack');
+    soundManager.play('SELECT');
+    if (!doesMoveHit(move.accuracy)) {
+      setBattleLog(`¡${playerPkmn.name} usó ${move.name}! ¡Pero falló!`);
+      setTimeout(() => {
+        setPlayerAnim('idle');
+        handleEnemyTurn();
+      }, 700);
+      return;
+    }
+
     // Status / Stat-change move (power === 0): no damage animation
     if (move.power === 0) {
-      setPlayerAnim('attack');
-      soundManager.play('SELECT');
       let log = `¡${playerPkmn.name} usó ${move.name}!`;
 
       // Stat change
@@ -1392,8 +1349,7 @@ export default function App() {
     }
 
     // Player Attack Animation
-    setPlayerAnim('attack');
-    soundManager.play('HIT');
+    soundManager.playMove(move.sfxType ?? 'pulse');
 
     // Show Projectile for special moves
     if (move.type !== 'normal') {
@@ -1446,8 +1402,10 @@ export default function App() {
           
           // Check if it was a trainer pokemon
           const trainer = npcs[currentMap].find(n => n.isTrainer && n.trainerTeam?.some(p => p.id === enemyPokemon.id));
+          const moneyReward = trainer ? enemyPokemon.level * 20 : 0;
           if (trainer) {
             setDefeatedTrainers(prev => [...prev, trainer.id]);
+            if (moneyReward > 0) setMoney(prev => prev + moneyReward);
             if (trainer.id === 'brock') {
               setBadges(prev => [...prev, 'BOULDER']);
               setBattleLog(prev => `${prev}\n¡Recibiste la MEDALLA ROCA de BROCK!`);
@@ -1458,7 +1416,8 @@ export default function App() {
           const expGain = Math.floor(enemyPokemon.level * 25);
 
           setTimeout(() => {
-            setBattleLog(`¡${playerPkmn.name} ganó ${expGain} puntos de EXP!`);
+            const rewardLine = moneyReward > 0 ? `\n¡Ganaste ₽${moneyReward}!` : '';
+            setBattleLog(`¡${playerPkmn.name} ganó ${expGain} puntos de EXP!${rewardLine}`);
 
             // Compute new pokemon state synchronously
             let pkmn = { ...playerPkmn };
@@ -1684,27 +1643,53 @@ export default function App() {
           className="absolute bg-emerald-50 rounded-[2rem] shadow-2xl overflow-hidden border-8 border-slate-800"
           initial={false}
           animate={{ 
-            x: -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2),
+            x: overworldShake
+              ? [
+                  -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2),
+                  -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2) - 8,
+                  -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2) + 8,
+                  -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2),
+                ]
+              : -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2),
             y: -playerPos.y * TILE_SIZE + (windowSize.height / 2) - (TILE_SIZE / 2)
           }}
           transition={{ type: "tween", duration: 0.1, ease: "linear" }}
         >
           {/* Map Grid */}
           <div 
-            className="grid" 
+            className="relative" 
             style={{ 
-              gridTemplateColumns: `repeat(${GRID_SIZE}, ${TILE_SIZE}px)`,
               width: GRID_SIZE * TILE_SIZE,
               height: GRID_SIZE * TILE_SIZE
             }}
           >
             {(() => {
               const mapHasEncounters = currentMap in WILD_POKEMON_DATABASE;
-              return maps[currentMap].map((row, y) =>
-                row.map((tile, x) => (
-                  <GameTile key={`${x}-${y}`} type={tile.type} isGrassActive={grassEffect?.x === x && grassEffect?.y === y} hasEncounters={mapHasEncounters} />
-                ))
-              );
+              const cullRadius = 8;
+              const minY = Math.max(0, playerPos.y - cullRadius);
+              const maxY = Math.min(GRID_SIZE - 1, playerPos.y + cullRadius);
+              const minX = Math.max(0, playerPos.x - cullRadius);
+              const maxX = Math.min(GRID_SIZE - 1, playerPos.x + cullRadius);
+              const tiles = [];
+              for (let y = minY; y <= maxY; y++) {
+                for (let x = minX; x <= maxX; x++) {
+                  const tile = maps[currentMap][y][x];
+                  tiles.push(
+                    <div
+                      key={`${x}-${y}`}
+                      className="absolute"
+                      style={{ left: x * TILE_SIZE, top: y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}
+                    >
+                      <GameTile
+                        type={tile.type}
+                        isGrassActive={grassEffect?.x === x && grassEffect?.y === y}
+                        hasEncounters={mapHasEncounters}
+                      />
+                    </div>
+                  );
+                }
+              }
+              return tiles;
             })()}
           </div>
 
@@ -1756,7 +1741,15 @@ export default function App() {
 
           {/* NPCs */}
           {npcs[currentMap].map(npc => (
-            <NPCComponent key={npc.id} npc={npc} isSpotted={npc.id === spottedTrainerId} />
+            <NPCComponent
+              key={npc.id}
+              npc={
+                npc.id === spottedTrainerId && spottedTrainerPos
+                  ? { ...npc, position: spottedTrainerPos }
+                  : npc
+              }
+              isSpotted={npc.id === spottedTrainerId}
+            />
           ))}
 
           {/* Items / Pokéballs / Objects */}
@@ -1939,19 +1932,32 @@ export default function App() {
                 </div>
                 <div className="mt-2 space-y-1">
                   {playerTeam.map((p, i) => (
-                    <div key={i} className="flex flex-col gap-1">
-                      <div className="flex justify-between text-[10px] font-bold">
-                        <span>{p.name}</span>
-                        <span>{p.hp}/{p.maxHp}</span>
-                      </div>
-                      <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full transition-all ${p.hp > p.maxHp / 2 ? 'bg-emerald-500' : p.hp > p.maxHp / 5 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                          style={{ width: `${(p.hp / p.maxHp) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+  <div key={i} className="flex flex-col gap-1 mt-2">
+    {/* HP Row */}
+    <div className="flex justify-between text-[10px] font-bold">
+      <span>{p.name}</span>
+      <span className="text-slate-500">HP {p.hp}/{p.maxHp}</span>
+    </div>
+    <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
+      <div 
+        className={`h-full transition-all ${p.hp > p.maxHp / 2 ? 'bg-emerald-500' : p.hp > p.maxHp / 5 ? 'bg-yellow-500' : 'bg-red-500'}`}
+        style={{ width: `${(p.hp / p.maxHp) * 100}%` }}
+      />
+    </div>
+
+    {/* NEW: Experience Points Row */}
+    <div className="flex justify-between text-[9px] font-mono text-slate-400 mt-0.5">
+      <span>EXP</span>
+      <span>{p.exp || 0} / {p.expToNextLevel || 100}</span>
+    </div>
+    <div className="w-full h-0.5 bg-slate-200 rounded-full overflow-hidden">
+      <div 
+        className="h-full bg-blue-400 transition-all"
+        style={{ width: `${((p.exp || 0) / (p.expToNextLevel || 100)) * 100}%` }}
+      />
+    </div>
+  </div>
+))}
                 </div>
                 <div className="flex flex-col gap-1 mt-2">
                   <span className="text-[10px] text-slate-400 uppercase">Inventario</span>
@@ -1971,6 +1977,7 @@ export default function App() {
       <AnimatePresence>
         {inBattle && (
           <BattleScreen
+            currentMap={currentMap}
             battleShake={battleShake}
             enemyPokemon={enemyPokemon}
             enemyAnim={enemyAnim}

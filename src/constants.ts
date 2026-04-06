@@ -208,7 +208,9 @@ export function makePokemon(
 
 /** Helper to create a Move with pp === maxPp */
 function move(name: string, type: string, power: number, accuracy: number, maxPp: number, extra?: Partial<Move>): Move {
-  return { name, type, power, accuracy, pp: maxPp, maxPp, ...extra };
+  const defaultSfxType: Move['sfxType'] =
+    power === 0 ? 'glissando' : (type === 'normal' || type === 'rock' || type === 'fighting' ? 'noise' : 'pulse');
+  return { name, type, power, accuracy, pp: maxPp, maxPp, sfxType: defaultSfxType, ...extra };
 }
 
 export const MOVES: Record<string, Move> = {

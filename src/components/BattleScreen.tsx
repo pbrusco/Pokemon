@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Pokemon, Move } from '../types';
 import { soundManager } from '../lib/sounds';
 import { calcStat } from '../lib/damage';
 
 export interface BattleScreenProps {
+  currentMap: string;
   battleShake: boolean;
   enemyPokemon: Pokemon | null;
   enemyAnim: 'idle' | 'attack' | 'hit' | 'faint';
@@ -73,6 +74,7 @@ function TrainerSilhouette() {
 }
 
 export function BattleScreen({
+  currentMap,
   battleShake, enemyPokemon, enemyAnim, isCatching, projectile, hitEffect, damageNumber, healNumber,
   playerTeam, playerAnim, battleLog, isTrainerBattle, isPlayerTurn, onFlee,
   setShowInventory, setShowTeam, handleAttack
@@ -80,6 +82,16 @@ export function BattleScreen({
 
   const playerPkmn = playerTeam[0];
   const [hoveredMoveIdx, setHoveredMoveIdx] = useState<number | null>(null);
+  const [enemySpriteError, setEnemySpriteError] = useState(false);
+  const [playerSpriteError, setPlayerSpriteError] = useState(false);
+
+  useEffect(() => {
+    setEnemySpriteError(false);
+  }, [enemyPokemon?.sprite]);
+
+  useEffect(() => {
+    setPlayerSpriteError(false);
+  }, [playerPkmn?.sprite]);
 
   const hpColor = (hp: number, max: number) => {
     const ratio = hp / max;
@@ -94,6 +106,16 @@ export function BattleScreen({
     return physical.includes(m.type) ? 'Físico' : 'Especial';
   };
 
+  const getBattleBackground = () => {
+    if (currentMap.includes('GYM')) {
+      return 'linear-gradient(to bottom, #cbd5e1 0%, #94a3b8 50%, #64748b 100%)';
+    }
+    if (currentMap.includes('FOREST') || currentMap.includes('ROUTE')) {
+      return 'linear-gradient(to bottom, #d8f0f8 0%, #f8f8d8 45%, #c6e59d 100%)';
+    }
+    return 'linear-gradient(to bottom, #d8f0f8 0%, #f8f8d8 50%, #d8e8b0 100%)';
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -101,7 +123,7 @@ export function BattleScreen({
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[90] bg-[#f8f8d8] flex flex-col font-game"
       style={{
-        backgroundImage: 'linear-gradient(to bottom, #d8f0f8 0%, #f8f8d8 50%, #d8e8b0 100%)'
+        backgroundImage: getBattleBackground(),
       }}
     >
       {/* Top Background area */}
@@ -125,7 +147,20 @@ export function BattleScreen({
               }}
               animate={isCatching ? { opacity: 0, scale: 0 } : enemyAnim}
             >
-              {enemyPokemon?.sprite && <img src={enemyPokemon.sprite} className="w-full h-full object-contain pixelated drop-shadow-[0_4px_4px_rgba(0,0,0,0.3)]" alt="enemy" />}
+              {enemyPokemon?.sprite && !enemySpriteError && (
+                <img
+                  src={enemyPokemon.sprite}
+                  className="w-full h-full object-contain pixelated drop-shadow-[0_4px_4px_rgba(0,0,0,0.3)]"
+                  alt="enemy"
+                  onError={() => setEnemySpriteError(true)}
+                />
+              )}
+              {enemySpriteError && (
+                <div
+                  className="w-full h-full bg-[#2c2c2c]/80 border-2 border-[#1a1a1a] rounded-full"
+                  aria-label="enemy-fallback"
+                />
+              )}
             </motion.div>
           </div>
         </div>
@@ -143,6 +178,7 @@ export function BattleScreen({
                 <motion.div
                   initial={{ width: '100%' }}
                   animate={{ width: `${(enemyPokemon?.hp || 0) / (enemyPokemon?.maxHp || 1) * 100}%` }}
+                  transition={{ duration: 0.7, ease: 'linear' }}
                   className={`h-full border-t-2 border-white/50 ${hpColor(enemyPokemon?.hp || 0, enemyPokemon?.maxHp || 1)}`}
                 />
               </div>
@@ -196,52 +232,84 @@ export function BattleScreen({
               }}
               animate={playerAnim}
             >
-              {playerPkmn?.sprite && <img src={playerPkmn.sprite.replace('pokemon/', 'pokemon/back/')} className="w-full h-full object-contain pixelated drop-shadow-[0_4px_4px_rgba(0,0,0,0.3)]" alt="player" />}
+              {playerPkmn?.sprite && !playerSpriteError && (
+                <img
+                  src={playerPkmn.sprite.replace('pokemon/', 'pokemon/back/')}
+                  className="w-full h-full object-contain pixelated drop-shadow-[0_4px_4px_rgba(0,0,0,0.3)]"
+                  alt="player"
+                  onError={() => setPlayerSpriteError(true)}
+                />
+              )}
+              {playerSpriteError && (
+                <div
+                  className="w-full h-full bg-[#2c2c2c]/80 border-2 border-[#1a1a1a] rounded-full"
+                  aria-label="player-fallback"
+                />
+              )}
             </motion.div>
           </div>
         </div>
 
-        {/* Player HUD */}
-        <div className="absolute bottom-[25%] sm:bottom-[30%] right-[3%] sm:right-[5%]">
-          <div className="bg-[#f8f8f0] border-t-4 border-r-4 border-b-4 border-l-[12px] rounded-tr-2xl rounded-br-2xl border-[#506860] p-2 sm:p-3 pl-3 sm:pl-4 w-[180px] sm:w-[280px] shadow-[4px_4px_0_rgba(0,0,0,0.2)]">
-            <div className="flex justify-between items-end border-b-2 border-slate-300 pb-1 mb-1 sm:mb-2">
-              <h3 className="text-[#383838] font-bold text-sm sm:text-xl uppercase tracking-tighter truncate mr-1">{playerPkmn?.name}</h3>
-              <p className="text-[#383838] font-bold text-xs sm:text-lg shrink-0">Nv{playerPkmn?.level}</p>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2 bg-[#d8d8d8] p-1 rounded-full border-2 border-[#506860]">
-              <span className="text-[8px] sm:text-[10px] font-black text-[#f8d830] tracking-widest pl-1 drop-shadow-[1px_1px_0_#c8a020]">PS</span>
-              <div className="flex-1 h-2 sm:h-3 bg-white rounded-full border border-slate-400 overflow-hidden ml-1">
-                <motion.div
-                  initial={{ width: '100%' }}
-                  animate={{ width: `${(playerPkmn?.hp || 0) / (playerPkmn?.maxHp || 1) * 100}%` }}
-                  className={`h-full border-t-2 border-white/50 ${hpColor(playerPkmn?.hp || 0, playerPkmn?.maxHp || 1)}`}
-                />
-              </div>
-            </div>
-            <div className="text-right mt-0.5 sm:mt-1 pr-1">
-              <span className="text-[#383838] font-bold text-sm sm:text-lg tracking-widest">{playerPkmn?.hp} /  {playerPkmn?.maxHp}</span>
-            </div>
-            <div className="h-1 sm:h-1.5 w-full bg-[#d8d8d8] mt-1 flex border border-slate-400">
-              <div className="bg-[#58a8f8] h-full" style={{ width: `${(playerPkmn?.exp || 0) / (playerPkmn?.expToNextLevel || 100) * 100}%` }} />
-            </div>
-            <StatBoostBadges boosts={playerPkmn?.statBoosts} />
-            {/* Debug stats — hidden on mobile */}
-            {playerPkmn && (
-              <div className="mt-2 grid-cols-4 gap-1 hidden sm:grid">
-                {(['attack','defense','special','speed'] as const).map(stat => (
-                  <div key={stat} className="bg-slate-100 rounded px-1 py-0.5 text-center">
-                    <div className="text-[8px] text-slate-400 uppercase font-bold">{stat.slice(0,3)}</div>
-                    <div className="text-[10px] font-mono font-black text-slate-700">{calcStat(playerPkmn.baseStats[stat], playerPkmn.level)}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-            {playerPkmn?.status && playerPkmn.status !== 'none' && (
-              <div className="mt-1 text-[9px] font-bold text-orange-600 uppercase tracking-widest text-center">{playerPkmn.status}</div>
-            )}
-          </div>
-        </div>
+       {/* Player HUD */}
+<div className="absolute bottom-[25%] sm:bottom-[30%] right-[3%] sm:right-[5%]">
+  <div className="bg-[#f8f8f0] border-t-4 border-r-4 border-b-4 border-l-[12px] rounded-tr-2xl rounded-br-2xl border-[#506860] p-2 sm:p-3 pl-3 sm:pl-4 w-[180px] sm:w-[280px] shadow-[4px_4px_0_rgba(0,0,0,0.2)]">
+    <div className="flex justify-between items-end border-b-2 border-slate-300 pb-1 mb-1 sm:mb-2">
+      <h3 className="text-[#383838] font-bold text-sm sm:text-xl uppercase tracking-tighter truncate mr-1">{playerPkmn?.name}</h3>
+      <p className="text-[#383838] font-bold text-xs sm:text-lg shrink-0">Nv{playerPkmn?.level}</p>
+    </div>
+    
+    {/* HP Section */}
+    <div className="flex items-center gap-1 sm:gap-2 bg-[#d8d8d8] p-1 rounded-full border-2 border-[#506860]">
+      <span className="text-[8px] sm:text-[10px] font-black text-[#f8d830] tracking-widest pl-1 drop-shadow-[1px_1px_0_#c8a020]">PS</span>
+      <div className="flex-1 h-2 sm:h-3 bg-white rounded-full border border-slate-400 overflow-hidden ml-1">
+        <motion.div
+          initial={false}
+          animate={{ width: `${(playerPkmn?.hp || 0) / (playerPkmn?.maxHp || 1) * 100}%` }}
+          transition={{ duration: 0.7, ease: 'linear' }}
+          className={`h-full border-t-2 border-white/50 ${hpColor(playerPkmn?.hp || 0, playerPkmn?.maxHp || 1)}`}
+        />
+      </div>
+    </div>
+    
+    <div className="text-right mt-0.5 sm:mt-1 pr-1">
+      <span className="text-[#383838] font-bold text-sm sm:text-lg tracking-widest">{playerPkmn?.hp} / {playerPkmn?.maxHp}</span>
+    </div>
 
+    {/* UPDATED: Experience Section with Numbers */}
+    <div className="mt-1">
+      <div className="flex justify-between items-center px-1 mb-0.5">
+        <span className="text-[8px] sm:text-[10px] font-black text-[#58a8f8] italic uppercase tracking-tighter">Exp</span>
+        <span className="text-[9px] sm:text-[11px] font-mono font-bold text-slate-600">
+          {playerPkmn?.exp || 0} / {playerPkmn?.expToNextLevel || 100}
+        </span>
+      </div>
+      <div className="h-1 sm:h-1.5 w-full bg-[#d8d8d8] flex border border-slate-400 overflow-hidden">
+        <motion.div 
+          initial={false}
+          animate={{ width: `${((playerPkmn?.exp || 0) / (playerPkmn?.expToNextLevel || 100)) * 100}%` }}
+          className="bg-[#58a8f8] h-full border-t border-white/30" 
+        />
+      </div>
+    </div>
+
+    <StatBoostBadges boosts={playerPkmn?.statBoosts} />
+    
+    {/* Debug stats and Status remain the same... */}
+    {playerPkmn && (
+      <div className="mt-2 grid-cols-4 gap-1 hidden sm:grid">
+        {(['attack','defense','special','speed'] as const).map(stat => (
+          <div key={stat} className="bg-slate-100 rounded px-1 py-0.5 text-center">
+            <div className="text-[8px] text-slate-400 uppercase font-bold">{stat.slice(0,3)}</div>
+            <div className="text-[10px] font-mono font-black text-slate-700">{calcStat(playerPkmn.baseStats[stat], playerPkmn.level)}</div>
+          </div>
+        ))}
+      </div>
+    )}
+    {playerPkmn?.status && playerPkmn.status !== 'none' && (
+      <div className="mt-1 text-[9px] font-bold text-orange-600 uppercase tracking-widest text-center">{playerPkmn.status}</div>
+    )}
+  </div>
+</div>
         {/* Visual FX */}
         <AnimatePresence>
           {projectile && (

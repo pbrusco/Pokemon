@@ -83,6 +83,18 @@ class SoundManager {
     SFX[key]?.();
   }
 
+  playMove(moveSfxType: 'pulse' | 'noise' | 'glissando' = 'pulse') {
+    if (moveSfxType === 'noise') {
+      playTone('sawtooth', [320, 180, 260], 0.14, 0.14);
+      return;
+    }
+    if (moveSfxType === 'glissando') {
+      playTone('triangle', [260, 440, 620], 0.18, 0.1);
+      return;
+    }
+    playTone('square', [260, 380], 0.12, 0.12);
+  }
+
   playMusic(key: keyof typeof MELODIES) {
     if (this.currentMusicKey === key) return;
     this.stopMusic();

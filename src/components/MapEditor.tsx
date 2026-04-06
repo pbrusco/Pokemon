@@ -47,11 +47,38 @@ export function MapEditor({ onClose }: { onClose: () => void }) {
   };
 
   const copyToClipboard = () => {
-    // Generate valid typescript output format string
-    const mapString = JSON.stringify(localMapData[selectedMapKey], null, 2);
-    const fullReplacement = `export const ${selectedMapKey}_MAP = ${mapString};`;
+    // Compact export as { rows: string[] } + legend for quick paste
+    const tileToCode: Record<string, string> = {
+      grass: 'G',
+      path: 'P',
+      wall: 'W',
+      door: 'D',
+      floor: 'F',
+      carpet: 'C',
+      table: 'T',
+      tree: 'R',
+      sign: 'S',
+    };
+    const rows = localMapData[selectedMapKey].map((row: any[]) =>
+      row.map((tile: any) => tileToCode[tile.type] ?? 'G').join('')
+    );
+    const compact = {
+      rows,
+      legend: {
+        G: 'grass',
+        P: 'path',
+        W: 'wall',
+        D: 'door',
+        F: 'floor',
+        C: 'carpet',
+        T: 'table',
+        R: 'tree',
+        S: 'sign',
+      },
+    };
+    const fullReplacement = `export const ${selectedMapKey}_MAP = ${JSON.stringify(compact, null, 2)};`;
     navigator.clipboard.writeText(fullReplacement);
-    alert('Map copied to clipboard! Paste this into worldConfig.ts');
+    alert('Compact map copied to clipboard as { rows: string[] }!');
   };
 
   const saveToLiveEngine = () => {

@@ -21,3 +21,16 @@ export const MAP_VIRIDIAN_FOREST = parseTileMap(viridian_forest);
 export const MAP_PEWTER_CITY    = parseTileMap(pewter_city);
 export const MAP_PEWTER_GYM     = parseTileMap(pewter_gym);
 export const MAP_ROUTE_3        = parseTileMap(route_3);
+
+export const worldMaps = {
+  PALLET_TOWN: MAP_PALLET_TOWN,
+  OAKS_LAB: MAP_OAKS_LAB,
+  ROUTE_1: MAP_ROUTE_1,
+  VIRIDIAN_CITY: MAP_VIRIDIAN_CITY,
+  POKECENTER: MAP_POKECENTER,
+  POKEMART: MAP_POKEMART,
+  VIRIDIAN_FOREST: MAP_VIRIDIAN_FOREST,
+  PEWTER_CITY: MAP_PEWTER_CITY,
+  PEWTER_GYM: MAP_PEWTER_GYM,
+  ROUTE_3: MAP_ROUTE_3,
+};
