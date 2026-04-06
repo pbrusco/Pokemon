@@ -1,12 +1,13 @@
 import { create } from 'zustand';
-import { Pokemon, Position, Direction, Move, Entity, NPC } from '../types';
+import { Pokemon, Position, Direction, Entity, NPC, InventoryCounts, MapID } from '../types';
 import { generateWorldNPCs, worldConfig } from '../data/worldConfig';
+import type { SetStateAction } from 'react';
 
 interface GameState {
   // Player Location & Core State
   playerPos: Position;
   direction: Direction;
-  currentMap: string;
+  currentMap: MapID;
   isMoving: boolean;
   
   // Game Flags & Progression
@@ -15,10 +16,10 @@ interface GameState {
   badges: string[];
   storyStep: 'START' | 'OAK_STOPPED' | 'IN_LAB' | 'PICKED_STARTER' | 'RIVAL_BATTLE' | 'EXPLORING';
   defeatedTrainers: string[];
-  lastHealLocation: { map: string; pos: Position };
+  lastHealLocation: { map: MapID; pos: Position };
   
   // Inventories & Teams
-  inventory: string[];
+  inventory: InventoryCounts;
   playerTeam: Pokemon[];
   pcStorage: Pokemon[];
   
@@ -32,22 +33,29 @@ interface GameState {
 
   // Active World Database (Mutable by Editor)
   worldMaps: typeof worldConfig.maps;
-  teleports: Record<string, Entity[]>;
-  items: Record<string, Entity[]>;
+  teleports: Record<MapID, Entity[]>;
+  items: Record<MapID, Entity[]>;
   
   // Dynamically evaluated derived states
-  getNPCs: () => Record<string, NPC[]>;
+  getNPCs: () => Record<MapID, NPC[]>;
   
   // Action dispatchers
   setPlayerPos: (pos: Position) => void;
   setDirection: (dir: Direction) => void;
-  setCurrentMap: (mapId: string) => void;
+  setCurrentMap: (mapId: MapID) => void;
   setIsMoving: (isMoving: boolean) => void;
   
+  setHasPokedex: (v: boolean) => void;
+  setHasParcel: (v: boolean) => void;
+  setBadges: (badges: SetStateAction<string[]>) => void;
+  setDefeatedTrainers: (ids: SetStateAction<string[]>) => void;
   setDialogue: (text: string | null) => void;
   setIsLocked: (locked: boolean) => void;
-  setStoryStep: (step: any) => void;
-  setLastHealLocation: (loc: { map: string; pos: Position }) => void;
+  setStoryStep: (step: SetStateAction<GameState['storyStep']>) => void;
+  setLastHealLocation: (loc: { map: MapID; pos: Position }) => void;
+  setInventory: (inventory: SetStateAction<InventoryCounts>) => void;
+  setPlayerTeam: (team: SetStateAction<Pokemon[]>) => void;
+  setPcStorage: (pc: SetStateAction<Pokemon[]>) => void;
   
   // State Mutators
   addInventoryItem: (item: string) => void;
@@ -79,7 +87,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   defeatedTrainers: [],
   lastHealLocation: { map: 'PALLET_TOWN', pos: { x: 7, y: 11 } },
   
-  inventory: ['POTION', 'POKEBALL'],
+  inventory: { POTION: 1, POKEBALL: 1 },
   playerTeam: [],
   pcStorage: [],
   
@@ -106,18 +114,38 @@ export const useGameStore = create<GameState>((set, get) => ({
   setCurrentMap: (map) => set({ currentMap: map }),
   setIsMoving: (isM) => set({ isMoving: isM }),
   
+  setHasPokedex: (v) => set({ hasPokedex: v }),
+  setHasParcel: (v) => set({ hasParcel: v }),
+  setBadges: (badges) => set((state) => ({
+    badges: typeof badges === 'function' ? badges(state.badges) : badges,
+  })),
+  setDefeatedTrainers: (ids) => set((state) => ({
+    defeatedTrainers: typeof ids === 'function' ? ids(state.defeatedTrainers) : ids,
+  })),
   setDialogue: (text) => set({ dialogue: text }),
   setIsLocked: (locked) => set({ isLocked: locked }),
-  setStoryStep: (step) => set({ storyStep: step }),
+  setStoryStep: (step) => set((state) => ({
+    storyStep: typeof step === 'function' ? step(state.storyStep) : step,
+  })),
   setLastHealLocation: (loc) => set({ lastHealLocation: loc }),
+  setInventory: (inventory) => set((state) => ({
+    inventory: typeof inventory === 'function' ? inventory(state.inventory) : inventory,
+  })),
+  setPlayerTeam: (playerTeam) => set((state) => ({
+    playerTeam: typeof playerTeam === 'function' ? playerTeam(state.playerTeam) : playerTeam,
+  })),
+  setPcStorage: (pcStorage) => set((state) => ({
+    pcStorage: typeof pcStorage === 'function' ? pcStorage(state.pcStorage) : pcStorage,
+  })),
   
-  addInventoryItem: (item) => set((state) => ({ inventory: [...state.inventory, item] })),
+  addInventoryItem: (item) => set((state) => ({ inventory: { ...state.inventory, [item]: (state.inventory[item] ?? 0) + 1 } })),
   removeInventoryItem: (itemName) => set((state) => {
-    const idx = state.inventory.indexOf(itemName);
-    if (idx === -1) return state;
-    const nextArr = [...state.inventory];
-    nextArr.splice(idx, 1);
-    return { inventory: nextArr };
+    const nextQty = (state.inventory[itemName] ?? 0) - 1;
+    if (nextQty <= 0) {
+      const { [itemName]: _removed, ...rest } = state.inventory;
+      return { inventory: rest };
+    }
+    return { inventory: { ...state.inventory, [itemName]: nextQty } };
   }),
   
   updateTeam: (team) => set({ playerTeam: team }),
@@ -130,9 +158,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   loadPersistedState: (data) => set({
     playerPos: data.pos,
-    currentMap: data.map,
+    currentMap: data.map as MapID,
     playerTeam: data.team,
-    inventory: data.inventory,
+    inventory: data.inventory ?? {},
     defeatedTrainers: data.defeatedTrainers,
     hasPokedex: data.hasPokedex,
     hasParcel: data.hasParcel,

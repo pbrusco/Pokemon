@@ -39,6 +39,7 @@ import { PCStorageUI } from './components/PCStorageUI';
 import { BattleScreen } from './components/BattleScreen';
 import { Joystick } from './components/Joystick';
 import { useInteractionEngine } from './hooks/useInteractionEngine';
+import { useGameStore } from './store/gameStore';
 
 // --- Constants & Data ---
 
@@ -353,11 +354,16 @@ const Player = ({ position, direction, isMoving }: { position: Position, directi
 // --- Main App ---
 
 export default function App() {
-  const [currentMap, setCurrentMap] = useState<MapID>('PALLET_TOWN');
-  const [playerPos, setPlayerPos] = useState<Position>({ x: 10, y: 10 });
-  const [direction, setDirection] = useState<Direction>('down');
-  const [isMoving, setIsMoving] = useState(false);
-  const [dialogue, setDialogue] = useState<string | null>("¡Bienvenido a Pueblo Paleta! Usa las flechas para moverte.");
+  const currentMap = useGameStore(s => s.currentMap);
+  const setCurrentMap = useGameStore(s => s.setCurrentMap);
+  const playerPos = useGameStore(s => s.playerPos);
+  const setPlayerPos = useGameStore(s => s.setPlayerPos);
+  const direction = useGameStore(s => s.direction);
+  const setDirection = useGameStore(s => s.setDirection);
+  const isMoving = useGameStore(s => s.isMoving);
+  const setIsMoving = useGameStore(s => s.setIsMoving);
+  const dialogue = useGameStore(s => s.dialogue);
+  const setDialogue = useGameStore(s => s.setDialogue);
   const [phase, setPhase] = useState<GamePhase>(EXPLORING);
   const [isTrainerBattle, setIsTrainerBattle] = useState(false);
   const [pickedItemIds, setPickedItemIds] = useState<string[]>([]);
@@ -365,12 +371,17 @@ export default function App() {
   // Phase-derived helpers
   const inBattle = phase.type === 'BATTLE';
   const battlePhase = phase.type === 'BATTLE' ? phase.sub : null;
-  const [hasPokedex, setHasPokedex] = useState(false);
-  const [hasParcel, setHasParcel] = useState(false);
+  const hasPokedex = useGameStore(s => s.hasPokedex);
+  const setHasPokedex = useGameStore(s => s.setHasPokedex);
+  const hasParcel = useGameStore(s => s.hasParcel);
+  const setHasParcel = useGameStore(s => s.setHasParcel);
   const [pokedex, setPokedex] = useState<Record<string, { seen: boolean, caught: boolean }>>({});
-  const [pcStorage, setPcStorage] = useState<Pokemon[]>([]);
-  const [badges, setBadges] = useState<string[]>([]);
-  const [defeatedTrainers, setDefeatedTrainers] = useState<string[]>([]);
+  const pcStorage = useGameStore(s => s.pcStorage);
+  const setPcStorage = useGameStore(s => s.setPcStorage);
+  const badges = useGameStore(s => s.badges);
+  const setBadges = useGameStore(s => s.setBadges);
+  const defeatedTrainers = useGameStore(s => s.defeatedTrainers);
+  const setDefeatedTrainers = useGameStore(s => s.setDefeatedTrainers);
   // isBattle and showBattleTransition replaced by phase
   const [grassEffect, setGrassEffect] = useState<{ x: number; y: number } | null>(null);
   const [windowSize, setWindowSize] = useState({
@@ -390,7 +401,8 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [playerTeam, setPlayerTeam] = useState<Pokemon[]>([]);
+  const playerTeam = useGameStore(s => s.playerTeam);
+  const setPlayerTeam = useGameStore(s => s.setPlayerTeam);
   const [enemyPokemon, setEnemyPokemon] = useState<Pokemon | null>(null);
   const [battleLog, setBattleLog] = useState("");
   const [playerAnim, setPlayerAnim] = useState<'idle' | 'attack' | 'hit' | 'faint'>('idle');
@@ -402,7 +414,8 @@ export default function App() {
   const [healNumber, setHealNumber] = useState<{ x: number, y: number, value: number } | null>(null);
   const [battleShake, setBattleShake] = useState(false);
   // isCatching, isBlackout, isHealing, isLevelUp, isEvolving, forcedSwitch replaced by phase
-  const [lastHealLocation, setLastHealLocation] = useState<{ map: MapID; pos: Position }>({ map: 'PALLET_TOWN', pos: { x: 7, y: 11 } });
+  const lastHealLocation = useGameStore(s => s.lastHealLocation);
+  const setLastHealLocation = useGameStore(s => s.setLastHealLocation);
   const [money, setMoney] = useState(3000);
   const [spottedTrainerId, setSpottedTrainerId] = useState<string | null>(null);
   const [spottedTrainerPos, setSpottedTrainerPos] = useState<Position | null>(null);
@@ -412,22 +425,13 @@ export default function App() {
   const [playTimeMs, setPlayTimeMs] = useState(0);
 
   // Story State
-  const [storyStep, setStoryStep] = useState<'START' | 'OAK_STOPPED' | 'IN_LAB' | 'PICKED_STARTER' | 'RIVAL_BATTLE' | 'EXPLORING'>('START');
-  const [inventory, setInventory] = useState<InventoryCounts>({ POTION: 1, POKEBALL: 1 });
+  const storyStep = useGameStore(s => s.storyStep);
+  const setStoryStep = useGameStore(s => s.setStoryStep);
+  const inventory = useGameStore(s => s.inventory);
+  const setInventory = useGameStore(s => s.setInventory);
+  const addInventoryItem = useGameStore(s => s.addInventoryItem);
+  const removeInventoryItem = useGameStore(s => s.removeInventoryItem);
   const hasItem = useCallback((itemId: string) => (inventory[itemId] ?? 0) > 0, [inventory]);
-  const addItem = useCallback((itemId: string, amount = 1) => {
-    setInventory(prev => ({ ...prev, [itemId]: (prev[itemId] ?? 0) + amount }));
-  }, []);
-  const removeItem = useCallback((itemId: string, amount = 1) => {
-    setInventory(prev => {
-      const nextQty = (prev[itemId] ?? 0) - amount;
-      if (nextQty <= 0) {
-        const { [itemId]: _removed, ...rest } = prev;
-        return rest;
-      }
-      return { ...prev, [itemId]: nextQty };
-    });
-  }, []);
 
 
   const moveTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -1205,7 +1209,7 @@ export default function App() {
     if (!enemyPokemon) return;
     
     // Remove pokeball from inventory
-    removeItem('POKEBALL');
+    removeInventoryItem('POKEBALL');
 
     setBattleLog(`¡Pablo lanzó una POKÉ BALL!`);
     setPhase(battle(B_CATCHING));
@@ -1250,7 +1254,7 @@ export default function App() {
       if (itemId === 'POTION') {
         const healedTeam = playerTeam.map(p => ({ ...p, hp: Math.min(p.maxHp, p.hp + 20) }));
         setPlayerTeam(healedTeam);
-        removeItem('POTION');
+        removeInventoryItem('POTION');
         setDialogue("¡Usaste una POCIÓN! Tus POKÉMON recuperaron salud.");
       }
       return;
@@ -1267,7 +1271,7 @@ export default function App() {
       updatedTeam[0] = { ...playerPkmn, hp: newHP };
       setPlayerTeam(updatedTeam);
 
-      removeItem('POTION');
+      removeInventoryItem('POTION');
 
       // Show heal number floating effect
       setHealNumber({ x: 30, y: 60, value: healed });
@@ -2204,7 +2208,7 @@ export default function App() {
             onBuy={(id) => {
               const price = SHOP_PRICES[id] ?? 200;
               setMoney(prev => prev - price);
-              addItem(id);
+              addInventoryItem(id);
             }}
           />
         )}
