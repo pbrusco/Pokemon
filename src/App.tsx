@@ -25,7 +25,7 @@ import {
   Gamepad2
 } from 'lucide-react';
 import { Direction, Position, TILE_SIZE, GRID_SIZE, NPC, Entity, Pokemon, Move, InventoryItem, Tile } from './types';
-import { MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, MAP_VIRIDIAN_FOREST, MAP_PEWTER_CITY, MAP_PEWTER_GYM } from './data/maps';
+import { MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, MAP_VIRIDIAN_FOREST, MAP_PEWTER_CITY, MAP_PEWTER_GYM, MAP_ROUTE_3 } from './data/maps';
 import { soundManager } from './lib/sounds';
 import { MOVES, STARTERS, EVOLUTIONS, WILD_POKEMON_DATABASE, POKEMON_LIST, ITEMS_DATABASE, BASE_STATS, makePokemon } from './constants';
 import { calculateDamage, calcHp } from './lib/damage';
@@ -250,12 +250,7 @@ const Player = ({ position, direction, isMoving }: { position: Position, directi
         x: position.x * TILE_SIZE, 
         y: position.y * TILE_SIZE,
       }}
-      transition={{ 
-        type: "spring", 
-        stiffness: 300, 
-        damping: 30,
-        mass: 0.8
-      }}
+      transition={{ type: "tween", duration: 0.1, ease: "linear" }}
       style={{ width: TILE_SIZE, height: TILE_SIZE }}
     >
       <div className="relative">
@@ -292,7 +287,7 @@ const Player = ({ position, direction, isMoving }: { position: Position, directi
 // --- Main App ---
 
 export default function App() {
-  const [currentMap, setCurrentMap] = useState<'PALLET_TOWN' | 'OAKS_LAB' | 'ROUTE_1' | 'VIRIDIAN_CITY' | 'VIRIDIAN_FOREST' | 'PEWTER_CITY' | 'PEWTER_GYM'>('PALLET_TOWN');
+  const [currentMap, setCurrentMap] = useState<'PALLET_TOWN' | 'OAKS_LAB' | 'ROUTE_1' | 'VIRIDIAN_CITY' | 'VIRIDIAN_FOREST' | 'PEWTER_CITY' | 'PEWTER_GYM' | 'ROUTE_3'>('PALLET_TOWN');
   const [playerPos, setPlayerPos] = useState<Position>({ x: 10, y: 10 });
   const [direction, setDirection] = useState<Direction>('down');
   const [isMoving, setIsMoving] = useState(false);
@@ -345,6 +340,9 @@ export default function App() {
   const [isCatching, setIsCatching] = useState(false);
   const [isBlackout, setIsBlackout] = useState(false);
   const [isHealing, setIsHealing] = useState(false);
+  const [isLevelUp, setIsLevelUp] = useState(false);
+  const [isEvolving, setIsEvolving] = useState(false);
+  const [forcedSwitch, setForcedSwitch] = useState(false);
   const [lastHealLocation, setLastHealLocation] = useState<{ map: string; pos: Position }>({ map: 'PALLET_TOWN', pos: { x: 7, y: 11 } });
 
   // Story State
@@ -402,6 +400,17 @@ export default function App() {
     }
   }, [isBattle]);
 
+  // Background music
+  useEffect(() => {
+    if (isBattle) {
+      soundManager.playMusic('BATTLE');
+    } else if (currentMap === 'POKECENTER') {
+      soundManager.playMusic('POKECENTER');
+    } else {
+      soundManager.playMusic('OVERWORLD');
+    }
+  }, [isBattle, currentMap]);
+
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -422,7 +431,8 @@ export default function App() {
     POKEMART: MAP_POKEMART,
     VIRIDIAN_FOREST: MAP_VIRIDIAN_FOREST,
     PEWTER_CITY: MAP_PEWTER_CITY,
-    PEWTER_GYM: MAP_PEWTER_GYM
+    PEWTER_GYM: MAP_PEWTER_GYM,
+    ROUTE_3: MAP_ROUTE_3
   };
 
   const npcs: Record<string, NPC[]> = {
@@ -534,6 +544,46 @@ export default function App() {
           makePokemon('onix', 'ONIX', 14, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 95, { types: ['rock', 'ground'] })
         ]
       }
+    ],
+    ROUTE_3: [
+      {
+        id: 'bug_catcher_rt3',
+        name: 'CAZABICHOS LUIS',
+        type: 'npc',
+        position: { x: 5, y: 6 },
+        direction: 'right' as Direction,
+        dialogue: ["¡Los bichos son los mejores POKÉMON!", "¡Te voy a demostrar que soy el mejor!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('caterpie', 'CATERPIE', 9, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10),
+          makePokemon('weedle', 'WEEDLE', 9, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 13, { types: ['bug', 'poison'] })
+        ]
+      },
+      {
+        id: 'lass_rt3',
+        name: 'CHICA ELENA',
+        type: 'npc',
+        position: { x: 13, y: 11 },
+        direction: 'left' as Direction,
+        dialogue: ["¡Oye tú! ¡No pases por aquí sin luchar!", "¡Mis POKÉMON son adorables Y fuertes!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('jigglypuff', 'JIGGLYPUFF', 11, 'normal', [MOVES.TACKLE, MOVES.GROWL], 39),
+          makePokemon('pidgey', 'PIDGEY', 11, 'flying', [MOVES.TACKLE, MOVES.GUST], 16, { types: ['normal', 'flying'] })
+        ]
+      },
+      {
+        id: 'youngster_rt3',
+        name: 'CHICO ROBERTO',
+        type: 'npc',
+        position: { x: 8, y: 14 },
+        direction: 'down' as Direction,
+        dialogue: ["¡Llevo mis pantalones cortos todo el año!", "¡Eso me hace más fuerte!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('mankey', 'MANKEY', 12, 'fighting', [MOVES.SCRATCH, MOVES.TACKLE], 56)
+        ]
+      }
     ]
   };
 
@@ -567,11 +617,15 @@ export default function App() {
       { id: 'to_pewter', type: 'teleport', position: { x: 10, y: 0 }, direction: 'up', targetMap: 'PEWTER_CITY', targetPos: { x: 10, y: 17 } }
     ],
     PEWTER_CITY: [
-      { id: 'to_forest_from_pewter', type: 'teleport', position: { x: 10, y: 18 }, direction: 'down', targetMap: 'VIRIDIAN_FOREST', targetPos: { x: 10, y: 1 } },
-      { id: 'to_gym', type: 'teleport', position: { x: 10, y: 13 }, direction: 'up', targetMap: 'PEWTER_GYM', targetPos: { x: 10, y: 14 } }
+      { id: 'to_forest_from_pewter', type: 'teleport', position: { x: 10, y: 17 }, direction: 'down', targetMap: 'VIRIDIAN_FOREST', targetPos: { x: 10, y: 1 } },
+      { id: 'to_gym', type: 'teleport', position: { x: 10, y: 13 }, direction: 'up', targetMap: 'PEWTER_GYM', targetPos: { x: 10, y: 14 } },
+      { id: 'to_route3', type: 'teleport', position: { x: 17, y: 8 }, direction: 'right', targetMap: 'ROUTE_3', targetPos: { x: 1, y: 8 } }
     ],
     PEWTER_GYM: [
       { id: 'to_pewter_from_gym', type: 'teleport', position: { x: 10, y: 15 }, direction: 'down', targetMap: 'PEWTER_CITY', targetPos: { x: 10, y: 14 } }
+    ],
+    ROUTE_3: [
+      { id: 'to_pewter_from_route3', type: 'teleport', position: { x: 0, y: 8 }, direction: 'left', targetMap: 'PEWTER_CITY', targetPos: { x: 16, y: 8 } }
     ]
   };
 
@@ -598,7 +652,8 @@ export default function App() {
       { id: 'item_potion_forest', type: 'item', position: { x: 15, y: 15 }, direction: 'down', sprite: '🧪' }
     ],
     PEWTER_CITY: [],
-    PEWTER_GYM: []
+    PEWTER_GYM: [],
+    ROUTE_3: []
   };
   const items: Record<string, Entity[]> = Object.fromEntries(
     Object.entries(rawItems).map(([map, entities]) => [
@@ -1011,11 +1066,11 @@ export default function App() {
             } else {
               soundManager.play('FAINT');
               setPlayerAnim('faint');
-              setBattleLog(`¡${playerPkmn.name} se debilitó! Huyes del combate...`);
+              setBattleLog(`¡${playerPkmn.name} se debilitó! ¡Elige tu siguiente POKÉMON!`);
               setTimeout(() => {
-                setIsBattle(false);
-                setShowBattleTransition(false);
                 setPlayerAnim('idle');
+                setForcedSwitch(true);
+                setShowTeam(true);
               }, 1500);
             }
           } else {
@@ -1212,76 +1267,83 @@ export default function App() {
             }
           }
 
-          // EXP Gain
-          const expGain = Math.floor((enemyPokemon.level * 25) / 1);
-          
+          // EXP Gain — compute everything outside state updaters
+          const expGain = Math.floor(enemyPokemon.level * 25);
+
           setTimeout(() => {
             setBattleLog(`¡${playerPkmn.name} ganó ${expGain} puntos de EXP!`);
-            
-            setPlayerTeam(prev => {
-              const updated = [...prev];
-              let pkmn = { ...updated[0] };
-              pkmn.exp = (pkmn.exp || 0) + expGain;
-              
-              const expNeeded = pkmn.expToNextLevel || 100;
-              if (pkmn.exp >= expNeeded) {
-                pkmn.level += 1;
-                pkmn.exp -= expNeeded;
-                pkmn.expToNextLevel = pkmn.level * 100;
-                const newMaxHp = calcHp(pkmn.baseStats.hp, pkmn.level);
-                const hpGain = newMaxHp - pkmn.maxHp;
-                pkmn.maxHp = newMaxHp;
-                pkmn.hp += hpGain;
-                
-                // Move learning logic
-                if (pkmn.movesToLearn) {
-                  const newMove = pkmn.movesToLearn.find(m => m.level === pkmn.level);
-                  if (newMove && !pkmn.moves.some(m => m.name === newMove.move.name)) {
-                    if (pkmn.moves.length < 4) {
-                      pkmn.moves.push(newMove.move);
-                      setBattleLog(prev => `${prev}\n¡${pkmn.name} aprendió ${newMove.move.name}!`);
-                    } else {
-                      pkmn.moves[0] = newMove.move;
-                      setBattleLog(prev => `${prev}\n¡${pkmn.name} olvidó un movimiento y aprendió ${newMove.move.name}!`);
-                    }
-                  }
-                }
 
-                setTimeout(() => {
-                  setBattleLog(`¡${pkmn.name} subió al nivel ${pkmn.level}!`);
-                  soundManager.play('SELECT');
-                  
-                  // Evolution check
-                  if (pkmn.evolutionLevel && pkmn.level >= pkmn.evolutionLevel && pkmn.evolvesTo) {
-                    const evoData = EVOLUTIONS[pkmn.evolvesTo];
-                    if (evoData) {
-                      setTimeout(() => {
-                        setBattleLog(`¡¿Qué?! ¡${pkmn.name} está evolucionando!`);
-                        soundManager.play('SELECT');
-                        setTimeout(() => {
-                          pkmn.name = evoData.name || pkmn.name;
-                          pkmn.sprite = evoData.sprite || pkmn.sprite;
-                          pkmn.evolutionLevel = evoData.evolutionLevel;
-                          pkmn.evolvesTo = evoData.evolvesTo;
-                          if (evoData.baseStats) {
-                            pkmn.baseStats = evoData.baseStats;
-                            const newMaxHp = calcHp(pkmn.baseStats.hp, pkmn.level);
-                            const evoHpGain = newMaxHp - pkmn.maxHp;
-                            pkmn.maxHp = newMaxHp;
-                            pkmn.hp += evoHpGain;
-                          }
-                          if (evoData.types) pkmn.types = evoData.types;
-                          setBattleLog(`¡Felicidades! ¡Tu Pokémon ha evolucionado a ${pkmn.name}!`);
-                          soundManager.play('SELECT');
-                        }, 3000);
-                      }, 2000);
-                    }
-                  }
-                }, 1500);
+            // Compute new pokemon state synchronously
+            let pkmn = { ...playerPkmn };
+            pkmn.exp = (pkmn.exp || 0) + expGain;
+
+            let didLevelUp = false;
+            let learnedMove: Move | null = null;
+            while (pkmn.exp >= (pkmn.expToNextLevel || 100)) {
+              pkmn.exp -= (pkmn.expToNextLevel || 100);
+              pkmn.level += 1;
+              pkmn.expToNextLevel = pkmn.level * 100;
+              const newMaxHp = calcHp(pkmn.baseStats.hp, pkmn.level);
+              pkmn.hp = Math.min(pkmn.hp + (newMaxHp - pkmn.maxHp), newMaxHp);
+              pkmn.maxHp = newMaxHp;
+              didLevelUp = true;
+              const moveEntry = pkmn.movesToLearn?.find(m => m.level === pkmn.level);
+              if (moveEntry && !pkmn.moves.some(m => m.name === moveEntry.move.name)) {
+                learnedMove = moveEntry.move;
+                pkmn.moves = pkmn.moves.length < 4
+                  ? [...pkmn.moves, moveEntry.move]
+                  : [moveEntry.move, ...pkmn.moves.slice(1)];
               }
-              updated[0] = pkmn;
-              return updated;
-            });
+            }
+
+            // Check evolution
+            const willEvolve = didLevelUp
+              && pkmn.evolutionLevel != null
+              && pkmn.level >= pkmn.evolutionLevel
+              && pkmn.evolvesTo != null;
+            const evoData = willEvolve ? EVOLUTIONS[pkmn.evolvesTo!] : null;
+            let evolvedPkmn = pkmn;
+            if (evoData) {
+              evolvedPkmn = { ...pkmn, ...evoData };
+              if (evoData.baseStats) {
+                const evoMaxHp = calcHp(evoData.baseStats.hp, pkmn.level);
+                evolvedPkmn.hp = Math.min(pkmn.hp + (evoMaxHp - pkmn.maxHp), evoMaxHp);
+                evolvedPkmn.maxHp = evoMaxHp;
+              }
+            }
+
+            // Apply XP (and level stats) now
+            setPlayerTeam(prev => { const u = [...prev]; u[0] = pkmn; return u; });
+
+            // Sequence post-battle animations
+            let endDelay = 2500;
+
+            if (didLevelUp) {
+              endDelay = 4500;
+              setTimeout(() => {
+                setIsLevelUp(true);
+                setBattleLog(`¡${pkmn.name} subió al nivel ${pkmn.level}!`);
+                soundManager.play('SELECT');
+                if (learnedMove) {
+                  setTimeout(() => setBattleLog(`¡${pkmn.name} aprendió ${learnedMove!.name}!`), 1500);
+                }
+                setTimeout(() => setIsLevelUp(false), 2000);
+              }, 1500);
+
+              if (evoData) {
+                endDelay = 9500;
+                setTimeout(() => {
+                  setBattleLog(`¡¿Qué?! ¡${pkmn.name} está evolucionando!`);
+                  setIsEvolving(true);
+                  setTimeout(() => {
+                    setPlayerTeam(prev => { const u = [...prev]; u[0] = evolvedPkmn; return u; });
+                    setIsEvolving(false);
+                    setBattleLog(`¡Felicidades! ¡${evolvedPkmn.name} ha evolucionado!`);
+                    soundManager.play('SELECT');
+                  }, 3000);
+                }, 4500);
+              }
+            }
 
             setTimeout(() => {
               setIsBattle(false);
@@ -1291,7 +1353,7 @@ export default function App() {
                 setStoryStep('RIVAL_BATTLE');
                 setDialogue("AZUL: ¡Maldición! ¡He perdido! Pero no volverá a pasar.");
               }
-            }, 3000);
+            }, endDelay);
           }, 1500);
         } else {
           setEnemyAnim('idle');
@@ -1414,7 +1476,7 @@ export default function App() {
             x: -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2),
             y: -playerPos.y * TILE_SIZE + (windowSize.height / 2) - (TILE_SIZE / 2)
           }}
-          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+          transition={{ type: "tween", duration: 0.1, ease: "linear" }}
         >
           {/* Map Grid */}
           <div 
@@ -1716,9 +1778,10 @@ export default function App() {
 
       <AnimatePresence>
         {showTeam && (
-          <TeamMenuUI 
-            team={playerTeam} 
-            onClose={() => setShowTeam(false)} 
+          <TeamMenuUI
+            team={playerTeam}
+            forcedSwitch={forcedSwitch}
+            onClose={() => setShowTeam(false)}
             onSwap={(index) => {
               setPlayerTeam(prev => {
                 const updated = [...prev];
@@ -1727,6 +1790,9 @@ export default function App() {
                 return updated;
               });
               setShowTeam(false);
+              if (forcedSwitch) {
+                setForcedSwitch(false);
+              }
             }}
           />
         )}
@@ -1758,6 +1824,32 @@ export default function App() {
             pc={pcStorage} 
             onClose={() => setShowPC(false)} 
             onSwap={handlePCSwap}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Level-up flash */}
+      <AnimatePresence>
+        {isLevelUp && (
+          <motion.div
+            className="fixed inset-0 bg-yellow-300 z-[300] pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0.7, 0, 0.7, 0, 0.7, 0] }}
+            transition={{ duration: 1.8, times: [0, 0.1, 0.3, 0.45, 0.6, 0.75, 1], ease: "linear" }}
+            exit={{ opacity: 0 }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Evolution flash */}
+      <AnimatePresence>
+        {isEvolving && (
+          <motion.div
+            className="fixed inset-0 bg-white z-[300] pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 0, 1, 0, 1, 0, 1, 0] }}
+            transition={{ duration: 3, times: [0, 0.1, 0.22, 0.33, 0.44, 0.56, 0.67, 0.78, 1], ease: "linear" }}
+            exit={{ opacity: 0 }}
           />
         )}
       </AnimatePresence>

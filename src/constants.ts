@@ -221,6 +221,7 @@ export const MOVES: Record<string, Move> = {
   SLEEP_POWDER: { name: 'SOMNÍFERO', type: 'grass', power: 0, accuracy: 75, statusEffect: 'sleep', statusChance: 100 },
   ROCK_THROW: { name: 'LANZARROCAS', type: 'rock', power: 50, accuracy: 90 },
   HARDEN: { name: 'FORTALEZA', type: 'normal', power: 0, accuracy: 100 },
+  POUND: { name: 'GOLPE NORMAL', type: 'normal', power: 40, accuracy: 100 },
 };
 
 const getSprite = (id: number) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
@@ -424,5 +425,12 @@ export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {
     makePokemon('weedle', 'WEEDLE', 4, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 13, { types: ['bug', 'poison'] }),
     makePokemon('metapod', 'METAPOD', 6, 'bug', [MOVES.HARDEN], 11),
     makePokemon('pikachu', 'PIKACHU', 6, 'electric', [MOVES.THUNDERSHOCK, MOVES.GROWL], 25),
+  ],
+  ROUTE_3: [
+    makePokemon('spearow', 'SPEAROW', 9, 'flying', [MOVES.PECK, MOVES.GROWL], 21, { types: ['normal', 'flying'] }),
+    makePokemon('jigglypuff', 'JIGGLYPUFF', 9, 'normal', [MOVES.POUND, MOVES.GROWL], 39),
+    makePokemon('mankey', 'MANKEY', 10, 'fighting', [MOVES.SCRATCH, MOVES.TACKLE], 56),
+    makePokemon('nidoran-m', 'NIDORAN♂', 9, 'poison', [MOVES.TACKLE, MOVES.GROWL], 32, { types: ['poison'] }),
+    makePokemon('nidoran-f', 'NIDORAN♀', 9, 'poison', [MOVES.TACKLE, MOVES.GROWL], 29, { types: ['poison'] }),
   ],
 };

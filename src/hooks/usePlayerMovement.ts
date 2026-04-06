@@ -69,7 +69,7 @@ export const usePlayerMovement = () => {
       if (moveTimeout.current) clearTimeout(moveTimeout.current);
       moveTimeout.current = setTimeout(() => {
         useGameStore.getState().setIsMoving(false);
-      }, 150);
+      }, 100);
 
       // Check for teleports
       const teleport = teleports[currentMap]?.find(t => t.position.x === nextX && t.position.y === nextY);
