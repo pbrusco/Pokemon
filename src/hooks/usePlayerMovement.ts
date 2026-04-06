@@ -1,9 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { Direction } from '../types';
-// import { 20 } from '../constants';
 import { soundManager } from '../lib/sounds';
-import { WILD_POKEMON_DATABASE } from '../constants'; // Fallback mapping
 
 export const usePlayerMovement = () => {
   const store = useGameStore();
@@ -62,7 +60,6 @@ export const usePlayerMovement = () => {
       !npcAtNext &&
       !objectAtNext
     ) {
-      soundManager.play('MOVE');
       state.setIsMoving(true);
       state.setPlayerPos({ x: nextX, y: nextY });
       
@@ -107,28 +104,6 @@ export const usePlayerMovement = () => {
         }
       }
 
-      // Random encounter chance in grass
-      if (map[nextY][nextX].type === 'grass' && Math.random() < 0.1 && playerTeam.length > 0) {
-        if (playerTeam.every(p => p.hp === 0)) return;
-
-        const routeWilds = WILD_POKEMON_DATABASE[currentMap] || WILD_POKEMON_DATABASE['ROUTE_1'];
-        const randomPkmn = routeWilds[Math.floor(Math.random() * routeWilds.length)];
-        const levelVariation = Math.floor(Math.random() * 3) - 1; 
-        const finalLevel = Math.max(2, randomPkmn.level + levelVariation);
-        
-        soundManager.play('BATTLE_START');
-        const finalPkmn = { 
-          ...randomPkmn, 
-          level: finalLevel,
-          hp: randomPkmn.maxHp + (finalLevel - randomPkmn.level) * 2,
-          maxHp: randomPkmn.maxHp + (finalLevel - randomPkmn.level) * 2
-        };
-        
-        const currentS = useGameStore.getState();
-        currentS.setEnemyPokemon(finalPkmn);
-        currentS.setShowBattleTransition(true);
-        currentS.setIsLocked(true);
-      }
     }
   }, []);
 

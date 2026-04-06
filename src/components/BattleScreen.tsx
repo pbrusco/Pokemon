@@ -16,6 +16,7 @@ export interface BattleScreenProps {
   showMoves: boolean;
   setShowMoves: (show: boolean) => void;
   isTrainerBattle: boolean;
+  isPlayerTurn: boolean;
   setIsBattle: (isBattle: boolean) => void;
   setShowInventory: (show: boolean) => void;
   setShowTeam: (show: boolean) => void;
@@ -24,12 +25,11 @@ export interface BattleScreenProps {
 
 export function BattleScreen({
   battleShake, enemyPokemon, enemyAnim, isCatching, projectile, hitEffect, damageNumber,
-  playerTeam, playerAnim, battleLog, isTrainerBattle, setIsBattle,
+  playerTeam, playerAnim, battleLog, isTrainerBattle, isPlayerTurn, setIsBattle,
   setShowInventory, setShowTeam, handleAttack
 }: BattleScreenProps) {
 
   const playerPkmn = playerTeam[0];
-  const isPlayerTurn = playerAnim === 'idle' && enemyAnim === 'idle';
 
   const hpColor = (hp: number, max: number) => {
     const ratio = hp / max;
@@ -202,9 +202,10 @@ export function BattleScreen({
 
         {/* Right: utility actions */}
         <div className="w-1/3 min-w-[200px] border-8 border-[#506860] bg-[#f8f8f8] rounded-xl m-2 ml-0 p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]">
-          <div className={`grid grid-cols-2 grid-rows-2 h-full gap-4 text-[#383838] font-bold text-xl items-center tracking-tighter uppercase ${!isPlayerTurn ? 'opacity-40 pointer-events-none' : ''}`}>
+          <div className="grid grid-cols-2 grid-rows-2 h-full gap-4 text-[#383838] font-bold text-xl items-center tracking-tighter uppercase">
             {(['BOLSA', 'POKÉMON', 'HUIR'] as const).map((action) => {
-              const disabled = action === 'HUIR' && isTrainerBattle;
+              const lockedByTurn = !isPlayerTurn && action !== 'HUIR';
+              const disabled = (action === 'HUIR' && isTrainerBattle) || lockedByTurn;
               return (
                 <div
                   key={action}
