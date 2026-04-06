@@ -850,14 +850,11 @@ export default function App() {
   }, []);
 
   const handleMove = useCallback((dir: Direction) => {
-    const { isMoving, dialogue, isBattle, direction, playerPos, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep } = gameState.current;
+    const { isMoving, dialogue, isBattle, playerPos, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep } = gameState.current;
     if (isMoving || dialogue || isBattle) return;
 
-    if (dir !== direction) {
-      setDirection(dir);
-      return;
-    }
-    
+    setDirection(dir);
+
     let nextX = playerPos.x;
     let nextY = playerPos.y;
 
@@ -891,14 +888,13 @@ export default function App() {
       !npcAtNext &&
       !objectAtNext
     ) {
-      soundManager.play('MOVE');
       setIsMoving(true);
       setPlayerPos({ x: nextX, y: nextY });
       
       if (moveTimeout.current) clearTimeout(moveTimeout.current);
       moveTimeout.current = setTimeout(() => {
         setIsMoving(false);
-      }, 200);
+      }, 110);
 
       // Check for teleports
       const teleport = teleports[currentMap].find(t => t.position.x === nextX && t.position.y === nextY);
@@ -1038,7 +1034,7 @@ export default function App() {
         
         setTimeout(() => {
           if (newPlayerHP === 0) {
-            const anyAlive = playerTeam.some(p => p.hp > 0);
+            const anyAlive = playerTeam.slice(1).some(p => p.hp > 0);
             
             if (!anyAlive) {
               soundManager.play('FAINT');
@@ -1373,7 +1369,7 @@ export default function App() {
       }
 
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
-      
+
       if (e.key === 'E' && e.shiftKey) {
         setShowEditor(prev => !prev);
         return;
@@ -1384,13 +1380,19 @@ export default function App() {
         return;
       }
 
+      let dir: Direction | null = null;
       switch (e.key) {
-        case 'ArrowUp': pressedKeys.current.add('up'); break;
-        case 'ArrowDown': pressedKeys.current.add('down'); break;
-        case 'ArrowLeft': pressedKeys.current.add('left'); break;
-        case 'ArrowRight': pressedKeys.current.add('right'); break;
+        case 'ArrowUp': dir = 'up'; break;
+        case 'ArrowDown': dir = 'down'; break;
+        case 'ArrowLeft': dir = 'left'; break;
+        case 'ArrowRight': dir = 'right'; break;
         case 'z': case 'Enter': case ' ': handleAction(); break;
         case 'x': case 'Shift': case 'Escape': setShowMenu(prev => !prev); break;
+      }
+      if (dir) {
+        const wasEmpty = pressedKeys.current.size === 0;
+        pressedKeys.current.add(dir);
+        if (wasEmpty) handleMove(dir); // immediate first step on key press
       }
     };
 
@@ -1405,20 +1407,21 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
-    
-    const interval = setInterval(() => {
-      if (pressedKeys.current.size > 0) {
-        const dir = Array.from(pressedKeys.current)[0];
-        handleMove(dir);
-      }
-    }, 100);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
-      clearInterval(interval);
     };
   }, [handleMove, handleAction, dialogue, isBattle]);
+
+  // Self-trigger: the moment a move finishes, immediately start the next one if a key is held.
+  // This eliminates the interval desync — moves chain with zero gap.
+  useEffect(() => {
+    if (!isMoving && pressedKeys.current.size > 0) {
+      const dir = Array.from(pressedKeys.current)[0] as Direction;
+      handleMove(dir);
+    }
+  }, [isMoving, handleMove]);
 
   return (
     <div className="h-screen bg-slate-900 flex flex-col items-center justify-center overflow-hidden font-sans selection:bg-red-500 selection:text-white">
