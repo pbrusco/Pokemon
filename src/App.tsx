@@ -1748,10 +1748,17 @@ export default function App() {
             {(() => {
               const mapHasEncounters = currentMap in WILD_POKEMON_DATABASE;
               const cullRadius = 8;
-              const minY = Math.max(0, playerPos.y - cullRadius);
-              const maxY = Math.min(GRID_SIZE - 1, playerPos.y + cullRadius);
-              const minX = Math.max(0, playerPos.x - cullRadius);
-              const maxX = Math.min(GRID_SIZE - 1, playerPos.x + cullRadius);
+              // Quantize culling bounds to reduce tile-window "sliding" artifacts
+              // that can make the floor look like it moves with the player.
+              const cullStep = 4;
+              const rawMinY = Math.max(0, playerPos.y - cullRadius);
+              const rawMaxY = Math.min(GRID_SIZE - 1, playerPos.y + cullRadius);
+              const rawMinX = Math.max(0, playerPos.x - cullRadius);
+              const rawMaxX = Math.min(GRID_SIZE - 1, playerPos.x + cullRadius);
+              const minY = Math.max(0, Math.floor(rawMinY / cullStep) * cullStep);
+              const minX = Math.max(0, Math.floor(rawMinX / cullStep) * cullStep);
+              const maxY = Math.min(GRID_SIZE - 1, Math.ceil((rawMaxY + 1) / cullStep) * cullStep - 1);
+              const maxX = Math.min(GRID_SIZE - 1, Math.ceil((rawMaxX + 1) / cullStep) * cullStep - 1);
               const tiles = [];
               for (let y = minY; y <= maxY; y++) {
                 for (let x = minX; x <= maxX; x++) {

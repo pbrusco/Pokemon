@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Pokemon, Move } from '../types';
 import { soundManager } from '../lib/sounds';
-import { calcStat } from '../lib/damage';
 
 export interface BattleScreenProps {
   currentMap: string;
@@ -28,14 +27,6 @@ export interface BattleScreenProps {
   handleAttack: (move: Move) => void;
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  normal: 'bg-slate-400', fire: 'bg-orange-500', water: 'bg-blue-500',
-  grass: 'bg-green-500', electric: 'bg-yellow-400', ice: 'bg-cyan-400',
-  fighting: 'bg-red-700', poison: 'bg-purple-500', ground: 'bg-yellow-600',
-  flying: 'bg-indigo-400', psychic: 'bg-pink-500', bug: 'bg-lime-500',
-  rock: 'bg-yellow-700', ghost: 'bg-violet-700', dragon: 'bg-indigo-700',
-};
-
 /** Small colored stat boost/drop indicators, e.g. ATK↓ DEF↑ */
 function StatBoostBadges({ boosts }: { boosts: Pokemon['statBoosts'] }) {
   if (!boosts) return null;
@@ -52,23 +43,6 @@ function StatBoostBadges({ boosts }: { boosts: Pokemon['statBoosts'] }) {
           {labels[stat]}{val > 0 ? '↑'.repeat(Math.min(val, 3)) : '↓'.repeat(Math.min(-val, 3))}
         </span>
       ))}
-    </div>
-  );
-}
-
-/** Trainer NPC silhouette shown on enemy side during trainer battles */
-function TrainerSilhouette() {
-  return (
-    <div className="w-8 h-8 sm:w-12 sm:h-12 mb-4 flex flex-col items-center justify-end opacity-80 shrink-0">
-      {/* Head */}
-      <div className="w-5 h-5 sm:w-7 sm:h-7 bg-[#d8d8d8] rounded-full border-2 border-[#383838] flex items-center justify-center mb-0.5">
-        <div className="flex gap-1">
-          <div className="w-0.5 h-0.5 sm:w-1 sm:h-1 bg-[#383838] rounded-full" />
-          <div className="w-0.5 h-0.5 sm:w-1 sm:h-1 bg-[#383838] rounded-full" />
-        </div>
-      </div>
-      {/* Body */}
-      <div className="w-6 h-5 sm:w-9 sm:h-7 bg-[#f8f8f8] border-2 border-[#383838] rounded-sm" />
     </div>
   );
 }
@@ -100,20 +74,23 @@ export function BattleScreen({
     return 'bg-[#f85838] border-[#c84028]';
   };
 
-  const getMoveCategory = (m: Move) => {
-    if (m.power === 0) return m.statChange ? 'Estado' : 'Estado';
-    const physical = ['normal','fighting','flying','poison','ground','rock','bug','ghost'];
-    return physical.includes(m.type) ? 'Físico' : 'Especial';
+  const getBattleBackground = () => {
+    if (currentMap.includes('GYM')) return 'linear-gradient(to bottom, #f4f7f9 0%, #eef3f7 100%)';
+    if (currentMap.includes('FOREST') || currentMap.includes('ROUTE')) return 'linear-gradient(to bottom, #f7fbf5 0%, #f5f7ef 100%)';
+    return 'linear-gradient(to bottom, #f8fbf7 0%, #f6f8ef 100%)';
   };
 
-  const getBattleBackground = () => {
-    if (currentMap.includes('GYM')) {
-      return 'linear-gradient(to bottom, #cbd5e1 0%, #94a3b8 50%, #64748b 100%)';
+  const getMoveDescription = (m: Move) => {
+    if (m.power === 0) {
+      if (m.statusEffect) return `Aplica ${m.statusEffect} (${m.statusChance ?? 100}%).`;
+      if (m.statChange) {
+        const dir = m.statChange.stages > 0 ? 'sube' : 'baja';
+        const target = m.statChange.target === 'enemy' ? 'del rival' : 'propio';
+        return `${dir} ${m.statChange.stat} ${target}.`;
+      }
+      return 'Movimiento de estado.';
     }
-    if (currentMap.includes('FOREST') || currentMap.includes('ROUTE')) {
-      return 'linear-gradient(to bottom, #d8f0f8 0%, #f8f8d8 45%, #c6e59d 100%)';
-    }
-    return 'linear-gradient(to bottom, #d8f0f8 0%, #f8f8d8 50%, #d8e8b0 100%)';
+    return `${m.type.toUpperCase()} · Poder ${m.power} · Precisión ${m.accuracy}%`;
   };
 
   return (
@@ -121,7 +98,7 @@ export function BattleScreen({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, x: battleShake ? [0, -10, 10, -10, 10, 0] : 0 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[90] bg-[#f8f8d8] flex flex-col font-game"
+      className="fixed inset-0 z-[90] flex flex-col font-game"
       style={{
         backgroundImage: getBattleBackground(),
       }}
@@ -130,13 +107,10 @@ export function BattleScreen({
       <div className="flex-1 relative w-full h-[65vh] overflow-hidden">
 
         {/* Enemy Platform & Sprite */}
-        <div className="absolute top-[20%] right-[5%] sm:right-[10%] w-[180px] sm:w-[300px] flex flex-col items-center">
-          <div className="absolute bottom-2 w-full h-8 sm:h-12 bg-black/10 rounded-[100%] border-4 border-black/5 blur-[2px]" />
+        <div className="absolute top-[22%] right-[14%] sm:right-[18%] w-[180px] sm:w-[300px] flex flex-col items-center">
+          <div className="absolute bottom-2 w-full h-8 sm:h-12 bg-white/90 rounded-[100%] border-2 border-slate-200" />
 
           <div className="flex items-end gap-2 relative z-10">
-            {/* Trainer silhouette on enemy side in trainer battles */}
-            {isTrainerBattle && <TrainerSilhouette />}
-
             <motion.div
               className="w-24 h-24 sm:w-40 sm:h-40 relative z-10"
               variants={{
@@ -166,8 +140,8 @@ export function BattleScreen({
         </div>
 
         {/* Enemy HUD */}
-        <div className="absolute top-[10%] left-[3%] sm:left-[5%]">
-          <div className="bg-[#f8f8f0] border-t-4 border-l-4 border-b-4 border-r-[12px] rounded-tl-2xl rounded-bl-2xl border-[#506860] p-2 sm:p-3 w-[180px] sm:w-[260px] shadow-[4px_4px_0_rgba(0,0,0,0.2)]">
+        <div className="absolute top-[10%] right-[6%] sm:right-[10%]">
+          <div className="bg-[#f8f8f0] border-[3px] border-[#4f6e69] rounded-sm p-2 sm:p-3 w-[180px] sm:w-[260px] shadow-[3px_3px_0_rgba(0,0,0,0.15)]">
             <div className="flex justify-between items-end border-b-2 border-slate-300 pb-1 mb-1 sm:mb-2">
               <h3 className="text-[#383838] font-bold text-sm sm:text-xl uppercase tracking-tighter truncate mr-1">{enemyPokemon?.name}</h3>
               <p className="text-[#383838] font-bold text-xs sm:text-lg shrink-0">Nv{enemyPokemon?.level}</p>
@@ -184,17 +158,6 @@ export function BattleScreen({
               </div>
             </div>
             <StatBoostBadges boosts={enemyPokemon?.statBoosts} />
-            {/* Debug stats — hidden on mobile */}
-            {enemyPokemon && (
-              <div className="mt-2 grid-cols-4 gap-1 hidden sm:grid">
-                {(['attack','defense','special','speed'] as const).map(stat => (
-                  <div key={stat} className="bg-slate-100 rounded px-1 py-0.5 text-center">
-                    <div className="text-[8px] text-slate-400 uppercase font-bold">{stat.slice(0,3)}</div>
-                    <div className="text-[10px] font-mono font-black text-slate-700">{calcStat(enemyPokemon.baseStats[stat], enemyPokemon.level)}</div>
-                  </div>
-                ))}
-              </div>
-            )}
             {enemyPokemon?.status && enemyPokemon.status !== 'none' && (
               <div className="mt-1 text-[9px] font-bold text-orange-600 uppercase tracking-widest text-center">{enemyPokemon.status}</div>
             )}
@@ -202,26 +165,10 @@ export function BattleScreen({
         </div>
 
         {/* Player Platform & Sprite */}
-        <div className="absolute bottom-[20%] left-[5%] sm:left-[10%] w-[200px] sm:w-[350px] flex flex-col items-center">
-          <div className="absolute bottom-4 w-full h-10 sm:h-16 bg-black/15 rounded-[100%] border-4 border-black/5 blur-[2px]" />
+        <div className="absolute bottom-[22%] left-[14%] sm:left-[18%] w-[200px] sm:w-[350px] flex flex-col items-center">
+          <div className="absolute bottom-4 w-full h-10 sm:h-16 bg-white/90 rounded-[100%] border-2 border-slate-200" />
 
           <div className="flex items-end gap-2 relative z-10">
-            {/* Player character sprite — shown in trainer battles */}
-            {isTrainerBattle && (
-              <div
-                className="w-10 h-10 sm:w-16 sm:h-16 mb-4 opacity-90"
-                style={{
-                  backgroundImage: "url('/player.png')",
-                  backgroundSize: "400% 300%",
-                  backgroundPositionX: "0%",
-                  backgroundPositionY: "0%",
-                  imageRendering: "pixelated",
-                  transform: "scaleX(-1)",
-                  filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.3))",
-                }}
-              />
-            )}
-
             <motion.div
               className="w-32 h-32 sm:w-56 sm:h-56"
               variants={{
@@ -251,8 +198,8 @@ export function BattleScreen({
         </div>
 
        {/* Player HUD */}
-<div className="absolute bottom-[25%] sm:bottom-[30%] right-[3%] sm:right-[5%]">
-  <div className="bg-[#f8f8f0] border-t-4 border-r-4 border-b-4 border-l-[12px] rounded-tr-2xl rounded-br-2xl border-[#506860] p-2 sm:p-3 pl-3 sm:pl-4 w-[180px] sm:w-[280px] shadow-[4px_4px_0_rgba(0,0,0,0.2)]">
+<div className="absolute bottom-[25%] sm:bottom-[30%] left-[3%] sm:left-[5%]">
+  <div className="bg-[#f8f8f0] border-[3px] border-[#4f6e69] rounded-sm p-2 sm:p-3 pl-3 sm:pl-4 w-[180px] sm:w-[280px] shadow-[3px_3px_0_rgba(0,0,0,0.15)]">
     <div className="flex justify-between items-end border-b-2 border-slate-300 pb-1 mb-1 sm:mb-2">
       <h3 className="text-[#383838] font-bold text-sm sm:text-xl uppercase tracking-tighter truncate mr-1">{playerPkmn?.name}</h3>
       <p className="text-[#383838] font-bold text-xs sm:text-lg shrink-0">Nv{playerPkmn?.level}</p>
@@ -293,18 +240,6 @@ export function BattleScreen({
     </div>
 
     <StatBoostBadges boosts={playerPkmn?.statBoosts} />
-    
-    {/* Debug stats and Status remain the same... */}
-    {playerPkmn && (
-      <div className="mt-2 grid-cols-4 gap-1 hidden sm:grid">
-        {(['attack','defense','special','speed'] as const).map(stat => (
-          <div key={stat} className="bg-slate-100 rounded px-1 py-0.5 text-center">
-            <div className="text-[8px] text-slate-400 uppercase font-bold">{stat.slice(0,3)}</div>
-            <div className="text-[10px] font-mono font-black text-slate-700">{calcStat(playerPkmn.baseStats[stat], playerPkmn.level)}</div>
-          </div>
-        ))}
-      </div>
-    )}
     {playerPkmn?.status && playerPkmn.status !== 'none' && (
       <div className="mt-1 text-[9px] font-bold text-orange-600 uppercase tracking-widest text-center">{playerPkmn.status}</div>
     )}
@@ -350,134 +285,73 @@ export function BattleScreen({
           )}
         </AnimatePresence>
 
-        {/* Move tooltip — shown above move buttons when hovering */}
-        <AnimatePresence>
-          {hoveredMoveIdx !== null && playerPkmn?.moves[hoveredMoveIdx] && (() => {
-            const m = playerPkmn.moves[hoveredMoveIdx];
-            const typeColor = TYPE_COLORS[m.type] ?? 'bg-slate-400';
-            return (
-              <motion.div
-                key="move-tooltip"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 4 }}
-                transition={{ duration: 0.12 }}
-                className="absolute bottom-[35%] left-1/2 -translate-x-1/2 z-[120] pointer-events-none"
-              >
-                <div className="bg-[#383838] border-2 border-[#282828] rounded-xl px-3 py-2 shadow-xl text-white min-w-[180px]">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full text-white ${typeColor}`}>{m.type}</span>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold">{getMoveCategory(m)}</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 text-center text-[11px]">
-                    <div>
-                      <div className="text-slate-400 uppercase text-[9px]">Poder</div>
-                      <div className="font-black">{m.power > 0 ? m.power : '—'}</div>
-                    </div>
-                    <div>
-                      <div className="text-slate-400 uppercase text-[9px]">Precisión</div>
-                      <div className="font-black">{m.accuracy}%</div>
-                    </div>
-                    <div>
-                      <div className="text-slate-400 uppercase text-[9px]">PP</div>
-                      <div className={`font-black ${m.pp === 0 ? 'text-red-400' : ''}`}>{m.pp}/{m.maxPp}</div>
-                    </div>
-                  </div>
-                  {m.statusEffect && (
-                    <div className="mt-1 text-[9px] text-yellow-300 uppercase font-bold text-center">
-                      {m.statusEffect} ({m.statusChance}%)
-                    </div>
-                  )}
-                  {m.statChange && (
-                    <div className="mt-1 text-[9px] text-cyan-300 uppercase font-bold text-center">
-                      {m.statChange.target === 'enemy' ? 'Rival' : 'Propio'} {m.statChange.stat}{m.statChange.stages > 0 ? '↑' : '↓'}
-                    </div>
-                  )}
-                </div>
-                {/* Arrow */}
-                <div className="w-3 h-3 bg-[#383838] rotate-45 border-b-2 border-r-2 border-[#282828] mx-auto -mt-1.5" />
-              </motion.div>
-            );
-          })()}
-        </AnimatePresence>
       </div>
 
       {/* Bottom Menu Area */}
-      <div className="h-[35vh] w-full bg-[#383838] flex p-1 sm:p-2 pt-0 pb-0 gap-1 sm:gap-2 overflow-hidden border-t-4 sm:border-t-8 border-[#282828]">
+      <div className="h-[35vh] w-full bg-[#26343f] flex p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden border-t-4 border-[#1d2830]">
 
-        {/* Left: battle log (always visible) + moves (when player's turn) */}
-        <div className={`flex-grow border-4 sm:border-8 ${isPlayerTurn ? 'border-[#f87858]' : 'border-[#506860]'} bg-[#f8f8f8] rounded-lg sm:rounded-xl m-1 sm:m-2 p-2 sm:p-4 relative shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] flex flex-col`}>
+        {/* Left: battle log */}
+        <div className="flex-grow border-4 border-[#f8d870] bg-[#1f3558] rounded-sm p-3 sm:p-4 relative shadow-[inset_0_0_0_2px_#0f1f38] flex flex-col">
 
-          {/* Battle log — small when moves are shown, large otherwise */}
-          <p className={`text-[#383838] font-bold uppercase tracking-tighter transition-all ${isPlayerTurn ? 'text-xs sm:text-base opacity-60 mb-1 sm:mb-3' : 'text-lg sm:text-3xl leading-relaxed mt-1 sm:mt-2'}`}>
+          <p className="text-white font-bold tracking-tight text-base sm:text-2xl leading-relaxed mt-1">
             {battleLog}
           </p>
-
-          {/* Move buttons — only when it's the player's turn */}
-          <AnimatePresence>
-            {isPlayerTurn && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 8 }}
-                transition={{ duration: 0.15 }}
-                className="grid grid-cols-2 gap-1 sm:gap-3 flex-1"
-              >
-                {playerPkmn?.moves.map((move, i) => {
-                  const noPP = move.pp <= 0;
-                  return (
-                    <button
-                      key={i}
-                      disabled={noPP}
-                      className={`relative flex items-center gap-1 sm:gap-2 font-bold text-sm sm:text-xl uppercase tracking-tighter text-left px-1 sm:px-2 transition-colors rounded ${noPP ? 'text-slate-300 cursor-not-allowed' : 'text-[#383838] cursor-pointer hover:text-red-500 hover:bg-red-50'}`}
-                      onClick={() => {
-                        if (noPP) return;
-                        soundManager.play('SELECT');
-                        handleAttack(move);
-                      }}
-                      onMouseEnter={() => setHoveredMoveIdx(i)}
-                      onMouseLeave={() => setHoveredMoveIdx(null)}
-                    >
-                      {/* Keyboard hint */}
-                      <span className="text-[8px] font-mono text-slate-400 shrink-0 hidden sm:inline">[{i + 1}]</span>
-                      <span className={`text-xs sm:text-sm ${noPP ? 'text-slate-300' : 'text-red-500'}`}>▶</span>
-                      <span className="flex-1 truncate">{move.name}</span>
-                      <span className={`text-[10px] sm:text-xs font-mono shrink-0 ${noPP ? 'text-red-400' : 'text-slate-400'}`}>{move.pp}/{move.maxPp}</span>
-                    </button>
-                  );
-                })}
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
-        {/* Right: utility actions */}
-        <div className="w-1/3 min-w-[100px] sm:min-w-[200px] border-4 sm:border-8 border-[#506860] bg-[#f8f8f8] rounded-lg sm:rounded-xl m-1 sm:m-2 ml-0 p-2 sm:p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]">
-          <div className="grid grid-cols-1 sm:grid-cols-2 grid-rows-3 sm:grid-rows-2 h-full gap-1 sm:gap-4 text-[#383838] font-bold text-sm sm:text-xl items-center tracking-tighter uppercase">
-            {([
-              { label: 'BOLSA', hint: 'B' },
-              { label: 'POKÉMON', hint: 'P' },
-              { label: 'HUIR', hint: null },
-            ] as const).map(({ label, hint }) => {
-              const lockedByTurn = !isPlayerTurn && label !== 'HUIR';
-              const disabled = (label === 'HUIR' && isTrainerBattle) || lockedByTurn;
+        {/* Right: actions / moves */}
+        <div className="w-1/3 min-w-[120px] sm:min-w-[230px] border-4 border-[#4f6e69] bg-[#f8f8f8] rounded-sm p-2 sm:p-3 shadow-[inset_0_0_0_2px_rgba(0,0,0,0.06)]">
+          <div className="grid grid-cols-2 h-full gap-2 text-[#2f2f2f] font-bold text-sm sm:text-lg items-center tracking-tight uppercase">
+            {(isPlayerTurn ? playerPkmn?.moves.map((move) => ({ label: move.name, move })) : [
+              { label: 'BOLSA' },
+              { label: 'POKÉMON' },
+              { label: 'HUIR' },
+              { label: isTrainerBattle ? 'ENTRENADOR' : 'LUCHAR' },
+            ]).map((entry, i) => {
+              const move = 'move' in entry ? entry.move : null;
+              const label = entry.label;
+              const noPP = move ? move.pp <= 0 : false;
+              const disabled =
+                move ? noPP : (label === 'HUIR' && isTrainerBattle) || (!isPlayerTurn && label !== 'HUIR');
               return (
-                <div
-                  key={label}
-                  className={`relative flex flex-col items-center ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer hover:text-red-500'}`}
+                <button
+                  key={`${label}-${i}`}
+                  disabled={disabled}
+                  className={`text-left px-2 py-1 rounded-sm border ${
+                    disabled
+                      ? 'opacity-35 cursor-not-allowed border-transparent'
+                      : 'border-transparent hover:border-[#4f6e69] hover:bg-[#edf4ef]'
+                  }`}
                   onClick={() => {
                     if (disabled) return;
                     soundManager.play('SELECT');
+                    if (move) {
+                      handleAttack(move);
+                      return;
+                    }
                     if (label === 'HUIR') onFlee();
                     if (label === 'BOLSA') setShowInventory(true);
                     if (label === 'POKÉMON') setShowTeam(true);
                   }}
+                  onMouseEnter={() => setHoveredMoveIdx(move ? i : null)}
+                  onMouseLeave={() => setHoveredMoveIdx(null)}
                 >
-                  <span>{label}</span>
-                  {hint && !disabled && (
-                    <span className="text-[8px] font-mono text-slate-400 hidden sm:block">[{hint}]</span>
+                  <span className="inline-flex items-center gap-1">
+                    {!disabled && <span className="text-red-500">▶</span>}
+                    {label}
+                  </span>
+                  {move && (
+                    <>
+                      <span className="block text-[10px] text-slate-500 normal-case">
+                        PP {move.pp}/{move.maxPp}
+                      </span>
+                      {hoveredMoveIdx === i && (
+                        <span className="block text-[9px] text-slate-600 normal-case mt-0.5 leading-tight">
+                          {getMoveDescription(move)}
+                        </span>
+                      )}
+                    </>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>

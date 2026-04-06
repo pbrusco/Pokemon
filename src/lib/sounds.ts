@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// synthesized-sounds.ts - Deluxe 8-Bit Edition
+// synthesized-sounds.ts - Fixed & Final Comfortable Edition
 // ---------------------------------------------------------------------------
 
 let audioCtx: AudioContext | null = null;
@@ -15,72 +15,58 @@ function getCtx(): AudioContext {
 }
 
 // ---------------------------------------------------------------------------
-// Music Sequences
+// Expanded Melodies
 // ---------------------------------------------------------------------------
 
 const MELODIES = {
   OVERWORLD: [
-    { f: 523, d: 0.2 }, { f: 392, d: 0.2 }, { f: 329, d: 0.2 }, { f: 261, d: 0.4 },
-    { f: 293, d: 0.2 }, { f: 329, d: 0.2 }, { f: 349, d: 0.2 }, { f: 392, d: 0.4 },
-    { f: 440, d: 0.2 }, { f: 493, d: 0.2 }, { f: 523, d: 0.2 }, { f: 392, d: 0.4 },
-    { f: 349, d: 0.2 }, { f: 329, d: 0.2 }, { f: 293, d: 0.2 }, { f: 261, d: 0.6 },
+    // Passage A
+    { f: 392, d: 0.2 }, { f: 329, d: 0.2 }, { f: 392, d: 0.2 }, { f: 523, d: 0.4 },
+    { f: 440, d: 0.2 }, { f: 523, d: 0.2 }, { f: 392, d: 0.4 },
+    { f: 349, d: 0.2 }, { f: 392, d: 0.2 }, { f: 440, d: 0.2 }, { f: 392, d: 0.2 },
+    { f: 349, d: 0.2 }, { f: 329, d: 0.2 }, { f: 293, d: 0.4 },
+    // Passage B
     { f: 440, d: 0.2 }, { f: 440, d: 0.2 }, { f: 523, d: 0.2 }, { f: 440, d: 0.2 },
     { f: 392, d: 0.2 }, { f: 392, d: 0.2 }, { f: 493, d: 0.2 }, { f: 392, d: 0.2 },
     { f: 349, d: 0.2 }, { f: 349, d: 0.2 }, { f: 440, d: 0.2 }, { f: 349, d: 0.2 },
-    { f: 329, d: 0.2 }, { f: 293, d: 0.2 }, { f: 329, d: 0.2 }, { f: 392, d: 0.4 },
-  ],
-  
-  // High-intensity, fast-paced battle loop
-  BATTLE: [
-    // Intro Stinger
-    { f: 440, d: 0.1 }, { f: 415, d: 0.1 }, { f: 392, d: 0.1 }, { f: 370, d: 0.1 },
-    { f: 349, d: 0.1 }, { f: 330, d: 0.1 }, { f: 311, d: 0.1 }, { f: 293, d: 0.1 },
-    // Main High-Energy Loop
-    { f: 146, d: 0.15 }, { f: 146, d: 0.15 }, { f: 293, d: 0.15 }, { f: 146, d: 0.15 },
-    { f: 164, d: 0.15 }, { f: 164, d: 0.15 }, { f: 329, d: 0.15 }, { f: 164, d: 0.15 },
-    { f: 174, d: 0.15 }, { f: 174, d: 0.15 }, { f: 349, d: 0.15 }, { f: 174, d: 0.15 },
-    { f: 164, d: 0.15 }, { f: 146, d: 0.15 }, { f: 130, d: 0.15 }, { f: 123, d: 0.15 },
+    { f: 329, d: 0.2 }, { f: 392, d: 0.2 }, { f: 523, d: 0.6 },
   ],
 
-  // Soothing, nursery-rhyme style healing center theme
+  BATTLE: [
+    // Intro
+    { f: 466, d: 0.1 }, { f: 440, d: 0.1 }, { f: 415, d: 0.1 }, { f: 392, d: 0.1 },
+    { f: 466, d: 0.1 }, { f: 440, d: 0.1 }, { f: 415, d: 0.1 }, { f: 392, d: 0.1 },
+    // Main driving beat
+    { f: 293, d: 0.15 }, { f: 293, d: 0.15 }, { f: 349, d: 0.15 }, { f: 293, d: 0.15 },
+    { f: 311, d: 0.15 }, { f: 311, d: 0.15 }, { f: 370, d: 0.15 }, { f: 311, d: 0.15 },
+    // Chromatic climb
+    { f: 349, d: 0.1 }, { f: 370, d: 0.1 }, { f: 392, d: 0.1 }, { f: 415, d: 0.1 },
+    { f: 440, d: 0.1 }, { f: 466, d: 0.1 }, { f: 493, d: 0.1 }, { f: 523, d: 0.1 },
+  ],
+
   POKECENTER: [
-    { f: 392, d: 0.4 }, { f: 329, d: 0.4 }, { f: 392, d: 0.4 }, { f: 523, d: 0.8 },
-    { f: 440, d: 0.4 }, { f: 523, d: 0.4 }, { f: 392, d: 0.8 },
-    { f: 349, d: 0.4 }, { f: 392, d: 0.4 }, { f: 440, d: 0.4 }, { f: 392, d: 0.4 },
-    { f: 349, d: 0.4 }, { f: 329, d: 0.4 }, { f: 293, d: 0.8 },
+    { f: 392, d: 0.5 }, { f: 329, d: 0.5 }, { f: 392, d: 0.5 }, { f: 523, d: 1.0 },
+    { f: 440, d: 0.5 }, { f: 523, d: 0.5 }, { f: 392, d: 1.0 },
+    { f: 659, d: 0.5 }, { f: 587, d: 0.5 }, { f: 523, d: 0.5 }, { f: 493, d: 0.5 },
+    { f: 440, d: 0.5 }, { f: 493, d: 0.5 }, { f: 523, d: 1.0 },
   ]
 };
 
-const SFX = {
-  MOVE: () => playTone('square', [220, 280], 0.06, 0.1),
-  SELECT: () => {
-    playTone('square', [440, 550], 0.08, 0.1);
-    playTone('square', [660], 0.08, 0.08, 0.08);
-  },
-  BATTLE_START: () => {
-    playTone('square', [330, 440, 550], 0.4, 0.2);
-    playTone('sawtooth', [110, 220], 0.4, 0.1);
-  },
-  HIT: () => playTone('sawtooth', [300, 50], 0.15, 0.2),
-  FAINT: () => playTone('square', [440, 330, 220, 110], 0.8, 0.2),
-  LEVEL_UP: () => {
-    [0, 0.1, 0.2, 0.3].forEach((delay, i) => {
-      const notes = [523, 659, 784, 1047];
-      playTone('square', [notes[i]], 0.2, 0.1, delay);
-    });
-  },
-  TRAINER_SPOTTED: () => {
-    playTone('square', [880], 0.1, 0.2, 0);
-    playTone('square', [1320], 0.15, 0.15, 0.1);
-  },
-};
+// ---------------------------------------------------------------------------
+// SoundManager Class
+// ---------------------------------------------------------------------------
 
 class SoundManager {
   private currentMusicKey: keyof typeof MELODIES | null = null;
   private isLooping = false;
 
+  /**
+   * Triggers a sound effect from the SFX object
+   */
   play(key: keyof typeof SFX) {
-    SFX[key]?.();
+    if (SFX[key]) {
+      SFX[key]();
+    }
   }
 
   playMove(moveSfxType: 'pulse' | 'noise' | 'glissando' = 'pulse') {
@@ -118,42 +104,34 @@ class SoundManager {
     }, totalTime * 1000);
   }
 
-  private playNote(freq: number, duration: number, delay: number, type: keyof typeof MELODIES) {
+  private playNote(freq: number, duration: number, delay: number, type: string) {
+    if (freq === 0) return;
     const ctx = getCtx();
     const t0 = ctx.currentTime + delay;
     
-    // Battle music gets a harsher Square-heavy sound
-    // PokéCenter gets a smoother Triangle-heavy sound
-    const squareVol = type === 'BATTLE' ? 0.06 : 0.03;
-    const triVol = type === 'POKECENTER' ? 0.08 : 0.05;
-
-    this.createOscillator('square', freq, duration, squareVol, t0);
-    this.createOscillator('triangle', freq, duration, triVol, t0);
-  }
-
-  private createOscillator(type: OscillatorType, freq: number, duration: number, vol: number, time: number) {
-    const ctx = getCtx();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, time);
-    
-    gain.gain.setValueAtTime(vol, time);
-    const release = type === 'triangle' ? duration * 0.95 : duration * 0.85;
-    gain.gain.exponentialRampToValueAtTime(0.0001, time + release);
-    
-    osc.connect(gain);
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = (type === 'POKECENTER') ? 'triangle' : 'square';
+    osc.frequency.setValueAtTime(freq, t0);
+
+    // Comfort Low-pass filter
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(2200, t0);
+
+    // Smooth envelope
+    gain.gain.setValueAtTime(0, t0); 
+    gain.gain.linearRampToValueAtTime(0.05, t0 + 0.02); 
+    gain.gain.exponentialRampToValueAtTime(0.02, t0 + duration);
+
+    osc.connect(filter);
+    filter.connect(gain);
     gain.connect(ctx.destination);
     
-    osc.start(time);
-    osc.stop(time + duration);
-    
+    osc.start(t0);
+    osc.stop(t0 + duration);
     currentMusicOscillators.push({ osc, gain });
-    
-    setTimeout(() => {
-      currentMusicOscillators = currentMusicOscillators.filter(item => item.osc !== osc);
-    }, (time - ctx.currentTime + duration) * 1000);
   }
 
   stopMusic() {
@@ -170,16 +148,39 @@ class SoundManager {
   }
 }
 
-export function playTone(type: OscillatorType, freqs: number[], duration: number, volume = 0.1, startDelay = 0) {
+// ---------------------------------------------------------------------------
+// Comfortable SFX
+// ---------------------------------------------------------------------------
+
+export const SFX = {
+  SELECT: () => playTone('triangle', [600, 700], 0.1, 0.06),
+  MOVE: () => playTone('sine', [200, 240], 0.06, 0.06),
+  HIT: () => playTone('triangle', [150, 50], 0.15, 0.1),
+  FAINT: () => playTone('square', [400, 100], 0.5, 0.05),
+  LEVEL_UP: () => {
+    [523, 659, 784, 1047].forEach((f, i) => playTone('sine', [f], 0.15, 0.05, i * 0.1));
+  },
+  BATTLE_START: () => playTone('triangle', [800, 200], 0.4, 0.08),
+  TRAINER_SPOTTED: () => {
+    playTone('square', [880, 880], 0.08, 0.05, 0);
+    playTone('square', [1320, 1320], 0.15, 0.05, 0.08);
+  }
+};
+
+/**
+ * Utility for playing a single tone with comfort filtering
+ */
+export function playTone(type: OscillatorType, freqs: number[], duration: number, volume = 0.05, startDelay = 0) {
   try {
     const ctx = getCtx();
     const t0 = ctx.currentTime + startDelay;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
 
     osc.type = type;
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+    filter.type = 'lowpass';
+    filter.frequency.value = 2000;
 
     const step = duration / Math.max(freqs.length - 1, 1);
     freqs.forEach((f, i) => {
@@ -187,9 +188,13 @@ export function playTone(type: OscillatorType, freqs: number[], duration: number
       else osc.frequency.linearRampToValueAtTime(f, t0 + i * step);
     });
 
-    gain.gain.setValueAtTime(volume, t0);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(volume, t0 + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
 
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
     osc.start(t0);
     osc.stop(t0 + duration);
   } catch (e) {}

@@ -1,164 +1,69 @@
 # My Pokemon
 
-A Pokemon Fire Red-style RPG built with React 19, TypeScript, Vite, and Tailwind CSS.
+Pokemon Fire Red style RPG built with React, TypeScript, Vite, and Tailwind.
 
-## Features
+## Current Status
 
-- Tile-based overworld with smooth movement and NPC interactions
-- Turn-based battles using the Generation I damage formula (STAB, type effectiveness, critical hits)
-- Multi-Pokemon teams with forced switch on faint, PP tracking per move
-- XP/leveling system with evolution support
-- Wild encounters (Gen I flee formula), trainer battles, and gym leader (Brock)
-- Trainer vision cones with red shadow overlay; `!` exclamation on detection
-- Inventory system (potions, pokeballs), Pokedex, PC storage
-- Money system with shop purchases
-- Blackout/heal mechanics with auto-transport to last heal location
-- Background music (Howler.js) and synthesized retro SFX (Web Audio API)
-- Auto-save to localStorage (position, team, inventory, Pokedex, money)
-- Mobile touch controls (on-screen joystick)
+- Overworld exploration with trainers, encounters, teleports, and map transitions
+- Battle FSM with turn flow, catches, forced switch, status effects, XP, level-up, evolution
+- Gen I-inspired battle math and quirks (including the 1/256 miss behavior)
+- Data-driven map format (`rows: string[]`) with tile parser and in-game map editor
+- Inventory quantities (`Record<itemId, qty>`), money rewards, shop, PC storage, Pokedex
+- Multiple local save profiles (`slot1`/`slot2`/`slot3`) with metadata
+- Synthesized move SFX categories (`pulse`, `noise`, `glissando`) and battle background themes
 
-## Setup
+## Run
 
 ```bash
 npm install
-npm run dev       # Dev server on http://localhost:3000
-npm run build     # Production build
-npm run lint      # TypeScript type-check
+npm run dev
+npm run test:run
+npm run lint
 ```
 
-> **Note:** Node.js lives at `/opt/homebrew/bin/node`. Prepend `export PATH="/opt/homebrew/bin:$PATH"` if npm isn't found.
+If `npm` is not found on macOS, use:
 
----
-
-## Architecture
-
-### Game Phase FSM
-
-The game uses a **finite state machine** (`src/types/gamePhase.ts`) to control which mode is active. This replaces the old pattern of ~17 independent boolean flags, making impossible states unrepresentable at the type level.
-
-```
-GamePhase: EXPLORING | MENU | INVENTORY | TEAM | SHOP | POKEDEX | PC | EDITOR
-           | BATTLE_TRANSITION | BATTLE (with BattlePhase sub-FSM)
-           | BLACKOUT | HEALING
-
-BattlePhase: CHOOSING | PLAYER_ATTACK | ENEMY_ATTACK | PLAYER_FAINTED
-             | FORCED_SWITCH | ENEMY_FAINTED | CATCHING | LEVEL_UP | EVOLVING
-             | BATTLE_INVENTORY | BATTLE_TEAM
+```bash
+export PATH="/opt/homebrew/bin:$PATH"
 ```
 
-### Key Files
+## Project Structure
 
-| File | Role |
-|------|------|
-| `src/App.tsx` | Main game loop — movement, collisions, battle orchestration, all game logic |
-| `src/types/gamePhase.ts` | GamePhase + BattlePhase discriminated union types and helpers |
-| `src/constants.ts` | Static data: 151 Pokemon base stats, moves, wild encounters, evolutions |
-| `src/lib/damage.ts` | Gen I damage formula, type effectiveness, stat calculations |
-| `src/lib/sounds.ts` | Web Audio API SFX + Howler.js background music |
-| `src/types.ts` | Core interfaces: Pokemon, Move, BaseStats, Tile, NPC, Entity |
-| `src/data/maps/tileParser.ts` | Compact map format parser |
-| `src/data/maps/*.json` | 20×20 tile maps in compact string format (see below) |
+- `src/App.tsx` — main runtime orchestrator (movement, phase transitions, battle loop, menus)
+- `src/hooks/useInteractionEngine.ts` — overworld interaction flow (NPCs, items, tile interactions)
+- `src/types/gamePhase.ts` — top-level and battle sub-phase FSM types
+- `src/constants.ts` — Pokemon/moves/items/evolution/static game data
+- `src/lib/damage.ts` — damage/stat/type calculations
+- `src/lib/sounds.ts` — synthesized SFX + music manager
+- `src/components/` — UI surfaces (battle, inventory, team, pokedex, PC, map editor, dialogue)
+- `src/data/maps/` — compact map sources + parser/export
 
-### Map Format
+## Map Format
 
-Maps are stored as compact string grids — about **40× smaller** than the previous per-tile JSON format and easy to edit by hand.
+Maps use compact rows:
 
 ```json
-{
-  "rows": [
-    "TTTTTTTTTTTTTTTTTTTT",
-    "TTTPPPPPPPPPPPPPPPTT",
-    "TTTPPPWWWPPWWWPPPPTT",
-    "TTTPPPWDWPPWDWPPPPTT"
-  ]
-}
+{ "rows": ["TTTT...", "TPPP..."] }
 ```
 
-**Legend** (defined in `src/data/maps/tileParser.ts`):
+Legend is defined in `src/data/maps/tileParser.ts`.
 
-| Char | Tile | Walkable |
-|------|------|---------|
-| `T` | tree | no |
-| `G` | grass (flat, no encounters) | yes |
-| `P` | path | yes |
-| `W` | wall | no |
-| `D` | door | yes |
-| `F` | floor (indoors) | yes |
-| `C` | carpet (indoors) | yes |
-| `X` | table | no |
-| `S` | sign | yes |
-| `~` | water | no |
-
-To add a new map: create a `name.json` with a `rows` array (20 strings of exactly 20 chars), then import and export it via `src/data/maps/index.ts`.
-
-### Maps
-
-| ID | File | Description |
-|----|------|-------------|
-| `PALLET_TOWN` | `pallet_town.json` | Starting town |
-| `OAKS_LAB` | `oaks_lab.json` | Starter selection & rival battle |
-| `ROUTE_1` | `route_1.json` | First route with wild encounters |
-| `VIRIDIAN_CITY` | `viridian_city.json` | Hub town with Pokecenter & Pokemart |
-| `POKECENTER` | `pokecenter.json` | Healing location |
-| `POKEMART` | `pokemart.json` | Item shop & Oak's Parcel quest |
-| `VIRIDIAN_FOREST` | `viridian_forest.json` | Forest with bug-type encounters |
-| `PEWTER_CITY` | `pewter_city.json` | First city with gym |
-| `PEWTER_GYM` | `pewter_gym.json` | Brock's gym |
-| `ROUTE_3` | `route_3.json` | Route east toward Mt. Moon |
-
-### Components
-
-```
-src/components/
-  BattleScreen.tsx    — Battle UI (HP bars, moves, PP, animations, debug stats)
-  DialogueBox.tsx     — NPC dialogue
-  InventoryUI.tsx     — Bag/inventory screen
-  TeamMenuUI.tsx      — Pokemon team management (supports forced switch)
-  PCStorageUI.tsx     — PC box storage
-  PokedexUI.tsx       — Pokedex encyclopedia (seen / caught)
-  ShopUI.tsx          — Merchant interface with money display
-  MapEditor.tsx       — Dev tool for editing tile maps (Shift+E)
-  Joystick.tsx        — Mobile touch controls
-```
-
----
-
-## Player Sprite
-
-The player character uses `/public/player.png` — a 256×192 RGBA spritesheet (4 columns × 3 rows, 64×64px per cell):
-
-| Row | Direction |
-|-----|-----------|
-| 0 | Down |
-| 1 | Up |
-| 2 | Left |
-
-Right-facing is the Left row mirrored via `scaleX(-1)`. Background must be fully transparent (RGBA PNG).
-
----
+Notable tiles:
+- `T` tree
+- `H` cut tree obstacle
+- `B` boulder obstacle
+- `X` table
+- `S` sign
 
 ## Controls
 
-| Input | Action |
-|-------|--------|
-| Arrow keys | Move |
-| Enter / Z / Space | Interact / confirm |
-| X / Shift / Escape | Menu toggle |
-| Shift+E | Map editor (dev tool) |
+- `Arrow Keys` move
+- `Enter` / `Z` / `Space` interact
+- `X` / `Shift` / `Esc` open menu
+- `Shift + E` open map editor
 
----
+## Known Next Major Task
 
-## Tech Stack
+- Final state consolidation: migrate remaining `App.tsx` state soup into `useGameStore` incrementally without regressing battle behavior.
 
-| | |
-|-|-|
-| Framework | React 19 + TypeScript |
-| Build | Vite |
-| Styling | Tailwind CSS |
-| Animations | Framer Motion |
-| Music | Howler.js (streamed from Pokémon Showdown CDN) |
-| SFX | Web Audio API (synthesized, no files) |
-| State | Zustand |
-
-See [CLAUDE.md](./CLAUDE.md) for the full architecture and agent development guide.
-See [docs/](./docs/) for user-facing and technical documentation.
+See `CLAUDE.md` for implementation details and `TODO.md` for task tracking.
