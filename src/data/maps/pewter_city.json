@@ -1,0 +1,1642 @@
+[
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "door",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "door",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "door",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "path",
+      "walkable": true
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ],
+  [
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    },
+    {
+      "type": "wall",
+      "walkable": false
+    }
+  ]
+]
