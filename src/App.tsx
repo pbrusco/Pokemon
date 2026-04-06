@@ -302,6 +302,8 @@ export default function App() {
   const [showTeam, setShowTeam] = useState(false);
   const [showShop, setShowShop] = useState(false);
   const [showMoves, setShowMoves] = useState(false);
+  const [isTrainerBattle, setIsTrainerBattle] = useState(false);
+  const [pickedItemIds, setPickedItemIds] = useState<string[]>([]);
   const [showPokedex, setShowPokedex] = useState(false);
   const [showPC, setShowPC] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
@@ -341,6 +343,9 @@ export default function App() {
   const [damageNumber, setDamageNumber] = useState<{ x: number, y: number, value: number } | null>(null);
   const [battleShake, setBattleShake] = useState(false);
   const [isCatching, setIsCatching] = useState(false);
+  const [isBlackout, setIsBlackout] = useState(false);
+  const [isHealing, setIsHealing] = useState(false);
+  const [lastHealLocation, setLastHealLocation] = useState<{ map: string; pos: Position }>({ map: 'PALLET_TOWN', pos: { x: 7, y: 11 } });
 
   // Story State
   const [storyStep, setStoryStep] = useState<'START' | 'OAK_STOPPED' | 'IN_LAB' | 'PICKED_STARTER' | 'RIVAL_BATTLE' | 'EXPLORING'>('START');
@@ -367,6 +372,7 @@ export default function App() {
         setHasPokedex(data.hasPokedex);
         setHasParcel(data.hasParcel);
         setStoryStep(data.storyStep);
+        if (data.lastHealLocation) setLastHealLocation(data.lastHealLocation);
       } catch (e) {
         console.error("Error loading save", e);
       }
@@ -383,11 +389,12 @@ export default function App() {
         defeatedTrainers,
         hasPokedex,
         hasParcel,
-        storyStep
+        storyStep,
+        lastHealLocation
       };
       localStorage.setItem('pokemon_save', JSON.stringify(saveData));
     }
-  }, [playerPos, currentMap, playerTeam, inventory, defeatedTrainers, hasPokedex, hasParcel, storyStep]);
+  }, [playerPos, currentMap, playerTeam, inventory, defeatedTrainers, hasPokedex, hasParcel, storyStep, lastHealLocation]);
 
   useEffect(() => {
     if (isBattle) {
@@ -549,10 +556,11 @@ export default function App() {
       { id: 'to_forest', type: 'teleport', position: { x: 10, y: 0 }, direction: 'up', targetMap: 'VIRIDIAN_FOREST', targetPos: { x: 10, y: 17 } }
     ],
     POKECENTER: [
-      { id: 'to_viridian', type: 'teleport', position: { x: 10, y: 16 }, direction: 'down', targetMap: 'VIRIDIAN_CITY', targetPos: { x: 7, y: 9 } }
+      { id: 'to_viridian', type: 'teleport', position: { x: 10, y: 15 }, direction: 'down', targetMap: 'VIRIDIAN_CITY', targetPos: { x: 7, y: 9 } }
     ],
     POKEMART: [
-      { id: 'to_viridian', type: 'teleport', position: { x: 10, y: 16 }, direction: 'down', targetMap: 'VIRIDIAN_CITY', targetPos: { x: 14, y: 9 } }
+      { id: 'to_viridian', type: 'teleport', position: { x: 10, y: 15 }, direction: 'down', targetMap: 'VIRIDIAN_CITY', targetPos: { x: 14, y: 9 } }
+
     ],
     VIRIDIAN_FOREST: [
       { id: 'to_viridian_from_forest', type: 'teleport', position: { x: 10, y: 18 }, direction: 'down', targetMap: 'VIRIDIAN_CITY', targetPos: { x: 10, y: 1 } },
@@ -567,7 +575,7 @@ export default function App() {
     ]
   };
 
-  const items: Record<string, Entity[]> = {
+  const rawItems: Record<string, Entity[]> = {
     OAKS_LAB: [
       { id: 'starter_1', type: 'item', position: { x: 9, y: 8 }, direction: 'down', sprite: STARTERS[0].sprite },
       { id: 'starter_2', type: 'item', position: { x: 10, y: 8 }, direction: 'down', sprite: STARTERS[1].sprite },
@@ -592,6 +600,11 @@ export default function App() {
     PEWTER_CITY: [],
     PEWTER_GYM: []
   };
+  const items: Record<string, Entity[]> = Object.fromEntries(
+    Object.entries(rawItems).map(([map, entities]) => [
+      map, entities.filter(e => !pickedItemIds.includes(e.id))
+    ])
+  ) as Record<string, Entity[]>;
 
   const handlePCSwap = (teamIdx: number, pcIdx: number) => {
     const newTeam = [...playerTeam];
@@ -637,13 +650,23 @@ export default function App() {
     if (npc) {
       if (npc.id === 'mom' || npc.id === 'joy') {
         const name = npc.id === 'mom' ? 'MAMÁ' : 'JOY';
+        const healPos = npc.id === 'mom'
+          ? { map: 'PALLET_TOWN', pos: { x: 7, y: 11 } }
+          : { map: 'POKECENTER', pos: { x: 10, y: 14 } };
+        setLastHealLocation(healPos);
         setDialogue(`${name}: ¡Hola! Pareces cansado. Deberías descansar un poco...`);
-        
+
         setTimeout(() => {
-          setDialogue("... ... ... ¡Tus POKÉMON están en plena forma!");
-          setPlayerTeam(prev => prev.map(p => ({ ...p, hp: p.maxHp, status: 'none' })));
-          soundManager.play('SELECT');
-        }, 2000);
+          setIsHealing(true);
+          setTimeout(() => {
+            setPlayerTeam(prev => prev.map(p => ({ ...p, hp: p.maxHp, status: 'none' })));
+            soundManager.play('SELECT');
+          }, 800);
+          setTimeout(() => {
+            setIsHealing(false);
+            setDialogue("... ... ... ¡Tus POKÉMON están en plena forma!");
+          }, 1600);
+        }, 1500);
       } else if (npc.id === 'clerk' && currentMap === 'POKEMART') {
         if (!hasParcel && !hasPokedex) {
           setHasParcel(true);
@@ -676,6 +699,7 @@ export default function App() {
       if (item.type === 'item' && currentMap === 'OAKS_LAB' && playerTeam.length === 0) {
         const starter = STARTERS.find(s => s.sprite === item.sprite);
         if (starter) {
+          setPickedItemIds(prev => [...prev, item.id]);
           setPlayerTeam([starter]);
           setDialogue(`¡Has elegido a ${starter.name}!`);
           setStoryStep('PICKED_STARTER');
@@ -683,15 +707,18 @@ export default function App() {
           setTimeout(() => {
             setDialogue("AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!");
             setEnemyPokemon({ ...STARTERS[1], name: 'RIVAL ' + STARTERS[1].name });
+            setIsTrainerBattle(true);
             soundManager.play('BATTLE_START');
             setShowBattleTransition(true);
           }, 1500);
         }
       } else if (item.type === 'item') {
         if (item.id.startsWith('item_potion')) {
+          setPickedItemIds(prev => [...prev, item.id]);
           setInventory(prev => [...prev, 'POTION']);
           setDialogue("¡Has encontrado una POCIÓN!");
         } else if (item.id.startsWith('item_pokeball')) {
+          setPickedItemIds(prev => [...prev, item.id]);
           setInventory(prev => [...prev, 'POKEBALL']);
           setDialogue("¡Has encontrado una POKÉ BALL!");
         }
@@ -748,6 +775,7 @@ export default function App() {
     setPcStorage([]);
     setBadges([]);
     setDefeatedTrainers([]);
+    setPickedItemIds([]);
     setIsBattle(false);
     setShowBattleTransition(false);
     setPlayerTeam([]);
@@ -843,6 +871,7 @@ export default function App() {
             setTimeout(() => {
               soundManager.play('BATTLE_START');
               setEnemyPokemon(trainer.trainerTeam![0]);
+              setIsTrainerBattle(true);
               setBattleLog(`¡${trainer.name} te desafía!`);
               setShowBattleTransition(true);
             }, 1500);
@@ -870,6 +899,7 @@ export default function App() {
           maxHp: finalMaxHp,
         };
         setEnemyPokemon(finalPkmn);
+        setIsTrainerBattle(false);
         updatePokedex(randomPkmn.id);
         setBattleLog(`¡Un ${randomPkmn.name} salvaje apareció!`);
         setShowBattleTransition(true);
@@ -959,19 +989,25 @@ export default function App() {
               soundManager.play('FAINT');
               setPlayerAnim('faint');
               setBattleLog(`¡${playerPkmn.name} se debilitó! ¡No te quedan POKÉMON sanos!`);
-              
+
               setTimeout(() => {
-                setDialogue("¡Te has quedado sin POKÉMON! ¡Te desmayaste!");
                 setIsBattle(false);
                 setShowBattleTransition(false);
                 setPlayerAnim('idle');
-                setPlayerPos({ x: 10, y: 10 });
-                setCurrentMap('PALLET_TOWN');
-                
-                // Heal entire team
-                const healedTeam = playerTeam.map(p => ({ ...p, hp: p.maxHp }));
-                setPlayerTeam(healedTeam);
-              }, 2000);
+                setIsBlackout(true);
+
+                setTimeout(() => {
+                  // Teleport and heal mid-blackout
+                  setCurrentMap(lastHealLocation.map as any);
+                  setPlayerPos(lastHealLocation.pos);
+                  setPlayerTeam(prev => prev.map(p => ({ ...p, hp: p.maxHp, status: 'none' })));
+                }, 1200);
+
+                setTimeout(() => {
+                  setIsBlackout(false);
+                  setDialogue("¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.");
+                }, 2400);
+              }, 1500);
             } else {
               soundManager.play('FAINT');
               setPlayerAnim('faint');
@@ -1282,7 +1318,7 @@ export default function App() {
       }
 
       if (dialogue) {
-        if (e.key === 'Enter' || e.key === ' ' || e.key === 'z') setDialogue(null);
+        setDialogue(null);
         return;
       }
 
@@ -1638,6 +1674,7 @@ export default function App() {
             battleLog={battleLog}
             showMoves={showMoves}
             setShowMoves={setShowMoves}
+            isTrainerBattle={isTrainerBattle}
             setIsBattle={setIsBattle}
             setShowInventory={setShowInventory}
             setShowTeam={setShowTeam}
@@ -1721,6 +1758,32 @@ export default function App() {
             pc={pcStorage} 
             onClose={() => setShowPC(false)} 
             onSwap={handlePCSwap}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Blackout overlay (all fainted) */}
+      <AnimatePresence>
+        {isBlackout && (
+          <motion.div
+            className="fixed inset-0 bg-black z-[300] pointer-events-none"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: [1, 0.2, 1, 0.2, 1, 0.2, 1, 0] }}
+            transition={{ duration: 2.4, times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.88, 1], ease: "linear" }}
+            exit={{ opacity: 0 }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Heal animation (Nurse Joy / Mom) */}
+      <AnimatePresence>
+        {isHealing && (
+          <motion.div
+            className="fixed inset-0 bg-white z-[300] pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0.85, 0, 0.85, 0, 0.85, 0] }}
+            transition={{ duration: 1.6, times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 1], ease: "linear" }}
+            exit={{ opacity: 0 }}
           />
         )}
       </AnimatePresence>

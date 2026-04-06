@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Pokemon, Move } from '../types';
 import { soundManager } from '../lib/sounds';
@@ -16,6 +15,7 @@ export interface BattleScreenProps {
   battleLog: string;
   showMoves: boolean;
   setShowMoves: (show: boolean) => void;
+  isTrainerBattle: boolean;
   setIsBattle: (isBattle: boolean) => void;
   setShowInventory: (show: boolean) => void;
   setShowTeam: (show: boolean) => void;
@@ -24,22 +24,22 @@ export interface BattleScreenProps {
 
 export function BattleScreen({
   battleShake, enemyPokemon, enemyAnim, isCatching, projectile, hitEffect, damageNumber,
-  playerTeam, playerAnim, battleLog, showMoves, setShowMoves, setIsBattle,
+  playerTeam, playerAnim, battleLog, isTrainerBattle, setIsBattle,
   setShowInventory, setShowTeam, handleAttack
 }: BattleScreenProps) {
-  const [menuCursor] = useState(0);
 
   const playerPkmn = playerTeam[0];
+  const isPlayerTurn = playerAnim === 'idle' && enemyAnim === 'idle';
 
   const hpColor = (hp: number, max: number) => {
     const ratio = hp / max;
-    if (ratio > 0.5) return 'bg-[#48d0b0] border-[#38a888]'; // Green
-    if (ratio > 0.2) return 'bg-[#f8d030] border-[#c8a020]'; // Yellow
-    return 'bg-[#f85838] border-[#c84028]'; // Red
+    if (ratio > 0.5) return 'bg-[#48d0b0] border-[#38a888]';
+    if (ratio > 0.2) return 'bg-[#f8d030] border-[#c8a020]';
+    return 'bg-[#f85838] border-[#c84028]';
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, x: battleShake ? [0, -10, 10, -10, 10, 0] : 0 }}
       exit={{ opacity: 0 }}
@@ -50,13 +50,12 @@ export function BattleScreen({
     >
       {/* Top Background area */}
       <div className="flex-1 relative w-full h-[65vh] overflow-hidden">
-        
+
         {/* Enemy Platform & Sprite */}
         <div className="absolute top-[20%] right-[10%] w-[300px] flex flex-col items-center">
-          {/* Platform Ellipse */}
           <div className="absolute bottom-2 w-full h-12 bg-black/10 rounded-[100%] border-4 border-black/5 blur-[2px]" />
-          
-          <motion.div 
+
+          <motion.div
             className="w-40 h-40 relative z-10"
             variants={{
               idle: { y: [0, -4, 0], transition: { repeat: Infinity, duration: 1.5, ease: "easeInOut" } },
@@ -80,10 +79,10 @@ export function BattleScreen({
             <div className="flex items-center gap-2 bg-[#d8d8d8] p-1 rounded-full border-2 border-[#506860]">
               <span className="text-[10px] font-black text-[#f8d830] tracking-widest pl-1 drop-shadow-[1px_1px_0_#c8a020]">PS</span>
               <div className="flex-1 h-3 bg-white rounded-full border border-slate-400 overflow-hidden ml-1">
-                <motion.div 
+                <motion.div
                   initial={{ width: '100%' }}
                   animate={{ width: `${(enemyPokemon?.hp || 0) / (enemyPokemon?.maxHp || 1) * 100}%` }}
-                  className={`h-full border-t-2 border-white/50 ${hpColor(enemyPokemon?.hp || 0, enemyPokemon?.maxHp || 1)}`} 
+                  className={`h-full border-t-2 border-white/50 ${hpColor(enemyPokemon?.hp || 0, enemyPokemon?.maxHp || 1)}`}
                 />
               </div>
             </div>
@@ -92,10 +91,9 @@ export function BattleScreen({
 
         {/* Player Platform & Sprite */}
         <div className="absolute bottom-[20%] left-[10%] w-[350px] flex flex-col items-center">
-          {/* Platform Ellipse */}
           <div className="absolute bottom-4 w-full h-16 bg-black/15 rounded-[100%] border-4 border-black/5 blur-[2px]" />
-          
-          <motion.div 
+
+          <motion.div
             className="w-56 h-56 relative z-10"
             variants={{
               idle: { y: [0, -2, 0], transition: { repeat: Infinity, duration: 2, ease: "easeInOut" } },
@@ -119,10 +117,10 @@ export function BattleScreen({
             <div className="flex items-center gap-2 bg-[#d8d8d8] p-1 rounded-full border-2 border-[#506860]">
               <span className="text-[10px] font-black text-[#f8d830] tracking-widest pl-1 drop-shadow-[1px_1px_0_#c8a020]">PS</span>
               <div className="flex-1 h-3 bg-white rounded-full border border-slate-400 overflow-hidden ml-1">
-                <motion.div 
+                <motion.div
                   initial={{ width: '100%' }}
                   animate={{ width: `${(playerPkmn?.hp || 0) / (playerPkmn?.maxHp || 1) * 100}%` }}
-                  className={`h-full border-t-2 border-white/50 ${hpColor(playerPkmn?.hp || 0, playerPkmn?.maxHp || 1)}`} 
+                  className={`h-full border-t-2 border-white/50 ${hpColor(playerPkmn?.hp || 0, playerPkmn?.maxHp || 1)}`}
                 />
               </div>
             </div>
@@ -165,70 +163,65 @@ export function BattleScreen({
 
       {/* Bottom Menu Area */}
       <div className="h-[35vh] w-full bg-[#383838] flex p-2 pt-0 pb-0 gap-2 overflow-hidden border-t-8 border-[#282828]">
-        
-        {/* Dialog / Move Selection Box */}
-        <div className={`flex-grow border-8 ${showMoves ? 'border-[#f87858]' : 'border-[#506860]'} bg-[#f8f8f8] rounded-xl m-2 p-4 relative shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]`}>
-          
-          {showMoves ? (
-            <div className="grid grid-cols-2 grid-rows-2 h-full gap-4 text-[#383838] font-bold text-2xl uppercase tracking-tighter">
-              {playerPkmn?.moves.map((move, i) => (
-                <div 
-                  key={i} 
-                  className="relative flex items-center cursor-pointer hover:text-red-500"
-                  onClick={() => {
-                     soundManager.play('SELECT');
-                     handleAttack(move);
-                     setShowMoves(false);
-                  }}
-                >
-                  <span className="mr-2 text-red-500">▶</span> {move.name}
-                </div>
-              ))}
-              <div 
-                 className="relative flex items-center cursor-pointer hover:text-slate-400"
-                 onClick={() => { soundManager.play('SELECT'); setShowMoves(false); }}
+
+        {/* Left: battle log (always visible) + moves (when player's turn) */}
+        <div className={`flex-grow border-8 ${isPlayerTurn ? 'border-[#f87858]' : 'border-[#506860]'} bg-[#f8f8f8] rounded-xl m-2 p-4 relative shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] flex flex-col`}>
+
+          {/* Battle log — small when moves are shown, large otherwise */}
+          <p className={`text-[#383838] font-bold uppercase tracking-tighter transition-all ${isPlayerTurn ? 'text-base opacity-60 mb-3' : 'text-3xl leading-relaxed mt-2'}`}>
+            {battleLog}
+          </p>
+
+          {/* Move buttons — only when it's the player's turn */}
+          <AnimatePresence>
+            {isPlayerTurn && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.15 }}
+                className="grid grid-cols-2 gap-3 flex-1"
               >
-                  <span className="mr-2 opacity-0">▶</span> VOLVER
-              </div>
-            </div>
-          ) : (
-            <p className="text-[#383838] font-bold text-3xl leading-relaxed mt-2 uppercase tracking-tighter">{battleLog}</p>
-          )}
+                {playerPkmn?.moves.map((move, i) => (
+                  <button
+                    key={i}
+                    className="flex items-center gap-2 text-[#383838] font-bold text-xl uppercase tracking-tighter cursor-pointer hover:text-red-500 transition-colors text-left px-2"
+                    onClick={() => {
+                      soundManager.play('SELECT');
+                      handleAttack(move);
+                    }}
+                  >
+                    <span className="text-red-500 text-sm">▶</span>
+                    {move.name}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Action Menu / PP Menu Box */}
+        {/* Right: utility actions */}
         <div className="w-1/3 min-w-[200px] border-8 border-[#506860] bg-[#f8f8f8] rounded-xl m-2 ml-0 p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]">
-          {showMoves ? (
-            <div className="flex flex-col h-full text-[#383838] font-bold text-xl justify-center tracking-tighter uppercase p-2">
-              <div className="flex justify-between mb-4 mt-2">
-                <span>PP</span>
-                <span>35 / 35</span>
-              </div>
-              <div>
-                <span>TIPO / NORMAL</span>
-              </div>
-            </div>
-          ) : (
-            <div className={`grid grid-cols-2 grid-rows-2 h-full gap-4 text-[#383838] font-bold text-2xl items-center tracking-tighter uppercase ${playerAnim !== 'idle' || enemyAnim !== 'idle' ? 'opacity-50 pointer-events-none' : ''}`}>
-              {['LUCHAR', 'BOLSA', 'POKÉMON', 'HUIR'].map((action, i) => (
-                <div 
+          <div className={`grid grid-cols-2 grid-rows-2 h-full gap-4 text-[#383838] font-bold text-xl items-center tracking-tighter uppercase ${!isPlayerTurn ? 'opacity-40 pointer-events-none' : ''}`}>
+            {(['BOLSA', 'POKÉMON', 'HUIR'] as const).map((action) => {
+              const disabled = action === 'HUIR' && isTrainerBattle;
+              return (
+                <div
                   key={action}
-                  className="relative flex justify-center cursor-pointer hover:text-red-500"
+                  className={`relative flex justify-center ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer hover:text-red-500'}`}
                   onClick={() => {
+                    if (disabled) return;
                     soundManager.play('SELECT');
                     if (action === 'HUIR') setIsBattle(false);
-                    if (action === 'LUCHAR') setShowMoves(true);
                     if (action === 'BOLSA') setShowInventory(true);
                     if (action === 'POKÉMON') setShowTeam(true);
                   }}
                 >
-                  {/* Fake Cursor */}
-                  {i === menuCursor && <span className="absolute -left-4 text-red-500">▶</span>}
                   {action}
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
 
       </div>
