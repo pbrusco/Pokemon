@@ -28,12 +28,7 @@ The goal of this simulation is to provide a robust, multi-state environment for 
     ```bash
     npm install
     ```
-3.  **API Key Setup (Crucial):** Create or update a `.env.local` file in the root directory and populate it with your Google Gemini API Key:
-    ```dotenv
-    # .env.local
-    GEMINI_API_KEY="YOUR_ACTUAL_API_KEY_HERE"
-    ```
-4.  **Run the Game:** Start the development server:
+3.  **Run the Game:** Start the development server:
     ```bash
     npm run dev
     ```

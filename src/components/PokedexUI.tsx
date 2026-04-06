@@ -38,7 +38,7 @@ export const PokedexUI = ({ pokedex, onClose }: { pokedex: Record<string, { seen
                   className={`p-4 rounded-2xl border-2 flex items-center gap-4 transition-all ${status.seen ? 'bg-slate-50 border-slate-100' : 'bg-slate-100 border-slate-200 grayscale opacity-50'}`}
                 >
                   <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm">
-                    {status.seen ? pkmn.sprite : '?'}
+                    {status.seen ? <img src={pkmn.sprite} className="w-full h-full object-contain pixelated" alt={pkmn.name} /> : '?'}
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between items-center">

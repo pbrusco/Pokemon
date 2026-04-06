@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;700&display=swap');
+@import "tailwindcss";
 
 @theme {
   --font-sans: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -71,4 +71,20 @@ body {
 
 .pk-dialogue-shadow {
   box-shadow: 0 10px 0 0 rgba(0,0,0,0.1);
+}
+
+.pixelated {
+  image-rendering: pixelated;
+}
+
+@keyframes walk {
+  0%   { background-position-x: 0%; }
+  25%  { background-position-x: 33.333%; }
+  50%  { background-position-x: 66.666%; }
+  75%  { background-position-x: 100%; }
+  100% { background-position-x: 0%; }
+}
+
+.animate-walk {
+  animation: walk 0.6s step-end infinite;
 }

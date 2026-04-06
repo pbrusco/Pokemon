@@ -17,17 +17,19 @@ export const MOVES: Record<string, Move> = {
   HARDEN: { name: 'FORTALEZA', type: 'normal', power: 0, accuracy: 100 },
 };
 
+const getSprite = (id: number) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+
 export const STARTERS: Pokemon[] = [
   { 
-    id: 'bulbasaur', name: 'BULBASAUR', level: 5, hp: 20, maxHp: 20, type: 'grass', moves: [MOVES.TACKLE, MOVES.GROWL], sprite: '💠', exp: 0, expToNextLevel: 100, evolutionLevel: 16, evolvesTo: 'ivysaur',
+    id: 'bulbasaur', name: 'BULBASAUR', level: 5, hp: 20, maxHp: 20, type: 'grass', moves: [MOVES.TACKLE, MOVES.GROWL], sprite: getSprite(1), exp: 0, expToNextLevel: 100, evolutionLevel: 16, evolvesTo: 'ivysaur',
     movesToLearn: [{ level: 7, move: MOVES.VINE_WHIP }, { level: 13, move: MOVES.POISON_POWDER }]
   },
   { 
-    id: 'charmander', name: 'CHARMANDER', level: 5, hp: 19, maxHp: 19, type: 'fire', moves: [MOVES.SCRATCH, MOVES.GROWL], sprite: '🔺', exp: 0, expToNextLevel: 100, evolutionLevel: 16, evolvesTo: 'charmeleon',
+    id: 'charmander', name: 'CHARMANDER', level: 5, hp: 19, maxHp: 19, type: 'fire', moves: [MOVES.SCRATCH, MOVES.GROWL], sprite: getSprite(4), exp: 0, expToNextLevel: 100, evolutionLevel: 16, evolvesTo: 'charmeleon',
     movesToLearn: [{ level: 7, move: MOVES.EMBER }]
   },
   { 
-    id: 'squirtle', name: 'SQUIRTLE', level: 5, hp: 21, maxHp: 21, type: 'water', moves: [MOVES.TACKLE, MOVES.GROWL], sprite: '🔵', exp: 0, expToNextLevel: 100, evolutionLevel: 16, evolvesTo: 'wartortle',
+    id: 'squirtle', name: 'SQUIRTLE', level: 5, hp: 21, maxHp: 21, type: 'water', moves: [MOVES.TACKLE, MOVES.GROWL], sprite: getSprite(7), exp: 0, expToNextLevel: 100, evolutionLevel: 16, evolvesTo: 'wartortle',
     movesToLearn: [{ level: 7, move: MOVES.WATER_GUN }]
   },
 ];
@@ -39,41 +41,41 @@ export const ITEMS_DATABASE: Record<string, InventoryItem> = {
 };
 
 export const POKEMON_LIST: PokemonSummary[] = [
-  { id: 'bulbasaur', name: 'Bulbasaur', sprite: '💠' },
-  { id: 'charmander', name: 'Charmander', sprite: '🔺' },
-  { id: 'squirtle', name: 'Squirtle', sprite: '🔵' },
-  { id: 'pidgey', name: 'Pidgey', sprite: '✈️' },
-  { id: 'rattata', name: 'Rattata', sprite: '⚙️' },
-  { id: 'caterpie', name: 'Caterpie', sprite: '🧬' },
-  { id: 'weedle', name: 'Weedle', sprite: '🌀' },
-  { id: 'pikachu', name: 'Pikachu', sprite: '⚡' },
-  { id: 'geodude', name: 'Geodude', sprite: '🪨' },
-  { id: 'onix', name: 'Onix', sprite: '⛓️' },
+  { id: 'bulbasaur', name: 'Bulbasaur', sprite: getSprite(1) },
+  { id: 'charmander', name: 'Charmander', sprite: getSprite(4) },
+  { id: 'squirtle', name: 'Squirtle', sprite: getSprite(7) },
+  { id: 'pidgey', name: 'Pidgey', sprite: getSprite(16) },
+  { id: 'rattata', name: 'Rattata', sprite: getSprite(19) },
+  { id: 'caterpie', name: 'Caterpie', sprite: getSprite(10) },
+  { id: 'weedle', name: 'Weedle', sprite: getSprite(13) },
+  { id: 'pikachu', name: 'Pikachu', sprite: getSprite(25) },
+  { id: 'geodude', name: 'Geodude', sprite: getSprite(74) },
+  { id: 'onix', name: 'Onix', sprite: getSprite(95) },
 ];
 
 export const EVOLUTIONS: Record<string, Partial<Pokemon>> = {
-  ivysaur: { name: 'IVYSAUR', sprite: '💠', evolutionLevel: 32, evolvesTo: 'venusaur' },
-  venusaur: { name: 'VENUSAUR', sprite: '💠' },
-  charmeleon: { name: 'CHARMELEON', sprite: '🔺', evolutionLevel: 36, evolvesTo: 'charizard' },
-  charizard: { name: 'CHARIZARD', sprite: '🔺' },
-  wartortle: { name: 'WARTORTLE', sprite: '🔵', evolutionLevel: 36, evolvesTo: 'blastoise' },
-  blastoise: { name: 'BLASTOISE', sprite: '🔵' },
+  ivysaur: { name: 'IVYSAUR', sprite: getSprite(2), evolutionLevel: 32, evolvesTo: 'venusaur' },
+  venusaur: { name: 'VENUSAUR', sprite: getSprite(3) },
+  charmeleon: { name: 'CHARMELEON', sprite: getSprite(5), evolutionLevel: 36, evolvesTo: 'charizard' },
+  charizard: { name: 'CHARIZARD', sprite: getSprite(6) },
+  wartortle: { name: 'WARTORTLE', sprite: getSprite(8), evolutionLevel: 36, evolvesTo: 'blastoise' },
+  blastoise: { name: 'BLASTOISE', sprite: getSprite(9) },
 };
 
 export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {
   ROUTE_1: [
-    { id: 'pidgey', name: 'PIDGEY', level: 4, hp: 18, maxHp: 18, type: 'flying', moves: [MOVES.TACKLE, MOVES.GUST], sprite: '✈️', exp: 0, expToNextLevel: 70 },
-    { id: 'rattata', name: 'RATTATA', level: 4, hp: 17, maxHp: 17, type: 'normal', moves: [MOVES.TACKLE, MOVES.SCRATCH], sprite: '⚙️', exp: 0, expToNextLevel: 70 },
-    { id: 'caterpie', name: 'CATERPIE', level: 3, hp: 16, maxHp: 16, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: '🧬', exp: 0, expToNextLevel: 50 },
-    { id: 'weedle', name: 'WEEDLE', level: 3, hp: 16, maxHp: 16, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: '🌀', exp: 0, expToNextLevel: 50 },
-    { id: 'spearow', name: 'SPEAROW', level: 5, hp: 20, maxHp: 20, type: 'flying', moves: [MOVES.PECK, MOVES.GROWL], sprite: '✈️', exp: 0, expToNextLevel: 90 },
-    { id: 'mankey', name: 'MANKEY', level: 5, hp: 24, maxHp: 24, type: 'fighting', moves: [MOVES.SCRATCH, MOVES.TACKLE], sprite: '⚙️', exp: 0, expToNextLevel: 90 },
-    { id: 'pikachu', name: 'PIKACHU', level: 6, hp: 27, maxHp: 27, type: 'electric', moves: [MOVES.THUNDERSHOCK, MOVES.GROWL], sprite: '⚡', exp: 0, expToNextLevel: 110 },
+    { id: 'pidgey', name: 'PIDGEY', level: 4, hp: 18, maxHp: 18, type: 'flying', moves: [MOVES.TACKLE, MOVES.GUST], sprite: getSprite(16), exp: 0, expToNextLevel: 70 },
+    { id: 'rattata', name: 'RATTATA', level: 4, hp: 17, maxHp: 17, type: 'normal', moves: [MOVES.TACKLE, MOVES.SCRATCH], sprite: getSprite(19), exp: 0, expToNextLevel: 70 },
+    { id: 'caterpie', name: 'CATERPIE', level: 3, hp: 16, maxHp: 16, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: getSprite(10), exp: 0, expToNextLevel: 50 },
+    { id: 'weedle', name: 'WEEDLE', level: 3, hp: 16, maxHp: 16, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: getSprite(13), exp: 0, expToNextLevel: 50 },
+    { id: 'spearow', name: 'SPEAROW', level: 5, hp: 20, maxHp: 20, type: 'flying', moves: [MOVES.PECK, MOVES.GROWL], sprite: getSprite(21), exp: 0, expToNextLevel: 90 },
+    { id: 'mankey', name: 'MANKEY', level: 5, hp: 24, maxHp: 24, type: 'fighting', moves: [MOVES.SCRATCH, MOVES.TACKLE], sprite: getSprite(56), exp: 0, expToNextLevel: 90 },
+    { id: 'pikachu', name: 'PIKACHU', level: 6, hp: 27, maxHp: 27, type: 'electric', moves: [MOVES.THUNDERSHOCK, MOVES.GROWL], sprite: getSprite(25), exp: 0, expToNextLevel: 110 },
   ],
   VIRIDIAN_FOREST: [
-    { id: 'caterpie', name: 'CATERPIE', level: 4, hp: 18, maxHp: 18, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: '🧬', exp: 0, expToNextLevel: 70 },
-    { id: 'weedle', name: 'WEEDLE', level: 4, hp: 18, maxHp: 18, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: '🌀', exp: 0, expToNextLevel: 70 },
-    { id: 'metapod', name: 'METAPOD', level: 6, hp: 24, maxHp: 24, type: 'bug', moves: [MOVES.HARDEN], sprite: '🌀', exp: 0, expToNextLevel: 110 },
-    { id: 'pikachu', name: 'PIKACHU', level: 6, hp: 27, maxHp: 27, type: 'electric', moves: [MOVES.THUNDERSHOCK, MOVES.GROWL], sprite: '⚡', exp: 0, expToNextLevel: 110 },
+    { id: 'caterpie', name: 'CATERPIE', level: 4, hp: 18, maxHp: 18, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: getSprite(10), exp: 0, expToNextLevel: 70 },
+    { id: 'weedle', name: 'WEEDLE', level: 4, hp: 18, maxHp: 18, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: getSprite(13), exp: 0, expToNextLevel: 70 },
+    { id: 'metapod', name: 'METAPOD', level: 6, hp: 24, maxHp: 24, type: 'bug', moves: [MOVES.HARDEN], sprite: getSprite(11), exp: 0, expToNextLevel: 110 },
+    { id: 'pikachu', name: 'PIKACHU', level: 6, hp: 27, maxHp: 27, type: 'electric', moves: [MOVES.THUNDERSHOCK, MOVES.GROWL], sprite: getSprite(25), exp: 0, expToNextLevel: 110 },
   ]
 };

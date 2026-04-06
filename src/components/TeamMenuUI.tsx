@@ -41,7 +41,7 @@ export const TeamMenuUI = ({ team, onClose, onSwap }: { team: Pokemon[], onClose
               className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all cursor-pointer ${i === 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-100 hover:border-emerald-100'}`}
             >
               <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-3xl shadow-sm">
-                {pkmn.sprite}
+                <img src={pkmn.sprite} className="w-full h-full object-contain pixelated" alt={pkmn.name} />
               </div>
               <div className="flex-1">
                 <div className="flex justify-between items-end mb-1">

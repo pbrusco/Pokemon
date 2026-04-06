@@ -42,7 +42,7 @@ export const PCStorageUI = ({ team, pc, onClose, onSwap }: { team: Pokemon[], pc
                   }}
                   className={`p-3 rounded-xl border-2 flex items-center gap-4 transition-all ${selectedTeamIdx === i ? 'bg-blue-50 border-blue-400 shadow-md' : 'bg-slate-50 border-slate-100 hover:border-blue-200'}`}
                 >
-                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-xl shadow-sm">{pkmn.sprite}</div>
+                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-xl shadow-sm"><img src={pkmn.sprite} className="w-full h-full object-contain pixelated" alt={pkmn.name} /></div>
                   <span className="font-bold text-slate-800 uppercase text-xs">{pkmn.name}</span>
                   <span className="ml-auto text-[10px] font-mono text-slate-500">Lv {pkmn.level}</span>
                 </button>
@@ -67,7 +67,7 @@ export const PCStorageUI = ({ team, pc, onClose, onSwap }: { team: Pokemon[], pc
                     }}
                     className={`flex flex-col items-center p-3 rounded-2xl border-2 transition-all ${selectedPCIdx === i ? 'bg-blue-50 border-blue-400 shadow-md' : 'bg-slate-50 border-slate-100 hover:border-blue-200'}`}
                   >
-                    <span className="text-3xl mb-1">{pkmn.sprite}</span>
+                    <span className="text-3xl mb-1"><img src={pkmn.sprite} className="w-full h-full object-contain pixelated" alt={pkmn.name} /></span>
                     <p className="font-bold text-slate-800 text-[10px] uppercase truncate w-full text-center">{pkmn.name}</p>
                     <p className="text-[9px] text-slate-500 font-mono">Lv {pkmn.level}</p>
                   </button>

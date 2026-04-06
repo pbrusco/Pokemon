@@ -24,7 +24,8 @@ import {
   X,
   Gamepad2
 } from 'lucide-react';
-import { Direction, Position, TILE_SIZE, GRID_SIZE, MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, MAP_VIRIDIAN_FOREST, MAP_PEWTER_CITY, MAP_PEWTER_GYM, NPC, Entity, Pokemon, Move, InventoryItem } from './types';
+import { Direction, Position, TILE_SIZE, GRID_SIZE, NPC, Entity, Pokemon, Move, InventoryItem, Tile } from './types';
+import { MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, MAP_VIRIDIAN_FOREST, MAP_PEWTER_CITY, MAP_PEWTER_GYM } from './data/maps';
 import { soundManager } from './lib/sounds';
 import { MOVES, STARTERS, EVOLUTIONS, WILD_POKEMON_DATABASE, POKEMON_LIST, ITEMS_DATABASE } from './constants';
 import { InventoryUI } from './components/InventoryUI';
@@ -32,6 +33,7 @@ import { TeamMenuUI } from './components/TeamMenuUI';
 import { DialogueBox } from './components/DialogueBox';
 import { PokedexUI } from './components/PokedexUI';
 import { PCStorageUI } from './components/PCStorageUI';
+import { BattleScreen } from './components/BattleScreen';
 import { Joystick } from './components/Joystick';
 
 // --- Constants & Data ---
@@ -267,33 +269,17 @@ const Player = ({ position, direction, isMoving }: { position: Position, directi
         {/* Shadow */}
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-10 h-3 bg-black/40 rounded-full blur-sm" />
         
-        {/* Character Body - Pokémon Red Style */}
-        <motion.div 
-          animate={{ 
-            rotate: getRotation(),
-            scale: isMoving ? [1, 1.1, 1] : 1,
-            y: isMoving ? [0, -4, 0] : 0
+        {/* Character Sprite */}
+        <div 
+          className={`w-16 h-16 pointer-events-none drop-shadow-md ${isMoving ? 'animate-walk' : ''}`}
+          style={{
+            backgroundImage: "url('/player.png')",
+            backgroundSize: "400% 400%",
+            backgroundPositionX: isMoving ? undefined : "0%",
+            backgroundPositionY: direction === 'down' ? '0%' : direction === 'up' ? '33.333%' : direction === 'left' ? '66.666%' : '100%',
+            imageRendering: "pixelated",
           }}
-          transition={{ 
-            scale: { repeat: Infinity, duration: 0.2 },
-            y: { repeat: Infinity, duration: 0.2 }
-          }}
-          className="w-12 h-14 bg-[#f85858] rounded-xl border-[3px] border-[#383838] shadow-lg flex flex-col items-center overflow-hidden"
-        >
-          {/* Hat */}
-          <div className="w-full h-1/3 bg-[#f85858] border-b-2 border-[#383838] flex items-center justify-center">
-            <div className="w-6 h-2 bg-white rounded-full mt-1" />
-          </div>
-          {/* Face */}
-          <div className="w-full h-1/3 bg-[#f8d8b0] flex items-center justify-center gap-2">
-            <div className="w-1 h-1 bg-[#383838] rounded-full" />
-            <div className="w-1 h-1 bg-[#383838] rounded-full" />
-          </div>
-          {/* Jacket */}
-          <div className="w-full h-1/3 bg-[#58c8f8] flex items-center justify-center">
-            <div className="w-4 h-full bg-white/30" />
-          </div>
-        </motion.div>
+        />
       </div>
     </motion.div>
   );
@@ -362,6 +348,11 @@ export default function App() {
   useEffect(() => {
     const savedData = localStorage.getItem('pokemon_save');
     if (savedData) {
+      if (!savedData.includes('http')) {
+        console.warn("Legacy save file detected. Clearing to prevent sprite bugs.");
+        localStorage.removeItem('pokemon_save');
+        return;
+      }
       try {
         const data = JSON.parse(savedData);
         setPlayerPos(data.pos);
@@ -453,7 +444,7 @@ export default function App() {
         dialogue: ["¡Eh! ¡Tú! ¡Mis POKÉMON son de lo mejor!", "¡No me ignores cuando te hablo!"],
         isTrainer: true,
         trainerTeam: [
-          { id: 'rattata_t', name: 'RATTATA', level: 4, hp: 18, maxHp: 18, type: 'normal', moves: [MOVES.TACKLE, MOVES.SCRATCH], sprite: '🐭', exp: 0, expToNextLevel: 80 }
+          { id: 'rattata_t', name: 'RATTATA', level: 4, hp: 18, maxHp: 18, type: 'normal', moves: [MOVES.TACKLE, MOVES.SCRATCH], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/19.png', exp: 0, expToNextLevel: 80 }
         ]
       },
       { 
@@ -465,7 +456,7 @@ export default function App() {
         dialogue: ["¿Te gustan los POKÉMON bicho?", "¡Son los más guays del mundo!"],
         isTrainer: true,
         trainerTeam: [
-          { id: 'caterpie_t', name: 'CATERPIE', level: 3, hp: 16, maxHp: 16, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: '🐛', exp: 0, expToNextLevel: 60 }
+          { id: 'caterpie_t', name: 'CATERPIE', level: 3, hp: 16, maxHp: 16, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10.png', exp: 0, expToNextLevel: 60 }
         ]
       }
     ],
@@ -497,7 +488,7 @@ export default function App() {
         dialogue: ["¡Mi POKÉMON bicho es el más fuerte!", "¡No podrás pasar de aquí!"],
         isTrainer: true,
         trainerTeam: [
-          { id: 'metapod_t', name: 'METAPOD', level: 6, hp: 24, maxHp: 24, type: 'bug', moves: [MOVES.HARDEN, MOVES.TACKLE], sprite: '蛹', exp: 0, expToNextLevel: 120 }
+          { id: 'metapod_t', name: 'METAPOD', level: 6, hp: 24, maxHp: 24, type: 'bug', moves: [MOVES.HARDEN, MOVES.TACKLE], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/11.png', exp: 0, expToNextLevel: 120 }
         ]
       }
     ],
@@ -514,7 +505,7 @@ export default function App() {
         dialogue: ["¡Para llegar a BROCK tendrás que vencerme!", "¡Mis POKÉMON son duros!"],
         isTrainer: true,
         trainerTeam: [
-          { id: 'geodude_t', name: 'GEODUDE', level: 10, hp: 35, maxHp: 35, type: 'rock', moves: [MOVES.TACKLE, MOVES.ROCK_THROW], sprite: '🌑', exp: 0, expToNextLevel: 200 }
+          { id: 'geodude_t', name: 'GEODUDE', level: 10, hp: 35, maxHp: 35, type: 'rock', moves: [MOVES.TACKLE, MOVES.ROCK_THROW], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/74.png', exp: 0, expToNextLevel: 200 }
         ]
       },
       { 
@@ -528,8 +519,8 @@ export default function App() {
           : ["¡Soy BROCK! ¡El líder de este gimnasio!", "¡Mis POKÉMON son duros como la roca!", "¡Prepárate para perder!"],
         isTrainer: true,
         trainerTeam: [
-          { id: 'geodude_b', name: 'GEODUDE', level: 12, hp: 40, maxHp: 40, type: 'rock', moves: [MOVES.TACKLE, MOVES.ROCK_THROW], sprite: '🌑', exp: 0, expToNextLevel: 250 },
-          { id: 'onix_b', name: 'ONIX', level: 14, hp: 55, maxHp: 55, type: 'rock', moves: [MOVES.TACKLE, MOVES.ROCK_THROW], sprite: '🪨', exp: 0, expToNextLevel: 400 }
+          { id: 'geodude_b', name: 'GEODUDE', level: 12, hp: 40, maxHp: 40, type: 'rock', moves: [MOVES.TACKLE, MOVES.ROCK_THROW], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/74.png', exp: 0, expToNextLevel: 250 },
+          { id: 'onix_b', name: 'ONIX', level: 14, hp: 55, maxHp: 55, type: 'rock', moves: [MOVES.TACKLE, MOVES.ROCK_THROW], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/95.png', exp: 0, expToNextLevel: 400 }
         ]
       }
     ]
@@ -1376,7 +1367,7 @@ export default function App() {
                 <div className="w-8 h-8 bg-red-500 rounded-full border-2 border-[#383838] flex items-center justify-center relative shadow-md">
                   <div className="w-full h-0.5 bg-[#383838] absolute top-1/2 -translate-y-1/2" />
                   <div className="w-2 h-2 bg-white border-2 border-[#383838] rounded-full z-10" />
-                  <div className="absolute -top-4 text-xs font-bold text-slate-400">{item.sprite}</div>
+                  {item.sprite?.startsWith('http') ? <img src={item.sprite} className="absolute -top-10 left-1/2 -translate-x-1/2 w-16 h-16 object-contain pixelated drop-shadow-md" alt="item" /> : <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-3xl font-bold text-slate-400 drop-shadow-md">{item.sprite}</div>}
                 </div>
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center relative">
@@ -1588,292 +1579,27 @@ export default function App() {
       {/* Battle View */}
       <AnimatePresence>
         {isBattle && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1, x: battleShake ? [0, -10, 10, -10, 10, 0] : 0 }}
-            exit={{ opacity: 0, scale: 1.1 }}
-            className="fixed inset-0 z-[90] bg-slate-900 flex flex-col items-center justify-center p-4 sm:p-8"
-          >
-            <div className="w-full max-w-4xl flex flex-col gap-4 sm:gap-8">
-              {/* Enemy */}
-              <div className="flex justify-end">
-                <div className="bg-white/10 p-4 sm:p-8 rounded-3xl border-2 border-white/20 flex items-center gap-4 sm:gap-8">
-                  <div className="text-right">
-                    <h3 className="text-white font-bold text-lg sm:text-2xl uppercase">{enemyPokemon?.name}</h3>
-                    <p className="text-emerald-400 font-mono text-xs sm:text-base">Lv {enemyPokemon?.level}</p>
-                    <div className="w-32 sm:w-48 h-2 bg-slate-700 rounded-full mt-2 overflow-hidden">
-                      <motion.div 
-                        initial={{ width: '100%' }}
-                        animate={{ width: `${(enemyPokemon?.hp || 0) / (enemyPokemon?.maxHp || 1) * 100}%` }}
-                        className={`h-full ${(enemyPokemon?.hp || 0) > 10 ? 'bg-emerald-500' : 'bg-red-500'}`} 
-                      />
-                    </div>
-                  </div>
-                  <div className="w-20 h-20 sm:w-32 sm:h-32 bg-white/5 rounded-full flex items-center justify-center text-2xl sm:text-4xl">
-                    <motion.div 
-                      variants={{
-                        idle: { 
-                          y: [0, -10, 0], 
-                          transition: { repeat: Infinity, duration: 2, ease: "easeInOut" } 
-                        },
-                        attack: { 
-                          x: [0, -60, 0], 
-                          scale: [1, 1.2, 1],
-                          rotate: [0, -10, 0],
-                          transition: { duration: 0.3 } 
-                        },
-                        hit: { 
-                          x: [0, -15, 15, -15, 15, 0], 
-                          y: [0, -10, 0],
-                          filter: ["brightness(1)", "brightness(2)", "brightness(1)"],
-                          transition: { duration: 0.4 } 
-                        },
-                        faint: { 
-                          y: [0, 20, 100], 
-                          opacity: [1, 1, 0], 
-                          scale: [1, 0.8, 0.5],
-                          transition: { duration: 0.8, ease: "easeIn" } 
-                        }
-                      }}
-                      animate={isCatching ? { opacity: 0, scale: 0 } : enemyAnim}
-                    >
-                      {enemyPokemon?.sprite || '❓'}
-                    </motion.div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Projectile Effect */}
-              <AnimatePresence>
-                {projectile && (
-                  <motion.div
-                    initial={{ 
-                      left: projectile.from === 'player' ? '30%' : '70%',
-                      top: projectile.from === 'player' ? '70%' : '30%',
-                      scale: 0,
-                      opacity: 0
-                    }}
-                    animate={{ 
-                      left: projectile.from === 'player' ? '70%' : '30%',
-                      top: projectile.from === 'player' ? '30%' : '70%',
-                      scale: [1, 1.5, 1],
-                      opacity: 1,
-                      rotate: projectile.from === 'player' ? 45 : -135
-                    }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                    className="fixed z-[105] text-4xl pointer-events-none"
-                  >
-                    {(() => {
-                      switch (projectile.type) {
-                        case 'fire': return '🔥';
-                        case 'water': return '💧';
-                        case 'grass': return '🍃';
-                        case 'electric': return '⚡';
-                        case 'bug': return '🕸️';
-                        case 'flying': return '🌪️';
-                        default: return '⚪';
-                      }
-                    })()}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Hit Effect Overlay */}
-              <AnimatePresence>
-                {hitEffect && (
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
-                    exit={{ opacity: 0 }}
-                    className="fixed z-[100] pointer-events-none"
-                    style={{ 
-                      left: `${hitEffect.x}%`, 
-                      top: `${hitEffect.y}%`,
-                      transform: 'translate(-50%, -50%)'
-                    }}
-                  >
-                    <div className="relative">
-                      <div className={`absolute inset-0 blur-xl rounded-full w-32 h-32 opacity-50 ${
-                        hitEffect.type === 'fire' ? 'bg-orange-500' :
-                        hitEffect.type === 'water' ? 'bg-blue-500' :
-                        hitEffect.type === 'grass' ? 'bg-green-500' :
-                        hitEffect.type === 'electric' ? 'bg-yellow-400' :
-                        hitEffect.type === 'bug' ? 'bg-lime-600' :
-                        hitEffect.type === 'flying' ? 'bg-sky-300' :
-                        'bg-slate-400'
-                      }`} />
-                      <div className="text-6xl">
-                        {hitEffect.type === 'fire' ? '🔥' :
-                         hitEffect.type === 'water' ? '🌊' :
-                         hitEffect.type === 'grass' ? '🌿' :
-                         hitEffect.type === 'electric' ? '⚡' :
-                         hitEffect.type === 'bug' ? '🕸️' :
-                         hitEffect.type === 'flying' ? '💨' :
-                         '💥'}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Damage Number Overlay */}
-              <AnimatePresence>
-                {damageNumber && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 0 }}
-                    animate={{ opacity: [0, 1, 1, 0], y: -50 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed z-[110] pointer-events-none font-black text-4xl text-red-500 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
-                    style={{ 
-                      left: `${damageNumber.x}%`, 
-                      top: `${damageNumber.y}%`,
-                    }}
-                  >
-                    -{damageNumber.value}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Poké Ball Catch Animation */}
-              <AnimatePresence>
-                {isCatching && (
-                  <motion.div
-                    initial={{ left: '30%', top: '70%', scale: 0 }}
-                    animate={{ 
-                      left: ['30%', '50%', '70%'],
-                      top: ['70%', '40%', '30%'],
-                      rotate: [0, 720],
-                      scale: [0, 1.5, 1]
-                    }}
-                    className="fixed z-[120] text-5xl pointer-events-none"
-                    transition={{ duration: 1, ease: "easeOut" }}
-                  >
-                    <motion.div
-                      animate={{ 
-                        rotate: [0, -20, 20, -20, 20, 0],
-                        x: [0, -5, 5, -5, 5, 0]
-                      }}
-                      transition={{ delay: 1, duration: 1, repeat: 2 }}
-                    >
-                      🔴
-                    </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Player */}
-              <div className="flex justify-start">
-                <div className="bg-white/10 p-4 sm:p-8 rounded-3xl border-2 border-white/20 flex items-center gap-4 sm:gap-8">
-                  <div className="w-20 h-20 sm:w-32 sm:h-32 bg-white/5 rounded-full flex items-center justify-center text-2xl sm:text-4xl">
-                    <motion.div 
-                      variants={{
-                        idle: { 
-                          y: [0, -5, 0], 
-                          transition: { repeat: Infinity, duration: 1.5, ease: "easeInOut" } 
-                        },
-                        attack: { 
-                          x: [0, 60, 0], 
-                          scale: [1, 1.2, 1],
-                          rotate: [0, 10, 0],
-                          transition: { duration: 0.3 } 
-                        },
-                        hit: { 
-                          x: [0, -15, 15, -15, 15, 0], 
-                          y: [0, 10, 0],
-                          filter: ["brightness(1)", "brightness(2)", "brightness(1)"],
-                          transition: { duration: 0.4 } 
-                        },
-                        faint: { 
-                          y: [0, 20, 100], 
-                          opacity: [1, 1, 0], 
-                          scale: [1, 0.8, 0.5],
-                          transition: { duration: 0.8, ease: "easeIn" } 
-                        }
-                      }}
-                      animate={playerAnim}
-                    >
-                      {playerTeam[0]?.sprite || '❓'}
-                    </motion.div>
-                  </div>
-                  <div>
-                    <h3 className="text-white font-bold text-lg sm:text-2xl uppercase">{playerTeam[0]?.name}</h3>
-                    <p className="text-emerald-400 font-mono text-xs sm:text-base">Lv {playerTeam[0]?.level}</p>
-                    <div className="w-32 sm:w-48 h-2 bg-slate-700 rounded-full mt-2 overflow-hidden">
-                      <motion.div 
-                        initial={{ width: '100%' }}
-                        animate={{ width: `${(playerTeam[0]?.hp || 0) / (playerTeam[0]?.maxHp || 1) * 100}%` }}
-                        className={`h-full ${(playerTeam[0]?.hp || 0) > (playerTeam[0]?.maxHp || 0) / 2 ? 'bg-emerald-500' : (playerTeam[0]?.hp || 0) > (playerTeam[0]?.maxHp || 0) / 5 ? 'bg-yellow-500' : 'bg-red-500'}`} 
-                      />
-                    </div>
-                    {/* EXP Bar */}
-                    <div className="w-32 sm:w-48 h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
-                      <motion.div 
-                        initial={{ width: '0%' }}
-                        animate={{ width: `${(playerTeam[0]?.exp || 0) / (playerTeam[0]?.expToNextLevel || 100) * 100}%` }}
-                        className="h-full bg-blue-400" 
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Battle Log */}
-              <div className="bg-white/90 p-4 rounded-2xl border-4 border-slate-800">
-                <p className="text-slate-800 font-bold text-lg">{battleLog}</p>
-              </div>
-
-              {/* Battle Menu */}
-              <div className="grid grid-cols-2 gap-4">
-                {showMoves ? (
-                  playerTeam[0]?.moves.map((move, i) => (
-                    <button 
-                      key={i}
-                      onClick={() => {
-                        soundManager.play('SELECT');
-                        handleAttack(move);
-                        setShowMoves(false);
-                      }}
-                      className="p-6 bg-white/5 hover:bg-red-500 border-2 border-white/10 rounded-2xl text-white font-black text-xl transition-all hover:scale-105 active:scale-95 flex flex-col items-center"
-                    >
-                      <span>{move.name}</span>
-                      <span className="text-[10px] text-white/50 uppercase tracking-widest mt-1">{move.type}</span>
-                    </button>
-                  ))
-                ) : (
-                  ['LUCHAR', 'BOLSA', 'POKÉMON', 'HUIR'].map((action) => (
-                    <button 
-                      key={action}
-                      onClick={() => {
-                        soundManager.play('SELECT');
-                        if (action === 'HUIR') setIsBattle(false);
-                        if (action === 'LUCHAR') setShowMoves(true);
-                        if (action === 'BOLSA') setShowInventory(true);
-                        if (action === 'POKÉMON') setShowTeam(true);
-                      }}
-                      className="p-6 bg-white/5 hover:bg-red-500 border-2 border-white/10 rounded-2xl text-white font-black text-xl transition-all hover:scale-105 active:scale-95"
-                    >
-                      {action}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Screen Flash Overlay */}
-            <AnimatePresence>
-              {screenFlash && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 0.5, 0] }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-white z-[110] pointer-events-none"
-                />
-              )}
-            </AnimatePresence>
-          </motion.div>
+          <BattleScreen 
+            battleShake={battleShake}
+            enemyPokemon={enemyPokemon}
+            enemyAnim={enemyAnim}
+            isCatching={isCatching}
+            projectile={projectile}
+            hitEffect={hitEffect}
+            damageNumber={damageNumber}
+            playerTeam={playerTeam}
+            playerAnim={playerAnim}
+            battleLog={battleLog}
+            showMoves={showMoves}
+            setShowMoves={setShowMoves}
+            setIsBattle={setIsBattle}
+            setShowInventory={setShowInventory}
+            setShowTeam={setShowTeam}
+            handleAttack={handleAttack}
+          />
         )}
       </AnimatePresence>
+
 
       {/* Battle Transition */}
       <AnimatePresence>
