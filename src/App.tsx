@@ -1912,8 +1912,9 @@ export default function App() {
                 <button 
                   key={i} 
                   onClick={() => {
-                    item.action();
-                    setPhase(EXPLORING);
+                    // Just run the action. 
+                    // The action itself (like setPhase(TEAM)) will handle the transition.
+                    item.action(); 
                   }}
                   className="w-full flex items-center gap-4 p-3 hover:bg-slate-100 rounded-2xl transition-colors group"
                 >

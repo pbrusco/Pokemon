@@ -1,39 +1,35 @@
-# TODO
+# TODO: Pokémon Fire Red Remake
 
-## Content & Progression
+## 🔴 Priority 1: Core Engine & Stability
+- [ ] **State Consolidation** — Finalize the migration of the "State Soup" in `App.tsx` to the `useGameStore`. Ensure all 25+ `useState` calls are removed to prevent desync.
+- [ ] **Data-Driven Interactions** — Refactor `useInteractionEngine.ts` to remove hardcoded logic for `mom`, `joy`, and `oak`. Move these to an `onInteract` property within the `NPC` type.
+- [ ] **Type-Safe Map IDs** — Update `types.ts` to define `MapID` as `keyof typeof worldMaps` instead of a generic `string` to prevent runtime teleportation errors.
+- [ ] **The 1/256 Miss Bug** — Implement the original hardware bug where even 100% accuracy moves have a $~0.4\%$ chance to miss for true authenticity.
+- [ ] **Sprite Fallback System** — Add an `onError` handler to PokéAPI image tags in `BattleScreen.tsx` to show a "Substitute" silhouette if GitHub raw URLs fail to load.
 
-- [ ] **Award money after trainer battles** — `money` state exists and deducts on purchases, but winning a trainer battle does not yet grant prize money.
+## 🟠 Priority 2: Content & Mechanics
+- [ ] **Badge Boost Glitch** — Implement the Gen I bug where stat-changing moves (like *Growl*) re-apply the permanent $12.5\%$ stat bonus from badges like the Boulder Badge.
+- [ ] **Prize Money System** — Update `useBattle.ts` to award `enemy.level * 20` to the `money` store upon defeating a trainer.
+- [ ] **Overworld Status Ticks** — Add logic to `usePlayerMovement.ts` to shake the screen and deduct 1 HP every 4 steps if a lead Pokémon is `poisoned`.
+- [ ] **HM & Obstacles** — Add `cut` and `strength` logic to the `Tile` type. Link these to specific badges and moves in `constants.ts`.
+- [ ] **Inventory Stacking** — Refactor the `inventory` array to a `Map<string, number>` to support item quantities (e.g., "Potion x99") instead of multiple array entries.
 
-- [ ] **Expand wild Pokemon encounter tables** — Only Routes 1, 3, and Viridian Forest have wild encounters. Add encounter tables for other maps that logically should have them.
+## 🟡 Priority 3: Polish & UX
+- [ ] **Synthesized Move SFX** — Assign a `sfxType` to each move in `MOVES` (Pulse, Noise, Glissando). Connect these to the `playTone` synthesis engine.
+- [ ] **Health Bar "Drain" Animation** — Use `framer-motion` to make HP bars in `BattleScreen.tsx` slide slowly during damage instead of jumping instantly.
+- [ ] **Viewport Culling** — Update the map renderer to only process tiles within 8 units of the `playerPos`, ensuring 60 FPS on larger maps like Mt. Moon.
+- [ ] **Battle Backgrounds** — Pass `currentMap` to `BattleScreen.tsx` to swap between `grass`, `cave`, and `gym` floor textures based on location.
+- [ ] **Trainer "Spotted" Transition** — Add the "walk-to-player" logic for trainers, ensuring they face the player before the `BATTLE_TRANSITION` triggers.
 
-- [ ] **More trainer battles** — Route 1 and Route 3 only have a few trainers. Add the canonical set of trainers from the original games with appropriate levels and teams.
-
-- [ ] **Additional gym leaders** — Only Brock (Pewter Gym) is implemented. Add Misty (Cerulean), Lt. Surge (Vermillion), and others as the map set expands.
-
-- [ ] **Badge effects** — Badges in the original games unlock HM usage and boost stats. Implement at least the stat-boost effects (e.g., Boulder Badge raises Attack).
-
-- [ ] **More maps** — Mt. Moon, Cerulean City, Route 4, and beyond are missing. Expand the map set to continue the main story arc.
-
-- [ ] **Rival rematches** — Currently the rival only battles once at Oak's lab. Add subsequent encounters at appropriate story beats.
+## 🛠️ Technical Debt & Tooling
+- [ ] **MapEditor Compact Export** — Update `MapEditor.tsx` to export maps as `{ rows: string[] }` rather than verbose JSON objects to save file space.
+- [ ] **Multiple Save Slots** — Expand `localStorage` logic to support named profiles, including a timestamp and play-time counter.
+- [ ] **Z-Index Perspective Fix** — Adjust `Tile` rendering so the player's sprite appears "behind" the top layer of `tree` tiles but "in front" of the trunk.
+- [ ] **Automated Damage Tests** — Add `vitest` cases for `calculateDamage` to verify that a Level 5 Starter deals the mathematically correct damage range against a Level 3 Wild Pokémon.
 
 ---
 
-## Polish & UX
-
-- [ ] **Battle transition for trainer battles** — Add a brief pause or "walk toward each other" animation before the battle screen appears, to distinguish trainer battles from wild encounters.
-
----
-
-## Technical Debt
-
-- [ ] **MapEditor export format** — The in-game MapEditor (`src/components/MapEditor.tsx`) still exports in the old verbose JSON format. Update it to export `{ rows: string[] }` compact format.
-
-- [ ] **Extract battle sequences from App.tsx** — `handleAttack` and `handleEnemyTurn` are long nested `setTimeout` chains inside a 1900-line file. These could be moved to a well-structured hook now that the stale-closure pattern (using refs) is established.
-
-- [ ] **Map validation** — Add a dev-time check that all map JSON files are exactly 20×20 and contain only valid tile types. Currently malformed maps fail silently.
-
-- [ ] **Type safety for map IDs** — `currentMap` is typed as `string`. A string literal union (`'PALLET_TOWN' | 'OAKS_LAB' | ...`) would catch typos at compile time.
-
-- [ ] **Sprite loading errors** — PokeAPI sprites load from GitHub raw URLs. Add an `onError` fallback (e.g., a colored placeholder) so missing sprites don't break the UI.
-
-- [ ] **Multiple save slots** — Currently one save slot in localStorage. Add support for named saves or at least a "New Game" confirmation that doesn't silently overwrite progress.
+### Current Progress Summary
+* **Map Set:** Pallet Town, Oak's Lab, Route 1, Viridian City, PokeCenter, PokeMart, Viridian Forest, Pewter City, Pewter Gym, Route 3.
+* **Implemented Bosses:** Brock (Pewter Gym).
+* **Implemented Systems:** Evolution, Leveling, XP, Basic Battle FSM, Movement, Teleportation.
