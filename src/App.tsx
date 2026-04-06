@@ -723,10 +723,10 @@ export default function App() {
     }
   }, [playerPos, direction, currentMap, dialogue, isBattle, playerTeam, inventory, npcs, items, maps, storyStep]);
 
-  const gameState = useRef({ playerPos, direction, isMoving, dialogue, isBattle, currentMap, playerTeam, maps, teleports, npcs, defeatedTrainers, inventory, storyStep });
+  const gameState = useRef({ playerPos, direction, isMoving, dialogue, isBattle, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep });
   useEffect(() => {
-    gameState.current = { playerPos, direction, isMoving, dialogue, isBattle, currentMap, playerTeam, maps, teleports, npcs, defeatedTrainers, inventory, storyStep };
-  }, [playerPos, direction, isMoving, dialogue, isBattle, currentMap, playerTeam, maps, teleports, npcs, defeatedTrainers, inventory, storyStep]);
+    gameState.current = { playerPos, direction, isMoving, dialogue, isBattle, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep };
+  }, [playerPos, direction, isMoving, dialogue, isBattle, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep]);
 
   const resetGame = useCallback(() => {
     localStorage.clear();
@@ -767,7 +767,7 @@ export default function App() {
   }, []);
 
   const handleMove = useCallback((dir: Direction) => {
-    const { isMoving, dialogue, isBattle, direction, playerPos, currentMap, playerTeam, maps, teleports, npcs, defeatedTrainers, inventory, storyStep } = gameState.current;
+    const { isMoving, dialogue, isBattle, direction, playerPos, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep } = gameState.current;
     if (isMoving || dialogue || isBattle) return;
 
     if (dir !== direction) {
@@ -799,10 +799,14 @@ export default function App() {
 
     // Boundary and collision check
     const map = maps[currentMap];
+    const npcAtNext = npcs[currentMap]?.some(n => n.position.x === nextX && n.position.y === nextY);
+    const objectAtNext = items[currentMap]?.some(i => i.type === 'object' && i.position.x === nextX && i.position.y === nextY);
     if (
-      nextX >= 0 && nextX < GRID_SIZE && 
-      nextY >= 0 && nextY < GRID_SIZE && 
-      map[nextY][nextX].walkable
+      nextX >= 0 && nextX < GRID_SIZE &&
+      nextY >= 0 && nextY < GRID_SIZE &&
+      map[nextY][nextX].walkable &&
+      !npcAtNext &&
+      !objectAtNext
     ) {
       soundManager.play('MOVE');
       setIsMoving(true);

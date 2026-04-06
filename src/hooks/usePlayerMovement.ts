@@ -12,10 +12,10 @@ export const usePlayerMovement = () => {
   const handleMove = useCallback((dir: Direction) => {
     // We get fresh state directly from the store to avoid stale closures
     const state = useGameStore.getState();
-    const { 
-      isMoving, dialogue, isBattle, isLocked, direction, 
-      playerPos, currentMap, playerTeam, worldMaps, 
-      teleports, defeatedTrainers, storyStep 
+    const {
+      isMoving, dialogue, isBattle, isLocked, direction,
+      playerPos, currentMap, playerTeam, worldMaps,
+      teleports, defeatedTrainers, storyStep, items
     } = state;
 
     if (isMoving || dialogue || isBattle || isLocked) return;
@@ -52,10 +52,15 @@ export const usePlayerMovement = () => {
 
     // Boundary and collision check
     const map = worldMaps[currentMap];
+    const npcs = state.getNPCs();
+    const npcAtNext = npcs[currentMap]?.some(n => n.position.x === nextX && n.position.y === nextY);
+    const objectAtNext = items[currentMap]?.some(i => i.type === 'object' && i.position.x === nextX && i.position.y === nextY);
     if (
-      nextX >= 0 && nextX < 20 && 
-      nextY >= 0 && nextY < 20 && 
-      map[nextY][nextX].walkable
+      nextX >= 0 && nextX < 20 &&
+      nextY >= 0 && nextY < 20 &&
+      map[nextY][nextX].walkable &&
+      !npcAtNext &&
+      !objectAtNext
     ) {
       soundManager.play('MOVE');
       state.setIsMoving(true);
