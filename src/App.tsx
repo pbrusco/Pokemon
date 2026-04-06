@@ -276,7 +276,8 @@ const Player = ({ position, direction, isMoving }: { position: Position, directi
             backgroundImage: "url('/player.png')",
             backgroundSize: "400% 400%",
             backgroundPositionX: isMoving ? undefined : "0%",
-            backgroundPositionY: direction === 'down' ? '0%' : direction === 'up' ? '33.333%' : direction === 'left' ? '66.666%' : '100%',
+            backgroundPositionY: direction === 'down' ? '0%' : direction === 'up' ? '33.333%' : '66.666%',
+            transform: direction === 'right' ? 'scaleX(-1)' : 'none',
             imageRendering: "pixelated",
           }}
         />
