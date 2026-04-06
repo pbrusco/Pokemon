@@ -58,7 +58,7 @@ export const useBattleEngine = (callbacks: BattleEngineCallbacks) => {
         soundManager.play('HIT');
         setScreenFlash(true);
         
-        const enemyDamage = Math.floor((enemyMove.power * (currentEnemy.level / 4)) + 4);
+        const enemyDamage = Math.max(1, Math.floor((((2 * currentEnemy.level / 5 + 2) * enemyMove.power) / 50) + 2));
         setHitEffect({ x: 30, y: 70, type: enemyMove.type }); 
         setDamageNumber({ x: 30, y: 60, value: enemyDamage });
         setBattleShake(true);
@@ -205,7 +205,7 @@ export const useBattleEngine = (callbacks: BattleEngineCallbacks) => {
     setTimeout(() => {
       const s = useGameStore.getState();
       const currentEnemy = s.enemyPokemon!;
-      const damage = Math.floor((move.power * (playerPkmn.level / 6)) + 1);
+      const damage = Math.max(1, Math.floor((((2 * playerPkmn.level / 5 + 2) * move.power) / 50) + 2));
       const newEnemyHP = Math.max(0, currentEnemy.hp - damage);
       
       setEnemyAnim('hit');

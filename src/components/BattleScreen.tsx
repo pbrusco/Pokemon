@@ -1,4 +1,5 @@
-import { motion, AnimatePresence } from 'motion/react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Pokemon, Move } from '../types';
 import { soundManager } from '../lib/sounds';
 
@@ -26,277 +27,210 @@ export function BattleScreen({
   playerTeam, playerAnim, battleLog, showMoves, setShowMoves, setIsBattle,
   setShowInventory, setShowTeam, handleAttack
 }: BattleScreenProps) {
+  const [menuCursor] = useState(0);
+
+  const playerPkmn = playerTeam[0];
+
+  const hpColor = (hp: number, max: number) => {
+    const ratio = hp / max;
+    if (ratio > 0.5) return 'bg-[#48d0b0] border-[#38a888]'; // Green
+    if (ratio > 0.2) return 'bg-[#f8d030] border-[#c8a020]'; // Yellow
+    return 'bg-[#f85838] border-[#c84028]'; // Red
+  };
+
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1, x: battleShake ? [0, -10, 10, -10, 10, 0] : 0 }}
-      exit={{ opacity: 0, scale: 1.1 }}
-      className="fixed inset-0 z-[90] bg-slate-900 flex flex-col items-center justify-center p-4 sm:p-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, x: battleShake ? [0, -10, 10, -10, 10, 0] : 0 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[90] bg-[#f8f8d8] flex flex-col font-game"
+      style={{
+        backgroundImage: 'linear-gradient(to bottom, #d8f0f8 0%, #f8f8d8 50%, #d8e8b0 100%)'
+      }}
     >
-      <div className="w-full max-w-4xl flex flex-col gap-4 sm:gap-8">
-        {/* Enemy */}
-        <div className="flex justify-end">
-          <div className="bg-white/10 p-4 sm:p-8 rounded-3xl border-2 border-white/20 flex items-center gap-4 sm:gap-8">
-            <div className="text-right">
-              <h3 className="text-white font-bold text-lg sm:text-2xl uppercase">{enemyPokemon?.name}</h3>
-              <p className="text-emerald-400 font-mono text-xs sm:text-base">Lv {enemyPokemon?.level}</p>
-              <div className="w-32 sm:w-48 h-2 bg-slate-700 rounded-full mt-2 overflow-hidden">
+      {/* Top Background area */}
+      <div className="flex-1 relative w-full h-[65vh] overflow-hidden">
+        
+        {/* Enemy Platform & Sprite */}
+        <div className="absolute top-[20%] right-[10%] w-[300px] flex flex-col items-center">
+          {/* Platform Ellipse */}
+          <div className="absolute bottom-2 w-full h-12 bg-black/10 rounded-[100%] border-4 border-black/5 blur-[2px]" />
+          
+          <motion.div 
+            className="w-40 h-40 relative z-10"
+            variants={{
+              idle: { y: [0, -4, 0], transition: { repeat: Infinity, duration: 1.5, ease: "easeInOut" } },
+              attack: { x: [0, -40, 0], scale: [1, 1.1, 1], transition: { duration: 0.3 } },
+              hit: { x: [0, -10, 10, -10, 10, 0], filter: ["brightness(1)", "invert(1)", "brightness(1)"], transition: { duration: 0.4 } },
+              faint: { y: [0, 100], opacity: [1, 0], transition: { duration: 0.6, ease: "easeIn" } }
+            }}
+            animate={isCatching ? { opacity: 0, scale: 0 } : enemyAnim}
+          >
+            {enemyPokemon?.sprite && <img src={enemyPokemon.sprite} className="w-full h-full object-contain pixelated drop-shadow-[0_4px_4px_rgba(0,0,0,0.3)]" alt="enemy" />}
+          </motion.div>
+        </div>
+
+        {/* Enemy HUD */}
+        <div className="absolute top-[10%] left-[5%]">
+          <div className="bg-[#f8f8f0] border-t-4 border-l-4 border-b-4 border-r-[12px] rounded-tl-2xl rounded-bl-2xl border-[#506860] p-3 w-[260px] shadow-[4px_4px_0_rgba(0,0,0,0.2)]">
+            <div className="flex justify-between items-end border-b-2 border-slate-300 pb-1 mb-2">
+              <h3 className="text-[#383838] font-bold text-xl uppercase tracking-tighter">{enemyPokemon?.name}</h3>
+              <p className="text-[#383838] font-bold text-lg">Nv{enemyPokemon?.level}</p>
+            </div>
+            <div className="flex items-center gap-2 bg-[#d8d8d8] p-1 rounded-full border-2 border-[#506860]">
+              <span className="text-[10px] font-black text-[#f8d830] tracking-widest pl-1 drop-shadow-[1px_1px_0_#c8a020]">PS</span>
+              <div className="flex-1 h-3 bg-white rounded-full border border-slate-400 overflow-hidden ml-1">
                 <motion.div 
                   initial={{ width: '100%' }}
                   animate={{ width: `${(enemyPokemon?.hp || 0) / (enemyPokemon?.maxHp || 1) * 100}%` }}
-                  className={`h-full ${(enemyPokemon?.hp || 0) > 10 ? 'bg-emerald-500' : 'bg-red-500'}`} 
+                  className={`h-full border-t-2 border-white/50 ${hpColor(enemyPokemon?.hp || 0, enemyPokemon?.maxHp || 1)}`} 
                 />
               </div>
-            </div>
-            <div className="w-20 h-20 sm:w-32 sm:h-32 bg-white/5 rounded-full flex items-center justify-center text-2xl sm:text-4xl">
-              <motion.div 
-                variants={{
-                  idle: { 
-                    y: [0, -10, 0], 
-                    transition: { repeat: Infinity, duration: 2, ease: "easeInOut" } 
-                  },
-                  attack: { 
-                    x: [0, -60, 0], 
-                    scale: [1, 1.2, 1],
-                    rotate: [0, -10, 0],
-                    transition: { duration: 0.3 } 
-                  },
-                  hit: { 
-                    x: [0, -15, 15, -15, 15, 0], 
-                    y: [0, -10, 0],
-                    filter: ["brightness(1)", "brightness(2)", "brightness(1)"],
-                    transition: { duration: 0.4 } 
-                  },
-                  faint: { 
-                    y: [0, 20, 100], 
-                    opacity: [1, 1, 0], 
-                    scale: [1, 0.8, 0.5],
-                    transition: { duration: 0.8, ease: "easeIn" } 
-                  }
-                }}
-                animate={isCatching ? { opacity: 0, scale: 0 } : enemyAnim}
-              >
-                {enemyPokemon?.sprite ? <img src={enemyPokemon.sprite} className="w-full h-full object-contain pixelated" alt="enemy" /> : '❓'}
-              </motion.div>
             </div>
           </div>
         </div>
 
-        {/* Projectile Effect */}
+        {/* Player Platform & Sprite */}
+        <div className="absolute bottom-[20%] left-[10%] w-[350px] flex flex-col items-center">
+          {/* Platform Ellipse */}
+          <div className="absolute bottom-4 w-full h-16 bg-black/15 rounded-[100%] border-4 border-black/5 blur-[2px]" />
+          
+          <motion.div 
+            className="w-56 h-56 relative z-10"
+            variants={{
+              idle: { y: [0, -2, 0], transition: { repeat: Infinity, duration: 2, ease: "easeInOut" } },
+              attack: { x: [0, 40, 0], scale: [1, 1.05, 1], transition: { duration: 0.3 } },
+              hit: { x: [0, -10, 10, -10, 10, 0], filter: ["brightness(1)", "invert(1)", "brightness(1)"], transition: { duration: 0.4 } },
+              faint: { y: [0, 100], opacity: [1, 0], transition: { duration: 0.5, ease: "easeIn" } }
+            }}
+            animate={playerAnim}
+          >
+            {playerPkmn?.sprite && <img src={playerPkmn.sprite.replace('pokemon/', 'pokemon/back/')} className="w-full h-full object-contain pixelated drop-shadow-[0_4px_4px_rgba(0,0,0,0.3)]" alt="player" />}
+          </motion.div>
+        </div>
+
+        {/* Player HUD */}
+        <div className="absolute bottom-[30%] right-[5%]">
+          <div className="bg-[#f8f8f0] border-t-4 border-r-4 border-b-4 border-l-[12px] rounded-tr-2xl rounded-br-2xl border-[#506860] p-3 pl-4 w-[280px] shadow-[4px_4px_0_rgba(0,0,0,0.2)]">
+            <div className="flex justify-between items-end border-b-2 border-slate-300 pb-1 mb-2">
+              <h3 className="text-[#383838] font-bold text-xl uppercase tracking-tighter">{playerPkmn?.name}</h3>
+              <p className="text-[#383838] font-bold text-lg">Nv{playerPkmn?.level}</p>
+            </div>
+            <div className="flex items-center gap-2 bg-[#d8d8d8] p-1 rounded-full border-2 border-[#506860]">
+              <span className="text-[10px] font-black text-[#f8d830] tracking-widest pl-1 drop-shadow-[1px_1px_0_#c8a020]">PS</span>
+              <div className="flex-1 h-3 bg-white rounded-full border border-slate-400 overflow-hidden ml-1">
+                <motion.div 
+                  initial={{ width: '100%' }}
+                  animate={{ width: `${(playerPkmn?.hp || 0) / (playerPkmn?.maxHp || 1) * 100}%` }}
+                  className={`h-full border-t-2 border-white/50 ${hpColor(playerPkmn?.hp || 0, playerPkmn?.maxHp || 1)}`} 
+                />
+              </div>
+            </div>
+            <div className="text-right mt-1 pr-1">
+              <span className="text-[#383838] font-bold text-lg tracking-widest">{playerPkmn?.hp} /  {playerPkmn?.maxHp}</span>
+            </div>
+            <div className="h-1.5 w-full bg-[#d8d8d8] mt-1 flex border border-slate-400">
+              <div className="bg-[#58a8f8] h-full" style={{ width: `${(playerPkmn?.exp || 0) / (playerPkmn?.expToNextLevel || 100) * 100}%` }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Visual FX */}
         <AnimatePresence>
           {projectile && (
             <motion.div
-              initial={{ 
-                left: projectile.from === 'player' ? '30%' : '70%',
-                top: projectile.from === 'player' ? '70%' : '30%',
-                scale: 0,
-                opacity: 0
-              }}
-              animate={{ 
-                left: projectile.from === 'player' ? '70%' : '30%',
-                top: projectile.from === 'player' ? '30%' : '70%',
-                scale: [1, 1.5, 1],
-                opacity: 1,
-                rotate: projectile.from === 'player' ? 45 : -135
-              }}
+              initial={{ left: projectile.from === 'player' ? '30%' : '70%', top: projectile.from === 'player' ? '70%' : '30%', scale: 0, opacity: 0 }}
+              animate={{ left: projectile.from === 'player' ? '70%' : '30%', top: projectile.from === 'player' ? '30%' : '70%', scale: [1, 1.5, 1], opacity: 1, rotate: projectile.from === 'player' ? 45 : -135 }}
               exit={{ scale: 0, opacity: 0 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
               className="fixed z-[105] text-4xl pointer-events-none"
             >
-              {(() => {
-                switch (projectile.type) {
-                  case 'fire': return '🔥';
-                  case 'water': return '💧';
-                  case 'grass': return '🍃';
-                  case 'electric': return '⚡';
-                  case 'bug': return '🕸️';
-                  case 'flying': return '🌪️';
-                  default: return '⚪';
-                }
-              })()}
+              {projectile.type === 'fire' ? '🔥' : projectile.type === 'water' ? '💧' : '⚪'}
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Hit Effect Overlay */}
         <AnimatePresence>
           {hitEffect && (
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
               exit={{ opacity: 0 }}
-              className="fixed z-[100] pointer-events-none"
-              style={{ 
-                left: `${hitEffect.x}%`, 
-                top: `${hitEffect.y}%`,
-                transform: 'translate(-50%, -50%)'
-              }}
+              className="fixed z-[100] pointer-events-none text-6xl"
+              style={{ left: `${hitEffect.x}%`, top: `${hitEffect.y}%`, transform: 'translate(-50%, -50%)' }}
             >
-              <div className="relative">
-                <div className={`absolute inset-0 blur-xl rounded-full w-32 h-32 opacity-50 ${
-                  hitEffect.type === 'fire' ? 'bg-orange-500' :
-                  hitEffect.type === 'water' ? 'bg-blue-500' :
-                  hitEffect.type === 'grass' ? 'bg-green-500' :
-                  hitEffect.type === 'electric' ? 'bg-yellow-400' :
-                  hitEffect.type === 'bug' ? 'bg-lime-600' :
-                  hitEffect.type === 'flying' ? 'bg-sky-300' :
-                  'bg-slate-400'
-                }`} />
-                <div className="text-6xl">
-                  {hitEffect.type === 'fire' ? '🔥' :
-                   hitEffect.type === 'water' ? '🌊' :
-                   hitEffect.type === 'grass' ? '🌿' :
-                   hitEffect.type === 'electric' ? '⚡' :
-                   hitEffect.type === 'bug' ? '🕸️' :
-                   hitEffect.type === 'flying' ? '💨' :
-                   '💥'}
-                </div>
-              </div>
+              💥
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
 
-        {/* Damage Number Overlay */}
-        <AnimatePresence>
-          {damageNumber && (
-            <motion.div
-              initial={{ opacity: 0, y: 0 }}
-              animate={{ opacity: [0, 1, 1, 0], y: -50 }}
-              exit={{ opacity: 0 }}
-              className="fixed z-[110] pointer-events-none font-black text-4xl text-red-500 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
-              style={{ 
-                left: `${damageNumber.x}%`, 
-                top: `${damageNumber.y}%`,
-              }}
-            >
-              -{damageNumber.value}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Poké Ball Catch Animation */}
-        <AnimatePresence>
-          {isCatching && (
-            <motion.div
-              initial={{ left: '30%', top: '70%', scale: 0 }}
-              animate={{ 
-                left: ['30%', '50%', '70%'],
-                top: ['70%', '40%', '30%'],
-                rotate: [0, 720],
-                scale: [0, 1.5, 1]
-              }}
-              className="fixed z-[120] text-5xl pointer-events-none"
-              transition={{ duration: 1, ease: "easeOut" }}
-            >
-              <motion.div
-                animate={{ 
-                  rotate: [0, -20, 20, -20, 20, 0],
-                  x: [0, -5, 5, -5, 5, 0]
-                }}
-                transition={{ delay: 1, duration: 1, repeat: 2 }}
-              >
-                🔴
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Player */}
-        <div className="flex justify-start">
-          <div className="bg-white/10 p-4 sm:p-8 rounded-3xl border-2 border-white/20 flex items-center gap-4 sm:gap-8">
-            <div className="w-20 h-20 sm:w-32 sm:h-32 bg-white/5 rounded-full flex items-center justify-center text-2xl sm:text-4xl">
-              <motion.div 
-                variants={{
-                  idle: { 
-                    y: [0, -5, 0], 
-                    transition: { repeat: Infinity, duration: 1.5, ease: "easeInOut" } 
-                  },
-                  attack: { 
-                    x: [0, 60, 0], 
-                    scale: [1, 1.2, 1],
-                    rotate: [0, 10, 0],
-                    transition: { duration: 0.3 } 
-                  },
-                  hit: { 
-                    x: [0, -15, 15, -15, 15, 0], 
-                    y: [0, 10, 0],
-                    filter: ["brightness(1)", "brightness(2)", "brightness(1)"],
-                    transition: { duration: 0.4 } 
-                  },
-                  faint: { 
-                    y: [0, 20, 100], 
-                    opacity: [1, 1, 0], 
-                    scale: [1, 0.8, 0.5],
-                    transition: { duration: 0.8, ease: "easeIn" } 
-                  }
-                }}
-                animate={playerAnim}
-              >
-                {playerTeam[0]?.sprite ? <img src={playerTeam[0].sprite} className="w-full h-full object-contain pixelated" alt="player" /> : '❓'}
-              </motion.div>
-            </div>
-            <div>
-              <h3 className="text-white font-bold text-lg sm:text-2xl uppercase">{playerTeam[0]?.name}</h3>
-              <p className="text-emerald-400 font-mono text-xs sm:text-base">Lv {playerTeam[0]?.level}</p>
-              <div className="w-32 sm:w-48 h-2 bg-slate-700 rounded-full mt-2 overflow-hidden">
-                <motion.div 
-                  initial={{ width: '100%' }}
-                  animate={{ width: `${(playerTeam[0]?.hp || 0) / (playerTeam[0]?.maxHp || 1) * 100}%` }}
-                  className={`h-full ${(playerTeam[0]?.hp || 0) > (playerTeam[0]?.maxHp || 0) / 2 ? 'bg-emerald-500' : (playerTeam[0]?.hp || 0) > (playerTeam[0]?.maxHp || 0) / 5 ? 'bg-yellow-500' : 'bg-red-500'}`} 
-                />
-              </div>
-              {/* EXP Bar */}
-              <div className="w-32 sm:w-48 h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
-                <motion.div 
-                  initial={{ width: '0%' }}
-                  animate={{ width: `${(playerTeam[0]?.exp || 0) / (playerTeam[0]?.expToNextLevel || 100) * 100}%` }}
-                  className="h-full bg-blue-400" 
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Battle Log */}
-        <div className="bg-white/90 p-4 rounded-2xl border-4 border-slate-800">
-          <p className="text-slate-800 font-bold text-lg">{battleLog}</p>
-        </div>
-
-        {/* Battle Menu */}
-        <div className={`grid grid-cols-2 gap-4 ${playerAnim !== 'idle' || enemyAnim !== 'idle' || projectile ? 'pointer-events-none opacity-50' : ''}`}>
+      {/* Bottom Menu Area */}
+      <div className="h-[35vh] w-full bg-[#383838] flex p-2 pt-0 pb-0 gap-2 overflow-hidden border-t-8 border-[#282828]">
+        
+        {/* Dialog / Move Selection Box */}
+        <div className={`flex-grow border-8 ${showMoves ? 'border-[#f87858]' : 'border-[#506860]'} bg-[#f8f8f8] rounded-xl m-2 p-4 relative shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]`}>
+          
           {showMoves ? (
-            playerTeam[0]?.moves.map((move, i) => (
-              <button 
-                key={i}
-                onClick={() => {
-                  soundManager.play('SELECT');
-                  handleAttack(move);
-                  setShowMoves(false);
-                }}
-                className="p-6 bg-white/5 hover:bg-red-500 border-2 border-white/10 rounded-2xl text-white font-black text-xl transition-all hover:scale-105 active:scale-95 flex flex-col items-center"
+            <div className="grid grid-cols-2 grid-rows-2 h-full gap-4 text-[#383838] font-bold text-2xl uppercase tracking-tighter">
+              {playerPkmn?.moves.map((move, i) => (
+                <div 
+                  key={i} 
+                  className="relative flex items-center cursor-pointer hover:text-red-500"
+                  onClick={() => {
+                     soundManager.play('SELECT');
+                     handleAttack(move);
+                     setShowMoves(false);
+                  }}
+                >
+                  <span className="mr-2 text-red-500">▶</span> {move.name}
+                </div>
+              ))}
+              <div 
+                 className="relative flex items-center cursor-pointer hover:text-slate-400"
+                 onClick={() => { soundManager.play('SELECT'); setShowMoves(false); }}
               >
-                <span>{move.name}</span>
-                <span className="text-[10px] text-white/50 uppercase tracking-widest mt-1">{move.type}</span>
-              </button>
-            ))
+                  <span className="mr-2 opacity-0">▶</span> VOLVER
+              </div>
+            </div>
           ) : (
-            ['LUCHAR', 'BOLSA', 'POKÉMON', 'HUIR'].map((action) => (
-              <button 
-                key={action}
-                onClick={() => {
-                  soundManager.play('SELECT');
-                  if (action === 'HUIR') setIsBattle(false);
-                  if (action === 'LUCHAR') setShowMoves(true);
-                  if (action === 'BOLSA') setShowInventory(true);
-                  if (action === 'POKÉMON') setShowTeam(true);
-                }}
-                className="p-6 bg-white/5 hover:bg-red-500 border-2 border-white/10 rounded-2xl text-white font-black text-xl transition-all hover:scale-105 active:scale-95"
-              >
-                {action}
-              </button>
-            ))
+            <p className="text-[#383838] font-bold text-3xl leading-relaxed mt-2 uppercase tracking-tighter">{battleLog}</p>
           )}
         </div>
+
+        {/* Action Menu / PP Menu Box */}
+        <div className="w-1/3 min-w-[200px] border-8 border-[#506860] bg-[#f8f8f8] rounded-xl m-2 ml-0 p-4 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]">
+          {showMoves ? (
+            <div className="flex flex-col h-full text-[#383838] font-bold text-xl justify-center tracking-tighter uppercase p-2">
+              <div className="flex justify-between mb-4 mt-2">
+                <span>PP</span>
+                <span>35 / 35</span>
+              </div>
+              <div>
+                <span>TIPO / NORMAL</span>
+              </div>
+            </div>
+          ) : (
+            <div className={`grid grid-cols-2 grid-rows-2 h-full gap-4 text-[#383838] font-bold text-2xl items-center tracking-tighter uppercase ${playerAnim !== 'idle' || enemyAnim !== 'idle' ? 'opacity-50 pointer-events-none' : ''}`}>
+              {['LUCHAR', 'BOLSA', 'POKÉMON', 'HUIR'].map((action, i) => (
+                <div 
+                  key={action}
+                  className="relative flex justify-center cursor-pointer hover:text-red-500"
+                  onClick={() => {
+                    soundManager.play('SELECT');
+                    if (action === 'HUIR') setIsBattle(false);
+                    if (action === 'LUCHAR') setShowMoves(true);
+                    if (action === 'BOLSA') setShowInventory(true);
+                    if (action === 'POKÉMON') setShowTeam(true);
+                  }}
+                >
+                  {/* Fake Cursor */}
+                  {i === menuCursor && <span className="absolute -left-4 text-red-500">▶</span>}
+                  {action}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
     </motion.div>
   );
