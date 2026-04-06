@@ -286,9 +286,9 @@ const Player = ({ position, direction, isMoving }: { position: Position, directi
           className={`w-16 h-16 pointer-events-none drop-shadow-md ${isMoving ? 'animate-walk' : ''}`}
           style={{
             backgroundImage: "url('/player.png')",
-            backgroundSize: "400% 400%",
+            backgroundSize: "400% 300%",
             backgroundPositionX: isMoving ? undefined : "0%",
-            backgroundPositionY: direction === 'down' ? '0%' : direction === 'up' ? '33.333%' : '66.666%',
+            backgroundPositionY: direction === 'down' ? '0%' : direction === 'up' ? '50%' : '100%',
             transform: direction === 'right' ? 'scaleX(-1)' : 'none',
             imageRendering: "pixelated",
           }}
