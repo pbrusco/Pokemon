@@ -1,7 +1,8 @@
 import { useGameStore } from '../store/gameStore';
 import { Move } from '../types';
-import { EVOLUTIONS } from '../constants';
+import { EVOLUTIONS, BASE_STATS } from '../constants';
 import { soundManager } from '../lib/sounds';
+import { calculateDamage, calcHp } from '../lib/damage';
 
 interface BattleEngineCallbacks {
   setPlayerAnim: (anim: string) => void;
@@ -58,8 +59,11 @@ export const useBattleEngine = (callbacks: BattleEngineCallbacks) => {
         soundManager.play('HIT');
         setScreenFlash(true);
         
-        const enemyDamage = Math.max(1, Math.floor((((2 * currentEnemy.level / 5 + 2) * enemyMove.power) / 50) + 2));
-        setHitEffect({ x: 30, y: 70, type: enemyMove.type }); 
+        const freshState = useGameStore.getState();
+        const freshPlayerPkmn = freshState.playerTeam[0];
+        const enemyResult = calculateDamage(currentEnemy, freshPlayerPkmn, enemyMove);
+        const enemyDamage = enemyResult.damage;
+        setHitEffect({ x: 30, y: 70, type: enemyMove.type });
         setDamageNumber({ x: 30, y: 60, value: enemyDamage });
         setBattleShake(true);
         setTimeout(() => {
@@ -68,9 +72,6 @@ export const useBattleEngine = (callbacks: BattleEngineCallbacks) => {
           setDamageNumber(null);
           setBattleShake(false);
         }, 400);
-        
-        const freshState = useGameStore.getState();
-        const freshPlayerPkmn = freshState.playerTeam[0];
         const newPlayerHP = Math.max(0, freshPlayerPkmn.hp - enemyDamage);
         
         const updatedTeam = [...freshState.playerTeam];
@@ -82,7 +83,16 @@ export const useBattleEngine = (callbacks: BattleEngineCallbacks) => {
         }
         
         freshState.updateTeam(updatedTeam);
-        setBattleLog(`¡${currentEnemy.name} usó ${enemyMove.name}! Causó ${enemyDamage} de daño.`);
+        let enemyLog = `¡${currentEnemy.name} usó ${enemyMove.name}!`;
+        if (enemyResult.effectivenessLabel === 'no_effect') {
+          enemyLog += ` No afecta a ${freshPlayerPkmn.name}...`;
+        } else {
+          if (enemyResult.isCritical) enemyLog += ' ¡Golpe crítico!';
+          if (enemyResult.effectivenessLabel === 'super_effective') enemyLog += ' ¡Es supereficaz!';
+          if (enemyResult.effectivenessLabel === 'not_very_effective') enemyLog += ' No es muy eficaz...';
+          enemyLog += ` Causó ${enemyDamage} de daño.`;
+        }
+        setBattleLog(enemyLog);
         
         setTimeout(() => {
           if (newPlayerHP === 0) {
@@ -205,7 +215,8 @@ export const useBattleEngine = (callbacks: BattleEngineCallbacks) => {
     setTimeout(() => {
       const s = useGameStore.getState();
       const currentEnemy = s.enemyPokemon!;
-      const damage = Math.max(1, Math.floor((((2 * playerPkmn.level / 5 + 2) * move.power) / 50) + 2));
+      const result = calculateDamage(playerPkmn, currentEnemy, move);
+      const damage = result.damage;
       const newEnemyHP = Math.max(0, currentEnemy.hp - damage);
       
       setEnemyAnim('hit');
@@ -222,7 +233,16 @@ export const useBattleEngine = (callbacks: BattleEngineCallbacks) => {
       }, 400);
 
       s.setEnemyPokemon({ ...currentEnemy, hp: newEnemyHP });
-      setBattleLog(`¡${playerPkmn.name} usó ${move.name}! Causó ${damage} de daño.`);
+      let attackLog = `¡${playerPkmn.name} usó ${move.name}!`;
+      if (result.effectivenessLabel === 'no_effect') {
+        attackLog += ` No afecta a ${currentEnemy.name}...`;
+      } else {
+        if (result.isCritical) attackLog += ' ¡Golpe crítico!';
+        if (result.effectivenessLabel === 'super_effective') attackLog += ' ¡Es supereficaz!';
+        if (result.effectivenessLabel === 'not_very_effective') attackLog += ' No es muy eficaz...';
+        attackLog += ` Causó ${damage} de daño.`;
+      }
+      setBattleLog(attackLog);
 
       if (move.statusEffect && Math.random() * 100 < (move.statusChance || 100)) {
         s.setEnemyPokemon({ ...currentEnemy, hp: newEnemyHP, status: move.statusEffect });
@@ -252,8 +272,10 @@ export const useBattleEngine = (callbacks: BattleEngineCallbacks) => {
               pkmn.level += 1;
               pkmn.exp -= expNeeded;
               pkmn.expToNextLevel = pkmn.level * 100;
-              pkmn.maxHp += 3;
-              pkmn.hp += 3;
+              const newMaxHp = calcHp(pkmn.baseStats.hp, pkmn.level);
+              const hpGain = newMaxHp - pkmn.maxHp;
+              pkmn.maxHp = newMaxHp;
+              pkmn.hp += hpGain;
             }
             updated[0] = pkmn;
             expState.updateTeam(updated);

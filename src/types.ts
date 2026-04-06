@@ -14,6 +14,14 @@ export interface Move {
   statusChance?: number;
 }
 
+export interface BaseStats {
+  hp: number;
+  attack: number;
+  defense: number;
+  special: number;
+  speed: number;
+}
+
 export interface Pokemon {
   id: string;
   name: string;
@@ -21,6 +29,8 @@ export interface Pokemon {
   hp: number;
   maxHp: number;
   type: string;
+  types?: string[];
+  baseStats: BaseStats;
   moves: Move[];
   sprite: string;
   exp?: number;

@@ -27,7 +27,8 @@ import {
 import { Direction, Position, TILE_SIZE, GRID_SIZE, NPC, Entity, Pokemon, Move, InventoryItem, Tile } from './types';
 import { MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, MAP_VIRIDIAN_FOREST, MAP_PEWTER_CITY, MAP_PEWTER_GYM } from './data/maps';
 import { soundManager } from './lib/sounds';
-import { MOVES, STARTERS, EVOLUTIONS, WILD_POKEMON_DATABASE, POKEMON_LIST, ITEMS_DATABASE } from './constants';
+import { MOVES, STARTERS, EVOLUTIONS, WILD_POKEMON_DATABASE, POKEMON_LIST, ITEMS_DATABASE, BASE_STATS, makePokemon } from './constants';
+import { calculateDamage, calcHp } from './lib/damage';
 import { InventoryUI } from './components/InventoryUI';
 import { TeamMenuUI } from './components/TeamMenuUI';
 import { DialogueBox } from './components/DialogueBox';
@@ -447,7 +448,7 @@ export default function App() {
         dialogue: ["¡Eh! ¡Tú! ¡Mis POKÉMON son de lo mejor!", "¡No me ignores cuando te hablo!"],
         isTrainer: true,
         trainerTeam: [
-          { id: 'rattata_t', name: 'RATTATA', level: 4, hp: 18, maxHp: 18, type: 'normal', moves: [MOVES.TACKLE, MOVES.SCRATCH], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/19.png', exp: 0, expToNextLevel: 80 }
+          makePokemon('rattata', 'RATTATA', 4, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19)
         ]
       },
       { 
@@ -459,7 +460,7 @@ export default function App() {
         dialogue: ["¿Te gustan los POKÉMON bicho?", "¡Son los más guays del mundo!"],
         isTrainer: true,
         trainerTeam: [
-          { id: 'caterpie_t', name: 'CATERPIE', level: 3, hp: 16, maxHp: 16, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10.png', exp: 0, expToNextLevel: 60 }
+          makePokemon('caterpie', 'CATERPIE', 3, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10)
         ]
       }
     ],
@@ -491,7 +492,7 @@ export default function App() {
         dialogue: ["¡Mi POKÉMON bicho es el más fuerte!", "¡No podrás pasar de aquí!"],
         isTrainer: true,
         trainerTeam: [
-          { id: 'metapod_t', name: 'METAPOD', level: 6, hp: 24, maxHp: 24, type: 'bug', moves: [MOVES.HARDEN, MOVES.TACKLE], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/11.png', exp: 0, expToNextLevel: 120 }
+          makePokemon('metapod', 'METAPOD', 6, 'bug', [MOVES.HARDEN, MOVES.TACKLE], 11)
         ]
       }
     ],
@@ -508,7 +509,7 @@ export default function App() {
         dialogue: ["¡Para llegar a BROCK tendrás que vencerme!", "¡Mis POKÉMON son duros!"],
         isTrainer: true,
         trainerTeam: [
-          { id: 'geodude_t', name: 'GEODUDE', level: 10, hp: 35, maxHp: 35, type: 'rock', moves: [MOVES.TACKLE, MOVES.ROCK_THROW], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/74.png', exp: 0, expToNextLevel: 200 }
+          makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] })
         ]
       },
       { 
@@ -522,8 +523,8 @@ export default function App() {
           : ["¡Soy BROCK! ¡El líder de este gimnasio!", "¡Mis POKÉMON son duros como la roca!", "¡Prepárate para perder!"],
         isTrainer: true,
         trainerTeam: [
-          { id: 'geodude_b', name: 'GEODUDE', level: 12, hp: 40, maxHp: 40, type: 'rock', moves: [MOVES.TACKLE, MOVES.ROCK_THROW], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/74.png', exp: 0, expToNextLevel: 250 },
-          { id: 'onix_b', name: 'ONIX', level: 14, hp: 55, maxHp: 55, type: 'rock', moves: [MOVES.TACKLE, MOVES.ROCK_THROW], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/95.png', exp: 0, expToNextLevel: 400 }
+          makePokemon('geodude', 'GEODUDE', 12, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }),
+          makePokemon('onix', 'ONIX', 14, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 95, { types: ['rock', 'ground'] })
         ]
       }
     ]
@@ -857,11 +858,12 @@ export default function App() {
         const finalLevel = Math.max(2, randomPkmn.level + levelVariation);
         
         soundManager.play('BATTLE_START');
-        const finalPkmn = { 
-          ...randomPkmn, 
+        const finalMaxHp = calcHp(randomPkmn.baseStats.hp, finalLevel);
+        const finalPkmn = {
+          ...randomPkmn,
           level: finalLevel,
-          hp: randomPkmn.maxHp + (finalLevel - randomPkmn.level) * 2,
-          maxHp: randomPkmn.maxHp + (finalLevel - randomPkmn.level) * 2
+          hp: finalMaxHp,
+          maxHp: finalMaxHp,
         };
         setEnemyPokemon(finalPkmn);
         updatePokedex(randomPkmn.id);
@@ -908,8 +910,9 @@ export default function App() {
         soundManager.play('HIT');
         setScreenFlash(true);
         
-        const enemyDamage = Math.floor((enemyMove.power * (enemyPokemon.level / 4)) + 4);
-        setHitEffect({ x: 30, y: 70, type: enemyMove.type }); // Approximate player position
+        const enemyResult = calculateDamage(enemyPokemon, playerPkmn, enemyMove);
+        const enemyDamage = enemyResult.damage;
+        setHitEffect({ x: 30, y: 70, type: enemyMove.type });
         setDamageNumber({ x: 30, y: 60, value: enemyDamage });
         setBattleShake(true);
         setTimeout(() => {
@@ -918,22 +921,31 @@ export default function App() {
           setDamageNumber(null);
           setBattleShake(false);
         }, 400);
-        
+
         const newPlayerHP = Math.max(0, playerPkmn.hp - enemyDamage);
         setPlayerTeam(prev => {
           const updated = [...prev];
           updated[0] = { ...updated[0], hp: newPlayerHP };
-          
+
           // Apply status effect to player
           if (enemyMove.statusEffect && Math.random() * 100 < (enemyMove.statusChance || 100)) {
             updated[0].status = enemyMove.statusEffect;
             setBattleLog(prevLog => `${prevLog} ¡${playerPkmn.name} ahora está ${enemyMove.statusEffect}!`);
           }
-          
+
           return updated;
         });
-        
-        setBattleLog(`¡${enemyPokemon.name} usó ${enemyMove.name}! Causó ${enemyDamage} de daño.`);
+
+        let enemyLog = `¡${enemyPokemon.name} usó ${enemyMove.name}!`;
+        if (enemyResult.effectivenessLabel === 'no_effect') {
+          enemyLog += ` No afecta a ${playerPkmn.name}...`;
+        } else {
+          if (enemyResult.isCritical) enemyLog += ' ¡Golpe crítico!';
+          if (enemyResult.effectivenessLabel === 'super_effective') enemyLog += ' ¡Es supereficaz!';
+          if (enemyResult.effectivenessLabel === 'not_very_effective') enemyLog += ' No es muy eficaz...';
+          enemyLog += ` Causó ${enemyDamage} de daño.`;
+        }
+        setBattleLog(enemyLog);
         
         setTimeout(() => {
           if (newPlayerHP === 0) {
@@ -1108,15 +1120,16 @@ export default function App() {
     }
 
     setTimeout(() => {
-      const damage = Math.floor((move.power * (playerPkmn.level / 6)) + 1);
+      const result = calculateDamage(playerPkmn, enemyPokemon, move);
+      const damage = result.damage;
       const newEnemyHP = Math.max(0, enemyPokemon.hp - damage);
-      
+
       setEnemyAnim('hit');
       setScreenFlash(true);
       setHitEffect({ x: 70, y: 30, type: move.type });
       setDamageNumber({ x: 70, y: 20, value: damage });
       setBattleShake(true);
-      
+
       setTimeout(() => {
         setScreenFlash(false);
         setHitEffect(null);
@@ -1125,7 +1138,16 @@ export default function App() {
       }, 400);
 
       setEnemyPokemon({ ...enemyPokemon, hp: newEnemyHP });
-      setBattleLog(`¡${playerPkmn.name} usó ${move.name}! Causó ${damage} de daño.`);
+      let attackLog = `¡${playerPkmn.name} usó ${move.name}!`;
+      if (result.effectivenessLabel === 'no_effect') {
+        attackLog += ` No afecta a ${enemyPokemon.name}...`;
+      } else {
+        if (result.isCritical) attackLog += ' ¡Golpe crítico!';
+        if (result.effectivenessLabel === 'super_effective') attackLog += ' ¡Es supereficaz!';
+        if (result.effectivenessLabel === 'not_very_effective') attackLog += ' No es muy eficaz...';
+        attackLog += ` Causó ${damage} de daño.`;
+      }
+      setBattleLog(attackLog);
 
       // Apply status effect
       if (move.statusEffect && Math.random() * 100 < (move.statusChance || 100)) {
@@ -1166,8 +1188,10 @@ export default function App() {
                 pkmn.level += 1;
                 pkmn.exp -= expNeeded;
                 pkmn.expToNextLevel = pkmn.level * 100;
-                pkmn.maxHp += 3;
-                pkmn.hp += 3;
+                const newMaxHp = calcHp(pkmn.baseStats.hp, pkmn.level);
+                const hpGain = newMaxHp - pkmn.maxHp;
+                pkmn.maxHp = newMaxHp;
+                pkmn.hp += hpGain;
                 
                 // Move learning logic
                 if (pkmn.movesToLearn) {
@@ -1199,6 +1223,14 @@ export default function App() {
                           pkmn.sprite = evoData.sprite || pkmn.sprite;
                           pkmn.evolutionLevel = evoData.evolutionLevel;
                           pkmn.evolvesTo = evoData.evolvesTo;
+                          if (evoData.baseStats) {
+                            pkmn.baseStats = evoData.baseStats;
+                            const newMaxHp = calcHp(pkmn.baseStats.hp, pkmn.level);
+                            const evoHpGain = newMaxHp - pkmn.maxHp;
+                            pkmn.maxHp = newMaxHp;
+                            pkmn.hp += evoHpGain;
+                          }
+                          if (evoData.types) pkmn.types = evoData.types;
                           setBattleLog(`¡Felicidades! ¡Tu Pokémon ha evolucionado a ${pkmn.name}!`);
                           soundManager.play('SELECT');
                         }, 3000);

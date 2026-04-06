@@ -1,5 +1,5 @@
 import { MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, MAP_VIRIDIAN_FOREST, MAP_PEWTER_CITY, MAP_PEWTER_GYM } from './maps';
-import { MOVES, STARTERS, WILD_POKEMON_DATABASE } from '../constants';
+import { MOVES, STARTERS, WILD_POKEMON_DATABASE, makePokemon } from '../constants';
 import { NPC, Entity } from '../types';
 
 export const INITIAL_MAPS = {
@@ -46,7 +46,7 @@ export const generateWorldNPCs = (hasParcel: boolean, hasPokedex: boolean, badge
       dialogue: ["¡Eh! ¡Tú! ¡Mis POKÉMON son de lo mejor!", "¡No me ignores cuando te hablo!"],
       isTrainer: true,
       trainerTeam: [
-        { id: 'rattata_t', name: 'RATTATA', level: 4, hp: 18, maxHp: 18, type: 'normal', moves: [MOVES.TACKLE, MOVES.SCRATCH], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/19.png', exp: 0, expToNextLevel: 80 }
+        makePokemon('rattata', 'RATTATA', 4, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19)
       ]
     },
     { 
@@ -58,7 +58,7 @@ export const generateWorldNPCs = (hasParcel: boolean, hasPokedex: boolean, badge
       dialogue: ["¿Te gustan los POKÉMON bicho?", "¡Son los más guays del mundo!"],
       isTrainer: true,
       trainerTeam: [
-        { id: 'caterpie_t', name: 'CATERPIE', level: 3, hp: 16, maxHp: 16, type: 'bug', moves: [MOVES.TACKLE, MOVES.STRING_SHOT], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10.png', exp: 0, expToNextLevel: 60 }
+        makePokemon('caterpie', 'CATERPIE', 3, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10)
       ]
     }
   ],
@@ -90,7 +90,7 @@ export const generateWorldNPCs = (hasParcel: boolean, hasPokedex: boolean, badge
       dialogue: ["¡Mi POKÉMON bicho es el más fuerte!", "¡No podrás pasar de aquí!"],
       isTrainer: true,
       trainerTeam: [
-        { id: 'metapod_t', name: 'METAPOD', level: 6, hp: 24, maxHp: 24, type: 'bug', moves: [MOVES.HARDEN, MOVES.TACKLE], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/11.png', exp: 0, expToNextLevel: 120 }
+        makePokemon('metapod', 'METAPOD', 6, 'bug', [MOVES.HARDEN, MOVES.TACKLE], 11)
       ]
     }
   ],
@@ -107,7 +107,7 @@ export const generateWorldNPCs = (hasParcel: boolean, hasPokedex: boolean, badge
       dialogue: ["¡Para llegar a BROCK tendrás que vencerme!", "¡Mis POKÉMON son duros!"],
       isTrainer: true,
       trainerTeam: [
-        { id: 'geodude_t', name: 'GEODUDE', level: 10, hp: 35, maxHp: 35, type: 'rock', moves: [MOVES.TACKLE, MOVES.ROCK_THROW], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/74.png', exp: 0, expToNextLevel: 200 }
+        makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] })
       ]
     },
     { 
@@ -121,8 +121,8 @@ export const generateWorldNPCs = (hasParcel: boolean, hasPokedex: boolean, badge
         : ["¡Soy BROCK! ¡El líder de este gimnasio!", "¡Mis POKÉMON son duros como la roca!", "¡Prepárate para perder!"],
       isTrainer: true,
       trainerTeam: [
-        { id: 'geodude_b', name: 'GEODUDE', level: 12, hp: 40, maxHp: 40, type: 'rock', moves: [MOVES.TACKLE, MOVES.ROCK_THROW], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/74.png', exp: 0, expToNextLevel: 250 },
-        { id: 'onix_b', name: 'ONIX', level: 14, hp: 55, maxHp: 55, type: 'rock', moves: [MOVES.TACKLE, MOVES.ROCK_THROW], sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/95.png', exp: 0, expToNextLevel: 400 }
+        makePokemon('geodude', 'GEODUDE', 12, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }),
+        makePokemon('onix', 'ONIX', 14, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 95, { types: ['rock', 'ground'] })
       ]
     }
   ]
