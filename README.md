@@ -70,6 +70,22 @@ src/components/
   Joystick.tsx        — Mobile touch controls
 ```
 
+## Player Sprite
+
+The player character uses `/public/player.png` — a 256×192 RGBA spritesheet (4 columns × 3 rows, 64×64px per cell):
+
+| Column | 0 | 1 | 2 | 3 |
+|--------|---|---|---|---|
+| Frame  | Stand | Step L | Stand | Step R |
+
+| Row | Direction |
+|-----|-----------|
+| 0   | Down      |
+| 1   | Up        |
+| 2   | Left      |
+
+Right-facing is the Left row mirrored via `scaleX(-1)`. The CSS uses `backgroundSize: "400% 300%"` and `background-position` to select the correct cell. Background must be fully transparent (RGBA PNG).
+
 ## Controls
 
 - **Arrow keys** — Move
