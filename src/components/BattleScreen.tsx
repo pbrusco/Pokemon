@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Pokemon, Move } from '../types';
 import { soundManager } from '../lib/sounds';
+import { calcStat } from '../lib/damage';
 
 export interface BattleScreenProps {
   battleShake: boolean;
@@ -86,6 +87,20 @@ export function BattleScreen({
                 />
               </div>
             </div>
+            {/* Debug stats */}
+            {enemyPokemon && (
+              <div className="mt-2 grid grid-cols-4 gap-1">
+                {(['attack','defense','special','speed'] as const).map(stat => (
+                  <div key={stat} className="bg-slate-100 rounded px-1 py-0.5 text-center">
+                    <div className="text-[8px] text-slate-400 uppercase font-bold">{stat.slice(0,3)}</div>
+                    <div className="text-[10px] font-mono font-black text-slate-700">{calcStat(enemyPokemon.baseStats[stat], enemyPokemon.level)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {enemyPokemon?.status && enemyPokemon.status !== 'none' && (
+              <div className="mt-1 text-[9px] font-bold text-orange-600 uppercase tracking-widest text-center">{enemyPokemon.status}</div>
+            )}
           </div>
         </div>
 
@@ -93,18 +108,36 @@ export function BattleScreen({
         <div className="absolute bottom-[20%] left-[10%] w-[350px] flex flex-col items-center">
           <div className="absolute bottom-4 w-full h-16 bg-black/15 rounded-[100%] border-4 border-black/5 blur-[2px]" />
 
-          <motion.div
-            className="w-56 h-56 relative z-10"
-            variants={{
-              idle: { y: [0, -2, 0], transition: { repeat: Infinity, duration: 2, ease: "easeInOut" } },
-              attack: { x: [0, 40, 0], scale: [1, 1.05, 1], transition: { duration: 0.3 } },
-              hit: { x: [0, -10, 10, -10, 10, 0], filter: ["brightness(1)", "invert(1)", "brightness(1)"], transition: { duration: 0.4 } },
-              faint: { y: [0, 100], opacity: [1, 0], transition: { duration: 0.5, ease: "easeIn" } }
-            }}
-            animate={playerAnim}
-          >
-            {playerPkmn?.sprite && <img src={playerPkmn.sprite.replace('pokemon/', 'pokemon/back/')} className="w-full h-full object-contain pixelated drop-shadow-[0_4px_4px_rgba(0,0,0,0.3)]" alt="player" />}
-          </motion.div>
+          <div className="flex items-end gap-2 relative z-10">
+            {/* Player character sprite — shown in trainer battles */}
+            {isTrainerBattle && (
+              <div
+                className="w-16 h-16 mb-4 opacity-90"
+                style={{
+                  backgroundImage: "url('/player.png')",
+                  backgroundSize: "400% 300%",
+                  backgroundPositionX: "0%",
+                  backgroundPositionY: "0%",
+                  imageRendering: "pixelated",
+                  transform: "scaleX(-1)",
+                  filter: "drop-shadow(0 4px 4px rgba(0,0,0,0.3))",
+                }}
+              />
+            )}
+
+            <motion.div
+              className="w-56 h-56"
+              variants={{
+                idle: { y: [0, -2, 0], transition: { repeat: Infinity, duration: 2, ease: "easeInOut" } },
+                attack: { x: [0, 40, 0], scale: [1, 1.05, 1], transition: { duration: 0.3 } },
+                hit: { x: [0, -10, 10, -10, 10, 0], filter: ["brightness(1)", "invert(1)", "brightness(1)"], transition: { duration: 0.4 } },
+                faint: { y: [0, 100], opacity: [1, 0], transition: { duration: 0.5, ease: "easeIn" } }
+              }}
+              animate={playerAnim}
+            >
+              {playerPkmn?.sprite && <img src={playerPkmn.sprite.replace('pokemon/', 'pokemon/back/')} className="w-full h-full object-contain pixelated drop-shadow-[0_4px_4px_rgba(0,0,0,0.3)]" alt="player" />}
+            </motion.div>
+          </div>
         </div>
 
         {/* Player HUD */}
@@ -130,6 +163,20 @@ export function BattleScreen({
             <div className="h-1.5 w-full bg-[#d8d8d8] mt-1 flex border border-slate-400">
               <div className="bg-[#58a8f8] h-full" style={{ width: `${(playerPkmn?.exp || 0) / (playerPkmn?.expToNextLevel || 100) * 100}%` }} />
             </div>
+            {/* Debug stats */}
+            {playerPkmn && (
+              <div className="mt-2 grid grid-cols-4 gap-1">
+                {(['attack','defense','special','speed'] as const).map(stat => (
+                  <div key={stat} className="bg-slate-100 rounded px-1 py-0.5 text-center">
+                    <div className="text-[8px] text-slate-400 uppercase font-bold">{stat.slice(0,3)}</div>
+                    <div className="text-[10px] font-mono font-black text-slate-700">{calcStat(playerPkmn.baseStats[stat], playerPkmn.level)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {playerPkmn?.status && playerPkmn.status !== 'none' && (
+              <div className="mt-1 text-[9px] font-bold text-orange-600 uppercase tracking-widest text-center">{playerPkmn.status}</div>
+            )}
           </div>
         </div>
 

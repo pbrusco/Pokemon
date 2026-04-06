@@ -43,17 +43,34 @@ import { Joystick } from './components/Joystick';
 
 // --- Components ---
 
-const NPCComponent = ({ npc }: { npc: NPC, key?: string }) => {
+const NPCComponent = ({ npc, isSpotted }: { npc: NPC, key?: string, isSpotted?: boolean }) => {
   return (
     <motion.div
       className="absolute top-0 left-0 z-20 flex items-center justify-center"
-      animate={{ 
-        x: npc.position.x * TILE_SIZE, 
+      animate={{
+        x: npc.position.x * TILE_SIZE,
         y: npc.position.y * TILE_SIZE,
       }}
       style={{ width: TILE_SIZE, height: TILE_SIZE }}
     >
       <div className="relative">
+        {/* Exclamation mark when spotted */}
+        <AnimatePresence>
+          {isSpotted && (
+            <motion.div
+              key="exclamation"
+              initial={{ opacity: 0, y: 8, scale: 0.5 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              className="absolute -top-14 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center"
+            >
+              <div className="bg-white border-2 border-[#383838] rounded-sm px-2 py-0.5 shadow-lg">
+                <span className="text-[#f83838] font-black text-xl leading-none">!</span>
+              </div>
+              <div className="w-2 h-2 bg-white border-b-2 border-r-2 border-[#383838] rotate-45 -mt-1" />
+            </motion.div>
+          )}
+        </AnimatePresence>
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-2 bg-black/20 rounded-full blur-sm" />
         <div className="w-11 h-13 bg-white rounded-lg border-[3px] border-[#383838] shadow-md flex flex-col items-center overflow-hidden">
           {/* Hair/Head */}
@@ -74,10 +91,12 @@ const NPCComponent = ({ npc }: { npc: NPC, key?: string }) => {
   );
 };
 
-const ShopUI = ({ onBuy, onClose }: { onBuy: (itemId: string) => void, onClose: () => void }) => {
+const SHOP_PRICES: Record<string, number> = { POTION: 200, POKEBALL: 200 };
+
+const ShopUI = ({ onBuy, onClose, money }: { onBuy: (itemId: string) => void, onClose: () => void, money: number }) => {
   const shopItems = ['POTION', 'POKEBALL'];
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
@@ -88,24 +107,32 @@ const ShopUI = ({ onBuy, onClose }: { onBuy: (itemId: string) => void, onClose: 
           <h2 className="text-xl font-black italic tracking-tighter uppercase">Poké Mart</h2>
           <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors"><X size={20} /></button>
         </div>
+        <div className="px-6 pt-4 pb-2 flex justify-between items-center bg-blue-50 border-b border-blue-100">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Tu dinero</span>
+          <span className="font-mono font-black text-blue-700 text-lg">₽{money.toLocaleString()}</span>
+        </div>
         <div className="p-6 space-y-4">
           {shopItems.map(id => {
             const item = ITEMS_DATABASE[id];
+            const price = SHOP_PRICES[id];
+            const canAfford = money >= price;
             return (
-              <button 
+              <button
                 key={id}
                 onClick={() => {
+                  if (!canAfford) return;
                   onBuy(id);
                   soundManager.play('SELECT');
                 }}
-                className="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 transition-all group"
+                disabled={!canAfford}
+                className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group ${canAfford ? 'bg-slate-50 border-slate-100 hover:border-blue-200 hover:bg-blue-50 cursor-pointer' : 'bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed'}`}
               >
                 <span className="text-2xl">{item.icon}</span>
                 <div className="flex-1 text-left">
                   <h3 className="font-bold text-slate-800 uppercase text-sm">{item.name}</h3>
                   <p className="text-[10px] text-slate-500">Objeto útil para tu viaje</p>
                 </div>
-                <span className="font-mono font-bold text-blue-600">$200</span>
+                <span className={`font-mono font-bold ${canAfford ? 'text-blue-600' : 'text-slate-400'}`}>₽{price}</span>
               </button>
             );
           })}
@@ -143,6 +170,7 @@ const BattleTransition = ({ onComplete }: { onComplete: () => void }) => {
 interface TileProps {
   type: string;
   key?: string;
+  hasEncounters?: boolean;
 }
 
 
@@ -151,10 +179,11 @@ interface TileProps {
 
 // --- Main App ---
 
-const GameTile = ({ type, isGrassActive }: TileProps & { isGrassActive?: boolean }) => {
+const GameTile = ({ type, isGrassActive, hasEncounters }: TileProps & { isGrassActive?: boolean }) => {
+  const isEncounterGrass = type === 'grass' && hasEncounters;
   const getTileStyle = () => {
     switch (type) {
-      case 'grass': return 'bg-[#88d8b0] border-[#78c8a0]/30';
+      case 'grass': return isEncounterGrass ? 'bg-[#48a868] border-[#389858]/40' : 'bg-[#88d8b0] border-[#78c8a0]/30';
       case 'path': return 'bg-[#e0f8d0] border-[#d0e8c0]/50';
       case 'wall': return 'bg-[#f8f8f8] border-[#d8d8d8]';
       case 'door': return 'bg-[#a05030] border-[#803010]';
@@ -190,11 +219,23 @@ const GameTile = ({ type, isGrassActive }: TileProps & { isGrassActive?: boolean
           </div>
         </div>
       )}
-      {type === 'grass' && (
+      {type === 'grass' && !isEncounterGrass && (
         <div className="absolute inset-0 opacity-40">
           <div className="w-full h-full bg-[radial-gradient(circle,#58a880_1px,transparent_1px)] bg-[size:12px_12px]" />
           <div className="absolute top-2 left-2 w-1 h-2 bg-[#58a880] rounded-full rotate-12" />
           <div className="absolute bottom-3 right-4 w-1 h-3 bg-[#58a880] rounded-full -rotate-12" />
+        </div>
+      )}
+      {isEncounterGrass && (
+        <div className="absolute inset-0">
+          {/* Tall grass blades */}
+          <div className="absolute bottom-1 left-2 w-1 h-5 bg-[#2d7a48] rounded-t-full rotate-[-8deg] origin-bottom" />
+          <div className="absolute bottom-1 left-4 w-1 h-7 bg-[#38904f] rounded-t-full rotate-[5deg] origin-bottom" />
+          <div className="absolute bottom-1 left-6 w-1 h-5 bg-[#2d7a48] rounded-t-full rotate-[-3deg] origin-bottom" />
+          <div className="absolute bottom-1 left-8 w-1 h-8 bg-[#227040] rounded-t-full rotate-[10deg] origin-bottom" />
+          <div className="absolute bottom-1 left-10 w-1 h-6 bg-[#38904f] rounded-t-full rotate-[-6deg] origin-bottom" />
+          <div className="absolute bottom-1 right-3 w-1 h-7 bg-[#2d7a48] rounded-t-full rotate-[4deg] origin-bottom" />
+          <div className="absolute bottom-1 right-6 w-1 h-5 bg-[#38904f] rounded-t-full rotate-[-8deg] origin-bottom" />
         </div>
       )}
       <AnimatePresence>
@@ -351,6 +392,8 @@ export default function App() {
   const [battleShake, setBattleShake] = useState(false);
   // isCatching, isBlackout, isHealing, isLevelUp, isEvolving, forcedSwitch replaced by phase
   const [lastHealLocation, setLastHealLocation] = useState<{ map: string; pos: Position }>({ map: 'PALLET_TOWN', pos: { x: 7, y: 11 } });
+  const [money, setMoney] = useState(3000);
+  const [spottedTrainerId, setSpottedTrainerId] = useState<string | null>(null);
 
   // Story State
   const [storyStep, setStoryStep] = useState<'START' | 'OAK_STOPPED' | 'IN_LAB' | 'PICKED_STARTER' | 'RIVAL_BATTLE' | 'EXPLORING'>('START');
@@ -378,6 +421,8 @@ export default function App() {
         setHasParcel(data.hasParcel);
         setStoryStep(data.storyStep);
         if (data.lastHealLocation) setLastHealLocation(data.lastHealLocation);
+        if (data.pokedex) setPokedex(data.pokedex);
+        if (data.money != null) setMoney(data.money);
       } catch (e) {
         console.error("Error loading save", e);
       }
@@ -395,7 +440,9 @@ export default function App() {
         hasPokedex,
         hasParcel,
         storyStep,
-        lastHealLocation
+        lastHealLocation,
+        pokedex,
+        money
       };
       localStorage.setItem('pokemon_save', JSON.stringify(saveData));
     }
@@ -445,7 +492,7 @@ export default function App() {
   const npcs: Record<string, NPC[]> = {
     PALLET_TOWN: [
       { id: 'mom', name: 'MAMÁ', type: 'npc', position: { x: 7, y: 10 }, direction: 'down', dialogue: ["¡Ten cuidado ahí fuera, hijo!", "Recuerda que el Prof. Oak te está buscando."] },
-      { id: 'oak_pallet', name: 'PROF. OAK', type: 'npc', position: { x: 10, y: 4 }, direction: 'down', dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."] }
+      ...(playerTeam.length === 0 ? [{ id: 'oak_pallet', name: 'PROF. OAK', type: 'npc' as const, position: { x: 10, y: 4 }, direction: 'down' as const, dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."] }] : [])
     ],
     OAKS_LAB: [
       { 
@@ -812,10 +859,10 @@ export default function App() {
     }
   }, [playerPos, direction, currentMap, dialogue, inBattle, playerTeam, inventory, npcs, items, maps, storyStep]);
 
-  const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep });
+  const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep });
   useEffect(() => {
-    gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep };
-  }, [playerPos, direction, isMoving, dialogue, inBattle, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep]);
+    gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep };
+  }, [playerPos, direction, isMoving, dialogue, inBattle, phase.type, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep]);
 
   const resetGame = useCallback(() => {
     localStorage.clear();
@@ -848,8 +895,9 @@ export default function App() {
   }, []);
 
   const handleMove = useCallback((dir: Direction) => {
-    const { isMoving, dialogue, inBattle, playerPos, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep } = gameState.current;
-    if (isMoving || dialogue || inBattle) return;
+    const { isMoving, dialogue, phaseType, playerPos, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep } = gameState.current;
+    const lockedPhases = ['BATTLE', 'BATTLE_TRANSITION', 'HEALING', 'BLACKOUT'];
+    if (isMoving || dialogue || lockedPhases.includes(phaseType)) return;
 
     setDirection(dir);
 
@@ -921,10 +969,13 @@ export default function App() {
           if (trainer.direction === 'right') visionX += i;
           
           if (visionX === nextX && visionY === nextY) {
+            setSpottedTrainerId(trainer.id);
             setDialogue(`${trainer.name}: ¡Eh! ¡Te he visto! ¡Vamos a luchar!`);
             setTimeout(() => {
+              setSpottedTrainerId(null);
               soundManager.play('BATTLE_START');
               setEnemyPokemon(trainer.trainerTeam![0]);
+              updatePokedex(trainer.trainerTeam![0].id);
               setIsTrainerBattle(true);
               setBattleLog(`¡${trainer.name} te desafía!`);
               setPhase(BATTLE_TRANSITION);
@@ -1501,16 +1552,65 @@ export default function App() {
               height: GRID_SIZE * TILE_SIZE
             }}
           >
-            {maps[currentMap].map((row, y) =>
-              row.map((tile, x) => (
-                <GameTile key={`${x}-${y}`} type={tile.type} isGrassActive={grassEffect?.x === x && grassEffect?.y === y} />
-              ))
-            )}
+            {(() => {
+              const mapHasEncounters = currentMap in WILD_POKEMON_DATABASE;
+              return maps[currentMap].map((row, y) =>
+                row.map((tile, x) => (
+                  <GameTile key={`${x}-${y}`} type={tile.type} isGrassActive={grassEffect?.x === x && grassEffect?.y === y} hasEncounters={mapHasEncounters} />
+                ))
+              );
+            })()}
           </div>
+
+          {/* Trainer vision shadows */}
+          {npcs[currentMap]
+            .filter(npc => npc.isTrainer && !defeatedTrainers.includes(npc.id))
+            .flatMap(trainer =>
+              [1, 2, 3].map(i => {
+                let vx = trainer.position.x, vy = trainer.position.y;
+                if (trainer.direction === 'up') vy -= i;
+                if (trainer.direction === 'down') vy += i;
+                if (trainer.direction === 'left') vx -= i;
+                if (trainer.direction === 'right') vx += i;
+                if (vx < 0 || vx >= GRID_SIZE || vy < 0 || vy >= GRID_SIZE) return null;
+                return (
+                  <div
+                    key={`vision-${trainer.id}-${i}`}
+                    className="absolute z-10 pointer-events-none"
+                    style={{
+                      left: vx * TILE_SIZE,
+                      top: vy * TILE_SIZE,
+                      width: TILE_SIZE,
+                      height: TILE_SIZE,
+                      background: 'rgba(248, 56, 56, 0.18)',
+                      borderRadius: 4,
+                    }}
+                  />
+                );
+              }).filter(Boolean)
+            )
+          }
+
+          {/* Teleport exit indicators */}
+          {teleports[currentMap]?.map(tp => (
+            <div
+              key={`tp-${tp.id}`}
+              className="absolute z-25 pointer-events-none flex items-end justify-center pb-1"
+              style={{ left: tp.position.x * TILE_SIZE, top: tp.position.y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}
+            >
+              <motion.div
+                animate={{ y: [0, -6, 0] }}
+                transition={{ repeat: Infinity, duration: 0.8, ease: 'easeInOut' }}
+                className="text-white text-lg drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
+              >
+                {tp.direction === 'up' ? '▲' : tp.direction === 'down' ? '▼' : tp.direction === 'left' ? '◀' : '▶'}
+              </motion.div>
+            </div>
+          ))}
 
           {/* NPCs */}
           {npcs[currentMap].map(npc => (
-            <NPCComponent key={npc.id} npc={npc} />
+            <NPCComponent key={npc.id} npc={npc} isSpotted={npc.id === spottedTrainerId} />
           ))}
 
           {/* Items / Pokéballs / Objects */}
@@ -1584,20 +1684,6 @@ export default function App() {
             })()}
           </AnimatePresence>
 
-          {/* Fences */}
-          <div className="absolute top-0 left-0 pointer-events-none w-full h-full">
-            {[...Array(10)].map((_, i) => (
-              <div 
-                key={`fence-${i}`}
-                className="absolute w-16 h-8 border-b-4 border-x-2 border-[#383838] bg-[#d8d8d8]/50"
-                style={{ 
-                  top: '40%', 
-                  left: (15 + i * 5) + '%',
-                  zIndex: 20
-                }}
-              />
-            ))}
-          </div>
         </motion.div>
       </div>
 
@@ -1819,8 +1905,13 @@ export default function App() {
       <AnimatePresence>
         {phase.type === 'SHOP' && (
           <ShopUI
+            money={money}
             onClose={() => setPhase(EXPLORING)}
-            onBuy={(id) => setInventory(prev => [...prev, id])}
+            onBuy={(id) => {
+              const price = SHOP_PRICES[id] ?? 200;
+              setMoney(prev => prev - price);
+              setInventory(prev => [...prev, id]);
+            }}
           />
         )}
       </AnimatePresence>
