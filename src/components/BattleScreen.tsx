@@ -263,7 +263,7 @@ export function BattleScreen({
         </div>
 
         {/* Battle Menu */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className={`grid grid-cols-2 gap-4 ${playerAnim !== 'idle' || enemyAnim !== 'idle' || projectile ? 'pointer-events-none opacity-50' : ''}`}>
           {showMoves ? (
             playerTeam[0]?.moves.map((move, i) => (
               <button 
