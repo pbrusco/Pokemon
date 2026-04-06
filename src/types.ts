@@ -5,17 +5,33 @@ export interface Position {
   y: number;
 }
 
+export interface StatChange {
+  target: 'self' | 'enemy';
+  stat: 'attack' | 'defense' | 'special' | 'speed';
+  stages: number; // negative = lower, positive = raise
+}
+
 export interface Move {
   name: string;
   type: string;
   power: number;
   accuracy: number;
+  pp: number;
+  maxPp: number;
   statusEffect?: 'paralyzed' | 'sleep' | 'poison' | 'burn' | 'frozen';
   statusChance?: number;
+  statChange?: StatChange;
 }
 
 export interface BaseStats {
   hp: number;
+  attack: number;
+  defense: number;
+  special: number;
+  speed: number;
+}
+
+export interface StatBoosts {
   attack: number;
   defense: number;
   special: number;
@@ -36,6 +52,7 @@ export interface Pokemon {
   exp?: number;
   expToNextLevel?: number;
   status?: 'none' | 'paralyzed' | 'sleep' | 'poison' | 'burn' | 'frozen';
+  statBoosts?: StatBoosts;
   evolutionLevel?: number;
   evolvesTo?: string;
   movesToLearn?: { level: number, move: Move }[];

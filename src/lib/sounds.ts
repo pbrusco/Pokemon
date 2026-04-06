@@ -64,6 +64,11 @@ const SFX: Record<string, () => void> = {
       playTone('square', [notes[i]], 0.15, 0.2, delay);
     });
   },
+  TRAINER_SPOTTED: () => {
+    // Classic "!" jingle: sharp rising two-note staccato
+    playTone('square', [880], 0.12, 0.35, 0);
+    playTone('square', [1320], 0.18, 0.3, 0.13);
+  },
 };
 
 // ---------------------------------------------------------------------------

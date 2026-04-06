@@ -52,17 +52,17 @@
 
 - [ ] **Battle transition is abrupt for trainer battles** — Add a brief "walk toward each other" animation or a short pause before the battle screen appears, to distinguish trainer battles from wild encounters.
 
-- [ ] **Move PP system** — Moves in the original games have limited uses (PP). Currently there is no PP tracking. Add `pp` and `maxPp` to `Move` and enforce limits in battle.
+- [x] **Move PP system** — Done: `pp` and `maxPp` fields on `Move`, Gen I PP values for all moves, PP deducted on use, disabled when 0, displayed in battle UI, restored on heal.
 
-- [ ] **Run from wild battle** — Implement proper flee mechanics (currently always succeeds). Gen I formula: `(playerSpeed * 128 / enemySpeed + 30) % 256 > random(0–255)`.
+- [x] **Run from wild battle** — Done: Gen I flee formula `(playerSpeed * 128 / enemySpeed + 30) % 256 > random(0–255)`. On fail, enemy gets a turn.
 
-- [ ] **Item use feedback** — Using a Potion during battle should animate the item and show the HP recovered as a floating number, not just update the HP bar silently.
+- [x] **Item use feedback** — Done: Potion use shows floating green `+N` heal number and reports PS recovered in battle log.
 
-- [ ] **Persistent Pokedex seen state** — When the player encounters a wild Pokemon and flees or it faints, the Pokemon should still be marked as "seen" in the Pokedex. Currently this may only update on capture.
+- [x] **Persistent Pokedex seen state** — Done: Fixed save `useEffect` deps to include `pokedex` and `money`, so seen state persists across sessions.
 
-- [ ] **Sound for trainer detection** — Play a distinct sound (the classic "!" jingle) when a trainer spots the player, distinct from normal SFX.
+- [x] **Sound for trainer detection** — Done: `TRAINER_SPOTTED` SFX (rising two-note square wave jingle) plays when a trainer spots the player.
 
-- [ ] **Mobile layout polish** — On small screens, the battle screen and menus can overflow or clip. Audit on 375px-wide viewports and fix overflow issues.
+- [x] **Mobile layout polish** — Done: Battle HUDs, sprites, move buttons, action panel, and side menu all use responsive `sm:` breakpoints for 375px viewports. Debug stats hidden on mobile.
 
 ---
 

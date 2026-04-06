@@ -1,4 +1,4 @@
-import { Pokemon, Move } from '../types';
+import { Pokemon, Move, StatBoosts } from '../types';
 
 // Gen I: types are either Physical or Special
 const PHYSICAL_TYPES = new Set([
@@ -29,11 +29,31 @@ const TYPE_CHART: Record<string, Record<string, number>> = {
   dragon:   { dragon: 2 },
 };
 
+// Gen I stat stage multipliers (stage -6 … +6)
+const STAT_STAGE_MULTIPLIERS: Record<number, number> = {
+  [-6]: 2/8, [-5]: 2/7, [-4]: 2/6, [-3]: 2/5, [-2]: 2/4, [-1]: 2/3,
+  [0]: 1,
+  [1]: 3/2, [2]: 4/2, [3]: 5/2, [4]: 6/2, [5]: 7/2, [6]: 8/2,
+};
+
+export function getStageMultiplier(stage: number): number {
+  const clamped = Math.max(-6, Math.min(6, stage));
+  return STAT_STAGE_MULTIPLIERS[clamped] ?? 1;
+}
+
 /** Compute effective stat from base stat and level (simplified Gen I, no IVs/EVs) */
 export function calcStat(base: number, level: number): number {
   // Simplified: Stat = floor((Base * 2 * Level) / 100) + 5
   return Math.floor((base * 2 * level) / 100) + 5;
 }
+
+/** Compute effective stat from base stat, level, and battle stage boost */
+export function calcStatWithBoost(base: number, level: number, stage: number): number {
+  return Math.floor(calcStat(base, level) * getStageMultiplier(stage));
+}
+
+/** Default zero stat boosts */
+export const ZERO_BOOSTS: StatBoosts = { attack: 0, defense: 0, special: 0, speed: 0 };
 
 /** Compute effective HP from base HP stat and level */
 export function calcHp(baseHp: number, level: number): number {
@@ -99,12 +119,20 @@ export function calculateDamage(
   let attackStat: number;
   let defenseStat: number;
 
+  const aBoosts = attacker.statBoosts ?? ZERO_BOOSTS;
+  const dBoosts = defender.statBoosts ?? ZERO_BOOSTS;
+
+  // Crits ignore negative attack stages and positive defense stages (Gen I)
   if (physical) {
-    attackStat = calcStat(attacker.baseStats.attack, isCritical ? level * 2 : level);
-    defenseStat = calcStat(defender.baseStats.defense, isCritical ? level * 2 : level);
+    const atkStage = isCritical ? Math.max(0, aBoosts.attack) : aBoosts.attack;
+    const defStage = isCritical ? Math.min(0, dBoosts.defense) : dBoosts.defense;
+    attackStat = calcStatWithBoost(attacker.baseStats.attack, isCritical ? level * 2 : level, atkStage);
+    defenseStat = calcStatWithBoost(defender.baseStats.defense, isCritical ? level * 2 : level, defStage);
   } else {
-    attackStat = calcStat(attacker.baseStats.special, isCritical ? level * 2 : level);
-    defenseStat = calcStat(defender.baseStats.special, isCritical ? level * 2 : level);
+    const spaStage = isCritical ? Math.max(0, aBoosts.special) : aBoosts.special;
+    const spdStage = isCritical ? Math.min(0, dBoosts.special) : dBoosts.special;
+    attackStat = calcStatWithBoost(attacker.baseStats.special, isCritical ? level * 2 : level, spaStage);
+    defenseStat = calcStatWithBoost(defender.baseStats.special, isCritical ? level * 2 : level, spdStage);
   }
 
   // Gen I: if either A or D exceeds 255, both are divided by 4 and floored

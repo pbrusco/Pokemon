@@ -29,7 +29,7 @@ import { GamePhase, BattlePhase, EXPLORING, MENU, INVENTORY, TEAM, SHOP, POKEDEX
 import { MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, MAP_VIRIDIAN_FOREST, MAP_PEWTER_CITY, MAP_PEWTER_GYM, MAP_ROUTE_3 } from './data/maps';
 import { soundManager } from './lib/sounds';
 import { MOVES, STARTERS, EVOLUTIONS, WILD_POKEMON_DATABASE, POKEMON_LIST, ITEMS_DATABASE, BASE_STATS, makePokemon } from './constants';
-import { calculateDamage, calcHp } from './lib/damage';
+import { calculateDamage, calcHp, ZERO_BOOSTS } from './lib/damage';
 import { InventoryUI } from './components/InventoryUI';
 import { TeamMenuUI } from './components/TeamMenuUI';
 import { DialogueBox } from './components/DialogueBox';
@@ -389,6 +389,7 @@ export default function App() {
   const [hitEffect, setHitEffect] = useState<{ x: number, y: number, type: string } | null>(null);
   const [projectile, setProjectile] = useState<{ type: string, from: 'player' | 'enemy' } | null>(null);
   const [damageNumber, setDamageNumber] = useState<{ x: number, y: number, value: number } | null>(null);
+  const [healNumber, setHealNumber] = useState<{ x: number, y: number, value: number } | null>(null);
   const [battleShake, setBattleShake] = useState(false);
   // isCatching, isBlackout, isHealing, isLevelUp, isEvolving, forcedSwitch replaced by phase
   const [lastHealLocation, setLastHealLocation] = useState<{ map: string; pos: Position }>({ map: 'PALLET_TOWN', pos: { x: 7, y: 11 } });
@@ -446,7 +447,7 @@ export default function App() {
       };
       localStorage.setItem('pokemon_save', JSON.stringify(saveData));
     }
-  }, [playerPos, currentMap, playerTeam, inventory, defeatedTrainers, hasPokedex, hasParcel, storyStep, lastHealLocation]);
+  }, [playerPos, currentMap, playerTeam, inventory, defeatedTrainers, hasPokedex, hasParcel, storyStep, lastHealLocation, pokedex, money]);
 
   useEffect(() => {
     if (inBattle) {
@@ -768,7 +769,7 @@ export default function App() {
         setTimeout(() => {
           setPhase(HEALING);
           setTimeout(() => {
-            setPlayerTeam(prev => prev.map(p => ({ ...p, hp: p.maxHp, status: 'none' })));
+            setPlayerTeam(prev => prev.map(p => ({ ...p, hp: p.maxHp, status: 'none', moves: p.moves.map(m => ({ ...m, pp: m.maxPp })) })));
             soundManager.play('SELECT');
           }, 800);
           setTimeout(() => {
@@ -861,8 +862,8 @@ export default function App() {
 
   const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep });
   useEffect(() => {
-    gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep };
-  }, [playerPos, direction, isMoving, dialogue, inBattle, phase.type, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep]);
+    gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, battleSubPhase: phase.type === 'BATTLE' ? phase.sub.type : null, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep };
+  }, [playerPos, direction, isMoving, dialogue, inBattle, phase, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep]);
 
   const resetGame = useCallback(() => {
     localStorage.clear();
@@ -970,6 +971,7 @@ export default function App() {
           
           if (visionX === nextX && visionY === nextY) {
             setSpottedTrainerId(trainer.id);
+            soundManager.play('TRAINER_SPOTTED');
             setDialogue(`${trainer.name}: ¡Eh! ¡Te he visto! ¡Vamos a luchar!`);
             setTimeout(() => {
               setSpottedTrainerId(null);
@@ -1038,20 +1040,42 @@ export default function App() {
     setTimeout(() => {
       setEnemyAnim('attack');
       const enemyMove = enemyPokemon.moves[Math.floor(Math.random() * enemyPokemon.moves.length)];
-      
+
+      // Enemy status move (power === 0)
+      if (enemyMove.power === 0) {
+        soundManager.play('SELECT');
+        let log = `¡${enemyPokemon.name} usó ${enemyMove.name}!`;
+        const scMsg = applyStatChange(enemyMove, false);
+        if (scMsg) log += ' ' + scMsg;
+        if (enemyMove.statusEffect && Math.random() * 100 < (enemyMove.statusChance || 100)) {
+          setPlayerTeam(prev => {
+            const updated = [...prev];
+            updated[0] = { ...updated[0], status: enemyMove.statusEffect };
+            return updated;
+          });
+          log += ` ¡${playerPkmn.name} ahora está ${enemyMove.statusEffect}!`;
+        }
+        setBattleLog(log);
+        setTimeout(() => {
+          setEnemyAnim('idle');
+          setPhase(battle(B_CHOOSING));
+        }, 1000);
+        return;
+      }
+
       if (enemyMove.type !== 'normal') {
         setProjectile({ type: enemyMove.type, from: 'enemy' });
         setTimeout(() => setProjectile(null), 600);
       }
 
       soundManager.play('HIT');
-      
+
       setTimeout(() => {
         setEnemyAnim('idle');
         setPlayerAnim('hit');
         soundManager.play('HIT');
         setScreenFlash(true);
-        
+
         const enemyResult = calculateDamage(enemyPokemon, playerPkmn, enemyMove);
         const enemyDamage = enemyResult.damage;
         setHitEffect({ x: 30, y: 70, type: enemyMove.type });
@@ -1112,7 +1136,7 @@ export default function App() {
                 setTimeout(() => {
                   setPhase(HEALING);
                   setTimeout(() => {
-                    setPlayerTeam(prev => prev.map(p => ({ ...p, hp: p.maxHp, status: 'none' })));
+                    setPlayerTeam(prev => prev.map(p => ({ ...p, hp: p.maxHp, status: 'none', moves: p.moves.map(m => ({ ...m, pp: m.maxPp })) })));
                     soundManager.play('SELECT');
                   }, 800);
                   setTimeout(() => {
@@ -1176,7 +1200,8 @@ export default function App() {
           }
           // Update pokedex
           setPokedex(prev => ({ ...prev, [enemyPokemon.id]: { seen: true, caught: true } }));
-          
+
+          clearBattleStatBoosts();
           setPhase(EXPLORING);
         }, 2000);
       } else {
@@ -1213,11 +1238,12 @@ export default function App() {
     } else if (itemId === 'POTION') {
       // Use potion on first pokemon
       const playerPkmn = playerTeam[0];
-      const newHP = Math.min(playerPkmn.maxHp, playerPkmn.hp + 20);
+      const healed = Math.min(20, playerPkmn.maxHp - playerPkmn.hp);
+      const newHP = playerPkmn.hp + healed;
       const updatedTeam = [...playerTeam];
       updatedTeam[0] = { ...playerPkmn, hp: newHP };
       setPlayerTeam(updatedTeam);
-      
+
       setInventory(prev => {
         const index = prev.indexOf('POTION');
         if (index > -1) {
@@ -1227,17 +1253,95 @@ export default function App() {
         }
         return prev;
       });
-      
-      setBattleLog(`¡Usaste una POCIÓN en ${playerPkmn.name}!`);
-      handleEnemyTurn();
+
+      // Show heal number floating effect
+      setHealNumber({ x: 30, y: 60, value: healed });
+      setTimeout(() => setHealNumber(null), 1200);
+
+      setBattleLog(`¡Usaste una POCIÓN en ${playerPkmn.name}! Recuperó ${healed} PS.`);
+      soundManager.play('SELECT');
+      setTimeout(() => handleEnemyTurn(), 1000);
+    }
+  };
+
+  /** Reset player stat boosts at end of every battle */
+  const clearBattleStatBoosts = () => {
+    setPlayerTeam(prev => prev.map(p => ({ ...p, statBoosts: undefined })));
+    setEnemyPokemon(prev => prev ? { ...prev, statBoosts: undefined } : null);
+  };
+
+  /** Apply a stat stage change to player or enemy, clamped to [-6, +6]. Returns message. */
+  const applyStatChange = (
+    move: Move,
+    attackerIsPlayer: boolean,
+  ): string | null => {
+    const sc = move.statChange;
+    if (!sc) return null;
+
+    const targetIsPlayer = attackerIsPlayer ? sc.target === 'self' : sc.target === 'enemy';
+    const statName = sc.stat;
+    const stages = sc.stages;
+
+    if (targetIsPlayer) {
+      setPlayerTeam(prev => {
+        const updated = [...prev];
+        const boosts = { ...(updated[0].statBoosts ?? ZERO_BOOSTS) };
+        boosts[statName] = Math.max(-6, Math.min(6, (boosts[statName] ?? 0) + stages));
+        updated[0] = { ...updated[0], statBoosts: boosts };
+        return updated;
+      });
+    } else {
+      setEnemyPokemon(prev => {
+        if (!prev) return prev;
+        const boosts = { ...(prev.statBoosts ?? ZERO_BOOSTS) };
+        boosts[statName] = Math.max(-6, Math.min(6, (boosts[statName] ?? 0) + stages));
+        return { ...prev, statBoosts: boosts };
+      });
+    }
+
+    const targetName = targetIsPlayer ? playerTeam[0]?.name : enemyPokemon?.name;
+    const statLabels: Record<string, string> = { attack: 'ATAQUE', defense: 'DEFENSA', special: 'ESPECIAL', speed: 'VELOCIDAD' };
+    const direction = stages > 0 ? 'subió' : 'bajó';
+    const amount = Math.abs(stages) === 1 ? '' : Math.abs(stages) === 2 ? ' mucho' : ' al máximo';
+    return `¡${targetName} ${direction} su ${statLabels[statName]}${amount}!`;
+  };
+
+  const handleFlee = () => {
+    if (!enemyPokemon || playerTeam.length === 0 || battlePhase?.type !== 'CHOOSING') return;
+    if (isTrainerBattle) return;
+
+    setPhase(battle(B_PLAYER_ATTACK)); // lock input
+
+    const playerSpeed = playerTeam[0].baseStats.speed;
+    const enemySpeed = Math.max(1, enemyPokemon.baseStats.speed);
+    const fleeValue = (playerSpeed * 128 / enemySpeed + 30) % 256;
+    const roll = Math.floor(Math.random() * 256);
+
+    if (roll < fleeValue) {
+      setBattleLog('¡Has escapado con éxito!');
+      setTimeout(() => { clearBattleStatBoosts(); setPhase(EXPLORING); }, 1000);
+    } else {
+      setBattleLog('¡No has podido escapar!');
+      setTimeout(() => handleEnemyTurn(), 1000);
     }
   };
 
   const handleAttack = (move: Move) => {
     if (!enemyPokemon || playerTeam.length === 0 || battlePhase?.type !== 'CHOOSING') return;
+    if (move.pp <= 0) return;
 
     const playerPkmn = playerTeam[0];
-    
+
+    // Deduct PP
+    setPlayerTeam(prev => {
+      const updated = [...prev];
+      updated[0] = {
+        ...updated[0],
+        moves: updated[0].moves.map(m => m.name === move.name ? { ...m, pp: m.pp - 1 } : m),
+      };
+      return updated;
+    });
+
     // Lock input immediately
     setPhase(battle(B_PLAYER_ATTACK));
 
@@ -1263,10 +1367,34 @@ export default function App() {
       return;
     }
 
+    // Status / Stat-change move (power === 0): no damage animation
+    if (move.power === 0) {
+      setPlayerAnim('attack');
+      soundManager.play('SELECT');
+      let log = `¡${playerPkmn.name} usó ${move.name}!`;
+
+      // Stat change
+      const scMsg = applyStatChange(move, true);
+      if (scMsg) log += ' ' + scMsg;
+
+      // Status effect
+      if (move.statusEffect && Math.random() * 100 < (move.statusChance || 100)) {
+        setEnemyPokemon(prev => prev ? { ...prev, status: move.statusEffect } : null);
+        log += ` ¡${enemyPokemon.name} ahora está ${move.statusEffect}!`;
+      }
+
+      setBattleLog(log);
+      setTimeout(() => {
+        setPlayerAnim('idle');
+        handleEnemyTurn();
+      }, 1000);
+      return;
+    }
+
     // Player Attack Animation
     setPlayerAnim('attack');
     soundManager.play('HIT');
-    
+
     // Show Projectile for special moves
     if (move.type !== 'normal') {
       setProjectile({ type: move.type, from: 'player' });
@@ -1405,6 +1533,7 @@ export default function App() {
             }
 
             setTimeout(() => {
+              clearBattleStatBoosts();
               setPhase(EXPLORING);
               setEnemyAnim('idle');
               if (storyStep === 'PICKED_STARTER') {
@@ -1426,7 +1555,24 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (inBattle) {
-        if (e.key === 'Escape') setPhase(EXPLORING);
+        const { battleSubPhase, playerTeam: team } = gameState.current;
+        if (e.key === 'Escape') {
+          // Close sub-menus back to choosing, never exit the battle
+          if (battleSubPhase === 'BATTLE_INVENTORY' || battleSubPhase === 'BATTLE_TEAM') {
+            setPhase(battle(B_CHOOSING));
+          }
+          // FORCED_SWITCH: don't allow closing without picking
+        }
+        // Number keys 1-4: select move when it's the player's turn
+        if (battleSubPhase === 'CHOOSING') {
+          const idx = parseInt(e.key) - 1;
+          if (idx >= 0 && idx <= 3) {
+            const mv = team[0]?.moves[idx];
+            if (mv && mv.pp > 0) handleAttack(mv);
+          }
+          if (e.key === 'b' || e.key === 'B') setPhase(battle(B_BATTLE_INVENTORY));
+          if (e.key === 'p' || e.key === 'P') setPhase(battle(B_BATTLE_TEAM));
+        }
         return;
       }
 
@@ -1730,7 +1876,7 @@ export default function App() {
             initial={{ x: 300, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 300, opacity: 0 }}
-            className="fixed right-8 top-1/2 -translate-y-1/2 w-64 bg-white/95 backdrop-blur-xl border-4 border-slate-800 rounded-3xl p-4 shadow-2xl z-40"
+            className="fixed right-2 sm:right-8 top-1/2 -translate-y-1/2 w-56 sm:w-64 bg-white/95 backdrop-blur-xl border-4 border-slate-800 rounded-3xl p-3 sm:p-4 shadow-2xl z-40 max-h-[90vh] overflow-y-auto"
           >
             <h2 className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold mb-4 px-2">Menú Principal</h2>
             <div className="space-y-2">
@@ -1831,6 +1977,7 @@ export default function App() {
             projectile={projectile}
             hitEffect={hitEffect}
             damageNumber={damageNumber}
+            healNumber={healNumber}
             playerTeam={playerTeam}
             playerAnim={playerAnim}
             battleLog={battleLog}
@@ -1839,6 +1986,7 @@ export default function App() {
             isTrainerBattle={isTrainerBattle}
             isPlayerTurn={battlePhase?.type === 'CHOOSING'}
             setIsBattle={(v) => { if (!v) setPhase(EXPLORING); }}
+            onFlee={handleFlee}
             setShowInventory={() => setPhase(battle(B_BATTLE_INVENTORY))}
             setShowTeam={() => setPhase(battle(B_BATTLE_TEAM))}
             handleAttack={handleAttack}

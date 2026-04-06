@@ -206,22 +206,27 @@ export function makePokemon(
   };
 }
 
+/** Helper to create a Move with pp === maxPp */
+function move(name: string, type: string, power: number, accuracy: number, maxPp: number, extra?: Partial<Move>): Move {
+  return { name, type, power, accuracy, pp: maxPp, maxPp, ...extra };
+}
+
 export const MOVES: Record<string, Move> = {
-  TACKLE: { name: 'PLACAJE', type: 'normal', power: 40, accuracy: 100 },
-  THUNDERSHOCK: { name: 'IMPACTRUENO', type: 'electric', power: 40, accuracy: 100, statusEffect: 'paralyzed', statusChance: 10 },
-  SCRATCH: { name: 'ARAÑAZO', type: 'normal', power: 40, accuracy: 100 },
-  GROWL: { name: 'GRUÑIDO', type: 'normal', power: 0, accuracy: 100 },
-  GUST: { name: 'TORNADO', type: 'flying', power: 40, accuracy: 100 },
-  STRING_SHOT: { name: 'DISP. SEDA', type: 'bug', power: 0, accuracy: 95, statusEffect: 'paralyzed', statusChance: 30 },
-  PECK: { name: 'PICOTAZO', type: 'flying', power: 35, accuracy: 100 },
-  EMBER: { name: 'ASCUAS', type: 'fire', power: 40, accuracy: 100, statusEffect: 'burn', statusChance: 10 },
-  WATER_GUN: { name: 'PISTOLA AGUA', type: 'water', power: 40, accuracy: 100 },
-  VINE_WHIP: { name: 'LATIGO CEPA', type: 'grass', power: 45, accuracy: 100 },
-  POISON_POWDER: { name: 'POLVO VENENO', type: 'poison', power: 0, accuracy: 75, statusEffect: 'poison', statusChance: 100 },
-  SLEEP_POWDER: { name: 'SOMNÍFERO', type: 'grass', power: 0, accuracy: 75, statusEffect: 'sleep', statusChance: 100 },
-  ROCK_THROW: { name: 'LANZARROCAS', type: 'rock', power: 50, accuracy: 90 },
-  HARDEN: { name: 'FORTALEZA', type: 'normal', power: 0, accuracy: 100 },
-  POUND: { name: 'GOLPE NORMAL', type: 'normal', power: 40, accuracy: 100 },
+  TACKLE:        move('PLACAJE',       'normal',   40, 100, 35),
+  THUNDERSHOCK:  move('IMPACTRUENO',   'electric', 40, 100, 30, { statusEffect: 'paralyzed', statusChance: 10 }),
+  SCRATCH:       move('ARAÑAZO',       'normal',   40, 100, 35),
+  GROWL:         move('GRUÑIDO',       'normal',    0, 100, 40, { statChange: { target: 'enemy', stat: 'attack',  stages: -1 } }),
+  GUST:          move('TORNADO',       'flying',   40, 100, 35),
+  STRING_SHOT:   move('DISP. SEDA',    'bug',       0,  95, 40, { statChange: { target: 'enemy', stat: 'speed',   stages: -1 } }),
+  PECK:          move('PICOTAZO',      'flying',   35, 100, 35),
+  EMBER:         move('ASCUAS',        'fire',     40, 100, 25, { statusEffect: 'burn',      statusChance: 10 }),
+  WATER_GUN:     move('PISTOLA AGUA',  'water',    40, 100, 25),
+  VINE_WHIP:     move('LATIGO CEPA',   'grass',    45, 100, 25),
+  POISON_POWDER: move('POLVO VENENO',  'poison',    0,  75, 35, { statusEffect: 'poison',    statusChance: 100 }),
+  SLEEP_POWDER:  move('SOMNÍFERO',     'grass',     0,  75, 15, { statusEffect: 'sleep',     statusChance: 100 }),
+  ROCK_THROW:    move('LANZARROCAS',   'rock',     50,  90, 15),
+  HARDEN:        move('FORTALEZA',     'normal',    0, 100, 30, { statChange: { target: 'self',  stat: 'defense', stages: +1 } }),
+  POUND:         move('GOLPE NORMAL',  'normal',   40, 100, 35),
 };
 
 const getSprite = (id: number) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
