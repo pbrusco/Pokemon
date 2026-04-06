@@ -2,9 +2,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Backpack } from 'lucide-react';
 import { ITEMS_DATABASE } from '../constants';
 import { soundManager } from '../lib/sounds';
+import type { InventoryCounts } from '../types';
 
-export const InventoryUI = ({ items, onClose, onUse }: { items: string[], onClose: () => void, onUse?: (itemId: string) => void }) => {
-  const inventoryItems = items.map(id => ITEMS_DATABASE[id]).filter(Boolean);
+export const InventoryUI = ({ items, onClose, onUse }: { items: InventoryCounts, onClose: () => void, onUse?: (itemId: string) => void }) => {
+  const entries = Object.entries(items).filter(([, qty]) => qty > 0);
+  const inventoryItems = entries.map(([id]) => ITEMS_DATABASE[id]).filter(Boolean);
 
   return (
     <motion.div 
@@ -35,7 +37,7 @@ export const InventoryUI = ({ items, onClose, onUse }: { items: string[], onClos
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {items.map((id, i) => {
+              {entries.map(([id, qty], i) => {
                 const item = ITEMS_DATABASE[id];
                 if (!item) return null;
                 return (
@@ -54,7 +56,7 @@ export const InventoryUI = ({ items, onClose, onUse }: { items: string[], onClos
                       {item.icon}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-black text-slate-800 uppercase text-sm">{item.name}</h3>
+                      <h3 className="font-black text-slate-800 uppercase text-sm">{item.name} x{qty}</h3>
                       <p className="text-xs text-slate-500 leading-tight">{item.description}</p>
                     </div>
                   </motion.div>

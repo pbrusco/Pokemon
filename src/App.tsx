@@ -24,7 +24,7 @@ import {
   X,
   Gamepad2
 } from 'lucide-react';
-import { Direction, Position, TILE_SIZE, GRID_SIZE, NPC, Entity, Pokemon, Move, InventoryItem, Tile, MapID, MAP_IDS } from './types';
+import { Direction, Position, TILE_SIZE, GRID_SIZE, NPC, Entity, Pokemon, Move, InventoryItem, Tile, MapID, MAP_IDS, InventoryCounts } from './types';
 import { GamePhase, BattlePhase, EXPLORING, MENU, INVENTORY, TEAM, SHOP, POKEDEX, PC, EDITOR, BATTLE_TRANSITION, BLACKOUT, HEALING, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM } from './types/gamePhase';
 import { MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, MAP_VIRIDIAN_FOREST, MAP_PEWTER_CITY, MAP_PEWTER_GYM, MAP_ROUTE_3 } from './data/maps';
 import { soundManager } from './lib/sounds';
@@ -47,12 +47,12 @@ import { useInteractionEngine } from './hooks/useInteractionEngine';
 const NPCComponent = ({ npc, isSpotted }: { npc: NPC, key?: string, isSpotted?: boolean }) => {
   return (
     <motion.div
-      className="absolute top-0 left-0 z-20 flex items-center justify-center"
+      className="absolute top-0 left-0 flex items-center justify-center"
       animate={{
         x: npc.position.x * TILE_SIZE,
         y: npc.position.y * TILE_SIZE,
       }}
-      style={{ width: TILE_SIZE, height: TILE_SIZE }}
+      style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 20 + npc.position.y }}
     >
       <div className="relative">
         {/* Exclamation mark when spotted */}
@@ -93,6 +93,7 @@ const NPCComponent = ({ npc, isSpotted }: { npc: NPC, key?: string, isSpotted?: 
 };
 
 const SHOP_PRICES: Record<string, number> = { POTION: 200, POKEBALL: 200 };
+const SAVE_SLOT_NAMES: Record<string, string> = { slot1: 'Perfil 1', slot2: 'Perfil 2', slot3: 'Perfil 3' };
 
 const ShopUI = ({ onBuy, onClose, money }: { onBuy: (itemId: string) => void, onClose: () => void, money: number }) => {
   const shopItems = ['POTION', 'POKEBALL'];
@@ -192,6 +193,8 @@ const GameTile = ({ type, isGrassActive, hasEncounters }: TileProps & { isGrassA
       case 'carpet': return 'bg-[#f85858] border-[#d83838]';
       case 'table': return 'bg-[#d8d8d8] border-[#383838]';
       case 'tree': return 'bg-[#88d8b0] border-[#78c8a0]/30';
+      case 'cut_tree': return 'bg-[#72c08f] border-[#4c9b6b]';
+      case 'boulder': return 'bg-[#b8b8b8] border-[#8a8a8a]';
       case 'sign': return 'bg-[#e0f8d0] border-[#d0e8c0]/50';
       default: return 'bg-white';
     }
@@ -213,11 +216,17 @@ const GameTile = ({ type, isGrassActive, hasEncounters }: TileProps & { isGrassA
       )}
       {type === 'tree' && (
         <div className="w-full h-full flex flex-col items-center justify-center relative">
-          <div className="absolute bottom-1 w-4 h-6 bg-[#a05030] border-x-2 border-b-2 border-[#383838]" />
-          <div className="absolute bottom-4 w-12 h-12 bg-[#88d8b0] border-2 border-[#383838] rounded-full flex flex-col items-center justify-center gap-1 shadow-sm">
-            <div className="w-8 h-1 bg-white/20 rounded-full" />
-            <div className="w-6 h-1 bg-white/20 rounded-full" />
-          </div>
+          <div className="absolute bottom-0 w-6 h-10 bg-[#a05030] border-2 border-[#383838] rounded-sm" />
+        </div>
+      )}
+      {type === 'cut_tree' && (
+        <div className="w-full h-full flex items-center justify-center relative">
+          <div className="w-10 h-10 bg-[#3d8b5b] border-2 border-[#24563a] rounded-md shadow-sm" />
+        </div>
+      )}
+      {type === 'boulder' && (
+        <div className="w-full h-full flex items-center justify-center relative">
+          <div className="w-10 h-10 bg-[#9a9a9a] border-2 border-[#6f6f6f] rounded-full shadow-sm" />
         </div>
       )}
       {type === 'grass' && !isEncounterGrass && (
@@ -301,14 +310,14 @@ const Player = ({ position, direction, isMoving }: { position: Position, directi
 
   return (
     <motion.div
-      className="absolute top-0 left-0 z-30 flex items-center justify-center"
+      className="absolute top-0 left-0 flex items-center justify-center"
       initial={false}
       animate={{ 
         x: position.x * TILE_SIZE, 
         y: position.y * TILE_SIZE,
       }}
       transition={{ type: "tween", duration: 0.1, ease: "linear" }}
-      style={{ width: TILE_SIZE, height: TILE_SIZE }}
+      style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 30 + position.y }}
     >
       <div className="relative">
         {/* Floating Indicator */}
@@ -398,29 +407,86 @@ export default function App() {
   const [spottedTrainerId, setSpottedTrainerId] = useState<string | null>(null);
   const [spottedTrainerPos, setSpottedTrainerPos] = useState<Position | null>(null);
   const [overworldShake, setOverworldShake] = useState(false);
+  const [badgeBoostGlitchStacks, setBadgeBoostGlitchStacks] = useState(0);
+  const [activeSaveSlot, setActiveSaveSlot] = useState('slot1');
+  const [playTimeMs, setPlayTimeMs] = useState(0);
 
   // Story State
   const [storyStep, setStoryStep] = useState<'START' | 'OAK_STOPPED' | 'IN_LAB' | 'PICKED_STARTER' | 'RIVAL_BATTLE' | 'EXPLORING'>('START');
-  const [inventory, setInventory] = useState<string[]>(['POTION', 'POKEBALL']);
+  const [inventory, setInventory] = useState<InventoryCounts>({ POTION: 1, POKEBALL: 1 });
+  const hasItem = useCallback((itemId: string) => (inventory[itemId] ?? 0) > 0, [inventory]);
+  const addItem = useCallback((itemId: string, amount = 1) => {
+    setInventory(prev => ({ ...prev, [itemId]: (prev[itemId] ?? 0) + amount }));
+  }, []);
+  const removeItem = useCallback((itemId: string, amount = 1) => {
+    setInventory(prev => {
+      const nextQty = (prev[itemId] ?? 0) - amount;
+      if (nextQty <= 0) {
+        const { [itemId]: _removed, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [itemId]: nextQty };
+    });
+  }, []);
+
 
   const moveTimeout = useRef<NodeJS.Timeout | null>(null);
   const poisonStepCounter = useRef(0);
+  const sessionStartMs = useRef(Date.now());
 
   // --- Save / Load System ---
   useEffect(() => {
-    const savedData = localStorage.getItem('pokemon_save');
-    if (savedData) {
-      if (!savedData.includes('http')) {
-        console.warn("Legacy save file detected. Clearing to prevent sprite bugs.");
-        localStorage.removeItem('pokemon_save');
-        return;
-      }
+    const slotsRaw = localStorage.getItem('pokemon_save_slots');
+    const activeSlot = localStorage.getItem('pokemon_active_slot') || 'slot1';
+    setActiveSaveSlot(activeSlot);
+    if (slotsRaw) {
       try {
-        const data = JSON.parse(savedData);
+        const slotsPayload = JSON.parse(slotsRaw) as Record<string, { data: any; updatedAt: number; playTimeMs: number }>;
+        const selected = slotsPayload[activeSlot]?.data;
+        if (!selected) return;
+        const data = selected;
         setPlayerPos(data.pos);
         if (MAP_IDS.includes(data.map)) setCurrentMap(data.map);
         setPlayerTeam(data.team);
-        setInventory(data.inventory);
+        const invData = data.inventory;
+        if (Array.isArray(invData)) {
+          const migrated: InventoryCounts = {};
+          for (const id of invData) migrated[id] = (migrated[id] ?? 0) + 1;
+          setInventory(migrated);
+        } else {
+          setInventory(invData ?? {});
+        }
+        setDefeatedTrainers(data.defeatedTrainers);
+        setHasPokedex(data.hasPokedex);
+        setHasParcel(data.hasParcel);
+        setStoryStep(data.storyStep);
+        if (data.lastHealLocation) setLastHealLocation(data.lastHealLocation);
+        if (data.pokedex) setPokedex(data.pokedex);
+        if (data.money != null) setMoney(data.money);
+        if (slotsPayload[activeSlot]?.playTimeMs != null) setPlayTimeMs(slotsPayload[activeSlot].playTimeMs);
+      } catch (e) {
+        console.error("Error loading save", e);
+      }
+      return;
+    }
+
+    // Backward compatibility: migrate old single-slot save
+    const savedData = localStorage.getItem('pokemon_save');
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData);
+        if (!data?.team) return;
+        setPlayerPos(data.pos);
+        if (MAP_IDS.includes(data.map)) setCurrentMap(data.map);
+        setPlayerTeam(data.team);
+        const invData = data.inventory;
+        if (Array.isArray(invData)) {
+          const migrated: InventoryCounts = {};
+          for (const id of invData) migrated[id] = (migrated[id] ?? 0) + 1;
+          setInventory(migrated);
+        } else {
+          setInventory(invData ?? {});
+        }
         setDefeatedTrainers(data.defeatedTrainers);
         setHasPokedex(data.hasPokedex);
         setHasParcel(data.hasParcel);
@@ -429,7 +495,7 @@ export default function App() {
         if (data.pokedex) setPokedex(data.pokedex);
         if (data.money != null) setMoney(data.money);
       } catch (e) {
-        console.error("Error loading save", e);
+        console.error("Error loading legacy save", e);
       }
     }
   }, []);
@@ -449,9 +515,18 @@ export default function App() {
         pokedex,
         money
       };
-      localStorage.setItem('pokemon_save', JSON.stringify(saveData));
+      const slotsRaw = localStorage.getItem('pokemon_save_slots');
+      const slotsPayload = slotsRaw ? JSON.parse(slotsRaw) as Record<string, { data: any; updatedAt: number; playTimeMs: number }> : {};
+      const totalPlayTime = playTimeMs + (Date.now() - sessionStartMs.current);
+      slotsPayload[activeSaveSlot] = {
+        data: saveData,
+        updatedAt: Date.now(),
+        playTimeMs: totalPlayTime,
+      };
+      localStorage.setItem('pokemon_save_slots', JSON.stringify(slotsPayload));
+      localStorage.setItem('pokemon_active_slot', activeSaveSlot);
     }
-  }, [playerPos, currentMap, playerTeam, inventory, defeatedTrainers, hasPokedex, hasParcel, storyStep, lastHealLocation, pokedex, money]);
+  }, [activeSaveSlot, playerPos, currentMap, playerTeam, inventory, defeatedTrainers, hasPokedex, hasParcel, storyStep, lastHealLocation, pokedex, money, playTimeMs]);
 
   useEffect(() => {
     if (inBattle) {
@@ -496,7 +571,7 @@ export default function App() {
 
   const npcs: Record<MapID, NPC[]> = {
     PALLET_TOWN: [
-      { id: 'mom', name: 'MAMÁ', type: 'npc', position: { x: 7, y: 10 }, direction: 'down', dialogue: ["¡Ten cuidado ahí fuera, hijo!", "Recuerda que el Prof. Oak te está buscando."] },
+      { id: 'mom', name: 'MAMÁ', type: 'npc', onInteract: 'heal', position: { x: 7, y: 10 }, direction: 'down', dialogue: ["¡Ten cuidado ahí fuera, hijo!", "Recuerda que el Prof. Oak te está buscando."] },
       ...(playerTeam.length === 0 ? [{ id: 'oak_pallet', name: 'PROF. OAK', type: 'npc' as const, position: { x: 10, y: 4 }, direction: 'down' as const, dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."] }] : [])
     ],
     OAKS_LAB: [
@@ -504,6 +579,7 @@ export default function App() {
         id: 'oak', 
         name: 'PROF. OAK', 
         type: 'npc', 
+        onInteract: 'oak_parcel_turnin',
         position: { x: 10, y: 7 }, 
         direction: 'down', 
         dialogue: hasParcel 
@@ -544,7 +620,7 @@ export default function App() {
       { id: 'citizen', name: 'CIUDADANO', type: 'npc', position: { x: 10, y: 12 }, direction: 'down', dialogue: ["¡Bienvenido a Ciudad Verde!", "Aquí puedes curar a tus POKÉMON en el Centro."] }
     ],
     POKECENTER: [
-      { id: 'joy', name: 'ENFERMERA JOY', type: 'npc', position: { x: 10, y: 7 }, direction: 'down', dialogue: ["¡Hola! Bienvenida al CENTRO POKÉMON.", "Curaremos a tus POKÉMON hasta que estén a tope."] }
+      { id: 'joy', name: 'ENFERMERA JOY', type: 'npc', onInteract: 'heal', position: { x: 10, y: 7 }, direction: 'down', dialogue: ["¡Hola! Bienvenida al CENTRO POKÉMON.", "Curaremos a tus POKÉMON hasta que estén a tope."] }
     ],
     POKEMART: [
       { 
@@ -553,6 +629,7 @@ export default function App() {
         type: 'npc', 
         position: { x: 7, y: 7 }, 
         direction: 'down', 
+        onInteract: 'shop',
         dialogue: (!hasParcel && !hasPokedex) 
           ? ["¡Ah! ¡Tú vienes de PUEBLO PALETA!", "Tengo un paquete para el PROF. OAK. ¿Se lo llevarías?", "¡Gracias! Dile que es de parte de la TIENDA."] 
           : ["¡Hola! ¿En qué puedo ayudarte hoy?"] 
@@ -749,6 +826,7 @@ export default function App() {
     currentMap,
     hasParcel,
     hasPokedex,
+    badges,
     inventory,
     playerTeam,
     npcs,
@@ -773,7 +851,17 @@ export default function App() {
   }, [playerPos, direction, isMoving, dialogue, inBattle, phase, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep]);
 
   const resetGame = useCallback(() => {
-    localStorage.clear();
+    const slotsRaw = localStorage.getItem('pokemon_save_slots');
+    if (slotsRaw) {
+      try {
+        const slotsPayload = JSON.parse(slotsRaw) as Record<string, { data: any; updatedAt: number; playTimeMs: number }>;
+        delete slotsPayload[activeSaveSlot];
+        localStorage.setItem('pokemon_save_slots', JSON.stringify(slotsPayload));
+      } catch {
+        localStorage.removeItem('pokemon_save_slots');
+      }
+    }
+    localStorage.removeItem('pokemon_save');
     setCurrentMap('PALLET_TOWN');
     setPlayerPos({ x: 10, y: 10 });
     setDirection('down');
@@ -798,9 +886,11 @@ export default function App() {
     setDamageNumber(null);
     setBattleShake(false);
     setStoryStep('START');
-    setInventory(['POTION', 'POKEBALL']);
+    setInventory({ POTION: 1, POKEBALL: 1 });
+    setPlayTimeMs(0);
+    sessionStartMs.current = Date.now();
     soundManager.play('SELECT');
-  }, []);
+  }, [activeSaveSlot]);
 
   const handleMove = useCallback((dir: Direction) => {
     const { isMoving, dialogue, phaseType, playerPos, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep } = gameState.current;
@@ -1115,15 +1205,7 @@ export default function App() {
     if (!enemyPokemon) return;
     
     // Remove pokeball from inventory
-    setInventory(prev => {
-      const index = prev.indexOf('POKEBALL');
-      if (index > -1) {
-        const next = [...prev];
-        next.splice(index, 1);
-        return next;
-      }
-      return prev;
-    });
+    removeItem('POKEBALL');
 
     setBattleLog(`¡Pablo lanzó una POKÉ BALL!`);
     setPhase(battle(B_CATCHING));
@@ -1163,19 +1245,12 @@ export default function App() {
   };
 
   const handleUseItem = (itemId: string) => {
+    if (!hasItem(itemId)) return;
     if (!inBattle) {
       if (itemId === 'POTION') {
         const healedTeam = playerTeam.map(p => ({ ...p, hp: Math.min(p.maxHp, p.hp + 20) }));
         setPlayerTeam(healedTeam);
-        setInventory(prev => {
-          const index = prev.indexOf('POTION');
-          if (index > -1) {
-            const next = [...prev];
-            next.splice(index, 1);
-            return next;
-          }
-          return prev;
-        });
+        removeItem('POTION');
         setDialogue("¡Usaste una POCIÓN! Tus POKÉMON recuperaron salud.");
       }
       return;
@@ -1192,15 +1267,7 @@ export default function App() {
       updatedTeam[0] = { ...playerPkmn, hp: newHP };
       setPlayerTeam(updatedTeam);
 
-      setInventory(prev => {
-        const index = prev.indexOf('POTION');
-        if (index > -1) {
-          const next = [...prev];
-          next.splice(index, 1);
-          return next;
-        }
-        return prev;
-      });
+      removeItem('POTION');
 
       // Show heal number floating effect
       setHealNumber({ x: 30, y: 60, value: healed });
@@ -1216,6 +1283,7 @@ export default function App() {
   const clearBattleStatBoosts = () => {
     setPlayerTeam(prev => prev.map(p => ({ ...p, statBoosts: undefined })));
     setEnemyPokemon(prev => prev ? { ...prev, statBoosts: undefined } : null);
+    setBadgeBoostGlitchStacks(0);
   };
 
   /** Apply a stat stage change to player or enemy, clamped to [-6, +6]. Returns message. */
@@ -1238,6 +1306,10 @@ export default function App() {
         updated[0] = { ...updated[0], statBoosts: boosts };
         return updated;
       });
+      if (badges.includes('BOULDER')) {
+        // Gen I badge boost glitch: stat changes re-apply badge-derived boosts.
+        setBadgeBoostGlitchStacks(prev => prev + 1);
+      }
     } else {
       setEnemyPokemon(prev => {
         if (!prev) return prev;
@@ -1358,7 +1430,17 @@ export default function App() {
     }
 
     setTimeout(() => {
-      const result = calculateDamage(playerPkmn, enemyPokemon, move);
+      const attackMultiplier = badges.includes('BOULDER') ? 1 + badgeBoostGlitchStacks * 0.125 : 1;
+      const attackerWithBadgeGlitch = attackMultiplier > 1
+        ? {
+            ...playerPkmn,
+            baseStats: {
+              ...playerPkmn.baseStats,
+              attack: Math.floor(playerPkmn.baseStats.attack * attackMultiplier),
+            },
+          }
+        : playerPkmn;
+      const result = calculateDamage(attackerWithBadgeGlitch, enemyPokemon, move);
       const damage = result.damage;
       const newEnemyHP = Math.max(0, enemyPokemon.hp - damage);
 
@@ -1756,9 +1838,9 @@ export default function App() {
           {items[currentMap].map(item => (
             <motion.div
               key={item.id}
-              className="absolute top-0 left-0 z-20 flex items-center justify-center"
+              className="absolute top-0 left-0 flex items-center justify-center"
               animate={{ x: item.position.x * TILE_SIZE, y: item.position.y * TILE_SIZE }}
-              style={{ width: TILE_SIZE, height: TILE_SIZE }}
+              style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 18 + item.position.y }}
             >
               {item.type === 'item' ? (
                 <div className="w-8 h-8 bg-red-500 rounded-full border-2 border-[#383838] flex items-center justify-center relative shadow-md">
@@ -1781,6 +1863,31 @@ export default function App() {
           {/* Player */}
           <Player position={playerPos} direction={direction} isMoving={isMoving} />
 
+          {/* Tree canopy overlay layer: appears above actors for perspective */}
+          {maps[currentMap].flatMap((row, y) =>
+            row.map((tile, x) => {
+              if (tile.type !== 'tree') return null;
+              return (
+                <div
+                  key={`tree-canopy-${x}-${y}`}
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: x * TILE_SIZE - 6,
+                    top: y * TILE_SIZE - 18,
+                    width: TILE_SIZE + 12,
+                    height: TILE_SIZE,
+                    zIndex: 40 + y,
+                  }}
+                >
+                  <div className="w-full h-full bg-[#88d8b0] border-2 border-[#383838] rounded-full flex flex-col items-center justify-center gap-1 shadow-sm">
+                    <div className="w-8 h-1 bg-white/20 rounded-full" />
+                    <div className="w-6 h-1 bg-white/20 rounded-full" />
+                  </div>
+                </div>
+              );
+            })
+          )}
+
           {/* Interaction Indicator */}
           <AnimatePresence>
             {!inBattle && !dialogue && !isMoving && (() => {
@@ -1797,7 +1904,7 @@ export default function App() {
                 npcs[currentMap].some(npc => npc.position.x === targetX && npc.position.y === targetY) ||
                 items[currentMap].some(item => item.position.x === targetX && item.position.y === targetY) ||
                 (targetX >= 0 && targetX < GRID_SIZE && targetY >= 0 && targetY < GRID_SIZE && 
-                 ['tree', 'table'].includes(maps[currentMap][targetY][targetX].type));
+                 ['tree', 'table', 'cut_tree', 'boulder'].includes(maps[currentMap][targetY][targetX].type));
               
               if (!interactable) return null;
 
@@ -1896,7 +2003,7 @@ export default function App() {
                 } },
                 { icon: Settings, label: 'Guardar', color: 'bg-slate-500', action: () => {
                   soundManager.play('SELECT');
-                  setDialogue("¡Partida guardada correctamente!");
+                  setDialogue(`¡Partida guardada en ${SAVE_SLOT_NAMES[activeSaveSlot] || activeSaveSlot}!`);
                 } },
                 { icon: X, label: 'Reiniciar', color: 'bg-red-500', action: () => {
                   resetGame();
@@ -1962,11 +2069,35 @@ export default function App() {
                 <div className="flex flex-col gap-1 mt-2">
                   <span className="text-[10px] text-slate-400 uppercase">Inventario</span>
                   <div className="flex flex-wrap gap-1">
-                    {inventory.map(item => (
-                      <span key={item} className="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{item}</span>
+                    {Object.entries(inventory).map(([item, qty]) => (
+                      <span key={item} className="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{item} x{qty}</span>
                     ))}
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-slate-200">
+              <h3 className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold mb-2 px-2">Perfiles</h3>
+              <div className="grid grid-cols-3 gap-2 px-2">
+                {Object.keys(SAVE_SLOT_NAMES).map(slotId => (
+                  <button
+                    key={slotId}
+                    onClick={() => {
+                      if (slotId === activeSaveSlot) return;
+                      localStorage.setItem('pokemon_active_slot', slotId);
+                      setActiveSaveSlot(slotId);
+                      window.location.reload();
+                    }}
+                    className={`text-[10px] font-bold rounded-lg px-2 py-2 border ${
+                      slotId === activeSaveSlot
+                        ? 'bg-red-500 text-white border-red-600'
+                        : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                    }`}
+                  >
+                    {SAVE_SLOT_NAMES[slotId]}
+                  </button>
+                ))}
               </div>
             </div>
           </motion.div>
@@ -2066,7 +2197,7 @@ export default function App() {
             onBuy={(id) => {
               const price = SHOP_PRICES[id] ?? 200;
               setMoney(prev => prev - price);
-              setInventory(prev => [...prev, id]);
+              addItem(id);
             }}
           />
         )}

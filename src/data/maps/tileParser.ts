@@ -15,6 +15,8 @@
  *   C  carpet  (walkable, indoors)
  *   X  table   (not walkable)
  *   S  sign    (walkable, interactable)
+ *   H  cut_tree (not walkable, can be cut with HM)
+ *   B  boulder  (not walkable, can be moved with HM)
  *   ~  water   (not walkable)
  */
 
@@ -30,6 +32,8 @@ const TILE_LEGEND: Record<string, Tile> = {
   C: { type: 'carpet', walkable: true  },
   X: { type: 'table',  walkable: false },
   S: { type: 'sign',   walkable: true  },
+  H: { type: 'cut_tree', walkable: false },
+  B: { type: 'boulder', walkable: false },
   '~': { type: 'water', walkable: false },
 };
 

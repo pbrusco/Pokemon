@@ -88,9 +88,12 @@ export interface InventoryItem {
   type: 'potion' | 'pokeball' | 'key_item';
 }
 
+export type InventoryCounts = Record<string, number>;
+
 export interface NPC extends Entity {
   name: string;
   dialogue: string[];
+  onInteract?: 'heal' | 'shop' | 'oak_parcel_turnin';
   questId?: string;
   isRival?: boolean;
   isTrainer?: boolean;
@@ -108,7 +111,7 @@ export interface Entity {
 }
 
 export interface Tile {
-  type: 'grass' | 'water' | 'path' | 'wall' | 'door' | 'floor' | 'carpet' | 'table' | 'tree' | 'sign';
+  type: 'grass' | 'water' | 'path' | 'wall' | 'door' | 'floor' | 'carpet' | 'table' | 'tree' | 'sign' | 'cut_tree' | 'boulder';
   walkable: boolean;
 }
 

@@ -227,9 +227,16 @@ export const MOVES: Record<string, Move> = {
   POISON_POWDER: move('POLVO VENENO',  'poison',    0,  75, 35, { statusEffect: 'poison',    statusChance: 100 }),
   SLEEP_POWDER:  move('SOMNÍFERO',     'grass',     0,  75, 15, { statusEffect: 'sleep',     statusChance: 100 }),
   ROCK_THROW:    move('LANZARROCAS',   'rock',     50,  90, 15),
+  CUT:           move('CORTAR',        'normal',   50,  95, 30),
+  STRENGTH:      move('FUERZA',        'normal',   80, 100, 15),
   HARDEN:        move('FORTALEZA',     'normal',    0, 100, 30, { statChange: { target: 'self',  stat: 'defense', stages: +1 } }),
   POUND:         move('GOLPE NORMAL',  'normal',   40, 100, 35),
 };
+
+export const HM_REQUIREMENTS = {
+  cut: { badge: 'CASCADE', move: 'CORTAR' },
+  strength: { badge: 'RAINBOW', move: 'FUERZA' },
+} as const;
 
 const getSprite = (id: number) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 

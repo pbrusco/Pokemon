@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 
-const TILE_TYPES = ['grass', 'path', 'wall', 'door', 'floor', 'carpet', 'table', 'tree', 'sign'];
+const TILE_TYPES = ['grass', 'path', 'wall', 'door', 'floor', 'carpet', 'table', 'tree', 'sign', 'cut_tree', 'boulder'];
 
 export function MapEditor({ onClose }: { onClose: () => void }) {
   const store = useGameStore();
@@ -21,7 +21,7 @@ export function MapEditor({ onClose }: { onClose: () => void }) {
     const newGrid = [...currentGrid];
     const newRow = [...newGrid[y]];
     // Auto-determine walkability based on standard types
-    const isWalkable = !['wall', 'tree', 'table'].includes(activeTile);
+    const isWalkable = !['wall', 'tree', 'table', 'cut_tree', 'boulder'].includes(activeTile);
     newRow[x] = { type: activeTile, walkable: isWalkable };
     newGrid[y] = newRow;
     
@@ -42,6 +42,8 @@ export function MapEditor({ onClose }: { onClose: () => void }) {
       case 'table': return '#d8d8d8';
       case 'tree': return '#1a7a40';
       case 'sign': return '#c8a020';
+      case 'cut_tree': return '#2e8b57';
+      case 'boulder': return '#8b8b8b';
       default: return '#000';
     }
   };
@@ -58,6 +60,8 @@ export function MapEditor({ onClose }: { onClose: () => void }) {
       table: 'T',
       tree: 'R',
       sign: 'S',
+      cut_tree: 'H',
+      boulder: 'B',
     };
     const rows = localMapData[selectedMapKey].map((row: any[]) =>
       row.map((tile: any) => tileToCode[tile.type] ?? 'G').join('')
@@ -74,6 +78,8 @@ export function MapEditor({ onClose }: { onClose: () => void }) {
         T: 'table',
         R: 'tree',
         S: 'sign',
+        H: 'cut_tree',
+        B: 'boulder',
       },
     };
     const fullReplacement = `export const ${selectedMapKey}_MAP = ${JSON.stringify(compact, null, 2)};`;
