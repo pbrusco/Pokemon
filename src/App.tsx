@@ -733,10 +733,10 @@ export default function App() {
     setIsTrainerBattle,
   });
 
-  const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep });
+  const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges });
   useEffect(() => {
-    gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, battleSubPhase: phase.type === 'BATTLE' ? phase.sub.type : null, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep };
-  }, [playerPos, direction, isMoving, dialogue, inBattle, phase, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep]);
+    gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, battleSubPhase: phase.type === 'BATTLE' ? phase.sub.type : null, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges };
+  }, [playerPos, direction, isMoving, dialogue, inBattle, phase, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges]);
 
   const resetGame = useCallback(() => {
     const slotsRaw = localStorage.getItem('pokemon_save_slots');
@@ -891,11 +891,11 @@ export default function App() {
               setSpottedTrainerPos(null);
               soundManager.play('BATTLE_START');
               setEnemyPokemon(trainer.trainerTeam![0]);
-              battleStateRef.current = createBattleState(playerTeam, trainer.trainerTeam![0], {
+              battleStateRef.current = createBattleState(gameState.current.playerTeam, trainer.trainerTeam![0], {
                 isTrainerBattle: true,
-                inventory,
-                pcStorage,
-                hasBoulderBadge: badges.includes('BOULDER'),
+                inventory: gameState.current.inventory,
+                pcStorage: gameState.current.pcStorage,
+                hasBoulderBadge: gameState.current.badges.includes('BOULDER'),
               });
               updatePokedex(trainer.trainerTeam![0].id);
               setIsTrainerBattle(true);
@@ -932,10 +932,10 @@ export default function App() {
           maxHp: finalMaxHp,
         };
         setEnemyPokemon(finalPkmn);
-        battleStateRef.current = createBattleState(playerTeam, finalPkmn, {
-          inventory,
-          pcStorage,
-          hasBoulderBadge: badges.includes('BOULDER'),
+        battleStateRef.current = createBattleState(gameState.current.playerTeam, finalPkmn, {
+          inventory: gameState.current.inventory,
+          pcStorage: gameState.current.pcStorage,
+          hasBoulderBadge: gameState.current.badges.includes('BOULDER'),
         });
         setIsTrainerBattle(false);
         updatePokedex(randomPkmn.id);

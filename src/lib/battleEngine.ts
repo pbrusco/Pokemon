@@ -318,7 +318,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
 
       if (newEnemyHP === 0) {
         // Enemy fainted — compute EXP
-        const expGain = Math.floor(s.enemyPokemon.level * 25 * (s.isTrainerBattle ? 1.5 : 1));
+        const expGain = Math.floor(s.enemyPokemon.level * 25 * (s.isTrainerBattle ? 2.5 : 1));
         const { pkmn: leveledPkmn, didLevelUp, learnedMove, willEvolve, evolvedPkmn } = computeExpAndLevelUp(playerPkmn, expGain);
 
         const faintLog = `¡${s.enemyPokemon.name} se debilitó!`;
@@ -619,6 +619,7 @@ export function createBattleState(
     hasBoulderBadge?: boolean;
   } = {},
 ): BattleState {
+  if (playerTeam.length === 0) throw new Error('createBattleState: playerTeam must not be empty');
   return {
     playerTeam,
     enemyPokemon,

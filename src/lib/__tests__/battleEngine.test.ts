@@ -582,6 +582,12 @@ describe('Potion use in battle', () => {
 
 // ─── Scenario 11: ATTACK is a no-op when not in CHOOSING ────────────────────
 
+describe('createBattleState validation', () => {
+  it('throws when playerTeam is empty', () => {
+    expect(() => createBattleState([], makePkmn())).toThrow('playerTeam must not be empty');
+  });
+});
+
 describe('Phase guards', () => {
   it('ATTACK action is rejected outside of CHOOSING phase', () => {
     const state: BattleState = { ...makeState(), phase: 'PLAYER_ATTACK' };
