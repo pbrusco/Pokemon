@@ -22,6 +22,8 @@ interface GameState {
   inventory: InventoryCounts;
   playerTeam: Pokemon[];
   pcStorage: Pokemon[];
+  money: number;
+  badgeBoostGlitchStacks: number;
   
   // Ephemeral Action State
   dialogue: string | null;
@@ -69,6 +71,9 @@ interface GameState {
   setShowBattleTransition: (show: boolean) => void;
   setIsCatching: (c: boolean) => void;
   
+  setMoney: (money: SetStateAction<number>) => void;
+  setBadgeBoostGlitchStacks: (stacks: SetStateAction<number>) => void;
+
   // Global Save/Load Handlers
   loadPersistedState: (savePayload: any) => void;
 }
@@ -90,6 +95,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   inventory: { POTION: 1, POKEBALL: 1 },
   playerTeam: [],
   pcStorage: [],
+  money: 3000,
+  badgeBoostGlitchStacks: 0,
   
   dialogue: null,
   isLocked: false,
@@ -151,6 +158,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   updateTeam: (team) => set({ playerTeam: team }),
   updatePcStorage: (pc) => set({ pcStorage: pc }),
   
+  setMoney: (money) => set((state) => ({ money: typeof money === 'function' ? money(state.money) : money })),
+  setBadgeBoostGlitchStacks: (stacks) => set((state) => ({ badgeBoostGlitchStacks: typeof stacks === 'function' ? stacks(state.badgeBoostGlitchStacks) : stacks })),
+
   setBattleState: (isBattle, enemy = null) => set({ isBattle, enemyPokemon: enemy }),
   setEnemyPokemon: (enemy) => set({ enemyPokemon: enemy }),
   setShowBattleTransition: (show) => set({ showBattleTransition: show }),
@@ -165,6 +175,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     hasPokedex: data.hasPokedex,
     hasParcel: data.hasParcel,
     storyStep: data.storyStep,
-    lastHealLocation: data.lastHealLocation || { map: 'PALLET_TOWN', pos: { x: 7, y: 11 } }
+    lastHealLocation: data.lastHealLocation || { map: 'PALLET_TOWN', pos: { x: 7, y: 11 } },
+    money: data.money ?? 3000,
+    badgeBoostGlitchStacks: data.badgeBoostGlitchStacks ?? 0,
   })
 }));

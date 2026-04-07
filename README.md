@@ -30,11 +30,19 @@ export PATH="/opt/homebrew/bin:$PATH"
 ## Project Structure
 
 - `src/App.tsx` — main runtime orchestrator (movement, phase transitions, battle loop, menus)
-- `src/hooks/useInteractionEngine.ts` — overworld interaction flow (NPCs, items, tile interactions)
-- `src/types/gamePhase.ts` — top-level and battle sub-phase FSM types
-- `src/constants.ts` — Pokemon/moves/items/evolution/static game data
+- `src/hooks/` — extracted state slices:
+  - `useInteractionEngine.ts` — overworld NPC/item/tile interaction flow
+  - `useBattleVFX.ts` — battle animation state (anims, flash, projectile, damage numbers)
+  - `useOverworldVFX.ts` — overworld VFX state (grass, trainer spotted, shake)
+  - `usePokedex.ts` — Pokédex state and `updatePokedex()`
+  - `useSaveSystem.ts` — slot-based save/load effects and play-time tracking
+  - `useWindowSize.ts` — responsive window dimensions
+- `src/store/gameStore.ts` — Zustand store (player, team, inventory, money, badges, flags)
+- `src/lib/battleEngine.ts` — pure battle state machine (no React, no side effects)
 - `src/lib/damage.ts` — damage/stat/type calculations
 - `src/lib/sounds.ts` — synthesized SFX + music manager
+- `src/types/gamePhase.ts` — top-level and battle sub-phase FSM types
+- `src/constants.ts` — Pokemon/moves/items/evolution/static game data
 - `src/components/` — UI surfaces (battle, inventory, team, pokedex, PC, map editor, dialogue)
 - `src/data/maps/` — compact map sources + parser/export
 
@@ -62,8 +70,17 @@ Notable tiles:
 - `X` / `Shift` / `Esc` open menu
 - `Shift + E` open map editor
 
+## Testing
+
+118 unit and scenario tests covering damage math, battle engine flows, interaction engine, and Gen I status rules:
+
+```bash
+npm run test:run   # single run (CI)
+npm test           # watch mode
+```
+
 ## Known Next Major Task
 
-- Final state consolidation: migrate remaining `App.tsx` state soup into `useGameStore` incrementally without regressing battle behavior.
+- State consolidation phase 3: extract `useBattleEngine` and `usePlayerMovement` to finish clearing `App.tsx`.
 
 See `CLAUDE.md` for implementation details and `TODO.md` for task tracking.

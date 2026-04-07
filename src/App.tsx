@@ -39,6 +39,11 @@ import { PCStorageUI } from './components/PCStorageUI';
 import { BattleScreen } from './components/BattleScreen';
 import { Joystick } from './components/Joystick';
 import { useInteractionEngine } from './hooks/useInteractionEngine';
+import { useWindowSize } from './hooks/useWindowSize';
+import { useBattleVFX } from './hooks/useBattleVFX';
+import { useOverworldVFX } from './hooks/useOverworldVFX';
+import { usePokedex } from './hooks/usePokedex';
+import { useSaveSystem } from './hooks/useSaveSystem';
 import { useGameStore } from './store/gameStore';
 
 // --- Constants & Data ---
@@ -366,7 +371,13 @@ export default function App() {
   const setDialogue = useGameStore(s => s.setDialogue);
   const [phase, setPhase] = useState<GamePhase>(EXPLORING);
   const [isTrainerBattle, setIsTrainerBattle] = useState(false);
+  const [showMoves, setShowMoves] = useState(false);
+  const showMovesRef = useRef(false);
+  const isTrainerBattleRef = useRef(false);
   const [pickedItemIds, setPickedItemIds] = useState<string[]>([]);
+
+  showMovesRef.current = showMoves;
+  isTrainerBattleRef.current = isTrainerBattle;
 
   // Phase-derived helpers
   const inBattle = phase.type === 'BATTLE';
@@ -375,7 +386,7 @@ export default function App() {
   const setHasPokedex = useGameStore(s => s.setHasPokedex);
   const hasParcel = useGameStore(s => s.hasParcel);
   const setHasParcel = useGameStore(s => s.setHasParcel);
-  const [pokedex, setPokedex] = useState<Record<string, { seen: boolean, caught: boolean }>>({});
+  const { pokedex, setPokedex, updatePokedex } = usePokedex();
   const pcStorage = useGameStore(s => s.pcStorage);
   const setPcStorage = useGameStore(s => s.setPcStorage);
   const badges = useGameStore(s => s.badges);
@@ -383,47 +394,32 @@ export default function App() {
   const defeatedTrainers = useGameStore(s => s.defeatedTrainers);
   const setDefeatedTrainers = useGameStore(s => s.setDefeatedTrainers);
   // isBattle and showBattleTransition replaced by phase
-  const [grassEffect, setGrassEffect] = useState<{ x: number; y: number } | null>(null);
-  const [windowSize, setWindowSize] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 1200,
-    height: typeof window !== 'undefined' ? window.innerHeight : 800
-  });
-  
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-    };
-    handleResize(); // Update on mount
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const { grassEffect, setGrassEffect, spottedTrainerId, setSpottedTrainerId, spottedTrainerPos, setSpottedTrainerPos, overworldShake, setOverworldShake } = useOverworldVFX();
+  const windowSize = useWindowSize();
 
   const playerTeam = useGameStore(s => s.playerTeam);
   const setPlayerTeam = useGameStore(s => s.setPlayerTeam);
   const [enemyPokemon, setEnemyPokemon] = useState<Pokemon | null>(null);
   const [battleLog, setBattleLog] = useState("");
-  const [playerAnim, setPlayerAnim] = useState<'idle' | 'attack' | 'hit' | 'faint'>('idle');
-  const [enemyAnim, setEnemyAnim] = useState<'idle' | 'attack' | 'hit' | 'faint'>('idle');
-  const [screenFlash, setScreenFlash] = useState(false);
-  const [hitEffect, setHitEffect] = useState<{ x: number, y: number, type: string } | null>(null);
-  const [projectile, setProjectile] = useState<{ type: string, from: 'player' | 'enemy' } | null>(null);
-  const [damageNumber, setDamageNumber] = useState<{ x: number, y: number, value: number } | null>(null);
-  const [healNumber, setHealNumber] = useState<{ x: number, y: number, value: number } | null>(null);
-  const [battleShake, setBattleShake] = useState(false);
+  const {
+    playerAnim, setPlayerAnim,
+    enemyAnim, setEnemyAnim,
+    screenFlash, setScreenFlash,
+    hitEffect, setHitEffect,
+    projectile, setProjectile,
+    damageNumber, setDamageNumber,
+    healNumber, setHealNumber,
+    battleShake, setBattleShake,
+    resetBattleVFX,
+  } = useBattleVFX();
+  const [catchResult, setCatchResult] = useState<boolean | null>(null);
   // isCatching, isBlackout, isHealing, isLevelUp, isEvolving, forcedSwitch replaced by phase
   const lastHealLocation = useGameStore(s => s.lastHealLocation);
   const setLastHealLocation = useGameStore(s => s.setLastHealLocation);
-  const [money, setMoney] = useState(3000);
-  const [spottedTrainerId, setSpottedTrainerId] = useState<string | null>(null);
-  const [spottedTrainerPos, setSpottedTrainerPos] = useState<Position | null>(null);
-  const [overworldShake, setOverworldShake] = useState(false);
-  const [badgeBoostGlitchStacks, setBadgeBoostGlitchStacks] = useState(0);
-  const [activeSaveSlot, setActiveSaveSlot] = useState('slot1');
-  const [playTimeMs, setPlayTimeMs] = useState(0);
-
+  const money = useGameStore(s => s.money);
+  const setMoney = useGameStore(s => s.setMoney);
+  const badgeBoostGlitchStacks = useGameStore(s => s.badgeBoostGlitchStacks);
+  const setBadgeBoostGlitchStacks = useGameStore(s => s.setBadgeBoostGlitchStacks);
   // Story State
   const storyStep = useGameStore(s => s.storyStep);
   const setStoryStep = useGameStore(s => s.setStoryStep);
@@ -433,105 +429,16 @@ export default function App() {
   const removeInventoryItem = useGameStore(s => s.removeInventoryItem);
   const hasItem = useCallback((itemId: string) => (inventory[itemId] ?? 0) > 0, [inventory]);
 
+  const { activeSaveSlot, setActiveSaveSlot, playTimeMs, setPlayTimeMs, sessionStartMs } = useSaveSystem({
+    setPlayerPos, setCurrentMap, setPlayerTeam, setInventory, setDefeatedTrainers,
+    setHasPokedex, setHasParcel, setStoryStep, setLastHealLocation, setPokedex, setMoney,
+    playerTeam, playerPos, currentMap, inventory, defeatedTrainers, hasPokedex, hasParcel,
+    storyStep, lastHealLocation, pokedex, money,
+  });
+
 
   const moveTimeout = useRef<NodeJS.Timeout | null>(null);
   const poisonStepCounter = useRef(0);
-  const sessionStartMs = useRef(Date.now());
-
-  // --- Save / Load System ---
-  useEffect(() => {
-    const slotsRaw = localStorage.getItem('pokemon_save_slots');
-    const activeSlot = localStorage.getItem('pokemon_active_slot') || 'slot1';
-    setActiveSaveSlot(activeSlot);
-    if (slotsRaw) {
-      try {
-        const slotsPayload = JSON.parse(slotsRaw) as Record<string, { data: any; updatedAt: number; playTimeMs: number }>;
-        const selected = slotsPayload[activeSlot]?.data;
-        if (!selected) return;
-        const data = selected;
-        setPlayerPos(data.pos);
-        if (MAP_IDS.includes(data.map)) setCurrentMap(data.map);
-        setPlayerTeam(data.team);
-        const invData = data.inventory;
-        if (Array.isArray(invData)) {
-          const migrated: InventoryCounts = {};
-          for (const id of invData) migrated[id] = (migrated[id] ?? 0) + 1;
-          setInventory(migrated);
-        } else {
-          setInventory(invData ?? {});
-        }
-        setDefeatedTrainers(data.defeatedTrainers);
-        setHasPokedex(data.hasPokedex);
-        setHasParcel(data.hasParcel);
-        setStoryStep(data.storyStep);
-        if (data.lastHealLocation) setLastHealLocation(data.lastHealLocation);
-        if (data.pokedex) setPokedex(data.pokedex);
-        if (data.money != null) setMoney(data.money);
-        if (slotsPayload[activeSlot]?.playTimeMs != null) setPlayTimeMs(slotsPayload[activeSlot].playTimeMs);
-      } catch (e) {
-        console.error("Error loading save", e);
-      }
-      return;
-    }
-
-    // Backward compatibility: migrate old single-slot save
-    const savedData = localStorage.getItem('pokemon_save');
-    if (savedData) {
-      try {
-        const data = JSON.parse(savedData);
-        if (!data?.team) return;
-        setPlayerPos(data.pos);
-        if (MAP_IDS.includes(data.map)) setCurrentMap(data.map);
-        setPlayerTeam(data.team);
-        const invData = data.inventory;
-        if (Array.isArray(invData)) {
-          const migrated: InventoryCounts = {};
-          for (const id of invData) migrated[id] = (migrated[id] ?? 0) + 1;
-          setInventory(migrated);
-        } else {
-          setInventory(invData ?? {});
-        }
-        setDefeatedTrainers(data.defeatedTrainers);
-        setHasPokedex(data.hasPokedex);
-        setHasParcel(data.hasParcel);
-        setStoryStep(data.storyStep);
-        if (data.lastHealLocation) setLastHealLocation(data.lastHealLocation);
-        if (data.pokedex) setPokedex(data.pokedex);
-        if (data.money != null) setMoney(data.money);
-      } catch (e) {
-        console.error("Error loading legacy save", e);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (playerTeam.length > 0) {
-      const saveData = {
-        pos: playerPos,
-        map: currentMap,
-        team: playerTeam,
-        inventory,
-        defeatedTrainers,
-        hasPokedex,
-        hasParcel,
-        storyStep,
-        lastHealLocation,
-        pokedex,
-        money
-      };
-      const slotsRaw = localStorage.getItem('pokemon_save_slots');
-      const slotsPayload = slotsRaw ? JSON.parse(slotsRaw) as Record<string, { data: any; updatedAt: number; playTimeMs: number }> : {};
-      const totalPlayTime = playTimeMs + (Date.now() - sessionStartMs.current);
-      slotsPayload[activeSaveSlot] = {
-        data: saveData,
-        updatedAt: Date.now(),
-        playTimeMs: totalPlayTime,
-      };
-      localStorage.setItem('pokemon_save_slots', JSON.stringify(slotsPayload));
-      localStorage.setItem('pokemon_active_slot', activeSaveSlot);
-    }
-  }, [activeSaveSlot, playerPos, currentMap, playerTeam, inventory, defeatedTrainers, hasPokedex, hasParcel, storyStep, lastHealLocation, pokedex, money, playTimeMs]);
-
   useEffect(() => {
     if (inBattle) {
       soundManager.play('BATTLE_START');
@@ -550,12 +457,7 @@ export default function App() {
   }, [inBattle, currentMap]);
 
   useEffect(() => {
-    const handleResize = () => {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-    };
-    window.addEventListener('resize', handleResize);
     return () => {
-      window.removeEventListener('resize', handleResize);
       if (moveTimeout.current) clearTimeout(moveTimeout.current);
     };
   }, []);
@@ -812,16 +714,6 @@ export default function App() {
     soundManager.play('SELECT');
   };
 
-  const updatePokedex = (pokemonId: string, caught = false) => {
-    setPokedex(prev => ({
-      ...prev,
-      [pokemonId]: {
-        seen: true,
-        caught: caught || (prev[pokemonId]?.caught || false)
-      }
-    }));
-  };
-
   const { handleAction } = useInteractionEngine({
     dialogue,
     inBattle,
@@ -882,15 +774,11 @@ export default function App() {
     setPlayerTeam([]);
     setEnemyPokemon(null);
     setBattleLog("");
-    setPlayerAnim('idle');
-    setEnemyAnim('idle');
-    setScreenFlash(false);
-    setHitEffect(null);
-    setProjectile(null);
-    setDamageNumber(null);
-    setBattleShake(false);
+    resetBattleVFX();
     setStoryStep('START');
     setInventory({ POTION: 1, POKEBALL: 1 });
+    setMoney(3000);
+    setBadgeBoostGlitchStacks(0);
     setPlayTimeMs(0);
     sessionStartMs.current = Date.now();
     soundManager.play('SELECT');
@@ -1212,19 +1100,25 @@ export default function App() {
     removeInventoryItem('POKEBALL');
 
     setBattleLog(`¡Pablo lanzó una POKÉ BALL!`);
+    setCatchResult(null);
     setPhase(battle(B_CATCHING));
     soundManager.play('SELECT');
-    
+
     // Catch logic: higher chance if HP is low
     const hpPercent = enemyPokemon.hp / enemyPokemon.maxHp;
     const catchRate = (1 - hpPercent) * 0.7 + 0.1; // 10% base, up to 80% at 0 HP
-    const roll = Math.random();
-    
+    const succeeded = Math.random() < catchRate;
+
+    // Signal result to BattleScreen just before wobble sequence ends (~2.8s into animation)
+    setTimeout(() => setCatchResult(succeeded), 2800);
+
+    // Process game outcome after full animation completes
     setTimeout(() => {
-      if (roll < catchRate) {
+      setCatchResult(null);
+      if (succeeded) {
         soundManager.play('SELECT');
         setBattleLog(`¡Ya está! ¡${enemyPokemon.name} atrapado!`);
-        
+
         setTimeout(() => {
           if (playerTeam.length < 6) {
             setPlayerTeam(prev => [...prev, { ...enemyPokemon, hp: enemyPokemon.hp }]);
@@ -1232,12 +1126,10 @@ export default function App() {
             setPcStorage(prev => [...prev, { ...enemyPokemon, hp: enemyPokemon.hp }]);
             setBattleLog(`¡${enemyPokemon.name} se envió al PC de Pablo!`);
           }
-          // Update pokedex
           setPokedex(prev => ({ ...prev, [enemyPokemon.id]: { seen: true, caught: true } }));
-
           clearBattleStatBoosts();
           setPhase(EXPLORING);
-        }, 2000);
+        }, 1500);
       } else {
         setBattleLog(`¡Oh, no! ¡El POKÉMON se ha escapado!`);
         setTimeout(() => {
@@ -1245,7 +1137,7 @@ export default function App() {
           handleEnemyTurn();
         }, 1500);
       }
-    }, 2000);
+    }, 4000);
   };
 
   const handleUseItem = (itemId: string) => {
@@ -1333,6 +1225,7 @@ export default function App() {
   const handleFlee = () => {
     if (!enemyPokemon || playerTeam.length === 0 || battlePhase?.type !== 'CHOOSING') return;
     if (isTrainerBattle) return;
+    setShowMoves(false);
 
     setPhase(battle(B_PLAYER_ATTACK)); // lock input
 
@@ -1353,6 +1246,7 @@ export default function App() {
   const handleAttack = (move: Move) => {
     if (!enemyPokemon || playerTeam.length === 0 || battlePhase?.type !== 'CHOOSING') return;
     if (move.pp <= 0) return;
+    setShowMoves(false);
 
     const playerPkmn = playerTeam[0];
 
@@ -1608,15 +1502,26 @@ export default function App() {
           }
           // FORCED_SWITCH: don't allow closing without picking
         }
-        // Number keys 1-4: select move when it's the player's turn
         if (battleSubPhase === 'CHOOSING') {
-          const idx = parseInt(e.key) - 1;
-          if (idx >= 0 && idx <= 3) {
-            const mv = team[0]?.moves[idx];
-            if (mv && mv.pp > 0) handleAttack(mv);
+          const inMovesMenu = showMovesRef.current;
+          if (e.key === 'Escape' && inMovesMenu) {
+            setShowMoves(false);
+            return;
           }
-          if (e.key === 'b' || e.key === 'B') setPhase(battle(B_BATTLE_INVENTORY));
-          if (e.key === 'p' || e.key === 'P') setPhase(battle(B_BATTLE_TEAM));
+          if (!inMovesMenu) {
+            // Main battle menu shortcuts
+            if (e.key === '1') { setShowMoves(true); return; }
+            if (e.key === 'b' || e.key === 'B') { setPhase(battle(B_BATTLE_INVENTORY)); return; }
+            if (e.key === 'p' || e.key === 'P') { setPhase(battle(B_BATTLE_TEAM)); return; }
+            if ((e.key === 'h' || e.key === 'H') && !isTrainerBattleRef.current) { handleFlee(); return; }
+          } else {
+            // Moves submenu shortcuts: 1-4 select move
+            const idx = parseInt(e.key) - 1;
+            if (idx >= 0 && idx <= 3) {
+              const mv = team[0]?.moves[idx];
+              if (mv && mv.pp > 0) handleAttack(mv);
+            }
+          }
         }
         return;
       }
@@ -2124,6 +2029,7 @@ export default function App() {
             enemyPokemon={enemyPokemon}
             enemyAnim={enemyAnim}
             isCatching={battlePhase?.type === 'CATCHING'}
+            catchResult={catchResult}
             projectile={projectile}
             hitEffect={hitEffect}
             damageNumber={damageNumber}
@@ -2131,14 +2037,14 @@ export default function App() {
             playerTeam={playerTeam}
             playerAnim={playerAnim}
             battleLog={battleLog}
-            showMoves={false}
-            setShowMoves={() => {}}
+            showMoves={showMoves}
+            setShowMoves={setShowMoves}
             isTrainerBattle={isTrainerBattle}
             isPlayerTurn={battlePhase?.type === 'CHOOSING'}
             setIsBattle={(v) => { if (!v) setPhase(EXPLORING); }}
             onFlee={handleFlee}
-            setShowInventory={() => setPhase(battle(B_BATTLE_INVENTORY))}
-            setShowTeam={() => setPhase(battle(B_BATTLE_TEAM))}
+            setShowInventory={() => { setShowMoves(false); setPhase(battle(B_BATTLE_INVENTORY)); }}
+            setShowTeam={() => { setShowMoves(false); setPhase(battle(B_BATTLE_TEAM)); }}
             handleAttack={handleAttack}
           />
         )}

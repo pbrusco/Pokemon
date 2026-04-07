@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence, useAnimate } from 'framer-motion';
 import { Pokemon, Move } from '../types';
 import { soundManager } from '../lib/sounds';
 
@@ -9,6 +9,7 @@ export interface BattleScreenProps {
   enemyPokemon: Pokemon | null;
   enemyAnim: 'idle' | 'attack' | 'hit' | 'faint';
   isCatching: boolean;
+  catchResult: boolean | null;
   projectile: { type: string, from: 'player' | 'enemy' } | null;
   hitEffect: { x: number, y: number, type: string } | null;
   damageNumber: { x: number, y: number, value: number } | null;
@@ -47,11 +48,98 @@ function StatBoostBadges({ boosts }: { boosts: Pokemon['statBoosts'] }) {
   );
 }
 
+function PokeballAnim({ isCatching, catchResult }: { isCatching: boolean; catchResult: boolean | null }) {
+  const [scope, animate] = useAnimate();
+  const [visible, setVisible] = useState(false);
+  const catchResultRef = useRef<boolean | null>(null);
+
+  useEffect(() => { catchResultRef.current = catchResult; }, [catchResult]);
+
+  useEffect(() => {
+    if (!isCatching) { setVisible(false); return; }
+    setVisible(true);
+
+    (async () => {
+      await new Promise(r => setTimeout(r, 30)); // wait for mount
+      if (!scope.current) return;
+
+      // Reset to start position
+      await animate(scope.current, { x: 0, y: 0, rotate: 0, scale: 0.7, opacity: 1 }, { duration: 0 });
+
+      // Phase 1: Throw arc toward enemy (upper-right)
+      await animate(scope.current,
+        { x: [0, 260], y: [0, -190], rotate: [0, 540], scale: [0.7, 1.1, 1] },
+        { duration: 0.65, ease: 'easeOut' }
+      );
+
+      // Phase 2: Drop to resting spot
+      await animate(scope.current,
+        { y: [-190, -110] },
+        { duration: 0.25, ease: 'easeIn' }
+      );
+
+      // Small bounce
+      await animate(scope.current,
+        { y: [-110, -130, -110] },
+        { duration: 0.2, ease: 'easeOut' }
+      );
+
+      // Phase 3: Three wobbles, tapering off
+      const wobbleAngles = [[540, 516, 564, 540], [540, 520, 560, 540], [540, 524, 556, 540]];
+      for (let i = 0; i < 3; i++) {
+        await animate(scope.current, { rotate: wobbleAngles[i] }, { duration: 0.45, ease: 'easeInOut' });
+        if (i < 2) await new Promise(r => setTimeout(r, 120));
+      }
+
+      // Brief pause — catchResult should be set by now
+      await new Promise(r => setTimeout(r, 350));
+
+      const result = catchResultRef.current;
+      if (result === true) {
+        // Caught: three quick flashes then settle
+        for (let i = 0; i < 3; i++) {
+          await animate(scope.current, { opacity: [1, 0.15, 1] }, { duration: 0.28 });
+        }
+        await animate(scope.current, { scale: [1, 1.15, 1] }, { duration: 0.35 });
+      } else {
+        // Escaped: ball bursts open
+        await animate(scope.current, { scale: [1, 1.5], rotate: [540, 610], opacity: [1, 0] }, { duration: 0.4 });
+      }
+    })();
+  }, [isCatching]);
+
+  if (!visible) return null;
+
+  return (
+    <div
+      ref={scope}
+      className="absolute z-[102] pointer-events-none"
+      style={{ bottom: '30%', left: '22%' }}
+    >
+      <div className="relative w-10 h-10 sm:w-14 sm:h-14 drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)]">
+        {/* Ball shell */}
+        <div className="absolute inset-0 rounded-full border-[3px] border-black overflow-hidden">
+          <div className="absolute top-0 w-full h-1/2 bg-red-500" />
+          <div className="absolute bottom-0 w-full h-1/2 bg-white" />
+        </div>
+        {/* Center band */}
+        <div className="absolute top-1/2 -translate-y-1/2 w-full h-[3px] bg-black z-10" />
+        {/* Button */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20
+                        w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-black border-[2px] border-black
+                        flex items-center justify-center">
+          <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function BattleScreen({
   currentMap,
-  battleShake, enemyPokemon, enemyAnim, isCatching, projectile, hitEffect, damageNumber, healNumber,
+  battleShake, enemyPokemon, enemyAnim, isCatching, catchResult, projectile, hitEffect, damageNumber, healNumber,
   playerTeam, playerAnim, battleLog, isTrainerBattle, isPlayerTurn, onFlee,
-  setShowInventory, setShowTeam, handleAttack
+  setShowInventory, setShowTeam, handleAttack, showMoves, setShowMoves
 }: BattleScreenProps) {
 
   const playerPkmn = playerTeam[0];
@@ -172,7 +260,7 @@ export function BattleScreen({
             <motion.div
               className="w-32 h-32 sm:w-56 sm:h-56"
               variants={{
-                idle: { y: [0, -2, 0], transition: { repeat: Infinity, duration: 2, ease: "easeInOut" } },
+                idle: { y: [0, -2, 0], opacity: 1, x: 0, transition: { repeat: Infinity, duration: 2, ease: "easeInOut" } },
                 attack: { x: [0, 40, 0], scale: [1, 1.05, 1], transition: { duration: 0.3 } },
                 hit: { x: [0, -10, 10, -10, 10, 0], filter: ["brightness(1)", "invert(1)", "brightness(1)"], transition: { duration: 0.4 } },
                 faint: { y: [0, 100], opacity: [1, 0], transition: { duration: 0.5, ease: "easeIn" } }
@@ -245,6 +333,9 @@ export function BattleScreen({
     )}
   </div>
 </div>
+        {/* Pokeball animation */}
+        <PokeballAnim isCatching={isCatching} catchResult={catchResult} />
+
         {/* Visual FX */}
         <AnimatePresence>
           {projectile && (
@@ -299,62 +390,77 @@ export function BattleScreen({
         </div>
 
         {/* Right: actions / moves */}
-        <div className="w-1/3 min-w-[120px] sm:min-w-[230px] border-4 border-[#4f6e69] bg-[#f8f8f8] rounded-sm p-2 sm:p-3 shadow-[inset_0_0_0_2px_rgba(0,0,0,0.06)]">
-          <div className="grid grid-cols-2 h-full gap-2 text-[#2f2f2f] font-bold text-sm sm:text-lg items-center tracking-tight uppercase">
-            {(isPlayerTurn ? playerPkmn?.moves.map((move) => ({ label: move.name, move })) : [
-              { label: 'BOLSA' },
-              { label: 'POKÉMON' },
-              { label: 'HUIR' },
-              { label: isTrainerBattle ? 'ENTRENADOR' : 'LUCHAR' },
-            ]).map((entry, i) => {
-              const move = 'move' in entry ? entry.move : null;
-              const label = entry.label;
-              const noPP = move ? move.pp <= 0 : false;
-              const disabled =
-                move ? noPP : (label === 'HUIR' && isTrainerBattle) || (!isPlayerTurn && label !== 'HUIR');
-              return (
+        <div className="w-1/3 min-w-[120px] sm:min-w-[230px] border-4 border-[#4f6e69] bg-[#f8f8f8] rounded-sm p-2 sm:p-3 shadow-[inset_0_0_0_2px_rgba(0,0,0,0.06)] flex flex-col">
+          {(playerAnim !== 'idle' || enemyAnim !== 'idle') ? null : isPlayerTurn && !showMoves ? (
+            /* Branch A: Main battle menu */
+            <div className="grid grid-cols-2 h-full gap-2 text-[#2f2f2f] font-bold text-sm sm:text-lg items-center tracking-tight uppercase">
+              {([
+                { label: 'LUCHAR', shortcut: '1', action: () => setShowMoves(true), disabled: false },
+                { label: 'POKÉMON', shortcut: 'P', action: () => setShowTeam(true), disabled: false },
+                { label: 'BOLSA', shortcut: 'B', action: () => setShowInventory(true), disabled: false },
+                { label: 'HUIR', shortcut: 'H', action: () => onFlee(), disabled: isTrainerBattle },
+              ] as { label: string; shortcut: string; action: () => void; disabled: boolean }[]).map((entry) => (
                 <button
-                  key={`${label}-${i}`}
-                  disabled={disabled}
+                  key={entry.label}
+                  disabled={entry.disabled}
                   className={`text-left px-2 py-1 rounded-sm border ${
-                    disabled
+                    entry.disabled
                       ? 'opacity-35 cursor-not-allowed border-transparent'
                       : 'border-transparent hover:border-[#4f6e69] hover:bg-[#edf4ef]'
                   }`}
-                  onClick={() => {
-                    if (disabled) return;
-                    soundManager.play('SELECT');
-                    if (move) {
-                      handleAttack(move);
-                      return;
-                    }
-                    if (label === 'HUIR') onFlee();
-                    if (label === 'BOLSA') setShowInventory(true);
-                    if (label === 'POKÉMON') setShowTeam(true);
-                  }}
-                  onMouseEnter={() => setHoveredMoveIdx(move ? i : null)}
-                  onMouseLeave={() => setHoveredMoveIdx(null)}
+                  onClick={() => { if (!entry.disabled) { soundManager.play('SELECT'); entry.action(); } }}
                 >
                   <span className="inline-flex items-center gap-1">
-                    {!disabled && <span className="text-red-500">▶</span>}
-                    {label}
+                    {!entry.disabled && <span className="text-red-500">▶</span>}
+                    {entry.label}
                   </span>
-                  {move && (
-                    <>
+                  <span className="block text-[10px] text-slate-400 normal-case font-normal">[{entry.shortcut}]</span>
+                </button>
+              ))}
+            </div>
+          ) : isPlayerTurn && showMoves ? (
+            /* Branch B: Moves submenu */
+            <div className="flex flex-col h-full gap-1">
+              <div className="grid grid-cols-2 flex-1 gap-2 text-[#2f2f2f] font-bold text-sm sm:text-lg items-center tracking-tight uppercase">
+                {playerPkmn?.moves.map((move, i) => {
+                  const noPP = move.pp <= 0;
+                  return (
+                    <button
+                      key={`${move.name}-${i}`}
+                      disabled={noPP}
+                      className={`text-left px-2 py-1 rounded-sm border ${
+                        noPP
+                          ? 'opacity-35 cursor-not-allowed border-transparent'
+                          : 'border-transparent hover:border-[#4f6e69] hover:bg-[#edf4ef]'
+                      }`}
+                      onClick={() => { if (!noPP) { soundManager.play('SELECT'); handleAttack(move); } }}
+                      onMouseEnter={() => setHoveredMoveIdx(i)}
+                      onMouseLeave={() => setHoveredMoveIdx(null)}
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        {!noPP && <span className="text-red-500">▶</span>}
+                        {move.name}
+                      </span>
                       <span className="block text-[10px] text-slate-500 normal-case">
-                        PP {move.pp}/{move.maxPp}
+                        PP {move.pp}/{move.maxPp} <span className="text-slate-400 font-normal">[{i + 1}]</span>
                       </span>
                       {hoveredMoveIdx === i && (
                         <span className="block text-[9px] text-slate-600 normal-case mt-0.5 leading-tight">
                           {getMoveDescription(move)}
                         </span>
                       )}
-                    </>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                className="text-left px-2 py-1 text-[11px] text-slate-500 font-bold hover:text-slate-700 hover:bg-[#edf4ef] rounded-sm border border-transparent hover:border-[#4f6e69] uppercase tracking-tight"
+                onClick={() => { soundManager.play('SELECT'); setShowMoves(false); }}
+              >
+                ← VOLVER <span className="font-normal normal-case">[ESC]</span>
+              </button>
+            </div>
+          ) : null}
         </div>
 
       </div>

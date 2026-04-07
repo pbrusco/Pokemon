@@ -21,11 +21,14 @@
 - [x] Multiple save slots
 - [x] Tree canopy/trunk perspective layering
 - [x] Vitest damage test setup
+- [x] Battle engine extracted to pure state machine (`src/lib/battleEngine.ts`) with 29 scenario tests
+- [x] Interaction engine tests (24 tests covering NPCs, items, HM obstacles, starter selection)
+- [x] Status/volatile rules audit (25 Gen I edge-case tests)
+- [x] State Consolidation (phase 2): extracted `useWindowSize`, `useBattleVFX`, `useOverworldVFX`, `usePokedex`, `useSaveSystem`; moved `money` + `badgeBoostGlitchStacks` to Zustand
 
 ## 🔴 Priority 1: Stabilization & Architecture
 
-- [ ] **State Consolidation (phase 2)** — migrate remaining battle/UI transient state into dedicated store slices or focused hooks, then shrink `App.tsx` further.
-- [ ] **Interaction Engine Tests** — add integration tests for NPC interactions, HM obstacle interactions, and quest inventory transitions.
+- [ ] **State Consolidation (phase 3)** — extract `useBattleEngine` (owns `enemyPokemon`, `battleLog`, `isTrainerBattle`, battle handlers) and `usePlayerMovement` (owns `handleMove`, `moveTimeout`, `poisonStepCounter`) to finish clearing `App.tsx`.
 - [ ] **Save Slot Manager UI** — add profile metadata panel (name, playtime, last save date) and create/delete/rename flows.
 
 ## 🟠 Priority 2: Gameplay Depth
