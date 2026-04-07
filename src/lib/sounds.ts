@@ -59,17 +59,24 @@ const MELODIES = {
 class SoundManager {
   private currentMusicKey: keyof typeof MELODIES | null = null;
   private isLooping = false;
+  muted: boolean = localStorage.getItem('pokemon_sound_muted') !== 'false'; // muted by default
 
-  /**
-   * Triggers a sound effect from the SFX object
-   */
+  toggleMute(): boolean {
+    this.muted = !this.muted;
+    localStorage.setItem('pokemon_sound_muted', this.muted ? 'true' : 'false');
+    if (this.muted) this.stopMusic();
+    return this.muted;
+  }
+
   play(key: keyof typeof SFX) {
+    if (this.muted) return;
     if (SFX[key]) {
       SFX[key]();
     }
   }
 
   playMove(moveSfxType: 'pulse' | 'noise' | 'glissando' = 'pulse') {
+    if (this.muted) return;
     if (moveSfxType === 'noise') {
       playTone('sawtooth', [320, 180, 260], 0.14, 0.14);
       return;
@@ -82,6 +89,7 @@ class SoundManager {
   }
 
   playMusic(key: keyof typeof MELODIES) {
+    if (this.muted) return;
     if (this.currentMusicKey === key) return;
     this.stopMusic();
     this.currentMusicKey = key;

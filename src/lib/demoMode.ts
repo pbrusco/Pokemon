@@ -1,329 +1,312 @@
 // ─── Demo Mode: AI Auto-Play with Structured Logging ──────────────────────────
-// Drives the game by reading state from window.__gameStore / window.__game
-// and dispatching actions on a tick loop. Zero React dependencies.
-// Usage: window.__demo.start() / .stop() / .log() / .export()
+// Usage: window.__demo.start() / .stop() / .pause() / .resume()
+//        window.__demo.speed(200) / .log() / .export()
 // ───────────────────────────────────────────────────────────────────────────────
 
 import { getTypeEffectiveness } from './damage';
 
-type Direction = 'up' | 'down' | 'left' | 'right';
+type Dir = 'up' | 'down' | 'left' | 'right';
 
-interface DemoLogEntry {
-  tick: number;
-  ts: number;
-  type: 'move' | 'battle_start' | 'battle_action' | 'battle_end'
-    | 'dialogue' | 'map_change' | 'level_up' | 'catch' | 'blackout' | 'phase_skip';
-  data: Record<string, unknown>;
-}
+// Compact log: [tick, type, ...fields]
+// Types: M=move, B=battle_start, A=battle_action, E=battle_end,
+//        D=dialogue, C=map_change, L=level_up, K=blackout, S=switch
+type LogEntry = [number, string, ...unknown[]];
 
-// ─── State (stored on window to survive HMR) ─────────────────────────────────
+// ─── State (on window to survive HMR) ────────────────────────────────────────
 
-interface DemoState {
+interface DS {
   intervalId: ReturnType<typeof setInterval> | null;
-  tickCount: number;
-  log: DemoLogEntry[];
-  lastDir: Direction;
-  lastMap: string;
-  lastOutcome: string;
-  inBattleLogged: boolean;
-  prevTeamLevels: number[];
+  tick: number;
+  log: LogEntry[];
+  dir: Dir;
+  map: string;
+  outcome: string;
+  battleLogged: boolean;
+  levels: number[];
+  paused: boolean;
+  tickMs: number;
+  maxTicks: number;
+  levelMap: Record<string, number>;
+  lastDialogue: string;
 }
 
 const W = window as any;
-// Clean up any previous HMR interval
-if (W.__demoState?.intervalId) {
-  clearInterval(W.__demoState.intervalId);
-  W.__demoState.intervalId = null;
-}
-
-if (!W.__demoState) {
-  W.__demoState = {
-    intervalId: null,
-    tickCount: 0,
-    log: [] as DemoLogEntry[],
-    lastDir: 'up' as Direction,
-    lastMap: '',
-    lastOutcome: 'ongoing',
-    inBattleLogged: false,
-    prevTeamLevels: [] as number[],
+if (W.__ds?.intervalId) { clearInterval(W.__ds.intervalId); W.__ds.intervalId = null; }
+if (!W.__ds) {
+  W.__ds = {
+    intervalId: null, tick: 0, log: [] as LogEntry[],
+    dir: 'up' as Dir, map: '', outcome: 'ongoing',
+    battleLogged: false, levels: [] as number[],
+    paused: false, tickMs: 400, maxTicks: Infinity,
+    levelMap: {} as Record<string, number>,
+    lastDialogue: '',
   };
 }
-const ds: DemoState = W.__demoState;
+const ds: DS = W.__ds;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getGame(): any { return W.__game; }
-function getStore(): any { return W.__gameStore?.getState(); }
+function game(): any { return W.__game; }
+function store(): any { return W.__gameStore?.getState(); }
 
-function addLog(type: DemoLogEntry['type'], data: Record<string, unknown>) {
-  const entry: DemoLogEntry = { tick: ds.tickCount, ts: Date.now(), type, data };
-  ds.log.push(entry);
-  console.log(`[DEMO] t=${ds.tickCount} ${type}`, data);
+function L(type: string, ...fields: unknown[]) {
+  ds.log.push([ds.tick, type, ...fields]);
 }
 
-function applyDir(pos: { x: number; y: number }, dir: Direction) {
-  switch (dir) {
-    case 'up': return { x: pos.x, y: pos.y - 1 };
-    case 'down': return { x: pos.x, y: pos.y + 1 };
-    case 'left': return { x: pos.x - 1, y: pos.y };
-    case 'right': return { x: pos.x + 1, y: pos.y };
-  }
+function nextPos(pos: { x: number; y: number }, d: Dir) {
+  const dx = d === 'left' ? -1 : d === 'right' ? 1 : 0;
+  const dy = d === 'up' ? -1 : d === 'down' ? 1 : 0;
+  return { x: pos.x + dx, y: pos.y + dy };
 }
 
 // ─── Movement AI ──────────────────────────────────────────────────────────────
 
-function pickDirection(store: any): Direction {
-  const dirs: Direction[] = ['up', 'down', 'left', 'right'];
-  const { playerPos, currentMap, worldMaps } = store;
+function pickDir(s: any): Dir {
+  const all: Dir[] = ['up', 'down', 'left', 'right'];
+  const { playerPos: pos, currentMap, worldMaps } = s;
   const map = worldMaps?.[currentMap];
-  if (!map) return dirs[Math.floor(Math.random() * 4)];
+  if (!map) return all[Math.floor(Math.random() * 4)];
 
-  const valid = dirs.filter(dir => {
-    const next = applyDir(playerPos, dir);
-    return (
-      next.x >= 0 && next.x < 20 &&
-      next.y >= 0 && next.y < 20 &&
-      map[next.y]?.[next.x]?.walkable
-    );
+  // Get NPCs to avoid walking into them
+  const npcs = s.getNPCs?.() ?? {};
+  const mapNpcs = npcs[currentMap] ?? [];
+
+  const valid = all.filter(d => {
+    const n = nextPos(pos, d);
+    if (n.x < 0 || n.x >= 20 || n.y < 0 || n.y >= 20) return false;
+    if (!map[n.y]?.[n.x]?.walkable) return false;
+    // Check NPC collision
+    if (mapNpcs.some((npc: any) => npc.position.x === n.x && npc.position.y === n.y)) return false;
+    return true;
   });
 
-  if (valid.length === 0) return dirs[Math.floor(Math.random() * 4)];
+  if (valid.length === 0) return all[Math.floor(Math.random() * 4)];
 
-  // Bias toward grass (70%) to trigger encounters
-  const grassDirs = valid.filter(dir => {
-    const next = applyDir(playerPos, dir);
-    return map[next.y]?.[next.x]?.type === 'grass';
+  // Bias toward grass (70%)
+  const grass = valid.filter(d => {
+    const n = nextPos(pos, d);
+    return map[n.y]?.[n.x]?.type === 'grass';
   });
-  if (grassDirs.length > 0 && Math.random() < 0.7) {
-    return grassDirs[Math.floor(Math.random() * grassDirs.length)];
+  if (grass.length > 0 && Math.random() < 0.7) {
+    return grass[Math.floor(Math.random() * grass.length)];
   }
 
-  // Bias toward continuing current direction (60%) to avoid jitter
-  if (valid.includes(ds.lastDir) && Math.random() < 0.6) {
-    return ds.lastDir;
-  }
+  // Continue current direction (55%)
+  if (valid.includes(ds.dir) && Math.random() < 0.55) return ds.dir;
 
   return valid[Math.floor(Math.random() * valid.length)];
 }
 
 // ─── Battle AI ────────────────────────────────────────────────────────────────
 
-function pickBattleAction(bs: any): { type: string; move?: any; index?: number } {
-  const pokemon = bs.playerTeam[0];
+function pickAction(bs: any): { type: string; move?: any; index?: number } {
+  const pkmn = bs.playerTeam[0];
   const enemy = bs.enemyPokemon;
-  const usableMoves = pokemon.moves.filter((m: any) => m && m.pp > 0);
+  const moves = pkmn.moves.filter((m: any) => m && m.pp > 0);
 
-  // Try to catch low-HP wild pokemon
-  if (!bs.isTrainerBattle && enemy.hp / enemy.maxHp < 0.3) {
-    if ((bs.inventory?.['POKEBALL'] ?? 0) > 0) {
-      return { type: 'CATCH' };
-    }
+  // Catch low-HP wild
+  if (!bs.isTrainerBattle && enemy.hp / enemy.maxHp < 0.3 && (bs.inventory?.['POKEBALL'] ?? 0) > 0) {
+    return { type: 'CATCH' };
   }
 
-  if (usableMoves.length === 0) {
-    return { type: 'ATTACK', move: pokemon.moves[0] };
-  }
+  if (moves.length === 0) return { type: 'ATTACK', move: pkmn.moves[0] };
 
-  // Pick strongest effective damaging move
-  const damaging = usableMoves.filter((m: any) => m.power > 0);
-  if (damaging.length === 0) {
-    return { type: 'ATTACK', move: usableMoves[0] };
-  }
+  const dmg = moves.filter((m: any) => m.power > 0);
+  if (dmg.length === 0) return { type: 'ATTACK', move: moves[0] };
 
-  const scored = damaging.map((m: any) => ({
-    move: m,
-    score: m.power * getTypeEffectiveness(m.type, enemy.types ?? []),
-  }));
-  scored.sort((a: any, b: any) => b.score - a.score);
+  const best = dmg
+    .map((m: any) => ({ m, s: m.power * getTypeEffectiveness(m.type, enemy.types ?? []) }))
+    .sort((a: any, b: any) => b.s - a.s);
 
-  return { type: 'ATTACK', move: scored[0].move };
+  return { type: 'ATTACK', move: best[0].m };
 }
 
 // ─── Main Tick ────────────────────────────────────────────────────────────────
 
-function demoTick() {
-  ds.tickCount++;
-  const game = getGame();
-  const store = getStore();
-  if (!game || !store) return;
-
-  const phase = game.getPhase();
+function tick() {
+  if (ds.paused) return;
+  ds.tick++;
+  const g = game(), s = store();
+  if (!g || !s) return;
+  const phase = g.getPhase();
   if (!phase) return;
 
-  // Track map changes
-  if (store.currentMap !== ds.lastMap) {
-    addLog('map_change', { from: ds.lastMap, to: store.currentMap, pos: store.playerPos });
-    ds.lastMap = store.currentMap;
+  // Map change detection
+  if (s.currentMap !== ds.map) {
+    L('C', ds.map, s.currentMap, `${s.playerPos.x},${s.playerPos.y}`);
+    ds.map = s.currentMap;
   }
 
-  // Track level ups
-  const teamLevels = store.playerTeam?.map((p: any) => p.level) ?? [];
-  if (ds.prevTeamLevels.length > 0) {
-    teamLevels.forEach((lv: number, i: number) => {
-      if (ds.prevTeamLevels[i] !== undefined && lv > ds.prevTeamLevels[i]) {
-        addLog('level_up', { pokemon: store.playerTeam[i].name, from: ds.prevTeamLevels[i], to: lv });
-      }
+  // Level up detection (by pokemon id, not array index, to avoid false positives from switches)
+  const lvMap: Record<string, number> = {};
+  s.playerTeam?.forEach((p: any) => { lvMap[p.id] = p.level; });
+  if (ds.levels.length > 0) {
+    s.playerTeam?.forEach((p: any) => {
+      const prev = ds.levelMap?.[p.id];
+      if (prev !== undefined && p.level > prev)
+        L('L', p.name, prev, p.level);
     });
   }
-  ds.prevTeamLevels = teamLevels;
+  ds.levelMap = lvMap;
+  ds.levels = s.playerTeam?.map((p: any) => p.level) ?? [];
 
-  // 1. Dialogue — dismiss immediately
-  if (store.dialogue) {
-    addLog('dialogue', { text: store.dialogue.substring(0, 100) });
-    game.dismissDialogue();
+  // Dialogue — dismiss (skip logging duplicates)
+  if (s.dialogue) {
+    const txt = s.dialogue.substring(0, 60);
+    if (txt !== ds.lastDialogue) { L('D', txt); ds.lastDialogue = txt; }
+    g.dismissDialogue();
     return;
+  } else {
+    ds.lastDialogue = '';
   }
 
-  // 2. Phase routing
   switch (phase.type) {
     case 'EXPLORING': {
-      ds.inBattleLogged = false;
-      if (store.isMoving) return;
-      const dir = pickDirection(store);
-      ds.lastDir = dir;
-      game.handleMove(dir);
-      if (ds.tickCount % 5 === 0) {
-        addLog('move', { dir, map: store.currentMap, pos: store.playerPos });
-      }
+      ds.battleLogged = false;
+      ds.outcome = 'ongoing';
+      if (s.isMoving) return;
+      const d = pickDir(s);
+      ds.dir = d;
+      g.handleMove(d);
       break;
     }
 
     case 'BATTLE': {
-      const sub = phase.sub?.type;
-      const bs = game.battleStateRef?.current;
+      const bs = g.battleStateRef?.current;
       if (!bs) break;
 
-      if (!ds.inBattleLogged) {
-        ds.inBattleLogged = true;
-        addLog('battle_start', {
-          enemy: bs.enemyPokemon.name,
-          enemyLevel: bs.enemyPokemon.level,
-          isTrainer: bs.isTrainerBattle,
-          playerPkmn: bs.playerTeam[0].name,
-          playerLevel: bs.playerTeam[0].level,
-        });
+      if (!ds.battleLogged) {
+        ds.battleLogged = true;
+        const p = bs.playerTeam[0], e = bs.enemyPokemon;
+        L('B', e.name, e.level, bs.isTrainerBattle ? 1 : 0, p.name, p.level);
       }
 
-      if (sub === 'CHOOSING') {
-        const action = pickBattleAction(bs);
-        addLog('battle_action', {
-          action: action.type,
-          move: action.move?.name,
-          playerPkmn: bs.playerTeam[0].name,
-          playerHp: bs.playerTeam[0].hp + '/' + bs.playerTeam[0].maxHp,
-          enemyPkmn: bs.enemyPokemon.name,
-          enemyHp: bs.enemyPokemon.hp + '/' + bs.enemyPokemon.maxHp,
-        });
-        game.dispatchBattle(action);
-      } else if (sub === 'FORCED_SWITCH') {
+      // Use engine phase (always current) instead of React phase (may be stale)
+      const enginePhase = bs.phase;
+      if (bs.outcome !== 'ongoing') break; // battle already resolved, wait
+
+      if (enginePhase === 'CHOOSING') {
+        const act = pickAction(bs);
+        const p = bs.playerTeam[0], e = bs.enemyPokemon;
+        L('A', act.type, act.move?.name ?? '', `${p.hp}/${p.maxHp}`, `${e.hp}/${e.maxHp}`);
+        g.dispatchBattle(act);
+      } else if (enginePhase === 'FORCED_SWITCH') {
         const idx = bs.playerTeam.findIndex((p: any, i: number) => i > 0 && p.hp > 0);
         if (idx > 0) {
-          addLog('battle_action', { action: 'SWITCH', index: idx, pokemon: bs.playerTeam[idx].name });
-          game.dispatchBattle({ type: 'SWITCH', index: idx });
+          L('S', idx, bs.playerTeam[idx].name);
+          g.dispatchBattle({ type: 'SWITCH', index: idx });
         }
       }
       break;
     }
 
     case 'BATTLE_TRANSITION':
-      break;
-
-    case 'BLACKOUT':
-      if (ds.lastOutcome !== 'blackout_logged') {
-        ds.lastOutcome = 'blackout_logged';
-        addLog('blackout', { map: store.currentMap });
-      }
-      break;
-
     case 'HEALING':
       break;
 
-    case 'MENU':
-    case 'INVENTORY':
-    case 'TEAM':
-    case 'SHOP':
-    case 'POKEDEX':
-    case 'PC':
-      addLog('phase_skip', { from: phase.type, to: 'EXPLORING' });
-      game.setPhase(game.phases.EXPLORING);
+    case 'BLACKOUT':
+      break;
+
+    case 'MENU': case 'INVENTORY': case 'TEAM': case 'SHOP': case 'POKEDEX': case 'PC':
+      g.setPhase(g.phases.EXPLORING);
       break;
   }
 
-  // Check battle outcome (fire once per battle)
-  const bs = game.battleStateRef?.current;
-  if (bs && bs.outcome !== 'ongoing' && bs.outcome !== ds.lastOutcome) {
-    ds.lastOutcome = bs.outcome;
-    addLog('battle_end', {
-      outcome: bs.outcome,
-      teamHp: bs.playerTeam.map((p: any) => p.hp + '/' + p.maxHp),
-      enemyPkmn: bs.enemyPokemon.name,
-      enemyLevel: bs.enemyPokemon.level,
-    });
-  } else if (bs && bs.outcome === 'ongoing') {
-    ds.lastOutcome = 'ongoing';
+  // Battle outcome (once per battle — gated by battleLogged flag)
+  const bsEnd = g.battleStateRef?.current;
+  if (bsEnd && bsEnd.outcome !== 'ongoing' && ds.battleLogged && ds.outcome === 'ongoing') {
+    ds.outcome = bsEnd.outcome;
+    const hp = bsEnd.playerTeam.map((p: any) => `${p.hp}/${p.maxHp}`).join(',');
+    L('E', bsEnd.outcome, hp, bsEnd.enemyPokemon.name, bsEnd.enemyPokemon.level);
   }
+}
+
+// ─── Restart interval with current tickMs ─────────────────────────────────────
+
+function restartInterval() {
+  if (ds.intervalId) clearInterval(ds.intervalId);
+  ds.intervalId = setInterval(() => {
+    if (ds.tick >= ds.maxTicks) { stopDemo(); return; }
+    try { tick(); } catch (e) { console.error('[DEMO] tick error:', e); }
+  }, ds.tickMs);
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
-export function startDemo(options?: { tickMs?: number; maxTicks?: number }) {
-  if (ds.intervalId) { console.log('[DEMO] Already running.'); return; }
-
-  const tickMs = options?.tickMs ?? 400;
-  const maxTicks = options?.maxTicks ?? Infinity;
-  ds.tickCount = 0;
-  ds.lastMap = getStore()?.currentMap ?? '';
-  ds.prevTeamLevels = getStore()?.playerTeam?.map((p: any) => p.level) ?? [];
-  ds.lastOutcome = 'ongoing';
-  ds.inBattleLogged = false;
-
-  console.log(`[DEMO] Starting (${tickMs}ms/tick, max ${maxTicks} ticks)`);
-
-  ds.intervalId = setInterval(() => {
-    if (ds.tickCount >= maxTicks) { stopDemo(); return; }
-    try {
-      demoTick();
-    } catch (err) {
-      console.error('[DEMO] Tick error:', err);
-    }
-  }, tickMs);
+export function startDemo(opts?: { tickMs?: number; maxTicks?: number }) {
+  if (ds.intervalId) { console.log('[DEMO] Already running'); return; }
+  ds.tickMs = opts?.tickMs ?? 400;
+  ds.maxTicks = opts?.maxTicks ?? Infinity;
+  ds.tick = 0;
+  ds.map = store()?.currentMap ?? '';
+  ds.levels = store()?.playerTeam?.map((p: any) => p.level) ?? [];
+  ds.outcome = 'ongoing';
+  ds.battleLogged = false;
+  ds.paused = false;
+  console.log(`[DEMO] Started (${ds.tickMs}ms/tick)`);
+  restartInterval();
 }
 
 export function stopDemo() {
-  if (ds.intervalId) {
-    clearInterval(ds.intervalId);
-    ds.intervalId = null;
-  }
-  console.log(`[DEMO] Stopped after ${ds.tickCount} ticks. ${ds.log.length} log entries.`);
+  if (ds.intervalId) { clearInterval(ds.intervalId); ds.intervalId = null; }
+  ds.paused = false;
+  console.log(`[DEMO] Stopped. ${ds.tick} ticks, ${ds.log.length} entries.`);
 }
 
-export function getDemoLog(): DemoLogEntry[] {
-  return ds.log;
+export function pauseDemo() {
+  ds.paused = true;
+  console.log('[DEMO] Paused');
 }
+
+export function resumeDemo() {
+  ds.paused = false;
+  console.log('[DEMO] Resumed');
+}
+
+export function setSpeed(ms: number) {
+  ds.tickMs = Math.max(50, ms);
+  if (ds.intervalId) restartInterval();
+  console.log(`[DEMO] Speed: ${ds.tickMs}ms/tick`);
+}
+
+export function getDemoLog(): LogEntry[] { return ds.log; }
 
 export function exportDemoLog(): string {
-  return JSON.stringify(ds.log, null, 2);
+  // Header explains the compact format
+  const header = {
+    format: 'B=battle_start A=action E=end D=dialogue C=map_change L=levelup K=blackout S=switch',
+    fields: {
+      B: '[tick,"B",enemy,eLv,isTrainer,player,pLv]',
+      A: '[tick,"A",type,move,pHp/max,eHp/max]',
+      E: '[tick,"E",outcome,teamHp,enemy,eLv]',
+      D: '[tick,"D",text]',
+      C: '[tick,"C",from,to,pos]',
+      L: '[tick,"L",pokemon,fromLv,toLv]',
+      K: '[tick,"K",map]',
+      S: '[tick,"S",index,pokemon]',
+    },
+    ticks: ds.tick,
+    entries: ds.log.length,
+  };
+  return JSON.stringify({ header, log: ds.log });
 }
 
 export function clearDemoLog() {
   ds.log = [];
-  ds.tickCount = 0;
-  console.log('[DEMO] Log cleared.');
+  ds.tick = 0;
 }
 
-export function isDemoRunning(): boolean {
-  return ds.intervalId !== null;
-}
+export function isDemoRunning(): boolean { return ds.intervalId !== null; }
+export function isDemoPaused(): boolean { return ds.paused; }
 
 // ─── Auto-attach to window ───────────────────────────────────────────────────
 
 if (import.meta.env.DEV) {
   W.__demo = {
-    start: startDemo,
-    stop: stopDemo,
-    log: getDemoLog,
-    export: exportDemoLog,
-    clear: clearDemoLog,
-    running: isDemoRunning,
+    start: startDemo, stop: stopDemo,
+    pause: pauseDemo, resume: resumeDemo,
+    speed: setSpeed,
+    log: getDemoLog, export: exportDemoLog, clear: clearDemoLog,
+    running: isDemoRunning, paused: isDemoPaused,
   };
 }

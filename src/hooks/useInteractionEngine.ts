@@ -39,6 +39,7 @@ interface UseInteractionEngineParams {
   setStoryStep: Dispatch<SetStateAction<string>>;
   setEnemyPokemon: Dispatch<SetStateAction<Pokemon | null>>;
   setIsTrainerBattle: Dispatch<SetStateAction<boolean>>;
+  initBattle: (enemyPokemon: Pokemon, isTrainer: boolean) => void;
 }
 
 export const useInteractionEngine = ({
@@ -66,6 +67,7 @@ export const useInteractionEngine = ({
   setStoryStep,
   setEnemyPokemon,
   setIsTrainerBattle,
+  initBattle,
 }: UseInteractionEngineParams) => {
   const hasItem = (itemId: string) => (inventory[itemId] ?? 0) > 0;
   const addItem = (itemId: string, amount = 1) =>
@@ -165,10 +167,8 @@ export const useInteractionEngine = ({
 
           setTimeout(() => {
             setDialogue("AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!");
-            setEnemyPokemon({ ...STARTERS[1], name: 'RIVAL ' + STARTERS[1].name });
-            setIsTrainerBattle(true);
-            soundManager.play('BATTLE_START');
-            setPhase(BATTLE_TRANSITION);
+            const rivalPkmn = { ...STARTERS[1], name: 'RIVAL ' + STARTERS[1].name };
+            initBattle(rivalPkmn, true);
           }, 1500);
         }
       } else if (item.type === 'item') {

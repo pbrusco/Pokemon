@@ -22,7 +22,9 @@ import {
   Zap,
   Circle,
   X,
-  Gamepad2
+  Gamepad2,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { Direction, Position, TILE_SIZE, GRID_SIZE, NPC, Entity, Pokemon, Move, InventoryItem, Tile, MapID, MAP_IDS, InventoryCounts } from './types';
 import { GamePhase, BattlePhase, EXPLORING, MENU, INVENTORY, TEAM, SHOP, POKEDEX, PC, EDITOR, BATTLE_TRANSITION, BLACKOUT, HEALING, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM } from './types/gamePhase';
@@ -372,6 +374,7 @@ export default function App() {
   const [phase, setPhase] = useState<GamePhase>(EXPLORING);
   const [isTrainerBattle, setIsTrainerBattle] = useState(false);
   const [showMoves, setShowMoves] = useState(false);
+  const [isMuted, setIsMuted] = useState(soundManager.muted);
   const [pickedItemIds, setPickedItemIds] = useState<string[]>([]);
 
   // Phase-derived helpers
@@ -708,6 +711,24 @@ export default function App() {
     soundManager.play('SELECT');
   };
 
+  const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges });
+  useEffect(() => {
+    gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, battleSubPhase: phase.type === 'BATTLE' ? phase.sub.type : null, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges };
+  }, [playerPos, direction, isMoving, dialogue, inBattle, phase, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges]);
+
+  const initBattle = useCallback((enemyPkmn: Pokemon, isTrainer: boolean) => {
+    setEnemyPokemon(enemyPkmn);
+    battleStateRef.current = createBattleState(gameState.current.playerTeam, enemyPkmn, {
+      isTrainerBattle: isTrainer,
+      inventory: gameState.current.inventory,
+      pcStorage: gameState.current.pcStorage,
+      hasBoulderBadge: gameState.current.badges.includes('BOULDER'),
+    });
+    setIsTrainerBattle(isTrainer);
+    soundManager.play('BATTLE_START');
+    setPhase(BATTLE_TRANSITION);
+  }, []);
+
   const { handleAction } = useInteractionEngine({
     dialogue,
     inBattle,
@@ -733,12 +754,8 @@ export default function App() {
     setStoryStep,
     setEnemyPokemon,
     setIsTrainerBattle,
+    initBattle,
   });
-
-  const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges });
-  useEffect(() => {
-    gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, battleSubPhase: phase.type === 'BATTLE' ? phase.sub.type : null, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges };
-  }, [playerPos, direction, isMoving, dialogue, inBattle, phase, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges]);
 
   const resetGame = useCallback(() => {
     const slotsRaw = localStorage.getItem('pokemon_save_slots');
@@ -1046,6 +1063,11 @@ export default function App() {
 
   const dispatchBattle = (action: BattleAction) => {
     if (!battleStateRef.current) return;
+    // Reject actions if the battle is already resolved or not in a choosable phase
+    if (battleStateRef.current.outcome !== 'ongoing') return;
+    const ph = battleStateRef.current.phase;
+    const validPhase = ph === 'CHOOSING' || (ph === 'FORCED_SWITCH' && action.type === 'SWITCH');
+    if (!validPhase && action.type !== 'TICK') return;
 
     // Lock input immediately — prevents double-clicks during animation
     setPhase(battle(B_PLAYER_ATTACK));
@@ -1295,6 +1317,13 @@ export default function App() {
           <h1 className="text-white font-bold text-xl tracking-tight">POKÉMON FIRE RED</h1>
           <p className="text-slate-400 text-xs font-mono uppercase tracking-widest">Modern Remake Engine</p>
         </div>
+        <button
+          onClick={() => setIsMuted(soundManager.toggleMute())}
+          className="w-9 h-9 bg-slate-700/80 hover:bg-slate-600 rounded-lg flex items-center justify-center border border-slate-500/50 transition-colors"
+          title={isMuted ? 'Activar sonido' : 'Silenciar'}
+        >
+          {isMuted ? <VolumeX className="text-slate-400" size={16} /> : <Volume2 className="text-white" size={16} />}
+        </button>
       </div>
 
       {/* World Container */}
