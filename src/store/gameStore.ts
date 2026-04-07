@@ -180,3 +180,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     badgeBoostGlitchStacks: data.badgeBoostGlitchStacks ?? 0,
   })
 }));
+
+// Expose store for dev tools / preview testing
+if (import.meta.env.DEV) {
+  (window as any).__gameStore = useGameStore;
+}

@@ -39,6 +39,8 @@ import { PokedexUI } from './components/PokedexUI';
 import { PCStorageUI } from './components/PCStorageUI';
 import { BattleScreen } from './components/BattleScreen';
 import { Joystick } from './components/Joystick';
+import { DemoModeButton } from './components/DemoModeButton';
+import './lib/demoMode'; // side-effect: attaches window.__demo in dev
 import { useInteractionEngine } from './hooks/useInteractionEngine';
 import { useWindowSize } from './hooks/useWindowSize';
 import { useBattleVFX } from './hooks/useBattleVFX';
@@ -995,8 +997,59 @@ export default function App() {
     return delay;
   };
 
+  /** Resolve post-battle outcomes (win, blackout, fled) */
+  const resolveBattleOutcome = (newState: BattleState) => {
+    if (newState.outcome === 'player_win') {
+      if (newState.isTrainerBattle) {
+        const trainer = npcs[currentMap].find(n => n.isTrainer && n.trainerTeam?.some(p => p.id === newState.enemyPokemon.id));
+        if (trainer) {
+          const moneyReward = newState.enemyPokemon.level * 20;
+          setDefeatedTrainers(prev => [...prev, trainer.id]);
+          if (moneyReward > 0) setMoney(prev => prev + moneyReward);
+          if (trainer.id === 'brock') {
+            setBadges(prev => [...prev, 'BOULDER']);
+            setBattleLog(prev => `${prev}\n¡Recibiste la MEDALLA ROCA de BROCK!`);
+          }
+        }
+      }
+      setTimeout(() => {
+        setInventory(newState.inventory);
+        setPhase(EXPLORING);
+        setEnemyAnim('idle');
+        if (storyStep === 'PICKED_STARTER') {
+          setStoryStep('RIVAL_BATTLE');
+          setDialogue('AZUL: ¡Maldición! ¡He perdido! Pero no volverá a pasar.');
+        }
+      }, 2000);
+    } else if (newState.outcome === 'player_blackout') {
+      setPhase(BLACKOUT);
+      setTimeout(() => {
+        setCurrentMap(lastHealLocation.map);
+        setPlayerPos(lastHealLocation.pos);
+      }, 1200);
+      setTimeout(() => {
+        setPhase(HEALING);
+        setTimeout(() => {
+          setPlayerTeam(prev => prev.map(p => ({ ...p, hp: p.maxHp, status: 'none', moves: p.moves.map(m => ({ ...m, pp: m.maxPp })) })));
+          soundManager.play('SELECT');
+        }, 800);
+        setTimeout(() => {
+          setPhase(EXPLORING);
+          setDialogue('¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.');
+        }, 1600);
+      }, 2400);
+    } else if (newState.outcome === 'fled') {
+      setInventory(newState.inventory);
+      setPhase(EXPLORING);
+    }
+  };
+
   const dispatchBattle = (action: BattleAction) => {
     if (!battleStateRef.current) return;
+
+    // Lock input immediately — prevents double-clicks during animation
+    setPhase(battle(B_PLAYER_ATTACK));
+    setShowMoves(false);
 
     const { state: newState, effects } = stepBattle(battleStateRef.current, action);
     battleStateRef.current = newState;
@@ -1031,60 +1084,53 @@ export default function App() {
       return;
     }
 
-    // For all other actions: sync state, play effects, then apply final phase
-    setPlayerTeam(newState.playerTeam);
+    // Split effects into player-turn and enemy-turn at the `enemy_anim: attack` boundary
+    const enemyTurnIdx = effects.findIndex(e => e.type === 'enemy_anim' && e.payload === 'attack');
+    const playerEffects = enemyTurnIdx >= 0 ? effects.slice(0, enemyTurnIdx) : effects;
+    const enemyEffects = enemyTurnIdx >= 0 ? effects.slice(enemyTurnIdx) : [];
+
+    // ── Phase 1: Player turn ──
+    if (action.type === 'ATTACK') {
+      setPlayerAnim('attack');
+      soundManager.play('SELECT');
+    }
+    // Sync enemy state now (player dealt damage)
     setEnemyPokemon(newState.enemyPokemon);
+    // For non-ATTACKs (items, switches), sync player state immediately too (shows heal / new pokemon)
+    if (action.type !== 'ATTACK') {
+      setPlayerTeam(newState.playerTeam);
+    }
 
-    const duration = playBattleEffects(effects);
-    const totalDelay = Math.max(duration + 200, 800);
+    const playerDuration = playBattleEffects(playerEffects);
+    const playerDelay = Math.max(playerDuration + 300, 800);
 
-    setTimeout(() => {
-      setPhase(mapEnginePhase(newState.phase));
+    if (enemyEffects.length > 0) {
+      // ── Phase 2: Enemy turn ──
+      setTimeout(() => {
+        setPlayerAnim('idle');
+        setEnemyAnim('idle');
+        // Now sync player HP (enemy's damage)
+        setPlayerTeam(newState.playerTeam);
+        const enemyDuration = playBattleEffects(enemyEffects);
+        const enemyDelay = Math.max(enemyDuration + 300, 800);
 
-      if (newState.outcome === 'player_win') {
-        if (newState.isTrainerBattle) {
-          const trainer = npcs[currentMap].find(n => n.isTrainer && n.trainerTeam?.some(p => p.id === newState.enemyPokemon.id));
-          if (trainer) {
-            const moneyReward = newState.enemyPokemon.level * 20;
-            setDefeatedTrainers(prev => [...prev, trainer.id]);
-            if (moneyReward > 0) setMoney(prev => prev + moneyReward);
-            if (trainer.id === 'brock') {
-              setBadges(prev => [...prev, 'BOULDER']);
-              setBattleLog(prev => `${prev}\n¡Recibiste la MEDALLA ROCA de BROCK!`);
-            }
-          }
-        }
         setTimeout(() => {
-          setInventory(newState.inventory);
-          setPhase(EXPLORING);
+          setPlayerAnim('idle');
           setEnemyAnim('idle');
-          if (storyStep === 'PICKED_STARTER') {
-            setStoryStep('RIVAL_BATTLE');
-            setDialogue('AZUL: ¡Maldición! ¡He perdido! Pero no volverá a pasar.');
-          }
-        }, 2000);
-      } else if (newState.outcome === 'player_blackout') {
-        setPhase(BLACKOUT);
-        setTimeout(() => {
-          setCurrentMap(lastHealLocation.map);
-          setPlayerPos(lastHealLocation.pos);
-        }, 1200);
-        setTimeout(() => {
-          setPhase(HEALING);
-          setTimeout(() => {
-            setPlayerTeam(prev => prev.map(p => ({ ...p, hp: p.maxHp, status: 'none', moves: p.moves.map(m => ({ ...m, pp: m.maxPp })) })));
-            soundManager.play('SELECT');
-          }, 800);
-          setTimeout(() => {
-            setPhase(EXPLORING);
-            setDialogue('¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.');
-          }, 1600);
-        }, 2400);
-      } else if (newState.outcome === 'fled') {
-        setInventory(newState.inventory);
-        setPhase(EXPLORING);
-      }
-    }, totalDelay);
+          setPhase(mapEnginePhase(newState.phase));
+          resolveBattleOutcome(newState);
+        }, enemyDelay);
+      }, playerDelay);
+    } else {
+      // No enemy turn (enemy fainted, fled, switched, etc.)
+      setPlayerTeam(newState.playerTeam);
+      setTimeout(() => {
+        setPlayerAnim('idle');
+        setEnemyAnim('idle');
+        setPhase(mapEnginePhase(newState.phase));
+        resolveBattleOutcome(newState);
+      }, playerDelay);
+    }
   };
 
   const handleUseItem = (itemId: string) => {
@@ -1104,6 +1150,42 @@ export default function App() {
       dispatchBattle({ type: 'USE_ITEM', itemId });
     }
   };
+
+  // Expose debug API in dev mode for preview testing
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      (window as any).__game = {
+        dispatchBattle,
+        battleStateRef,
+        getPhase: () => phase,
+        dismissDialogue: () => setDialogue(null),
+        setPhase,
+        handleMove,
+        handleAction,
+        isTrainerBattle,
+        phases: { EXPLORING, battle, B_CHOOSING },
+        startTestBattle: () => {
+          let team = gameState.current.playerTeam;
+          if (team.length === 0) {
+            const starter = makePokemon('charmander', 'CHARMANDER', 10, 'fire', [MOVES.SCRATCH, MOVES.EMBER, MOVES.GROWL], 4);
+            setPlayerTeam([starter]);
+            team = [starter];
+            gameState.current = { ...gameState.current, playerTeam: team };
+          }
+          const enemy = makePokemon('rattata', 'RATTATA', 3, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19);
+          setEnemyPokemon(enemy);
+          battleStateRef.current = createBattleState(team, enemy, {
+            inventory: gameState.current.inventory,
+            pcStorage: gameState.current.pcStorage,
+            hasBoulderBadge: gameState.current.badges.includes('BOULDER'),
+          });
+          setIsTrainerBattle(false);
+          setBattleLog(`¡Un ${enemy.name} salvaje apareció!`);
+          setPhase(battle(B_CHOOSING));
+        },
+      };
+    }
+  });
 
   const pressedKeys = useRef<Set<Direction>>(new Set());
 
@@ -1809,6 +1891,9 @@ export default function App() {
 
       {/* Overlay Vignette */}
       <div className="fixed inset-0 pointer-events-none shadow-[inset_0_0_40px_rgba(0,0,0,0.2)] z-10" />
+
+      {/* Demo Mode (dev only) */}
+      {import.meta.env.DEV && <DemoModeButton />}
     </div>
   );
 }

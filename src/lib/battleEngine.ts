@@ -227,7 +227,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       const updatedTeam = [...s.playerTeam];
       updatedTeam[0] = {
         ...updatedTeam[0],
-        moves: updatedTeam[0].moves.map(m => m.name === move.name ? { ...m, pp: m.pp - 1 } : m),
+        moves: updatedTeam[0].moves.filter(Boolean).map(m => m.name === move.name ? { ...m, pp: m.pp - 1 } : m),
       };
       s = { ...s, playerTeam: updatedTeam, phase: 'PLAYER_ATTACK' };
 
@@ -318,7 +318,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
 
       if (newEnemyHP === 0) {
         // Enemy fainted — compute EXP
-        const expGain = Math.floor(s.enemyPokemon.level * 25 * (s.isTrainerBattle ? 2.5 : 1));
+        const expGain = Math.floor(s.enemyPokemon.level * 25 * (s.isTrainerBattle ? 1.5 : 1));
         const { pkmn: leveledPkmn, didLevelUp, learnedMove, willEvolve, evolvedPkmn } = computeExpAndLevelUp(playerPkmn, expGain);
 
         const faintLog = `¡${s.enemyPokemon.name} se debilitó!`;
@@ -620,8 +620,10 @@ export function createBattleState(
   } = {},
 ): BattleState {
   if (playerTeam.length === 0) throw new Error('createBattleState: playerTeam must not be empty');
+  // Sanitize: filter out null/undefined moves
+  const sanitizedTeam = playerTeam.map(p => ({ ...p, moves: p.moves.filter(Boolean) }));
   return {
-    playerTeam,
+    playerTeam: sanitizedTeam,
     enemyPokemon,
     phase: 'CHOOSING',
     isTrainerBattle: options.isTrainerBattle ?? false,
