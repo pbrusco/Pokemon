@@ -28,8 +28,9 @@ import { Direction, Position, TILE_SIZE, GRID_SIZE, NPC, Entity, Pokemon, Move, 
 import { GamePhase, BattlePhase, EXPLORING, MENU, INVENTORY, TEAM, SHOP, POKEDEX, PC, EDITOR, BATTLE_TRANSITION, BLACKOUT, HEALING, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM } from './types/gamePhase';
 import { MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, MAP_VIRIDIAN_FOREST, MAP_PEWTER_CITY, MAP_PEWTER_GYM, MAP_ROUTE_3 } from './data/maps';
 import { soundManager } from './lib/sounds';
-import { MOVES, STARTERS, EVOLUTIONS, WILD_POKEMON_DATABASE, POKEMON_LIST, ITEMS_DATABASE, BASE_STATS, makePokemon } from './constants';
-import { calculateDamage, calcHp, doesMoveHit, ZERO_BOOSTS } from './lib/damage';
+import { MOVES, STARTERS, WILD_POKEMON_DATABASE, POKEMON_LIST, ITEMS_DATABASE, BASE_STATS, makePokemon } from './constants';
+import { calcHp } from './lib/damage';
+import { stepBattle, createBattleState, BattleState, BattleAction, BattleEffect } from './lib/battleEngine';
 import { InventoryUI } from './components/InventoryUI';
 import { TeamMenuUI } from './components/TeamMenuUI';
 import { DialogueBox } from './components/DialogueBox';
@@ -180,9 +181,6 @@ interface TileProps {
   key?: string;
   hasEncounters?: boolean;
 }
-
-
-// --- Main App ---
 
 
 // --- Main App ---
@@ -372,12 +370,7 @@ export default function App() {
   const [phase, setPhase] = useState<GamePhase>(EXPLORING);
   const [isTrainerBattle, setIsTrainerBattle] = useState(false);
   const [showMoves, setShowMoves] = useState(false);
-  const showMovesRef = useRef(false);
-  const isTrainerBattleRef = useRef(false);
   const [pickedItemIds, setPickedItemIds] = useState<string[]>([]);
-
-  showMovesRef.current = showMoves;
-  isTrainerBattleRef.current = isTrainerBattle;
 
   // Phase-derived helpers
   const inBattle = phase.type === 'BATTLE';
@@ -393,7 +386,6 @@ export default function App() {
   const setBadges = useGameStore(s => s.setBadges);
   const defeatedTrainers = useGameStore(s => s.defeatedTrainers);
   const setDefeatedTrainers = useGameStore(s => s.setDefeatedTrainers);
-  // isBattle and showBattleTransition replaced by phase
   const { grassEffect, setGrassEffect, spottedTrainerId, setSpottedTrainerId, spottedTrainerPos, setSpottedTrainerPos, overworldShake, setOverworldShake } = useOverworldVFX();
   const windowSize = useWindowSize();
 
@@ -413,7 +405,6 @@ export default function App() {
     resetBattleVFX,
   } = useBattleVFX();
   const [catchResult, setCatchResult] = useState<boolean | null>(null);
-  // isCatching, isBlackout, isHealing, isLevelUp, isEvolving, forcedSwitch replaced by phase
   const lastHealLocation = useGameStore(s => s.lastHealLocation);
   const setLastHealLocation = useGameStore(s => s.setLastHealLocation);
   const money = useGameStore(s => s.money);
@@ -439,6 +430,7 @@ export default function App() {
 
   const moveTimeout = useRef<NodeJS.Timeout | null>(null);
   const poisonStepCounter = useRef(0);
+  const battleStateRef = useRef<BattleState | null>(null);
   useEffect(() => {
     if (inBattle) {
       soundManager.play('BATTLE_START');
@@ -899,6 +891,12 @@ export default function App() {
               setSpottedTrainerPos(null);
               soundManager.play('BATTLE_START');
               setEnemyPokemon(trainer.trainerTeam![0]);
+              battleStateRef.current = createBattleState(playerTeam, trainer.trainerTeam![0], {
+                isTrainerBattle: true,
+                inventory,
+                pcStorage,
+                hasBoulderBadge: badges.includes('BOULDER'),
+              });
               updatePokedex(trainer.trainerTeam![0].id);
               setIsTrainerBattle(true);
               setBattleLog(`¡${trainer.name} te desafía!`);
@@ -921,13 +919,24 @@ export default function App() {
         
         soundManager.play('BATTLE_START');
         const finalMaxHp = calcHp(randomPkmn.baseStats.hp, finalLevel);
+        const wildBaseStats = {
+          ...randomPkmn.baseStats,
+          attack: Math.floor(randomPkmn.baseStats.attack * 0.85),
+          special: Math.floor(randomPkmn.baseStats.special * 0.85),
+        };
         const finalPkmn = {
           ...randomPkmn,
+          baseStats: wildBaseStats,
           level: finalLevel,
           hp: finalMaxHp,
           maxHp: finalMaxHp,
         };
         setEnemyPokemon(finalPkmn);
+        battleStateRef.current = createBattleState(playerTeam, finalPkmn, {
+          inventory,
+          pcStorage,
+          hasBoulderBadge: badges.includes('BOULDER'),
+        });
         setIsTrainerBattle(false);
         updatePokedex(randomPkmn.id);
         setBattleLog(`¡Un ${randomPkmn.name} salvaje apareció!`);
@@ -936,208 +945,146 @@ export default function App() {
     }
   }, []);
 
-  const handleEnemyTurn = () => {
-    if (!enemyPokemon || playerTeam.length === 0) return;
-    const playerPkmn = playerTeam[0];
-    
-    // Status check: Sleep/Paralysis
-    if (enemyPokemon.status === 'sleep') {
-      if (Math.random() > 0.3) {
-        setBattleLog(`¡${enemyPokemon.name} está profundamente dormido!`);
-        setTimeout(() => setPhase(battle(B_CHOOSING)), 1000);
-        return;
-      } else {
-        setBattleLog(`¡${enemyPokemon.name} se ha despertado!`);
-        setEnemyPokemon(prev => prev ? { ...prev, status: 'none' } : null);
-      }
+  /** Maps battleEngine phase string to App GamePhase */
+  function mapEnginePhase(p: string): GamePhase {
+    switch (p) {
+      case 'CHOOSING': return battle(B_CHOOSING);
+      case 'PLAYER_ATTACK': return battle(B_PLAYER_ATTACK);
+      case 'ENEMY_ATTACK': return battle(B_ENEMY_ATTACK);
+      case 'PLAYER_FAINTED': return battle(B_PLAYER_FAINTED);
+      case 'FORCED_SWITCH': return battle(B_FORCED_SWITCH);
+      case 'ENEMY_FAINTED': return battle(B_ENEMY_FAINTED);
+      case 'CATCHING': return battle(B_CATCHING);
+      case 'LEVEL_UP': return battle(B_LEVEL_UP);
+      case 'EVOLVING': return battle(B_EVOLVING);
+      case 'BATTLE_INVENTORY': return battle(B_BATTLE_INVENTORY);
+      case 'BATTLE_TEAM': return battle(B_BATTLE_TEAM);
+      default: return battle(B_CHOOSING);
     }
+  }
 
-    if (enemyPokemon.status === 'paralyzed' && Math.random() < 0.25) {
-      setBattleLog(`¡${enemyPokemon.name} está paralizado! ¡No puede moverse!`);
-      setTimeout(() => setPhase(battle(B_CHOOSING)), 1000);
+  const playBattleEffects = (effects: BattleEffect[]): number => {
+    let delay = 0;
+    effects.forEach(effect => {
+      const d = delay;
+      switch (effect.type) {
+        case 'log':
+          setTimeout(() => setBattleLog(effect.payload as string), d);
+          delay += 500;
+          break;
+        case 'sound':
+          soundManager.play(effect.payload as string);
+          break;
+        case 'player_anim':
+          setTimeout(() => setPlayerAnim(effect.payload as string), d);
+          if (effect.payload === 'hit' || effect.payload === 'faint') delay += 400;
+          break;
+        case 'enemy_anim':
+          setTimeout(() => setEnemyAnim(effect.payload as string), d);
+          if (effect.payload === 'hit' || effect.payload === 'faint' || effect.payload === 'attack') delay += 400;
+          break;
+        case 'screen_flash':
+          setTimeout(() => { setScreenFlash(true); setTimeout(() => setScreenFlash(false), 400); }, d);
+          delay += 200;
+          break;
+        case 'battle_shake':
+          setTimeout(() => { setBattleShake(true); setTimeout(() => setBattleShake(false), 400); }, d);
+          break;
+      }
+    });
+    return delay;
+  };
+
+  const dispatchBattle = (action: BattleAction) => {
+    if (!battleStateRef.current) return;
+
+    const { state: newState, effects } = stepBattle(battleStateRef.current, action);
+    battleStateRef.current = newState;
+
+    // Special-case: CATCH has its own long animation (4s)
+    if (action.type === 'CATCH') {
+      setPhase(battle(B_CATCHING));
+      setCatchResult(null);
+      setBattleLog('¡Pablo lanzó una POKÉ BALL!');
+      soundManager.play('SELECT');
+      setInventory(newState.inventory);
+
+      if (newState.outcome === 'caught') {
+        setTimeout(() => setCatchResult(true), 2800);
+        setTimeout(() => {
+          setCatchResult(null);
+          setPokedex(prev => ({ ...prev, [newState.enemyPokemon.id]: { seen: true, caught: true } }));
+          setPcStorage(newState.pcStorage);
+          setPlayerTeam(newState.playerTeam);
+          setPhase(EXPLORING);
+        }, 4000);
+      } else {
+        // Failed catch — enemy gets a turn after animation
+        setTimeout(() => setCatchResult(false), 2800);
+        setTimeout(() => {
+          setCatchResult(null);
+          setPlayerTeam(newState.playerTeam);
+          setEnemyPokemon(newState.enemyPokemon);
+          setPhase(mapEnginePhase(newState.phase));
+        }, 4000);
+      }
       return;
     }
 
-    setPhase(battle(B_ENEMY_ATTACK));
+    // For all other actions: sync state, play effects, then apply final phase
+    setPlayerTeam(newState.playerTeam);
+    setEnemyPokemon(newState.enemyPokemon);
+
+    const duration = playBattleEffects(effects);
+    const totalDelay = Math.max(duration + 200, 800);
+
     setTimeout(() => {
-      setEnemyAnim('attack');
-      const enemyMove = enemyPokemon.moves[Math.floor(Math.random() * enemyPokemon.moves.length)];
-      if (!doesMoveHit(enemyMove.accuracy)) {
-        setBattleLog(`¡${enemyPokemon.name} usó ${enemyMove.name}! ¡Pero falló!`);
-        setTimeout(() => {
-          setEnemyAnim('idle');
-          setPhase(battle(B_CHOOSING));
-        }, 700);
-        return;
-      }
+      setPhase(mapEnginePhase(newState.phase));
 
-      // Enemy status move (power === 0)
-      if (enemyMove.power === 0) {
-        soundManager.play('SELECT');
-        let log = `¡${enemyPokemon.name} usó ${enemyMove.name}!`;
-        const scMsg = applyStatChange(enemyMove, false);
-        if (scMsg) log += ' ' + scMsg;
-        if (enemyMove.statusEffect && Math.random() * 100 < (enemyMove.statusChance || 100)) {
-          setPlayerTeam(prev => {
-            const updated = [...prev];
-            updated[0] = { ...updated[0], status: enemyMove.statusEffect };
-            return updated;
-          });
-          log += ` ¡${playerPkmn.name} ahora está ${enemyMove.statusEffect}!`;
-        }
-        setBattleLog(log);
-        setTimeout(() => {
-          setEnemyAnim('idle');
-          setPhase(battle(B_CHOOSING));
-        }, 1000);
-        return;
-      }
-
-      if (enemyMove.type !== 'normal') {
-        setProjectile({ type: enemyMove.type, from: 'enemy' });
-        setTimeout(() => setProjectile(null), 600);
-      }
-
-      soundManager.playMove(enemyMove.sfxType ?? 'pulse');
-
-      setTimeout(() => {
-        setEnemyAnim('idle');
-        setPlayerAnim('hit');
-        soundManager.play('HIT');
-        setScreenFlash(true);
-
-        const enemyResult = calculateDamage(enemyPokemon, playerPkmn, enemyMove);
-        const enemyDamage = enemyResult.damage;
-        setHitEffect({ x: 30, y: 70, type: enemyMove.type });
-        setDamageNumber({ x: 30, y: 60, value: enemyDamage });
-        setBattleShake(true);
-        setTimeout(() => {
-          setScreenFlash(false);
-          setHitEffect(null);
-          setDamageNumber(null);
-          setBattleShake(false);
-        }, 400);
-
-        const newPlayerHP = Math.max(0, playerPkmn.hp - enemyDamage);
-        setPlayerTeam(prev => {
-          const updated = [...prev];
-          updated[0] = { ...updated[0], hp: newPlayerHP };
-
-          // Apply status effect to player
-          if (enemyMove.statusEffect && Math.random() * 100 < (enemyMove.statusChance || 100)) {
-            updated[0].status = enemyMove.statusEffect;
-            setBattleLog(prevLog => `${prevLog} ¡${playerPkmn.name} ahora está ${enemyMove.statusEffect}!`);
-          }
-
-          return updated;
-        });
-
-        let enemyLog = `¡${enemyPokemon.name} usó ${enemyMove.name}!`;
-        if (enemyResult.effectivenessLabel === 'no_effect') {
-          enemyLog += ` No afecta a ${playerPkmn.name}...`;
-        } else {
-          if (enemyResult.isCritical) enemyLog += ' ¡Golpe crítico!';
-          if (enemyResult.effectivenessLabel === 'super_effective') enemyLog += ' ¡Es supereficaz!';
-          if (enemyResult.effectivenessLabel === 'not_very_effective') enemyLog += ' No es muy eficaz...';
-          enemyLog += ` Causó ${enemyDamage} de daño.`;
-        }
-        setBattleLog(enemyLog);
-        
-        setTimeout(() => {
-          if (newPlayerHP === 0) {
-            const anyAlive = playerTeam.slice(1).some(p => p.hp > 0);
-            
-            if (!anyAlive) {
-              soundManager.play('FAINT');
-              setPlayerAnim('faint');
-              setBattleLog(`¡${playerPkmn.name} se debilitó! ¡No te quedan POKÉMON sanos!`);
-
-              setTimeout(() => {
-                setPlayerAnim('idle');
-                setPhase(BLACKOUT);
-
-                // Teleport mid-blackout (while screen is dark)
-                setTimeout(() => {
-                  setCurrentMap(lastHealLocation.map);
-                  setPlayerPos(lastHealLocation.pos);
-                }, 1200);
-
-                // Blackout fades — run healing animation on arrival
-                setTimeout(() => {
-                  setPhase(HEALING);
-                  setTimeout(() => {
-                    setPlayerTeam(prev => prev.map(p => ({ ...p, hp: p.maxHp, status: 'none', moves: p.moves.map(m => ({ ...m, pp: m.maxPp })) })));
-                    soundManager.play('SELECT');
-                  }, 800);
-                  setTimeout(() => {
-                    setPhase(EXPLORING);
-                    setDialogue("¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.");
-                  }, 1600);
-                }, 2400);
-              }, 1500);
-            } else {
-              soundManager.play('FAINT');
-              setPlayerAnim('faint');
-              setBattleLog(`¡${playerPkmn.name} se debilitó! ¡Elige tu siguiente POKÉMON!`);
-              setTimeout(() => {
-                setPlayerAnim('idle');
-                setPhase(battle(B_FORCED_SWITCH));
-              }, 1500);
+      if (newState.outcome === 'player_win') {
+        if (newState.isTrainerBattle) {
+          const trainer = npcs[currentMap].find(n => n.isTrainer && n.trainerTeam?.some(p => p.id === newState.enemyPokemon.id));
+          if (trainer) {
+            const moneyReward = newState.enemyPokemon.level * 20;
+            setDefeatedTrainers(prev => [...prev, trainer.id]);
+            if (moneyReward > 0) setMoney(prev => prev + moneyReward);
+            if (trainer.id === 'brock') {
+              setBadges(prev => [...prev, 'BOULDER']);
+              setBattleLog(prev => `${prev}\n¡Recibiste la MEDALLA ROCA de BROCK!`);
             }
-          } else {
-            setPlayerAnim('idle');
-            setPhase(battle(B_CHOOSING));
           }
-        }, 500);
-      }, 300);
-    }, 1000);
-  };
-
-  const handleCatch = () => {
-    if (!enemyPokemon) return;
-    
-    // Remove pokeball from inventory
-    removeInventoryItem('POKEBALL');
-
-    setBattleLog(`¡Pablo lanzó una POKÉ BALL!`);
-    setCatchResult(null);
-    setPhase(battle(B_CATCHING));
-    soundManager.play('SELECT');
-
-    // Catch logic: higher chance if HP is low
-    const hpPercent = enemyPokemon.hp / enemyPokemon.maxHp;
-    const catchRate = (1 - hpPercent) * 0.7 + 0.1; // 10% base, up to 80% at 0 HP
-    const succeeded = Math.random() < catchRate;
-
-    // Signal result to BattleScreen just before wobble sequence ends (~2.8s into animation)
-    setTimeout(() => setCatchResult(succeeded), 2800);
-
-    // Process game outcome after full animation completes
-    setTimeout(() => {
-      setCatchResult(null);
-      if (succeeded) {
-        soundManager.play('SELECT');
-        setBattleLog(`¡Ya está! ¡${enemyPokemon.name} atrapado!`);
-
+        }
         setTimeout(() => {
-          if (playerTeam.length < 6) {
-            setPlayerTeam(prev => [...prev, { ...enemyPokemon, hp: enemyPokemon.hp }]);
-          } else {
-            setPcStorage(prev => [...prev, { ...enemyPokemon, hp: enemyPokemon.hp }]);
-            setBattleLog(`¡${enemyPokemon.name} se envió al PC de Pablo!`);
-          }
-          setPokedex(prev => ({ ...prev, [enemyPokemon.id]: { seen: true, caught: true } }));
-          clearBattleStatBoosts();
+          setInventory(newState.inventory);
           setPhase(EXPLORING);
-        }, 1500);
-      } else {
-        setBattleLog(`¡Oh, no! ¡El POKÉMON se ha escapado!`);
+          setEnemyAnim('idle');
+          if (storyStep === 'PICKED_STARTER') {
+            setStoryStep('RIVAL_BATTLE');
+            setDialogue('AZUL: ¡Maldición! ¡He perdido! Pero no volverá a pasar.');
+          }
+        }, 2000);
+      } else if (newState.outcome === 'player_blackout') {
+        setPhase(BLACKOUT);
         setTimeout(() => {
-          setPhase(battle(B_CHOOSING));
-          handleEnemyTurn();
-        }, 1500);
+          setCurrentMap(lastHealLocation.map);
+          setPlayerPos(lastHealLocation.pos);
+        }, 1200);
+        setTimeout(() => {
+          setPhase(HEALING);
+          setTimeout(() => {
+            setPlayerTeam(prev => prev.map(p => ({ ...p, hp: p.maxHp, status: 'none', moves: p.moves.map(m => ({ ...m, pp: m.maxPp })) })));
+            soundManager.play('SELECT');
+          }, 800);
+          setTimeout(() => {
+            setPhase(EXPLORING);
+            setDialogue('¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.');
+          }, 1600);
+        }, 2400);
+      } else if (newState.outcome === 'fled') {
+        setInventory(newState.inventory);
+        setPhase(EXPLORING);
       }
-    }, 4000);
+    }, totalDelay);
   };
 
   const handleUseItem = (itemId: string) => {
@@ -1147,346 +1094,15 @@ export default function App() {
         const healedTeam = playerTeam.map(p => ({ ...p, hp: Math.min(p.maxHp, p.hp + 20) }));
         setPlayerTeam(healedTeam);
         removeInventoryItem('POTION');
-        setDialogue("¡Usaste una POCIÓN! Tus POKÉMON recuperaron salud.");
+        setDialogue('¡Usaste una POCIÓN! Tus POKÉMON recuperaron salud.');
       }
       return;
     }
-
     if (itemId === 'POKEBALL') {
-      handleCatch();
-    } else if (itemId === 'POTION') {
-      // Use potion on first pokemon
-      const playerPkmn = playerTeam[0];
-      const healed = Math.min(20, playerPkmn.maxHp - playerPkmn.hp);
-      const newHP = playerPkmn.hp + healed;
-      const updatedTeam = [...playerTeam];
-      updatedTeam[0] = { ...playerPkmn, hp: newHP };
-      setPlayerTeam(updatedTeam);
-
-      removeInventoryItem('POTION');
-
-      // Show heal number floating effect
-      setHealNumber({ x: 30, y: 60, value: healed });
-      setTimeout(() => setHealNumber(null), 1200);
-
-      setBattleLog(`¡Usaste una POCIÓN en ${playerPkmn.name}! Recuperó ${healed} PS.`);
-      soundManager.play('SELECT');
-      setTimeout(() => handleEnemyTurn(), 1000);
-    }
-  };
-
-  /** Reset player stat boosts at end of every battle */
-  const clearBattleStatBoosts = () => {
-    setPlayerTeam(prev => prev.map(p => ({ ...p, statBoosts: undefined })));
-    setEnemyPokemon(prev => prev ? { ...prev, statBoosts: undefined } : null);
-    setBadgeBoostGlitchStacks(0);
-  };
-
-  /** Apply a stat stage change to player or enemy, clamped to [-6, +6]. Returns message. */
-  const applyStatChange = (
-    move: Move,
-    attackerIsPlayer: boolean,
-  ): string | null => {
-    const sc = move.statChange;
-    if (!sc) return null;
-
-    const targetIsPlayer = attackerIsPlayer ? sc.target === 'self' : sc.target === 'enemy';
-    const statName = sc.stat;
-    const stages = sc.stages;
-
-    if (targetIsPlayer) {
-      setPlayerTeam(prev => {
-        const updated = [...prev];
-        const boosts = { ...(updated[0].statBoosts ?? ZERO_BOOSTS) };
-        boosts[statName] = Math.max(-6, Math.min(6, (boosts[statName] ?? 0) + stages));
-        updated[0] = { ...updated[0], statBoosts: boosts };
-        return updated;
-      });
-      if (badges.includes('BOULDER')) {
-        // Gen I badge boost glitch: stat changes re-apply badge-derived boosts.
-        setBadgeBoostGlitchStacks(prev => prev + 1);
-      }
+      dispatchBattle({ type: 'CATCH' });
     } else {
-      setEnemyPokemon(prev => {
-        if (!prev) return prev;
-        const boosts = { ...(prev.statBoosts ?? ZERO_BOOSTS) };
-        boosts[statName] = Math.max(-6, Math.min(6, (boosts[statName] ?? 0) + stages));
-        return { ...prev, statBoosts: boosts };
-      });
+      dispatchBattle({ type: 'USE_ITEM', itemId });
     }
-
-    const targetName = targetIsPlayer ? playerTeam[0]?.name : enemyPokemon?.name;
-    const statLabels: Record<string, string> = { attack: 'ATAQUE', defense: 'DEFENSA', special: 'ESPECIAL', speed: 'VELOCIDAD' };
-    const direction = stages > 0 ? 'subió' : 'bajó';
-    const amount = Math.abs(stages) === 1 ? '' : Math.abs(stages) === 2 ? ' mucho' : ' al máximo';
-    return `¡${targetName} ${direction} su ${statLabels[statName]}${amount}!`;
-  };
-
-  const handleFlee = () => {
-    if (!enemyPokemon || playerTeam.length === 0 || battlePhase?.type !== 'CHOOSING') return;
-    if (isTrainerBattle) return;
-    setShowMoves(false);
-
-    setPhase(battle(B_PLAYER_ATTACK)); // lock input
-
-    const playerSpeed = playerTeam[0].baseStats.speed;
-    const enemySpeed = Math.max(1, enemyPokemon.baseStats.speed);
-    const fleeValue = (playerSpeed * 128 / enemySpeed + 30) % 256;
-    const roll = Math.floor(Math.random() * 256);
-
-    if (roll < fleeValue) {
-      setBattleLog('¡Has escapado con éxito!');
-      setTimeout(() => { clearBattleStatBoosts(); setPhase(EXPLORING); }, 1000);
-    } else {
-      setBattleLog('¡No has podido escapar!');
-      setTimeout(() => handleEnemyTurn(), 1000);
-    }
-  };
-
-  const handleAttack = (move: Move) => {
-    if (!enemyPokemon || playerTeam.length === 0 || battlePhase?.type !== 'CHOOSING') return;
-    if (move.pp <= 0) return;
-    setShowMoves(false);
-
-    const playerPkmn = playerTeam[0];
-
-    // Deduct PP
-    setPlayerTeam(prev => {
-      const updated = [...prev];
-      updated[0] = {
-        ...updated[0],
-        moves: updated[0].moves.map(m => m.name === move.name ? { ...m, pp: m.pp - 1 } : m),
-      };
-      return updated;
-    });
-
-    // Lock input immediately
-    setPhase(battle(B_PLAYER_ATTACK));
-
-    // Status check: Sleep/Paralysis
-    if (playerPkmn.status === 'sleep') {
-      if (Math.random() > 0.3) {
-        setBattleLog(`¡${playerPkmn.name} está profundamente dormido!`);
-        setTimeout(handleEnemyTurn, 1000);
-        return;
-      } else {
-        setBattleLog(`¡${playerPkmn.name} se ha despertado!`);
-        setPlayerTeam(prev => {
-          const updated = [...prev];
-          updated[0] = { ...updated[0], status: 'none' };
-          return updated;
-        });
-      }
-    }
-
-    if (playerPkmn.status === 'paralyzed' && Math.random() < 0.25) {
-      setBattleLog(`¡${playerPkmn.name} está paralizado! ¡No puede moverse!`);
-      setTimeout(handleEnemyTurn, 1000);
-      return;
-    }
-
-    setPlayerAnim('attack');
-    soundManager.play('SELECT');
-    if (!doesMoveHit(move.accuracy)) {
-      setBattleLog(`¡${playerPkmn.name} usó ${move.name}! ¡Pero falló!`);
-      setTimeout(() => {
-        setPlayerAnim('idle');
-        handleEnemyTurn();
-      }, 700);
-      return;
-    }
-
-    // Status / Stat-change move (power === 0): no damage animation
-    if (move.power === 0) {
-      let log = `¡${playerPkmn.name} usó ${move.name}!`;
-
-      // Stat change
-      const scMsg = applyStatChange(move, true);
-      if (scMsg) log += ' ' + scMsg;
-
-      // Status effect
-      if (move.statusEffect && Math.random() * 100 < (move.statusChance || 100)) {
-        setEnemyPokemon(prev => prev ? { ...prev, status: move.statusEffect } : null);
-        log += ` ¡${enemyPokemon.name} ahora está ${move.statusEffect}!`;
-      }
-
-      setBattleLog(log);
-      setTimeout(() => {
-        setPlayerAnim('idle');
-        handleEnemyTurn();
-      }, 1000);
-      return;
-    }
-
-    // Player Attack Animation
-    soundManager.playMove(move.sfxType ?? 'pulse');
-
-    // Show Projectile for special moves
-    if (move.type !== 'normal') {
-      setProjectile({ type: move.type, from: 'player' });
-      setTimeout(() => setProjectile(null), 600);
-    }
-
-    setTimeout(() => {
-      const attackMultiplier = badges.includes('BOULDER') ? 1 + badgeBoostGlitchStacks * 0.125 : 1;
-      const attackerWithBadgeGlitch = attackMultiplier > 1
-        ? {
-            ...playerPkmn,
-            baseStats: {
-              ...playerPkmn.baseStats,
-              attack: Math.floor(playerPkmn.baseStats.attack * attackMultiplier),
-            },
-          }
-        : playerPkmn;
-      const result = calculateDamage(attackerWithBadgeGlitch, enemyPokemon, move);
-      const damage = result.damage;
-      const newEnemyHP = Math.max(0, enemyPokemon.hp - damage);
-
-      setEnemyAnim('hit');
-      setScreenFlash(true);
-      setHitEffect({ x: 70, y: 30, type: move.type });
-      setDamageNumber({ x: 70, y: 20, value: damage });
-      setBattleShake(true);
-
-      setTimeout(() => {
-        setScreenFlash(false);
-        setHitEffect(null);
-        setDamageNumber(null);
-        setBattleShake(false);
-      }, 400);
-
-      setEnemyPokemon({ ...enemyPokemon, hp: newEnemyHP });
-      let attackLog = `¡${playerPkmn.name} usó ${move.name}!`;
-      if (result.effectivenessLabel === 'no_effect') {
-        attackLog += ` No afecta a ${enemyPokemon.name}...`;
-      } else {
-        if (result.isCritical) attackLog += ' ¡Golpe crítico!';
-        if (result.effectivenessLabel === 'super_effective') attackLog += ' ¡Es supereficaz!';
-        if (result.effectivenessLabel === 'not_very_effective') attackLog += ' No es muy eficaz...';
-        attackLog += ` Causó ${damage} de daño.`;
-      }
-      setBattleLog(attackLog);
-
-      // Apply status effect
-      if (move.statusEffect && Math.random() * 100 < (move.statusChance || 100)) {
-        setEnemyPokemon(prev => prev ? { ...prev, status: move.statusEffect } : null);
-        setBattleLog(prevLog => `${prevLog} ¡${enemyPokemon.name} ahora está ${move.statusEffect}!`);
-      }
-
-      setTimeout(() => {
-        setPlayerAnim('idle');
-        if (newEnemyHP === 0) {
-          soundManager.play('FAINT');
-          setEnemyAnim('faint');
-          setBattleLog(`¡${enemyPokemon.name} se debilitó!`);
-          
-          // Check if it was a trainer pokemon
-          const trainer = npcs[currentMap].find(n => n.isTrainer && n.trainerTeam?.some(p => p.id === enemyPokemon.id));
-          const moneyReward = trainer ? enemyPokemon.level * 20 : 0;
-          if (trainer) {
-            setDefeatedTrainers(prev => [...prev, trainer.id]);
-            if (moneyReward > 0) setMoney(prev => prev + moneyReward);
-            if (trainer.id === 'brock') {
-              setBadges(prev => [...prev, 'BOULDER']);
-              setBattleLog(prev => `${prev}\n¡Recibiste la MEDALLA ROCA de BROCK!`);
-            }
-          }
-
-          // EXP Gain — compute everything outside state updaters
-          const expGain = Math.floor(enemyPokemon.level * 25);
-
-          setTimeout(() => {
-            const rewardLine = moneyReward > 0 ? `\n¡Ganaste ₽${moneyReward}!` : '';
-            setBattleLog(`¡${playerPkmn.name} ganó ${expGain} puntos de EXP!${rewardLine}`);
-
-            // Compute new pokemon state synchronously
-            let pkmn = { ...playerPkmn };
-            pkmn.exp = (pkmn.exp || 0) + expGain;
-
-            let didLevelUp = false;
-            let learnedMove: Move | null = null;
-            while (pkmn.exp >= (pkmn.expToNextLevel || 100)) {
-              pkmn.exp -= (pkmn.expToNextLevel || 100);
-              pkmn.level += 1;
-              pkmn.expToNextLevel = pkmn.level * 100;
-              const newMaxHp = calcHp(pkmn.baseStats.hp, pkmn.level);
-              pkmn.hp = Math.min(pkmn.hp + (newMaxHp - pkmn.maxHp), newMaxHp);
-              pkmn.maxHp = newMaxHp;
-              didLevelUp = true;
-              const moveEntry = pkmn.movesToLearn?.find(m => m.level === pkmn.level);
-              if (moveEntry && !pkmn.moves.some(m => m.name === moveEntry.move.name)) {
-                learnedMove = moveEntry.move;
-                pkmn.moves = pkmn.moves.length < 4
-                  ? [...pkmn.moves, moveEntry.move]
-                  : [moveEntry.move, ...pkmn.moves.slice(1)];
-              }
-            }
-
-            // Check evolution
-            const willEvolve = didLevelUp
-              && pkmn.evolutionLevel != null
-              && pkmn.level >= pkmn.evolutionLevel
-              && pkmn.evolvesTo != null;
-            const evoData = willEvolve ? EVOLUTIONS[pkmn.evolvesTo!] : null;
-            let evolvedPkmn = pkmn;
-            if (evoData) {
-              evolvedPkmn = { ...pkmn, ...evoData };
-              if (evoData.baseStats) {
-                const evoMaxHp = calcHp(evoData.baseStats.hp, pkmn.level);
-                evolvedPkmn.hp = Math.min(pkmn.hp + (evoMaxHp - pkmn.maxHp), evoMaxHp);
-                evolvedPkmn.maxHp = evoMaxHp;
-              }
-            }
-
-            // Apply XP (and level stats) now
-            setPlayerTeam(prev => { const u = [...prev]; u[0] = pkmn; return u; });
-
-            // Sequence post-battle animations
-            let endDelay = 2500;
-
-            if (didLevelUp) {
-              endDelay = 4500;
-              setTimeout(() => {
-                setPhase(battle(B_LEVEL_UP));
-                setBattleLog(`¡${pkmn.name} subió al nivel ${pkmn.level}!`);
-                soundManager.play('SELECT');
-                if (learnedMove) {
-                  setTimeout(() => setBattleLog(`¡${pkmn.name} aprendió ${learnedMove!.name}!`), 1500);
-                }
-                setTimeout(() => setPhase(battle(B_ENEMY_FAINTED)), 2000);
-              }, 1500);
-
-              if (evoData) {
-                endDelay = 9500;
-                setTimeout(() => {
-                  setBattleLog(`¡¿Qué?! ¡${pkmn.name} está evolucionando!`);
-                  setPhase(battle(B_EVOLVING));
-                  setTimeout(() => {
-                    setPlayerTeam(prev => { const u = [...prev]; u[0] = evolvedPkmn; return u; });
-                    setPhase(battle(B_ENEMY_FAINTED));
-                    setBattleLog(`¡Felicidades! ¡${evolvedPkmn.name} ha evolucionado!`);
-                    soundManager.play('SELECT');
-                  }, 3000);
-                }, 4500);
-              }
-            }
-
-            setTimeout(() => {
-              clearBattleStatBoosts();
-              setPhase(EXPLORING);
-              setEnemyAnim('idle');
-              if (storyStep === 'PICKED_STARTER') {
-                setStoryStep('RIVAL_BATTLE');
-                setDialogue("AZUL: ¡Maldición! ¡He perdido! Pero no volverá a pasar.");
-              }
-            }, endDelay);
-          }, 1500);
-        } else {
-          setEnemyAnim('idle');
-          handleEnemyTurn();
-        }
-      }, 500);
-    }, 300);
   };
 
   const pressedKeys = useRef<Set<Direction>>(new Set());
@@ -1494,7 +1110,8 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (inBattle) {
-        const { battleSubPhase, playerTeam: team } = gameState.current;
+        const battleSubPhase = phase.type === 'BATTLE' ? phase.sub.type : null;
+        const team = playerTeam;
         if (e.key === 'Escape') {
           // Close sub-menus back to choosing, never exit the battle
           if (battleSubPhase === 'BATTLE_INVENTORY' || battleSubPhase === 'BATTLE_TEAM') {
@@ -1503,7 +1120,7 @@ export default function App() {
           // FORCED_SWITCH: don't allow closing without picking
         }
         if (battleSubPhase === 'CHOOSING') {
-          const inMovesMenu = showMovesRef.current;
+          const inMovesMenu = showMoves;
           if (e.key === 'Escape' && inMovesMenu) {
             setShowMoves(false);
             return;
@@ -1513,13 +1130,13 @@ export default function App() {
             if (e.key === '1') { setShowMoves(true); return; }
             if (e.key === 'b' || e.key === 'B') { setPhase(battle(B_BATTLE_INVENTORY)); return; }
             if (e.key === 'p' || e.key === 'P') { setPhase(battle(B_BATTLE_TEAM)); return; }
-            if ((e.key === 'h' || e.key === 'H') && !isTrainerBattleRef.current) { handleFlee(); return; }
+            if ((e.key === 'h' || e.key === 'H') && !isTrainerBattle) { dispatchBattle({ type: 'FLEE' }); return; }
           } else {
             // Moves submenu shortcuts: 1-4 select move
             const idx = parseInt(e.key) - 1;
             if (idx >= 0 && idx <= 3) {
               const mv = team[0]?.moves[idx];
-              if (mv && mv.pp > 0) handleAttack(mv);
+              if (mv && mv.pp > 0) dispatchBattle({ type: 'ATTACK', move: mv });
             }
           }
         }
@@ -2042,10 +1659,10 @@ export default function App() {
             isTrainerBattle={isTrainerBattle}
             isPlayerTurn={battlePhase?.type === 'CHOOSING'}
             setIsBattle={(v) => { if (!v) setPhase(EXPLORING); }}
-            onFlee={handleFlee}
+            onFlee={() => dispatchBattle({ type: 'FLEE' })}
             setShowInventory={() => { setShowMoves(false); setPhase(battle(B_BATTLE_INVENTORY)); }}
             setShowTeam={() => { setShowMoves(false); setPhase(battle(B_BATTLE_TEAM)); }}
-            handleAttack={handleAttack}
+            handleAttack={(move) => dispatchBattle({ type: 'ATTACK', move })}
           />
         )}
       </AnimatePresence>
@@ -2087,17 +1704,15 @@ export default function App() {
             forcedSwitch={battlePhase?.type === 'FORCED_SWITCH'}
             onClose={() => setPhase(battlePhase ? battle(B_CHOOSING) : EXPLORING)}
             onSwap={(index) => {
-              setPlayerTeam(prev => {
-                const updated = [...prev];
-                const [moved] = updated.splice(index, 1);
-                updated.unshift(moved);
-                return updated;
-              });
-              if (battlePhase?.type === 'FORCED_SWITCH') {
-                setPhase(battle(B_CHOOSING));
-              } else if (battlePhase) {
-                setPhase(battle(B_CHOOSING));
+              if (battlePhase) {
+                dispatchBattle({ type: 'SWITCH', index });
               } else {
+                setPlayerTeam(prev => {
+                  const updated = [...prev];
+                  const [moved] = updated.splice(index, 1);
+                  updated.unshift(moved);
+                  return updated;
+                });
                 setPhase(EXPLORING);
               }
             }}

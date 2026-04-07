@@ -6,7 +6,8 @@ Pokemon Fire Red style RPG built with React, TypeScript, Vite, and Tailwind.
 
 - Overworld exploration with trainers, encounters, teleports, and map transitions
 - Battle FSM with turn flow, catches, forced switch, status effects, XP, level-up, evolution
-- Gen I-inspired battle math and quirks (including the 1/256 miss behavior)
+- Gen I-inspired battle math and quirks (1/256 miss, badge boost glitch)
+- Difficulty balance: wild Pokémon hit softer (85% atk/special), trainer AI picks moves intelligently, trainer kills give 1.5× exp
 - Data-driven map format (`rows: string[]`) with tile parser and in-game map editor
 - Inventory quantities (`Record<itemId, qty>`), money rewards, shop, PC storage, Pokedex
 - Multiple local save profiles (`slot1`/`slot2`/`slot3`) with metadata
@@ -29,7 +30,7 @@ export PATH="/opt/homebrew/bin:$PATH"
 
 ## Project Structure
 
-- `src/App.tsx` — main runtime orchestrator (movement, phase transitions, battle loop, menus)
+- `src/App.tsx` — main runtime orchestrator (movement, phase transitions, menus); drives battle via `dispatchBattle()` → `battleEngine.ts`
 - `src/hooks/` — extracted state slices:
   - `useInteractionEngine.ts` — overworld NPC/item/tile interaction flow
   - `useBattleVFX.ts` — battle animation state (anims, flash, projectile, damage numbers)
@@ -78,9 +79,5 @@ Notable tiles:
 npm run test:run   # single run (CI)
 npm test           # watch mode
 ```
-
-## Known Next Major Task
-
-- State consolidation phase 3: extract `useBattleEngine` and `usePlayerMovement` to finish clearing `App.tsx`.
 
 See `CLAUDE.md` for implementation details and `TODO.md` for task tracking.

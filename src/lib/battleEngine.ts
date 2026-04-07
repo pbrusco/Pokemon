@@ -15,6 +15,7 @@ import {
   doesMoveHit,
   calcHp,
   ZERO_BOOSTS,
+  getTypeEffectiveness,
 } from './damage';
 import { EVOLUTIONS } from '../constants';
 
@@ -184,6 +185,28 @@ function computeExpAndLevelUp(pkmn: Pokemon, expGain: number): {
   return { pkmn: p, didLevelUp, learnedMove, willEvolve, evolvedPkmn };
 }
 
+// ─── Trainer AI ──────────────────────────────────────────────────────────────
+
+function selectTrainerMove(attacker: Pokemon, defender: Pokemon): Move {
+  const moves = attacker.moves;
+  const damagingMoves = moves.filter(m => m.power > 0);
+
+  if (damagingMoves.length === 0) return moves[Math.floor(Math.random() * moves.length)];
+
+  // Score each damaging move: prefer super-effective, then higher base power
+  const scored = damagingMoves.map(m => {
+    const effectiveness = getTypeEffectiveness(m.type, defender.types ?? []);
+    return { move: m, score: m.power * effectiveness };
+  });
+  scored.sort((a, b) => b.score - a.score);
+
+  // 70% chance to pick the best move, 30% chance to pick randomly among damaging moves
+  if (Math.random() < 0.7) {
+    return scored[0].move;
+  }
+  return damagingMoves[Math.floor(Math.random() * damagingMoves.length)];
+}
+
 // ─── Main Reducer ─────────────────────────────────────────────────────────────
 
 export function stepBattle(state: BattleState, action: BattleAction): BattleResult {
@@ -295,7 +318,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
 
       if (newEnemyHP === 0) {
         // Enemy fainted — compute EXP
-        const expGain = Math.floor(s.enemyPokemon.level * 25);
+        const expGain = Math.floor(s.enemyPokemon.level * 25 * (s.isTrainerBattle ? 1.5 : 1));
         const { pkmn: leveledPkmn, didLevelUp, learnedMove, willEvolve, evolvedPkmn } = computeExpAndLevelUp(playerPkmn, expGain);
 
         const faintLog = `¡${s.enemyPokemon.name} se debilitó!`;
@@ -368,7 +391,9 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           return { state: s, effects };
         }
 
-        const enemyMove = s.enemyPokemon.moves[Math.floor(Math.random() * s.enemyPokemon.moves.length)];
+        const enemyMove = s.isTrainerBattle
+          ? selectTrainerMove(s.enemyPokemon, playerPkmn)
+          : s.enemyPokemon.moves[Math.floor(Math.random() * s.enemyPokemon.moves.length)];
         effects.push({ type: 'enemy_anim', payload: 'attack' });
 
         // Accuracy check

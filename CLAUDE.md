@@ -2,13 +2,9 @@
 
 ## Project Snapshot
 
-This project is currently a hybrid architecture:
-
-- **Primary runtime owner:** `src/App.tsx`
-- **Extracted responsibilities in progress:** `src/hooks/useInteractionEngine.ts` and other hooks
-- **Global store exists:** `src/store/gameStore.ts`, but full migration is not complete
-
-The remaining major technical task is final state consolidation.
+- **Primary runtime owner:** `src/App.tsx` — movement, encounters, trainer triggers, battle orchestration, menus
+- **Battle logic:** `src/lib/battleEngine.ts` — pure state machine; `App.tsx` drives it via `dispatchBattle(action)`
+- **Global store:** `src/store/gameStore.ts` for overworld state; battle state lives in `battleStateRef` during fights
 
 ## Commands
 
@@ -27,7 +23,8 @@ export PATH="/opt/homebrew/bin:$PATH"
 
 ## Core Files
 
-- `src/App.tsx` — main loop: movement, encounters, trainer triggers, battle orchestration, menus
+- `src/App.tsx` — main loop; drives battle via `dispatchBattle()` → `battleEngine.ts`
+- `src/lib/battleEngine.ts` — pure battle state machine (damage, AI, exp, status, catch, flee)
 - `src/types/gamePhase.ts` — `GamePhase` + `BattlePhase` FSM
 - `src/hooks/useInteractionEngine.ts` — overworld interaction behavior (NPC/item/tile)
 - `src/constants.ts` — static game data (Pokemon, moves, items, evolutions, HM requirements)
@@ -41,10 +38,7 @@ export PATH="/opt/homebrew/bin:$PATH"
 
 - `phase` FSM is the canonical mode switch.
 - Inventory uses quantity counts (`Record<string, number>`).
-- Saves are slot-based in localStorage:
-  - `pokemon_save_slots`
-  - `pokemon_active_slot`
-- Legacy single save payload (`pokemon_save`) is migrated on load.
+- Saves are slot-based in localStorage: `pokemon_save_slots` / `pokemon_active_slot`.
 
 ## Battle Notes
 
@@ -66,5 +60,4 @@ Interactive obstacle checks are handled via overworld interaction logic with bad
 1. Keep in-game text in Spanish.
 2. Avoid side effects inside state updater callbacks.
 3. When evolving Pokemon, recompute `baseStats`, `maxHp`, and `hp`.
-4. Prefer incremental refactors over big-bang rewrites, especially around battle flow.
-5. When touching saves/inventory, include migration compatibility.
+4. No backward compatibility. Delete old code, don't keep shims or migration paths.
