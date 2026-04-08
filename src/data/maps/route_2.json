@@ -1,0 +1,38 @@
+{
+  "rows": [
+    "BBBBBBBBBB P BBBBBBBB",
+    "BBBBBBBBBB P BBBBBBBB",
+    "BPPPPPPPPPPPPPPPPPPB",
+    "BPPPPBBBBBBBBBBBBPPB",
+    "BPPBBBBBBBBBBBBBBPPB",
+    "BPPBBBBBBBBBBBBBBPPB",
+    "BPPBBBBBBBBBBBBBBPPB",
+    "BPPBBBBBBBBBBBBBBPPB",
+    "BPPBBBBBBBBBBBBBBPPB",
+    "BPPBBBBBBBBBBBBBBPPB",
+    "BPPBBBBBBBBBBBBBBPPB",
+    "BPPBBBBBBBBBBBBBBPPB",
+    "BPPBBBBBBBBBBBBBBPPB",
+    "BPPBBBBBBBBBBBBBBPPB",
+    "BPPBBBBBBBBBBBBBBPPB",
+    "BPPBBBBBBBBBBBBBBPPB",
+    "BPPBBBBBBBBBBBBBBPPB",
+    "BPPBBBBBBBBBBBBBBPPB",
+    "BBBBBBBBBB P BBBBBBBB",
+    "BBBBBBBBBB P BBBBBBBB"
+  ],
+  "warps": [
+    { 
+      "x": 10, "y": 0, 
+      "targetMap": "VIRIDIAN_FOREST", 
+      "targetPos": { "x": 10, "y": 17 }, 
+      "targetDir": "up" 
+    },
+    { 
+      "x": 10, "y": 19, 
+      "targetMap": "VIRIDIAN_CITY", 
+      "targetPos": { "x": 10, "y": 1 }, 
+      "targetDir": "down" 
+    }
+  ]
+}
