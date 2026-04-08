@@ -35,7 +35,7 @@ interface UseMovementEngineParams {
   setDirection: (dir: Direction) => void;
   setIsMoving: (v: boolean) => void;
   setDialogue: (d: string | null) => void;
-  setStoryStep: (step: string) => void;
+  setStoryStep: (step: 'START' | 'OAK_STOPPED' | 'IN_LAB' | 'PICKED_STARTER' | 'RIVAL_BATTLE' | 'EXPLORING') => void;
   setPlayerTeam: (fn: ((prev: Pokemon[]) => Pokemon[]) | Pokemon[]) => void;
   setPhase: Dispatch<SetStateAction<GamePhase>>;
   setOverworldShake: (v: boolean) => void;

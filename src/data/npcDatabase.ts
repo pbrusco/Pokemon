@@ -158,7 +158,9 @@ export function buildNPCDatabase(
           makePokemon('mankey', 'MANKEY', 12, 'fighting', [MOVES.SCRATCH, MOVES.TACKLE], 56)
         ]
       }
-    ]
+    ],
+    MT_MOON: [],
+    ROUTE_2: [],
   };
 }
 
@@ -187,7 +189,9 @@ export function buildItemDatabase(pickedItemIds: string[]): Record<MapID, Entity
     ],
     PEWTER_CITY: [],
     PEWTER_GYM: [],
-    ROUTE_3: []
+    ROUTE_3: [],
+    MT_MOON: [],
+    ROUTE_2: [],
   };
 
   return Object.fromEntries(

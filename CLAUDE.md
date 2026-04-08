@@ -1,60 +1,30 @@
 # CLAUDE.md — Agent Guide for My Pokemon
 
-## Architecture in One Paragraph
+## Vision
 
-`App.tsx` (~400 lines) is a thin orchestrator: it owns React state, creates two shared refs (`gameState`, `battleStateRef`), calls hooks, and composes top-level JSX from presentation components. Game logic lives in hooks. `useBattleEngine` drives `battleEngine.ts` (pure state machine) via `dispatchBattle()`. `useMovementEngine` handles all overworld movement, collision, and encounter triggering. `useInteractionEngine` handles NPC/item/tile interactions. `useInputHandler` manages the keyboard + continuous movement loop.
+This is a faithful recreation of Pokémon Red / Fire Red (Gen I) built with modern web tech (React 19, TypeScript, Vite, Zustand). The goal is to reproduce the original gameplay feel — turn-based battles, tile movement, Kanto story — not to clone the visuals pixel-for-pixel. Mechanics (damage formula, type chart, stat calc, status effects) follow Gen I rules. All in-game text is in Spanish. Scope is limited to Gen I: 151 Pokémon, Kanto region, condensed storyline from Pallet Town through Pewter City.
 
-## Commands
+## Architecture
 
-```bash
-npm run dev
-npm run build
-npm run test:run   # single run (CI)
-npm run lint
-export PATH="/opt/homebrew/bin:$PATH"  # if npm not found on macOS
-```
-
-## File Responsibilities
-
-| File | What it owns |
-|------|-------------|
-| `src/App.tsx` | State, `gameState` ref, `battleStateRef`, hook wiring, JSX |
-| `src/lib/battleEngine.ts` | Pure battle state machine — `stepBattle()`, `createBattleState()` |
-| `src/types/gamePhase.ts` | `GamePhase` / `BattlePhase` FSM types + `battle(sub)` factory |
-| `src/store/gameStore.ts` | Zustand store — all persistent game state |
-| `src/hooks/useMovementEngine.ts` | Movement, collision, warps, trainer spotting, encounters → `{ handleMove, initBattle }` |
-| `src/hooks/useBattleEngine.ts` | Battle turn dispatch, VFX sequencing, outcomes → `{ dispatchBattle }` |
-| `src/hooks/useInteractionEngine.ts` | NPC/item/tile interaction (heal, shop, dialogue, pick up) |
-| `src/hooks/useInputHandler.ts` | Keyboard events + self-trigger movement loop (side-effect only) |
-| `src/hooks/useDebugAPI.ts` | Dev-only `window.__game` API (side-effect only) |
-| `src/data/npcDatabase.ts` | `buildNPCDatabase(playerTeam, hasParcel, hasPokedex, badges)` + `buildItemDatabase(pickedItemIds)` |
-| `src/data/worldConfig.ts` | `INITIAL_MAPS`, teleports, static world config (not NPCs) |
-| `src/constants.ts` | 151 Pokémon, moves, items, evolutions, `WILD_POKEMON_DATABASE` |
-| `src/components/WorldView.tsx` | Overworld viewport — tile grid, player, NPCs, items, HUD |
-| `src/components/GameModals.tsx` | All overlay screens — battle, menus, dialogue, shop, etc. |
-| `src/components/overworld/` | `GameTile`, `PlayerSprite`, `NPCComponent` (used only by WorldView) |
+`App.tsx` owns React state, two shared refs (`gameState`, `battleStateRef`), hook wiring, and JSX. Logic lives in hooks: `useBattleEngine` drives `battleEngine.ts` (pure state machine), `useMovementEngine` handles movement/collision/encounters, `useInteractionEngine` handles NPC/item/tile interactions, `useInputHandler` manages keyboard + movement loop.
 
 ## The `gameState` Ref
 
-App.tsx keeps a single snapshot ref that all hooks read inside `setTimeout` callbacks (to avoid stale closures). Its shape:
+All hooks read this inside `setTimeout` to avoid stale closures. **Never** read closure-captured hook params inside `setTimeout` — always use `gameState.current`.
 
 ```typescript
 gameState.current = {
   playerPos, direction, isMoving, dialogue,
-  inBattle,           // boolean
-  phaseType,          // phase.type string
-  battleSubPhase,     // phase.sub.type string | null
+  inBattle, phaseType, battleSubPhase,
   currentMap, playerTeam, maps, npcs, items,
   defeatedTrainers, inventory, storyStep,
   pcStorage, badges, lastHealLocation
 }
 ```
 
-`battleStateRef` is a separate ref holding the mutable `BattleState` during a fight. It is initialized by `useMovementEngine` (via `initBattle`) and driven by `useBattleEngine`.
+`battleStateRef` holds mutable `BattleState` during fights (initialized by `initBattle`, driven by `useBattleEngine`).
 
-**Rule:** Any code inside a `setTimeout` must read game state from `gameState.current`, not from closure-captured hook params.
-
-## Phase FSM Quick Reference
+## Phase FSM
 
 ```
 EXPLORING → MENU | INVENTORY | TEAM | SHOP | POKEDEX | PC | EDITOR
@@ -62,62 +32,42 @@ EXPLORING → MENU | INVENTORY | TEAM | SHOP | POKEDEX | PC | EDITOR
          → HEALING | BLACKOUT
 
 BATTLE sub-phases:
-  CHOOSING → PLAYER_ATTACK → ENEMY_ATTACK → CHOOSING (loop)
+  CHOOSING → PLAYER_ATTACK → ENEMY_ATTACK → CHOOSING
            → PLAYER_FAINTED → FORCED_SWITCH
            → ENEMY_FAINTED → LEVEL_UP → [EVOLVING] → CHOOSING / EXPLORING
            → CATCHING
-  BATTLE_INVENTORY / BATTLE_TEAM (sub-menus, return to CHOOSING)
+  BATTLE_INVENTORY / BATTLE_TEAM → CHOOSING
 ```
 
-Helper constants: `EXPLORING`, `MENU`, `INVENTORY`, `TEAM`, `SHOP`, `POKEDEX`, `PC`, `EDITOR`  
-Battle factory: `battle(B_CHOOSING)`, `battle({ type: 'BATTLE_INVENTORY' })`, etc.  
-All from `src/types/gamePhase.ts`.
+Imports: `EXPLORING`, `MENU`, `INVENTORY`, `TEAM`, `SHOP`, `POKEDEX`, `PC`, `EDITOR`, `battle()`, `B_CHOOSING` → `src/types/gamePhase.ts`
 
 ## Common Pitfalls
 
-**Wrong import sources** — these are the ones that bite:
+**Wrong imports:**
 - `GRID_SIZE`, `TILE_SIZE`, `Position`, `Direction`, `NPC`, `Entity`, `Pokemon`, `MapID` → `src/types.ts`
 - `BattleAction`, `BattleState`, `stepBattle`, `createBattleState` → `src/lib/battleEngine.ts`
-- `GamePhase`, `BattlePhase`, `EXPLORING`, `battle()`, `B_CHOOSING`, etc. → `src/types/gamePhase.ts`
-- `GRID_SIZE` is **not** in `src/constants.ts`; `BattleAction` is **not** in `src/types/gamePhase.ts`
+- `GRID_SIZE` is NOT in `src/constants.ts`; `BattleAction` is NOT in `src/types/gamePhase.ts`
 
-**Side effects in state updaters** — React may call updaters twice in Strict Mode:
+**Side effects in state updaters** (React Strict Mode calls updaters twice):
 ```typescript
-// WRONG — setTimeout inside updater can fire twice
+// WRONG
 setPlayerTeam(prev => { setTimeout(() => setPhase(EXPLORING), 1000); return newTeam; });
-
-// CORRECT — compute first, side-effect after
+// CORRECT
 const newTeam = [...gameState.current.playerTeam];
 setPlayerTeam(newTeam);
 setTimeout(() => setPhase(EXPLORING), 1000);
 ```
 
-**NPC placement** — Add NPCs to `buildNPCDatabase()` in `src/data/npcDatabase.ts`, not `worldConfig.ts`. `worldConfig.ts` owns static map/warp config only.
-
-## Dead Code Checks
-
-Run these two commands after completing any task to catch unused variables, dead imports, and unused dependencies:
-
-```bash
-# 1. TypeScript unused locals/parameters (no new errors should appear)
-npx tsc --noEmit --noUnusedLocals --noUnusedParameters 2>&1 | grep -E "error TS(6133|6192|6196|6198)" | grep -v node_modules
-
-# 2. Unused exports and dependencies
-npx knip --no-progress 2>&1
-```
-
-**What to do with findings:**
-- Unused imports/locals → delete them
-- Unused `export` on internal constants/functions → remove the `export` keyword
-- Unused dependencies in `package.json` → remove them
-- Setter exists but value never read → either wire the value into JSX or remove the whole state
+**NPC placement** — use `buildNPCDatabase()` in `npcDatabase.ts`, not `worldConfig.ts`.
 
 ## Invariants
 
-- All in-game text (dialogue, battle logs, UI labels, move names) must be in **Spanish**.
-- Inventory is `Record<itemId, number>` (quantities), not an array.
-- When evolving a Pokémon: recompute `baseStats`, `maxHp`, and `hp` — do not copy them from the pre-evolution.
-- NPC IDs are globally unique across all maps (used in flat `defeatedTrainers` array).
-- Sprite IDs are PokeAPI Pokédex numbers (Bulbasaur = 1, not 0).
-- Map coordinates: `(0,0)` is top-left, x increases right, y increases down.
-- No backward compatibility. Delete old code; don't add shims or migration paths.
+- All in-game text must be in **Spanish**.
+- Inventory is `Record<itemId, number>`, not an array.
+- On evolution: recompute `baseStats`, `maxHp`, `hp` — don't copy from pre-evolution.
+- NPC IDs are globally unique (used in flat `defeatedTrainers` array).
+- Sprite IDs = PokeAPI Pokédex numbers (Bulbasaur = 1).
+- Coordinates: `(0,0)` top-left, x→right, y→down.
+- No backward compatibility — delete old code, no shims.
+- If npm is not found on macOS: `export PATH="/opt/homebrew/bin:$PATH"`
+- After every task run: `npx tsc --noEmit`, `npx tsc --noEmit --noUnusedLocals --noUnusedParameters 2>&1 | grep -E "error TS(6133|6192|6196|6198)" | grep -v node_modules`, `npx knip --no-progress 2>&1` — delete unused imports/exports/deps.

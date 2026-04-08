@@ -27,7 +27,7 @@ interface UseInteractionEngineParams {
   playerTeam: Pokemon[];
   npcs: Record<MapID, NPC[]>;
   items: Record<MapID, Entity[]>;
-  maps: Record<MapID, Tile[][]>;
+  maps: Record<MapID, { tiles: Tile[][] }>;
   setDialogue: Dispatch<SetStateAction<string | null>>;
   setPhase: Dispatch<SetStateAction<GamePhase>>;
   setPlayerTeam: Dispatch<SetStateAction<Pokemon[]>>;
@@ -103,7 +103,7 @@ export const useInteractionEngine = ({
     if (npc) {
       if (npc.onInteract === 'heal') {
         const name = npc.name.includes('JOY') ? 'JOY' : 'MAMÁ';
-        const healPos =
+        const healPos: { map: MapID; pos: { x: number; y: number } } =
           npc.name.includes('JOY')
             ? { map: 'POKECENTER', pos: { x: 10, y: 14 } }
             : { map: 'PALLET_TOWN', pos: { x: 7, y: 11 } };
@@ -193,7 +193,7 @@ export const useInteractionEngine = ({
 
     const map = maps[currentMap];
     if (map && targetX >= 0 && targetX < GRID_SIZE && targetY >= 0 && targetY < GRID_SIZE) {
-      const tile = map[targetY][targetX];
+      const tile = map.tiles[targetY][targetX];
       if (tile.type === 'tree') {
         setDialogue("Es un árbol muy robusto.");
       } else if (tile.type === 'cut_tree') {
@@ -203,7 +203,7 @@ export const useInteractionEngine = ({
         } else if (!leadMoves.includes(HM_REQUIREMENTS.cut.move)) {
           setDialogue(`Tu POKÉMON líder no conoce ${HM_REQUIREMENTS.cut.move}.`);
         } else {
-          map[targetY][targetX] = { type: 'path', walkable: true };
+          map.tiles[targetY][targetX] = { type: 'path', walkable: true };
           setDialogue("¡CORTAR despejó el camino!");
         }
       } else if (tile.type === 'boulder') {
@@ -213,7 +213,7 @@ export const useInteractionEngine = ({
         } else if (!leadMoves.includes(HM_REQUIREMENTS.strength.move)) {
           setDialogue(`Tu POKÉMON líder no conoce ${HM_REQUIREMENTS.strength.move}.`);
         } else {
-          map[targetY][targetX] = { type: 'path', walkable: true };
+          map.tiles[targetY][targetX] = { type: 'path', walkable: true };
           setDialogue("¡FUERZA movió el obstáculo!");
         }
       } else if (tile.type === 'table') {

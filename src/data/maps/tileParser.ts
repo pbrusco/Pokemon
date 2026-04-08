@@ -30,13 +30,13 @@ const TILE_LEGEND: Record<string, Tile> = {
 
 const FALLBACK_TILE: Tile = { type: 'path', walkable: true };
 
-export function parseTileMap(data: { rows: string[], warps?: Warp[] }): ParsedMap {
+export function parseTileMap(data: { rows: string[], warps?: Array<{ x: number; y: number; targetMap: string; targetPos: { x: number; y: number }; targetDir?: string }> }): ParsedMap {
   const tiles = data.rows.map(row =>
     row.split('').map(char => TILE_LEGEND[char] ?? FALLBACK_TILE)
   );
 
   return {
     tiles,
-    warps: data.warps || []
+    warps: (data.warps || []) as Warp[]
   };
 }

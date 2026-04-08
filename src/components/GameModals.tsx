@@ -20,10 +20,10 @@ interface GameModalsProps {
   currentMap: MapID;
   battleShake: boolean;
   enemyPokemon: Pokemon | null;
-  enemyAnim: string;
+  enemyAnim: 'idle' | 'attack' | 'hit' | 'faint';
   catchResult: boolean | null;
   playerTeam: Pokemon[];
-  playerAnim: string;
+  playerAnim: 'idle' | 'attack' | 'hit' | 'faint';
   battleLog: string;
   showMoves: boolean;
   isTrainerBattle: boolean;

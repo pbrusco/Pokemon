@@ -27,17 +27,19 @@ function makeGrid(overrides: Partial<Record<string, Tile>> = {}): Tile[][] {
   return grid;
 }
 
-const EMPTY_MAPS: Record<MapID, Tile[][]> = {
-  PALLET_TOWN: makeGrid(),
-  OAKS_LAB: makeGrid(),
-  ROUTE_1: makeGrid(),
-  VIRIDIAN_CITY: makeGrid(),
-  POKECENTER: makeGrid(),
-  POKEMART: makeGrid(),
-  VIRIDIAN_FOREST: makeGrid(),
-  PEWTER_CITY: makeGrid(),
-  PEWTER_GYM: makeGrid(),
-  ROUTE_3: makeGrid(),
+const EMPTY_MAPS: Record<MapID, { tiles: Tile[][] }> = {
+  PALLET_TOWN: { tiles: makeGrid() },
+  OAKS_LAB: { tiles: makeGrid() },
+  ROUTE_1: { tiles: makeGrid() },
+  VIRIDIAN_CITY: { tiles: makeGrid() },
+  POKECENTER: { tiles: makeGrid() },
+  POKEMART: { tiles: makeGrid() },
+  VIRIDIAN_FOREST: { tiles: makeGrid() },
+  PEWTER_CITY: { tiles: makeGrid() },
+  PEWTER_GYM: { tiles: makeGrid() },
+  ROUTE_3: { tiles: makeGrid() },
+  MT_MOON: { tiles: makeGrid() },
+  ROUTE_2: { tiles: makeGrid() },
 };
 
 function makeNPC(overrides: Partial<NPC> = {}): NPC {
@@ -64,11 +66,11 @@ function makeItem(overrides: Partial<Entity> = {}): Entity {
 }
 
 const EMPTY_NPCS: Record<MapID, NPC[]> = Object.fromEntries(
-  ['PALLET_TOWN','OAKS_LAB','ROUTE_1','VIRIDIAN_CITY','POKECENTER','POKEMART','VIRIDIAN_FOREST','PEWTER_CITY','PEWTER_GYM','ROUTE_3'].map(k => [k, []])
+  ['PALLET_TOWN','OAKS_LAB','ROUTE_1','VIRIDIAN_CITY','POKECENTER','POKEMART','VIRIDIAN_FOREST','PEWTER_CITY','PEWTER_GYM','ROUTE_3','MT_MOON','ROUTE_2'].map(k => [k, []])
 ) as Record<MapID, NPC[]>;
 
 const EMPTY_ITEMS: Record<MapID, Entity[]> = Object.fromEntries(
-  ['PALLET_TOWN','OAKS_LAB','ROUTE_1','VIRIDIAN_CITY','POKECENTER','POKEMART','VIRIDIAN_FOREST','PEWTER_CITY','PEWTER_GYM','ROUTE_3'].map(k => [k, []])
+  ['PALLET_TOWN','OAKS_LAB','ROUTE_1','VIRIDIAN_CITY','POKECENTER','POKEMART','VIRIDIAN_FOREST','PEWTER_CITY','PEWTER_GYM','ROUTE_3','MT_MOON','ROUTE_2'].map(k => [k, []])
 ) as Record<MapID, Entity[]>;
 
 // ─── Hook factory ─────────────────────────────────────────────────────────────
@@ -86,7 +88,7 @@ interface Overrides {
   playerTeam?: Pokemon[];
   npcs?: Record<MapID, NPC[]>;
   items?: Record<MapID, Entity[]>;
-  maps?: Record<MapID, Tile[][]>;
+  maps?: Record<MapID, { tiles: Tile[][] }>;
 }
 
 function setup(overrides: Overrides = {}) {
@@ -101,6 +103,7 @@ function setup(overrides: Overrides = {}) {
   const setStoryStep = vi.fn();
   const setEnemyPokemon = vi.fn();
   const setIsTrainerBattle = vi.fn();
+  const initBattle = vi.fn();
 
   const params = {
     currentMap: (overrides.currentMap ?? 'PALLET_TOWN') as MapID,
@@ -127,6 +130,7 @@ function setup(overrides: Overrides = {}) {
     setStoryStep,
     setEnemyPokemon,
     setIsTrainerBattle,
+    initBattle,
   };
 
   const { result } = renderHook(() => useInteractionEngine(params));
@@ -473,7 +477,7 @@ describe('HM — CUT tree obstacle', () => {
   it('shows error if player lacks CASCADE badge', () => {
     const maps = {
       ...EMPTY_MAPS,
-      PALLET_TOWN: makeGrid({ '4,5': CUT_TREE_TILE }),
+      PALLET_TOWN: { tiles: makeGrid({ '4,5': CUT_TREE_TILE }) },
     };
     const { handleAction, setDialogue } = setup({
       playerPos: { x: 5, y: 5 },
@@ -492,7 +496,7 @@ describe('HM — CUT tree obstacle', () => {
   it('shows error if player has badge but lead Pokemon lacks CUT move', () => {
     const maps = {
       ...EMPTY_MAPS,
-      PALLET_TOWN: makeGrid({ '4,5': CUT_TREE_TILE }),
+      PALLET_TOWN: { tiles: makeGrid({ '4,5': CUT_TREE_TILE }) },
     };
     const pkmnWithoutCut: Pokemon = {
       id: 'charmander', name: 'CHARMANDER', level: 10, hp: 28, maxHp: 28,
@@ -516,7 +520,7 @@ describe('HM — CUT tree obstacle', () => {
   it('clears the tree tile when badge and move are present', () => {
     const maps = {
       ...EMPTY_MAPS,
-      PALLET_TOWN: makeGrid({ '4,5': CUT_TREE_TILE }),
+      PALLET_TOWN: { tiles: makeGrid({ '4,5': CUT_TREE_TILE }) },
     };
     const pkmnWithCut: Pokemon = {
       id: 'charmander', name: 'CHARMANDER', level: 10, hp: 28, maxHp: 28,
@@ -533,8 +537,8 @@ describe('HM — CUT tree obstacle', () => {
     act(() => handleAction());
 
     // Tile should be mutated to path (the hook modifies the tile in place)
-    expect(maps.PALLET_TOWN[4][5].type).toBe('path');
-    expect(maps.PALLET_TOWN[4][5].walkable).toBe(true);
+    expect(maps.PALLET_TOWN.tiles[4][5].type).toBe('path');
+    expect(maps.PALLET_TOWN.tiles[4][5].walkable).toBe(true);
     expect(setDialogue).toHaveBeenCalled();
     const msg = setDialogue.mock.calls[0][0] as string;
     expect(msg).toContain('CORTAR');
@@ -545,7 +549,7 @@ describe('HM — STRENGTH boulder obstacle', () => {
   it('shows error if player lacks RAINBOW badge', () => {
     const maps = {
       ...EMPTY_MAPS,
-      PALLET_TOWN: makeGrid({ '4,5': BOULDER_TILE }),
+      PALLET_TOWN: { tiles: makeGrid({ '4,5': BOULDER_TILE }) },
     };
     const { handleAction, setDialogue } = setup({
       maps,
@@ -562,7 +566,7 @@ describe('HM — STRENGTH boulder obstacle', () => {
   it('clears the boulder tile when badge and FUERZA move are present', () => {
     const maps = {
       ...EMPTY_MAPS,
-      PALLET_TOWN: makeGrid({ '4,5': BOULDER_TILE }),
+      PALLET_TOWN: { tiles: makeGrid({ '4,5': BOULDER_TILE }) },
     };
     const pkmnWithStrength: Pokemon = {
       id: 'charmander', name: 'CHARMANDER', level: 10, hp: 28, maxHp: 28,
@@ -578,8 +582,8 @@ describe('HM — STRENGTH boulder obstacle', () => {
 
     act(() => handleAction());
 
-    expect(maps.PALLET_TOWN[4][5].type).toBe('path');
-    expect(maps.PALLET_TOWN[4][5].walkable).toBe(true);
+    expect(maps.PALLET_TOWN.tiles[4][5].type).toBe('path');
+    expect(maps.PALLET_TOWN.tiles[4][5].walkable).toBe(true);
     const msg = setDialogue.mock.calls[0][0] as string;
     expect(msg).toContain('FUERZA');
   });
@@ -599,7 +603,7 @@ describe('No NPC or item in target tile', () => {
   it('shows dialogue for regular tree tile', () => {
     const maps = {
       ...EMPTY_MAPS,
-      PALLET_TOWN: makeGrid({ '4,5': TREE_TILE }),
+      PALLET_TOWN: { tiles: makeGrid({ '4,5': TREE_TILE }) },
     };
     const { handleAction, setDialogue } = setup({ maps });
 

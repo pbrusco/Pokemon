@@ -129,7 +129,7 @@ export default function App() {
     soundManager.play('SELECT');
   };
 
-  const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges, lastHealLocation });
+  const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, battleSubPhase: null as string | null, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges, lastHealLocation });
   useEffect(() => {
     gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, battleSubPhase: phase.type === 'BATTLE' ? phase.sub.type : null, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges, lastHealLocation };
   }, [playerPos, direction, isMoving, dialogue, inBattle, phase, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges, lastHealLocation]);

@@ -24,12 +24,12 @@ interface UseBattleEngineParams {
   setPhase: Dispatch<SetStateAction<GamePhase>>;
   setShowMoves: Dispatch<SetStateAction<boolean>>;
   setPlayerTeam: (team: Pokemon[]) => void;
-  setPlayerAnim: (anim: string) => void;
-  setEnemyAnim: (anim: string) => void;
+  setPlayerAnim: (anim: 'idle' | 'attack' | 'hit' | 'faint') => void;
+  setEnemyAnim: (anim: 'idle' | 'attack' | 'hit' | 'faint') => void;
   setDefeatedTrainers: (fn: (prev: string[]) => string[]) => void;
   setBadges: (fn: (prev: string[]) => string[]) => void;
   setMoney: (fn: (prev: number) => number) => void;
-  setStoryStep: (step: string) => void;
+  setStoryStep: (step: 'START' | 'OAK_STOPPED' | 'IN_LAB' | 'PICKED_STARTER' | 'RIVAL_BATTLE' | 'EXPLORING') => void;
   setDialogue: (d: string | null) => void;
   setInventory: (inv: InventoryCounts) => void;
   setPcStorage: (pc: Pokemon[]) => void;
@@ -90,14 +90,14 @@ export function useBattleEngine({
           delay += sd(500);
           break;
         case 'sound':
-          soundManager.play(effect.payload as string);
+          soundManager.play(effect.payload as Parameters<typeof soundManager.play>[0]);
           break;
         case 'player_anim':
-          setTimeout(() => setPlayerAnim(effect.payload as string), d);
+          setTimeout(() => setPlayerAnim(effect.payload as 'idle' | 'attack' | 'hit' | 'faint'), d);
           if (effect.payload === 'hit' || effect.payload === 'faint') delay += sd(400);
           break;
         case 'enemy_anim':
-          setTimeout(() => setEnemyAnim(effect.payload as string), d);
+          setTimeout(() => setEnemyAnim(effect.payload as 'idle' | 'attack' | 'hit' | 'faint'), d);
           if (effect.payload === 'hit' || effect.payload === 'faint' || effect.payload === 'attack') delay += sd(400);
           break;
         case 'battle_shake':
