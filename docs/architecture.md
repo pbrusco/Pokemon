@@ -5,7 +5,7 @@
 ```
 src/
 ├── main.tsx                    # React DOM entry point
-├── App.tsx                     # Main game loop (1900+ lines)
+├── App.tsx                     # Orchestrator (~400 lines): state, hook wiring, JSX composition
 ├── types.ts                    # Core TypeScript interfaces
 │
 ├── types/
@@ -17,28 +17,50 @@ src/
 │   └── gameStore.ts            # Zustand store — global game state + localStorage persistence
 │
 ├── lib/
+│   ├── battleEngine.ts         # Pure battle state machine (no React, no side effects)
 │   ├── damage.ts               # Gen I damage formula + type chart
-│   └── sounds.ts               # SFX (Web Audio API) + BGM (Howler.js)
+│   ├── sounds.ts               # SFX (Web Audio API) + BGM (Howler.js)
+│   └── gameSpeed.ts            # Speed multipliers (sd/sdur helpers)
 │
 ├── hooks/
-│   ├── usePlayerMovement.ts    # Movement, collision, teleports, trainer vision
-│   └── useInteractionEngine.ts # Interaction (NPCs, items, tile triggers)
+│   ├── useMovementEngine.ts    # Movement, collision, teleports, trainer vision, wild encounters
+│   ├── useBattleEngine.ts      # Battle turn orchestration, VFX sequencing → dispatchBattle()
+│   ├── useInteractionEngine.ts # Overworld interaction (NPCs, items, tile triggers)
+│   ├── useInputHandler.ts      # Keyboard events + movement self-trigger loop
+│   ├── useDebugAPI.ts          # Dev-only window.__game debug API
+│   ├── useBattleVFX.ts         # Battle animation state (anims, flash, projectile, damage numbers)
+│   ├── useOverworldVFX.ts      # Overworld VFX state (grass, trainer spotted, shake)
+│   ├── usePokedex.ts           # Pokédex state and updatePokedex()
+│   ├── useSaveSystem.ts        # Slot-based save/load and play-time tracking
+│   └── useWindowSize.ts        # Responsive window dimensions
 │
 ├── components/
-│   ├── BattleScreen.tsx        # Battle UI
-│   ├── DialogueBox.tsx         # NPC dialogue display
-│   ├── InventoryUI.tsx         # Bag screen
-│   ├── TeamMenuUI.tsx          # Party management
-│   ├── PCStorageUI.tsx         # PC box
-│   ├── PokedexUI.tsx           # Pokedex
-│   ├── ShopUI.tsx              # Shop
-│   ├── Joystick.tsx            # Mobile touch controls
-│   └── MapEditor.tsx           # Dev tool for painting tile maps
+│   ├── GameHeader.tsx          # Top bar: title, play time, mute button
+│   ├── WorldView.tsx           # Overworld viewport: tile grid, player, NPCs, items, HUD
+│   ├── MobileControls.tsx      # Touch joystick + action buttons
+│   ├── SideMenu.tsx            # Main menu panel (Pokédex, team, bag, PC, save, reset, profiles)
+│   ├── GameModals.tsx          # All overlay modals: battle, dialogue, inventory, shop, etc.
+│   ├── ScreenEffects.tsx       # Full-screen flash/fade effects (level-up, evolution, blackout, heal)
+│   ├── overworld/
+│   │   ├── GameTile.tsx        # Single tile cell renderer
+│   │   ├── PlayerSprite.tsx    # Player sprite with directional animation
+│   │   └── NPCComponent.tsx    # NPC sprite with name label and spotted exclamation
+│   ├── BattleScreen.tsx        # Battle UI (enemy/player info, moves, action buttons)
+│   ├── BattleTransition.tsx    # "BATTLE!" flash animation
+│   ├── DialogueBox.tsx         # NPC dialogue with dismiss interaction
+│   ├── InventoryUI.tsx         # Bag/item screen
+│   ├── TeamMenuUI.tsx          # Party management screen
+│   ├── PCStorageUI.tsx         # PC box + party swap
+│   ├── PokedexUI.tsx           # Pokédex encyclopedia browser
+│   ├── ShopUI.tsx              # Pokemart purchase screen
+│   ├── Joystick.tsx            # Touch directional input
+│   └── MapEditor.tsx           # Developer tile map painter
 │
 └── data/
-    ├── worldConfig.ts          # NPC definitions + dynamic generation per map
+    ├── npcDatabase.ts          # buildNPCDatabase() + buildItemDatabase() — live NPC/item data
+    ├── worldConfig.ts          # INITIAL_MAPS, teleports, static world config
     └── maps/
-        ├── index.ts            # Barrel export of all maps
+        ├── index.ts            # Barrel export of all map JSON files
         └── *.json              # 20×20 tile grids (one file per map)
 ```
 
@@ -46,40 +68,50 @@ src/
 
 ## Key Patterns
 
-### 1. Single Orchestrator Component
+### 1. Layered Architecture
 
-`App.tsx` is intentionally monolithic. It owns:
-- Input handling (keyboard + touch)
-- Rendering the tile grid, player, and NPCs
-- Battle turn logic (`handleAttack`, `handleEnemyTurn`)
-- Level-up and evolution sequences (chained `setTimeout` callbacks)
-- Overlay rendering via `AnimatePresence` (menus, battle UI, dialogue)
+`App.tsx` is a thin orchestrator (~400 lines). It:
+- Reads state from Zustand and `useState`
+- Wires up hooks by passing setters as parameters
+- Composes the top-level JSX from presentation components
 
-Battle logic is **not** extracted into a hook — a previous `useBattleEngine.ts` hook was deleted because it created stale closure bugs. All battle state setters run sequentially inside `App.tsx`.
+Game logic lives in dedicated hooks:
 
-### 2. State in Zustand, Derived Logic in App.tsx
+| Hook | Responsibility |
+|------|---------------|
+| `useMovementEngine` | Collision, teleports, poison, trainer spotting, wild encounters |
+| `useBattleEngine` | Battle turn dispatch, VFX sequencing, win/loss/catch outcomes |
+| `useInteractionEngine` | NPC dialogue, item pickup, tile interaction (heal, shop, etc.) |
+| `useInputHandler` | Keyboard events, movement repeat loop |
+| `useDebugAPI` | Dev console API (`window.__game`) |
 
-The Zustand store (`gameStore.ts`) is the single source of truth. `App.tsx` reads from the store and computes everything else as local React state:
+Presentation is split into focused components. `WorldView` renders the overworld map. `GameModals` renders all overlay screens. `ScreenEffects` renders full-screen flash/fade effects.
+
+### 2. State in Zustand, Ephemeral State in App.tsx
+
+The Zustand store (`gameStore.ts`) owns persistent game state. `App.tsx` holds ephemeral state that doesn't need to survive a page reload:
 
 - `phase` / `battlePhase` — the FSM (local `useState` in App.tsx)
-- `battleLog` — log messages for the current battle
+- `battleLog` — log text for the current turn
 - `enemyPokemon` — the current opponent
 - Animation states (`playerAnim`, `enemyAnim`, `projectile`, etc.)
 
-### 3. Avoiding Stale Closures
+### 3. Avoiding Stale Closures: The `gameState` Ref
 
-React state inside `setTimeout` callbacks can be stale. The pattern used throughout `App.tsx`:
+React state inside `setTimeout` callbacks can be stale. All hooks that use deferred callbacks (battle effects, trainer approach animation, poison damage) receive a single `gameState` ref owned by App.tsx:
 
 ```typescript
-// In App.tsx
-const playerTeamRef = useRef(playerTeam);
-useEffect(() => { playerTeamRef.current = playerTeam; }, [playerTeam]);
+// In App.tsx — one snapshot ref, updated every render
+const gameState = useRef({ playerPos, direction, currentMap, playerTeam, npcs, ... });
+useEffect(() => {
+  gameState.current = { playerPos, direction, currentMap, playerTeam, npcs, ... };
+}, [playerPos, direction, currentMap, playerTeam, npcs, ...]);
 
-// Inside a setTimeout:
-const currentTeam = playerTeamRef.current; // always fresh
+// Inside a hook's setTimeout:
+const { playerTeam, currentMap } = gameState.current; // always fresh
 ```
 
-All pieces of game state that are read inside async callbacks have a corresponding `useRef` mirror.
+`battleStateRef` is a separate ref holding the mutable `BattleState` during a fight. It is owned by App.tsx and shared between `useMovementEngine` (to initialize it) and `useBattleEngine` (to drive it).
 
 ### 4. Side-Effect Safety in State Updaters
 
@@ -93,7 +125,7 @@ setPlayerTeam(prev => {
 });
 
 // CORRECT
-const newTeam = computeNewTeam(playerTeamRef.current);
+const newTeam = computeNewTeam(gameState.current.playerTeam);
 setPlayerTeam(newTeam);          // pure data update
 setTimeout(() => setPhase(...), 1000); // side effect after
 ```
@@ -102,10 +134,10 @@ setTimeout(() => setPhase(...), 1000); // side effect after
 
 There is no polling loop for movement. Instead:
 
-1. A keydown event sets `keysRef.current.add(key)`.
-2. `handleMove()` fires, moves the player, then sets `isMoving = true`.
-3. A `useEffect` watches `isMoving`. When it becomes `false`, if a key is still held, it calls `handleMove()` again.
-4. A 110ms timeout clears `isMoving` (matching the 100ms CSS animation).
+1. A keydown event adds the key to `pressedKeys` ref (inside `useInputHandler`).
+2. `handleMove()` fires, moves the player, sets `isMoving = true`.
+3. A `useEffect` in `useInputHandler` watches `isMoving`. When it becomes `false`, if a key is still held, it calls `handleMove()` again.
+4. A 110ms timeout inside `useMovementEngine` clears `isMoving` (matching the 100ms CSS animation).
 
 This produces gap-free movement without `setInterval`.
 
@@ -119,42 +151,45 @@ This produces gap-free movement without `setInterval`.
 ## Data Flow
 
 ```
-User Input (keyboard/joystick)
+User Input (keyboard / joystick)
     │
     ▼
-usePlayerMovement / useInteractionEngine   ← reads from gameStore
+useInputHandler → handleMove() / handleAction() / dispatchBattle()
+    │
+    ├─ useMovementEngine    (collision, warps, encounters)
+    ├─ useInteractionEngine (NPC/item/tile triggers)
+    └─ useBattleEngine      (turn steps, VFX, outcomes)
     │
     ▼
-gameStore mutations (setPlayerPos, etc.)   ← triggers React re-renders
+Zustand store mutations (setPlayerPos, setPlayerTeam, etc.)
     │
     ▼
-App.tsx re-renders (game phase transitions, battle logic)
+App.tsx re-renders → passes props to presentation components
     │
     ▼
-Component tree renders (BattleScreen, DialogueBox, menus, tile grid)
+WorldView / GameModals / SideMenu / ScreenEffects render
 ```
 
 ---
 
 ## Rendering the World
 
-The overworld is rendered as a scrolling viewport centered on the player. The visible 20×20 grid is clipped with `overflow-hidden` and the tile grid is offset using CSS `translate` to follow the player.
+The overworld is rendered inside `WorldView`. The visible ~16×16 tile region is culled around the player (full map is 20×20 but only nearby tiles are rendered). The tile grid is offset using Framer Motion `animate` to follow the player.
 
-Each tile is rendered as a `<GameTile>` component with a background color/image based on `tile.type`. Walkable decorations (grass particles, water shimmer) are CSS animations.
+Each tile is rendered as a `<GameTile>` component from `src/components/overworld/GameTile.tsx`. The player and NPCs are absolutely positioned within the grid using `left: x * TILE_SIZE` / `top: y * TILE_SIZE`.
 
-The player and NPCs are absolutely positioned within the grid using `left: x * TILE_SIZE` / `top: y * TILE_SIZE`.
+Tree trunks render at the tile position; the canopy overlay renders at `z-index: 40 + y` to layer above the player when they walk "behind" a tree.
 
 ---
 
 ## Persistence
 
-Auto-save runs every 30 seconds via `setInterval` in a `useEffect`. The saved payload includes:
+Auto-save runs every 30 seconds via `setInterval` in `useSaveSystem`. The saved payload includes:
 
 - `playerPos`, `direction`, `currentMap`
 - `playerTeam`, `pcStorage`
 - `inventory`
 - `storyStep`, `badges`, `defeatedTrainers`, `hasPokedex`, `hasParcel`
 - `lastHealLocation`
-- `worldMaps` (if edited via MapEditor)
 
-On load, `localStorage.getItem('pokemon_save')` is read and `loadPersistedState(payload)` is dispatched to the store.
+Three named save slots are supported (`slot1` / `slot2` / `slot3`), stored under `pokemon_save_slots` in localStorage. The active slot key is tracked in `pokemon_active_slot`.

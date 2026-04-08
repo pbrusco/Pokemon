@@ -6,14 +6,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  User, 
-  Home, 
-  Trees as Tree, 
-  DoorOpen, 
-  MessageSquare, 
-  ChevronUp, 
-  ChevronDown, 
-  ChevronLeft, 
+  User,
+  Home,
+  Trees as Tree,
+  DoorOpen,
+  MessageSquare,
+  ChevronUp,
+  ChevronLeft,
   ChevronRight,
   Backpack,
   Settings,
@@ -26,22 +25,13 @@ import {
   Volume2,
   VolumeX
 } from 'lucide-react';
-import { Direction, Position, TILE_SIZE, GRID_SIZE, NPC, Entity, Pokemon, Move, InventoryItem, Tile, MapID, MAP_IDS, InventoryCounts } from './types';
-import { GamePhase, BattlePhase, EXPLORING, MENU, INVENTORY, TEAM, SHOP, POKEDEX, PC, EDITOR, BATTLE_TRANSITION, BLACKOUT, HEALING, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM } from './types/gamePhase';
-import { MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, MAP_VIRIDIAN_FOREST, MAP_PEWTER_CITY, MAP_PEWTER_GYM, MAP_ROUTE_3, worldMaps } from './data/maps';
+import { Direction, Position, TILE_SIZE, GRID_SIZE, NPC, Entity, Pokemon, MapID, InventoryCounts } from './types';
+import { GamePhase, EXPLORING, MENU, INVENTORY, TEAM, SHOP, POKEDEX, PC, EDITOR, battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM } from './types/gamePhase';
+import { worldMaps } from './data/maps';
 import { soundManager } from './lib/sounds';
-import { MOVES, STARTERS, WILD_POKEMON_DATABASE, POKEMON_LIST, ITEMS_DATABASE, BASE_STATS, makePokemon } from './constants';
-import { calcHp } from './lib/damage';
+import { WILD_POKEMON_DATABASE } from './constants';
 import { sd, sdur } from './lib/gameSpeed';
-import { stepBattle, createBattleState, BattleState, BattleAction, BattleEffect } from './lib/battleEngine';
-import { InventoryUI } from './components/InventoryUI';
-import { TeamMenuUI } from './components/TeamMenuUI';
-import { DialogueBox } from './components/DialogueBox';
-import { MapEditor } from './components/MapEditor';
-import { PokedexUI } from './components/PokedexUI';
-import { PCStorageUI } from './components/PCStorageUI';
-import { BattleScreen } from './components/BattleScreen';
-import { Joystick } from './components/Joystick';
+import { BattleState, BattleAction } from './lib/battleEngine';
 import { DemoModeButton } from './components/DemoModeButton';
 import './lib/demoMode'; // side-effect: attaches window.__demo in dev
 import { useInteractionEngine } from './hooks/useInteractionEngine';
@@ -51,313 +41,17 @@ import { useOverworldVFX } from './hooks/useOverworldVFX';
 import { usePokedex } from './hooks/usePokedex';
 import { useSaveSystem } from './hooks/useSaveSystem';
 import { useGameStore } from './store/gameStore';
-
-// --- Constants & Data ---
-
-// --- Components ---
-
-const NPCComponent = ({ npc, isSpotted }: { npc: NPC, key?: string, isSpotted?: boolean }) => {
-  return (
-    <motion.div
-      className="absolute top-0 left-0 flex items-center justify-center"
-      animate={{
-        x: npc.position.x * TILE_SIZE,
-        y: npc.position.y * TILE_SIZE,
-      }}
-      style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 20 + npc.position.y }}
-    >
-      <div className="relative">
-        {/* Exclamation mark when spotted */}
-        <AnimatePresence>
-          {isSpotted && (
-            <motion.div
-              key="exclamation"
-              initial={{ opacity: 0, y: 8, scale: 0.5 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              className="absolute -top-14 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center"
-            >
-              <div className="bg-white border-2 border-[#383838] rounded-sm px-2 py-0.5 shadow-lg">
-                <span className="text-[#f83838] font-black text-xl leading-none">!</span>
-              </div>
-              <div className="w-2 h-2 bg-white border-b-2 border-r-2 border-[#383838] rotate-45 -mt-1" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-2 bg-black/20 rounded-full blur-sm" />
-        <div className="w-11 h-13 bg-white rounded-lg border-[3px] border-[#383838] shadow-md flex flex-col items-center overflow-hidden">
-          {/* Hair/Head */}
-          <div className="w-full h-1/3 bg-[#d8d8d8] border-b-2 border-[#383838]" />
-          {/* Face */}
-          <div className="w-full h-1/3 bg-[#f8d8b0] flex items-center justify-center gap-1">
-            <div className="w-0.5 h-0.5 bg-[#383838] rounded-full" />
-            <div className="w-0.5 h-0.5 bg-[#383838] rounded-full" />
-          </div>
-          {/* Body */}
-          <div className="w-full h-1/3 bg-[#f8f8f8]" />
-        </div>
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white/90 px-3 py-1 rounded-full border-2 border-[#58c8f8] shadow-sm">
-          <span className="text-[11px] font-black text-[#383838] whitespace-nowrap uppercase tracking-wider">{npc.name}</span>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-const SHOP_PRICES: Record<string, number> = { POTION: 200, POKEBALL: 200 };
-const SAVE_SLOT_NAMES: Record<string, string> = { slot1: 'Perfil 1', slot2: 'Perfil 2', slot3: 'Perfil 3' };
-
-const ShopUI = ({ onBuy, onClose, money }: { onBuy: (itemId: string) => void, onClose: () => void, money: number }) => {
-  const shopItems = ['POTION', 'POKEBALL'];
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
-    >
-      <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-800">
-        <div className="bg-blue-600 p-6 text-white flex justify-between items-center">
-          <h2 className="text-xl font-black italic tracking-tighter uppercase">Poké Mart</h2>
-          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors"><X size={20} /></button>
-        </div>
-        <div className="px-6 pt-4 pb-2 flex justify-between items-center bg-blue-50 border-b border-blue-100">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Tu dinero</span>
-          <span className="font-mono font-black text-blue-700 text-lg">₽{money.toLocaleString()}</span>
-        </div>
-        <div className="p-6 space-y-4">
-          {shopItems.map(id => {
-            const item = ITEMS_DATABASE[id];
-            const price = SHOP_PRICES[id];
-            const canAfford = money >= price;
-            return (
-              <button
-                key={id}
-                onClick={() => {
-                  if (!canAfford) return;
-                  onBuy(id);
-                  soundManager.play('SELECT');
-                }}
-                disabled={!canAfford}
-                className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group ${canAfford ? 'bg-slate-50 border-slate-100 hover:border-blue-200 hover:bg-blue-50 cursor-pointer' : 'bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed'}`}
-              >
-                <span className="text-2xl">{item.icon}</span>
-                <div className="flex-1 text-left">
-                  <h3 className="font-bold text-slate-800 uppercase text-sm">{item.name}</h3>
-                  <p className="text-[10px] text-slate-500">Objeto útil para tu viaje</p>
-                </div>
-                <span className={`font-mono font-bold ${canAfford ? 'text-blue-600' : 'text-slate-400'}`}>₽{price}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-const BattleTransition = ({ onComplete }: { onComplete: () => void }) => {
-  return (
-    <motion.div 
-      initial={{ scale: 0, rotate: 0, opacity: 0 }}
-      animate={{ 
-        scale: [0, 1.5, 1], 
-        rotate: [0, 360, 720], 
-        opacity: [0, 1, 1] 
-      }}
-      exit={{ opacity: 0, scale: 2 }}
-      onAnimationComplete={onComplete}
-      className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
-    >
-      <div className="w-full h-full bg-[radial-gradient(circle,rgba(255,255,255,0.2)_0%,transparent_70%)]" />
-      <motion.div 
-        animate={{ scale: [1, 1.2, 1] }}
-        transition={{ repeat: Infinity, duration: 0.5 }}
-        className="absolute text-white font-black text-6xl italic tracking-tighter"
-      >
-        ¡BATTLE!
-      </motion.div>
-    </motion.div>
-  );
-};
-
-interface TileProps {
-  type: string;
-  key?: string;
-  hasEncounters?: boolean;
-}
-
-
-// --- Main App ---
-
-const GameTile = ({ type, isGrassActive, hasEncounters }: TileProps & { isGrassActive?: boolean }) => {
-  const isEncounterGrass = type === 'grass' && hasEncounters;
-  const getTileStyle = () => {
-    switch (type) {
-      case 'grass': return isEncounterGrass ? 'bg-[#48a868] border-[#389858]/40' : 'bg-[#88d8b0] border-[#78c8a0]/30';
-      case 'path': return 'bg-[#e0f8d0] border-[#d0e8c0]/50';
-      case 'wall': return 'bg-[#f8f8f8] border-[#d8d8d8]';
-      case 'door': return 'bg-[#a05030] border-[#803010]';
-      case 'floor': return 'bg-[#f0f0f0] border-[#e0e0e0]';
-      case 'carpet': return 'bg-[#f85858] border-[#d83838]';
-      case 'table': return 'bg-[#d8d8d8] border-[#383838]';
-      case 'tree': return 'bg-[#88d8b0] border-[#78c8a0]/30';
-      case 'cut_tree': return 'bg-[#72c08f] border-[#4c9b6b]';
-      case 'boulder': return 'bg-[#b8b8b8] border-[#8a8a8a]';
-      case 'sign': return 'bg-[#e0f8d0] border-[#d0e8c0]/50';
-      default: return 'bg-white';
-    }
-  };
-
-  return (
-    <div 
-      className={`w-[${TILE_SIZE}px] h-[${TILE_SIZE}px] border-[0.5px] relative overflow-hidden transition-colors duration-500 ${getTileStyle()}`}
-      style={{ width: TILE_SIZE, height: TILE_SIZE }}
-    >
-      {type === 'sign' && (
-        <div className="w-full h-full flex flex-col items-center justify-center relative">
-          <div className="w-1 h-3 bg-[#a05030] border-x-2 border-[#383838] absolute bottom-2" />
-          <div className="w-10 h-8 bg-[#d8b888] border-2 border-[#383838] rounded-sm absolute bottom-5 flex flex-col items-center justify-center gap-1">
-            <div className="w-6 h-0.5 bg-[#383838]/20" />
-            <div className="w-6 h-0.5 bg-[#383838]/20" />
-          </div>
-        </div>
-      )}
-      {type === 'tree' && (
-        <div className="w-full h-full flex flex-col items-center justify-center relative">
-          <div className="absolute bottom-0 w-6 h-10 bg-[#a05030] border-2 border-[#383838] rounded-sm" />
-        </div>
-      )}
-      {type === 'cut_tree' && (
-        <div className="w-full h-full flex items-center justify-center relative">
-          <div className="w-10 h-10 bg-[#3d8b5b] border-2 border-[#24563a] rounded-md shadow-sm" />
-        </div>
-      )}
-      {type === 'boulder' && (
-        <div className="w-full h-full flex items-center justify-center relative">
-          <div className="w-10 h-10 bg-[#9a9a9a] border-2 border-[#6f6f6f] rounded-full shadow-sm" />
-        </div>
-      )}
-      {type === 'grass' && !isEncounterGrass && (
-        <div className="absolute inset-0 opacity-40">
-          <div className="w-full h-full bg-[radial-gradient(circle,#58a880_1px,transparent_1px)] bg-[size:12px_12px]" />
-          <div className="absolute top-2 left-2 w-1 h-2 bg-[#58a880] rounded-full rotate-12" />
-          <div className="absolute bottom-3 right-4 w-1 h-3 bg-[#58a880] rounded-full -rotate-12" />
-        </div>
-      )}
-      {isEncounterGrass && (
-        <div className="absolute inset-0">
-          {/* Tall grass blades */}
-          <div className="absolute bottom-1 left-2 w-1 h-5 bg-[#2d7a48] rounded-t-full rotate-[-8deg] origin-bottom" />
-          <div className="absolute bottom-1 left-4 w-1 h-7 bg-[#38904f] rounded-t-full rotate-[5deg] origin-bottom" />
-          <div className="absolute bottom-1 left-6 w-1 h-5 bg-[#2d7a48] rounded-t-full rotate-[-3deg] origin-bottom" />
-          <div className="absolute bottom-1 left-8 w-1 h-8 bg-[#227040] rounded-t-full rotate-[10deg] origin-bottom" />
-          <div className="absolute bottom-1 left-10 w-1 h-6 bg-[#38904f] rounded-t-full rotate-[-6deg] origin-bottom" />
-          <div className="absolute bottom-1 right-3 w-1 h-7 bg-[#2d7a48] rounded-t-full rotate-[4deg] origin-bottom" />
-          <div className="absolute bottom-1 right-6 w-1 h-5 bg-[#38904f] rounded-t-full rotate-[-8deg] origin-bottom" />
-        </div>
-      )}
-      <AnimatePresence>
-        {type === 'grass' && isGrassActive && (
-          <motion.div
-            key="grass-rustle"
-            initial={{ opacity: 0, scale: 0.6, y: 4 }}
-            animate={{ opacity: [0, 1, 1, 0], scale: [0.6, 1.1, 1, 0.8], y: [4, -2, 0, 2] }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.45, ease: 'easeOut' }}
-            className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none text-base"
-          >
-            🌿
-          </motion.div>
-        )}
-      </AnimatePresence>
-      {type === 'wall' && (
-        <div className="w-full h-full flex flex-col items-center justify-center">
-          <div className="w-full h-1/3 bg-[#f85858] border-b-2 border-[#383838]" />
-          <div className="w-full h-2/3 bg-[#f8f8f8] flex items-center justify-center">
-             <div className="w-4 h-4 border-2 border-[#d8d8d8] rounded-sm" />
-          </div>
-        </div>
-      )}
-      {type === 'door' && (
-        <div className="w-full h-full flex items-center justify-center">
-          <div className="w-10 h-12 bg-[#a05030] border-2 border-[#383838] rounded-t-sm flex items-center justify-center">
-            <div className="w-2 h-2 bg-yellow-400 rounded-full ml-4" />
-          </div>
-        </div>
-      )}
-      {type === 'carpet' && (
-        <div className="w-full h-full flex items-center justify-center opacity-40">
-          <div className="w-8 h-2 bg-white/30 rounded-full" />
-        </div>
-      )}
-      {type === 'table' && (
-        <div className="w-full h-full flex flex-col items-center justify-center">
-          <div className="w-full h-1/2 bg-[#d8d8d8] border-b-2 border-[#383838]" />
-          <div className="w-full h-1/2 bg-[#b8b8b8]" />
-        </div>
-      )}
-      {type === 'path' && (
-        <div className="absolute inset-0 opacity-20">
-          <div className="w-full h-full bg-[radial-gradient(circle,#c0d8b0_1px,transparent_1px)] bg-[size:16px_16px]" />
-        </div>
-      )}
-    </div>
-  );
-};
-
-const Player = ({ position, direction, isMoving }: { position: Position, direction: Direction, isMoving: boolean }) => {
-  const getRotation = () => {
-    switch (direction) {
-      case 'up': return 0;
-      case 'down': return 180;
-      case 'left': return -90;
-      case 'right': return 90;
-      default: return 0;
-    }
-  };
-
-  return (
-    <motion.div
-      className="absolute top-0 left-0 flex items-center justify-center"
-      initial={false}
-      animate={{ 
-        x: position.x * TILE_SIZE, 
-        y: position.y * TILE_SIZE,
-      }}
-      transition={{ type: "tween", duration: 0.1, ease: "linear" }}
-      style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 30 + position.y }}
-    >
-      <div className="relative">
-        {/* Floating Indicator */}
-        <motion.div 
-          animate={{ y: [0, -10, 0] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-          className="absolute -top-12 left-1/2 -translate-x-1/2 text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]"
-        >
-          <ChevronDown size={32} strokeWidth={3} />
-        </motion.div>
-
-        {/* Shadow */}
-        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-10 h-3 bg-black/40 rounded-full blur-sm" />
-        
-        {/* Character Sprite */}
-        <div 
-          className={`w-16 h-16 pointer-events-none drop-shadow-md ${isMoving ? 'animate-walk' : ''}`}
-          style={{
-            backgroundImage: "url('/player.png')",
-            backgroundSize: "400% 300%",
-            backgroundPositionX: isMoving ? undefined : "0%",
-            backgroundPositionY: direction === 'down' ? '0%' : direction === 'up' ? '50%' : '100%',
-            transform: direction === 'right' ? 'scaleX(-1)' : 'none',
-            imageRendering: "pixelated",
-          }}
-        />
-      </div>
-    </motion.div>
-  );
-};
-
+import { buildNPCDatabase, buildItemDatabase } from './data/npcDatabase';
+import { useInputHandler } from './hooks/useInputHandler';
+import { useDebugAPI } from './hooks/useDebugAPI';
+import { useBattleEngine } from './hooks/useBattleEngine';
+import { useMovementEngine } from './hooks/useMovementEngine';
+import { GameHeader } from './components/GameHeader';
+import { WorldView } from './components/WorldView';
+import { MobileControls } from './components/MobileControls';
+import { SideMenu } from './components/SideMenu';
+import { GameModals } from './components/GameModals';
+import { ScreenEffects } from './components/ScreenEffects';
 
 // --- Main App ---
 
@@ -434,8 +128,6 @@ export default function App() {
   });
 
 
-  const moveTimeout = useRef<NodeJS.Timeout | null>(null);
-  const poisonStepCounter = useRef(0);
   const battleStateRef = useRef<BattleState | null>(null);
   useEffect(() => {
     if (inBattle) {
@@ -454,199 +146,10 @@ export default function App() {
     }
   }, [inBattle, currentMap]);
 
-  useEffect(() => {
-    return () => {
-      if (moveTimeout.current) clearTimeout(moveTimeout.current);
-    };
-  }, []);
-
   const maps = worldMaps;
 
-  const npcs: Record<MapID, NPC[]> = {
-    PALLET_TOWN: [
-      { id: 'mom', name: 'MAMÁ', type: 'npc', onInteract: 'heal', position: { x: 7, y: 10 }, direction: 'down', dialogue: ["¡Ten cuidado ahí fuera, hijo!", "Recuerda que el Prof. Oak te está buscando."] },
-      ...(playerTeam.length === 0 ? [{ id: 'oak_pallet', name: 'PROF. OAK', type: 'npc' as const, position: { x: 10, y: 4 }, direction: 'down' as const, dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."] }] : [])
-    ],
-    OAKS_LAB: [
-      { 
-        id: 'oak', 
-        name: 'PROF. OAK', 
-        type: 'npc', 
-        onInteract: 'oak_parcel_turnin',
-        position: { x: 10, y: 7 }, 
-        direction: 'down', 
-        dialogue: hasParcel 
-          ? ["¡Oh! ¡Es el paquete que pedí!", "¡Gracias! Como recompensa, tomad esto: ¡Una POKÉDEX!", "¡Es un inventario de alta tecnología!"] 
-          : hasPokedex 
-            ? ["¡La POKÉDEX es un gran invento!", "¡Trata de capturarlos a todos!"]
-            : ["¡Hola Pablo! Por fin llegas.", "Toma uno de estos POKÉMON, te ayudará en tu viaje."] 
-      },
-      { id: 'rival', name: 'AZUL', type: 'npc', position: { x: 11, y: 7 }, direction: 'left', dialogue: ["¡Abuelo! ¡Yo también quiero un POKÉMON!", "¡Ja! Mi POKÉMON es mucho más fuerte que el tuyo."], isRival: true }
-    ],
-    ROUTE_1: [
-      { 
-        id: 'youngster_chano', 
-        name: 'JOVEN CHANO', 
-        type: 'npc', 
-        position: { x: 12, y: 10 }, 
-        direction: 'left', 
-        dialogue: ["¡Eh! ¡Tú! ¡Mis POKÉMON son de lo mejor!", "¡No me ignores cuando te hablo!"],
-        isTrainer: true,
-        trainerTeam: [
-          makePokemon('rattata', 'RATTATA', 4, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19)
-        ]
-      },
-      { 
-        id: 'bug_catcher', 
-        name: 'CAZABICHOS', 
-        type: 'npc', 
-        position: { x: 7, y: 5 }, 
-        direction: 'right', 
-        dialogue: ["¿Te gustan los POKÉMON bicho?", "¡Son los más guays del mundo!"],
-        isTrainer: true,
-        trainerTeam: [
-          makePokemon('caterpie', 'CATERPIE', 3, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10)
-        ]
-      }
-    ],
-    VIRIDIAN_CITY: [
-      { id: 'citizen', name: 'CIUDADANO', type: 'npc', position: { x: 10, y: 12 }, direction: 'down', dialogue: ["¡Bienvenido a Ciudad Verde!", "Aquí puedes curar a tus POKÉMON en el Centro."] }
-    ],
-    POKECENTER: [
-      { id: 'joy', name: 'ENFERMERA JOY', type: 'npc', onInteract: 'heal', position: { x: 10, y: 7 }, direction: 'down', dialogue: ["¡Hola! Bienvenida al CENTRO POKÉMON.", "Curaremos a tus POKÉMON hasta que estén a tope."] }
-    ],
-    POKEMART: [
-      { 
-        id: 'clerk', 
-        name: 'DEPENDIENTE', 
-        type: 'npc', 
-        position: { x: 7, y: 7 }, 
-        direction: 'down', 
-        onInteract: 'shop',
-        dialogue: (!hasParcel && !hasPokedex) 
-          ? ["¡Ah! ¡Tú vienes de PUEBLO PALETA!", "Tengo un paquete para el PROF. OAK. ¿Se lo llevarías?", "¡Gracias! Dile que es de parte de la TIENDA."] 
-          : ["¡Hola! ¿En qué puedo ayudarte hoy?"] 
-      },
-    ],
-    VIRIDIAN_FOREST: [
-      { 
-        id: 'bug_catcher_forest', 
-        name: 'CAZABICHOS RICKY', 
-        type: 'npc', 
-        position: { x: 10, y: 10 }, 
-        direction: 'down', 
-        dialogue: ["¡Mi POKÉMON bicho es el más fuerte!", "¡No podrás pasar de aquí!"],
-        isTrainer: true,
-        trainerTeam: [
-          makePokemon('metapod', 'METAPOD', 6, 'bug', [MOVES.HARDEN, MOVES.TACKLE], 11)
-        ]
-      }
-    ],
-    PEWTER_CITY: [
-      { id: 'pewter_citizen', name: 'CIUDADANO', type: 'npc', position: { x: 10, y: 15 }, direction: 'down', dialogue: ["¡Bienvenido a Ciudad Plateada!", "Brock es el líder del gimnasio local. ¡Es muy duro!"] }
-    ],
-    PEWTER_GYM: [
-      { 
-        id: 'gym_trainer', 
-        name: 'ENTRENADOR GYM', 
-        type: 'npc', 
-        position: { x: 10, y: 11 }, 
-        direction: 'down', 
-        dialogue: ["¡Para llegar a BROCK tendrás que vencerme!", "¡Mis POKÉMON son duros!"],
-        isTrainer: true,
-        trainerTeam: [
-          makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] })
-        ]
-      },
-      { 
-        id: 'brock', 
-        name: 'BROCK', 
-        type: 'npc', 
-        position: { x: 10, y: 7 }, 
-        direction: 'down', 
-        dialogue: badges.includes('BOULDER') 
-          ? ["¡Eres un gran entrenador!", "¡Sigue así!"] 
-          : ["¡Soy BROCK! ¡El líder de este gimnasio!", "¡Mis POKÉMON son duros como la roca!", "¡Prepárate para perder!"],
-        isTrainer: true,
-        trainerTeam: [
-          makePokemon('geodude', 'GEODUDE', 12, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }),
-          makePokemon('onix', 'ONIX', 14, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 95, { types: ['rock', 'ground'] })
-        ]
-      }
-    ],
-    ROUTE_3: [
-      {
-        id: 'bug_catcher_rt3',
-        name: 'CAZABICHOS LUIS',
-        type: 'npc',
-        position: { x: 5, y: 6 },
-        direction: 'right' as Direction,
-        dialogue: ["¡Los bichos son los mejores POKÉMON!", "¡Te voy a demostrar que soy el mejor!"],
-        isTrainer: true,
-        trainerTeam: [
-          makePokemon('caterpie', 'CATERPIE', 9, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10),
-          makePokemon('weedle', 'WEEDLE', 9, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 13, { types: ['bug', 'poison'] })
-        ]
-      },
-      {
-        id: 'lass_rt3',
-        name: 'CHICA ELENA',
-        type: 'npc',
-        position: { x: 13, y: 11 },
-        direction: 'left' as Direction,
-        dialogue: ["¡Oye tú! ¡No pases por aquí sin luchar!", "¡Mis POKÉMON son adorables Y fuertes!"],
-        isTrainer: true,
-        trainerTeam: [
-          makePokemon('jigglypuff', 'JIGGLYPUFF', 11, 'normal', [MOVES.TACKLE, MOVES.GROWL], 39),
-          makePokemon('pidgey', 'PIDGEY', 11, 'flying', [MOVES.TACKLE, MOVES.GUST], 16, { types: ['normal', 'flying'] })
-        ]
-      },
-      {
-        id: 'youngster_rt3',
-        name: 'CHICO ROBERTO',
-        type: 'npc',
-        position: { x: 8, y: 14 },
-        direction: 'down' as Direction,
-        dialogue: ["¡Llevo mis pantalones cortos todo el año!", "¡Eso me hace más fuerte!"],
-        isTrainer: true,
-        trainerTeam: [
-          makePokemon('mankey', 'MANKEY', 12, 'fighting', [MOVES.SCRATCH, MOVES.TACKLE], 56)
-        ]
-      }
-    ]
-  };
-
-  const rawItems: Record<MapID, Entity[]> = {
-    OAKS_LAB: [
-      { id: 'starter_1', type: 'item', position: { x: 9, y: 8 }, direction: 'down', sprite: STARTERS[0].sprite },
-      { id: 'starter_2', type: 'item', position: { x: 10, y: 8 }, direction: 'down', sprite: STARTERS[1].sprite },
-      { id: 'starter_3', type: 'item', position: { x: 11, y: 8 }, direction: 'down', sprite: STARTERS[2].sprite },
-    ],
-    PALLET_TOWN: [
-      { id: 'sign_home', type: 'object', position: { x: 8, y: 10 }, direction: 'down', sprite: '🪧' },
-      { id: 'sign_rival', type: 'object', position: { x: 12, y: 10 }, direction: 'down', sprite: '🪧' },
-      { id: 'sign_lab', type: 'object', position: { x: 11, y: 14 }, direction: 'down', sprite: '🪧' },
-    ],
-    ROUTE_1: [
-      { id: 'sign_route1', type: 'object', position: { x: 8, y: 15 }, direction: 'down', sprite: '🪧' },
-      { id: 'item_potion_1', type: 'item', position: { x: 12, y: 5 }, direction: 'down', sprite: '🧪' }
-    ],
-    VIRIDIAN_CITY: [],
-    POKECENTER: [],
-    POKEMART: [],
-    VIRIDIAN_FOREST: [
-      { id: 'item_pokeball_1', type: 'item', position: { x: 5, y: 5 }, direction: 'down', sprite: '🔴' },
-      { id: 'item_potion_forest', type: 'item', position: { x: 15, y: 15 }, direction: 'down', sprite: '🧪' }
-    ],
-    PEWTER_CITY: [],
-    PEWTER_GYM: [],
-    ROUTE_3: []
-  };
-  const items: Record<MapID, Entity[]> = Object.fromEntries(
-    Object.entries(rawItems).map(([map, entities]) => [
-      map, entities.filter(e => !pickedItemIds.includes(e.id))
-    ])
-  ) as Record<MapID, Entity[]>;
+  const npcs = buildNPCDatabase(playerTeam, hasParcel, hasPokedex, badges);
+  const items = buildItemDatabase(pickedItemIds);
 
   const handlePCSwap = (teamIdx: number, pcIdx: number) => {
     const newTeam = [...playerTeam];
@@ -659,23 +162,56 @@ export default function App() {
     soundManager.play('SELECT');
   };
 
-  const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges });
+  const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges, lastHealLocation });
   useEffect(() => {
-    gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, battleSubPhase: phase.type === 'BATTLE' ? phase.sub.type : null, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges };
-  }, [playerPos, direction, isMoving, dialogue, inBattle, phase, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges]);
+    gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, battleSubPhase: phase.type === 'BATTLE' ? phase.sub.type : null, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges, lastHealLocation };
+  }, [playerPos, direction, isMoving, dialogue, inBattle, phase, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges, lastHealLocation]);
 
-  const initBattle = useCallback((enemyPkmn: Pokemon, isTrainer: boolean) => {
-    setEnemyPokemon(enemyPkmn);
-    battleStateRef.current = createBattleState(gameState.current.playerTeam, enemyPkmn, {
-      isTrainerBattle: isTrainer,
-      inventory: gameState.current.inventory,
-      pcStorage: gameState.current.pcStorage,
-      hasBoulderBadge: gameState.current.badges.includes('BOULDER'),
-    });
-    setIsTrainerBattle(isTrainer);
-    soundManager.play('BATTLE_START');
-    setPhase(BATTLE_TRANSITION);
-  }, []);
+  const { handleMove, initBattle } = useMovementEngine({
+    gameState,
+    battleStateRef,
+    setCurrentMap,
+    setPlayerPos,
+    setDirection,
+    setIsMoving,
+    setDialogue,
+    setStoryStep,
+    setPlayerTeam,
+    setPhase,
+    setOverworldShake,
+    setGrassEffect,
+    setSpottedTrainerId,
+    setSpottedTrainerPos,
+    setEnemyPokemon,
+    setIsTrainerBattle,
+    setBattleLog,
+    updatePokedex,
+  });
+
+  const { dispatchBattle } = useBattleEngine({
+    battleStateRef,
+    gameState,
+    setPhase,
+    setShowMoves,
+    setPlayerTeam,
+    setEnemyPokemon,
+    setPlayerAnim,
+    setEnemyAnim,
+    setBattleLog,
+    setCatchResult,
+    setDefeatedTrainers,
+    setBadges,
+    setMoney,
+    setStoryStep,
+    setDialogue,
+    setInventory,
+    setPcStorage,
+    setCurrentMap,
+    setPlayerPos,
+    setPokedex,
+    setScreenFlash,
+    setBattleShake,
+  });
 
   const { handleAction } = useInteractionEngine({
     dialogue,
@@ -743,377 +279,6 @@ export default function App() {
     soundManager.play('SELECT');
   }, [activeSaveSlot]);
 
-  const handleMove = useCallback((dir: Direction) => {
-    const { isMoving, dialogue, phaseType, playerPos, currentMap, playerTeam, npcs, items, defeatedTrainers, inventory, storyStep } = gameState.current;
-    const lockedPhases = ['BATTLE', 'BATTLE_TRANSITION', 'HEALING', 'BLACKOUT'];
-    if (isMoving || dialogue || lockedPhases.includes(phaseType)) return;
-
-    setDirection(dir);
-
-    let nextX = playerPos.x;
-    let nextY = playerPos.y;
-
-    switch (dir) {
-      case 'up': nextY--; break;
-      case 'down': nextY++; break;
-      case 'left': nextX--; break;
-      case 'right': nextX++; break;
-    }
-
-    // Story Event: Oak stops the player from leaving Pallet Town
-    if (currentMap === 'PALLET_TOWN' && nextY === 5 && playerTeam.length === 0) {
-      setDialogue("OAK: ¡Espera! ¡No vayas por ahí!");
-      setStoryStep('OAK_STOPPED');
-      setTimeout(() => {
-        setCurrentMap('OAKS_LAB');
-        setPlayerPos({ x: 10, y: 14 });
-        setDialogue("OAK: ¡Es peligroso ir solo! Ven, elige un POKÉMON.");
-      }, sd(1000));
-      return;
-    }
-
-    // Dynamic Map Data Access
-    const mapData = maps[currentMap];
-    const grid = mapData.tiles;
-
-    // Boundary and collision check using the new grid structure
-    const npcAtNext = npcs[currentMap]?.some(n => n.position.x === nextX && n.position.y === nextY);
-    const objectAtNext = items[currentMap]?.some(i => i.type === 'object' && i.position.x === nextX && i.position.y === nextY);
-    
-    if (
-      nextX >= 0 && nextX < GRID_SIZE &&
-      nextY >= 0 && nextY < GRID_SIZE &&
-      grid[nextY][nextX].walkable &&
-      !npcAtNext &&
-      !objectAtNext
-    ) {
-      setIsMoving(true);
-      setPlayerPos({ x: nextX, y: nextY });
-
-      // Poison overworld damage logic
-      const leadPokemon = playerTeam[0];
-      if (leadPokemon?.status === 'poison' && leadPokemon.hp > 1) {
-        poisonStepCounter.current += 1;
-        if (poisonStepCounter.current >= 4) {
-          poisonStepCounter.current = 0;
-          setPlayerTeam(prev => {
-            if (prev.length === 0) return prev;
-            const updated = [...prev];
-            updated[0] = { ...updated[0], hp: Math.max(1, updated[0].hp - 1) };
-            return updated;
-          });
-          setOverworldShake(true);
-          setTimeout(() => setOverworldShake(false), sd(220));
-        }
-      } else {
-        poisonStepCounter.current = 0;
-      }
-
-      // Visual grass rustle effect
-      if (grid[nextY][nextX].type === 'grass') {
-        setGrassEffect({ x: nextX, y: nextY });
-        setTimeout(() => setGrassEffect(null), sd(500));
-      }
-
-      if (moveTimeout.current) clearTimeout(moveTimeout.current);
-      moveTimeout.current = setTimeout(() => {
-        setIsMoving(false);
-      }, sd(110));
-
-      // Dynamic Warp Check: Searches the map's JSON-defined warps
-      const warp = mapData.warps.find(w => w.x === nextX && w.y === nextY);
-      if (warp) {
-        soundManager.play('SELECT');
-        setTimeout(() => {
-          setCurrentMap(warp.targetMap);
-          setPlayerPos(warp.targetPos);
-          if (warp.targetDir) setDirection(warp.targetDir);
-        }, sd(200));
-      }
-
-      // Check for trainer vision/sight
-      const currentMapTrainers = npcs[currentMap].filter(n => n.isTrainer && !defeatedTrainers.includes(n.id));
-      for (const trainer of currentMapTrainers) {
-        for (let i = 1; i <= 3; i++) {
-          let visionX = trainer.position.x;
-          let visionY = trainer.position.y;
-          if (trainer.direction === 'up') visionY -= i;
-          if (trainer.direction === 'down') visionY += i;
-          if (trainer.direction === 'left') visionX -= i;
-          if (trainer.direction === 'right') visionX += i;
-          
-          if (visionX === nextX && visionY === nextY) {
-            setSpottedTrainerId(trainer.id);
-            setSpottedTrainerPos({ ...trainer.position });
-            soundManager.play('TRAINER_SPOTTED');
-            setDialogue(`${trainer.name}: ¡Eh! ¡Te he visto! ¡Vamos a luchar!`);
-            const spottedDistance = i;
-            for (let step = 1; step < spottedDistance; step++) {
-              setTimeout(() => {
-                setSpottedTrainerPos(prev => {
-                  if (!prev) return prev;
-                  const next = { ...prev };
-                  if (trainer.direction === 'up') next.y -= 1;
-                  if (trainer.direction === 'down') next.y += 1;
-                  if (trainer.direction === 'left') next.x -= 1;
-                  if (trainer.direction === 'right') next.x += 1;
-                  return next;
-                });
-              }, sd(step * 220));
-            }
-            setTimeout(() => {
-              setSpottedTrainerId(null);
-              setSpottedTrainerPos(null);
-              soundManager.play('BATTLE_START');
-              setEnemyPokemon(trainer.trainerTeam![0]);
-              battleStateRef.current = createBattleState(gameState.current.playerTeam, trainer.trainerTeam![0], {
-                isTrainerBattle: true,
-                inventory: gameState.current.inventory,
-                pcStorage: gameState.current.pcStorage,
-                hasBoulderBadge: gameState.current.badges.includes('BOULDER'),
-              });
-              updatePokedex(trainer.trainerTeam![0].id);
-              setIsTrainerBattle(true);
-              setBattleLog(`¡${trainer.name} te desafía!`);
-              setPhase(BATTLE_TRANSITION);
-            }, sd(Math.max(1500, spottedDistance * 240)));
-            break;
-          }
-        }
-      }
-
-      // Random wild Pokémon encounters in tall grass
-      if (grid[nextY][nextX].type === 'grass' && Math.random() < 0.1 && playerTeam.length > 0) {
-        if (playerTeam.every(p => p.hp === 0)) return;
-
-        const routeWilds = WILD_POKEMON_DATABASE[currentMap] || WILD_POKEMON_DATABASE['ROUTE_1'];
-        const randomPkmn = routeWilds[Math.floor(Math.random() * routeWilds.length)];
-        const levelVariation = Math.floor(Math.random() * 3) - 1;
-        const finalLevel = Math.max(2, randomPkmn.level + levelVariation);
-        
-        soundManager.play('BATTLE_START');
-        const finalMaxHp = calcHp(randomPkmn.baseStats.hp, finalLevel);
-        const wildBaseStats = {
-          ...randomPkmn.baseStats,
-          attack: Math.floor(randomPkmn.baseStats.attack * 0.85),
-          special: Math.floor(randomPkmn.baseStats.special * 0.85),
-        };
-        const finalPkmn = {
-          ...randomPkmn,
-          baseStats: wildBaseStats,
-          level: finalLevel,
-          hp: finalMaxHp,
-          maxHp: finalMaxHp,
-        };
-        setEnemyPokemon(finalPkmn);
-        battleStateRef.current = createBattleState(gameState.current.playerTeam, finalPkmn, {
-          inventory: gameState.current.inventory,
-          pcStorage: gameState.current.pcStorage,
-          hasBoulderBadge: gameState.current.badges.includes('BOULDER'),
-        });
-        setIsTrainerBattle(false);
-        updatePokedex(randomPkmn.id);
-        setBattleLog(`¡Un ${randomPkmn.name} salvaje apareció!`);
-        setPhase(BATTLE_TRANSITION);
-      }
-    }
-  }, [
-    setCurrentMap, setPlayerPos, setDirection, setIsMoving, setDialogue, setStoryStep, 
-    setPlayerTeam, setOverworldShake, setGrassEffect, setSpottedTrainerId, 
-    setSpottedTrainerPos, setEnemyPokemon, setIsTrainerBattle, setBattleLog, 
-    setPhase, updatePokedex
-  ]);
-
-  /** Maps battleEngine phase string to App GamePhase */
-  function mapEnginePhase(p: string): GamePhase {
-    switch (p) {
-      case 'CHOOSING': return battle(B_CHOOSING);
-      case 'PLAYER_ATTACK': return battle(B_PLAYER_ATTACK);
-      case 'ENEMY_ATTACK': return battle(B_ENEMY_ATTACK);
-      case 'PLAYER_FAINTED': return battle(B_PLAYER_FAINTED);
-      case 'FORCED_SWITCH': return battle(B_FORCED_SWITCH);
-      case 'ENEMY_FAINTED': return battle(B_ENEMY_FAINTED);
-      case 'CATCHING': return battle(B_CATCHING);
-      case 'LEVEL_UP': return battle(B_LEVEL_UP);
-      case 'EVOLVING': return battle(B_EVOLVING);
-      case 'BATTLE_INVENTORY': return battle(B_BATTLE_INVENTORY);
-      case 'BATTLE_TEAM': return battle(B_BATTLE_TEAM);
-      default: return battle(B_CHOOSING);
-    }
-  }
-
-  const playBattleEffects = (effects: BattleEffect[]): number => {
-    let delay = 0;
-    effects.forEach(effect => {
-      const d = delay;
-      switch (effect.type) {
-        case 'log':
-          setTimeout(() => setBattleLog(effect.payload as string), d);
-          delay += sd(500);
-          break;
-        case 'sound':
-          soundManager.play(effect.payload as string);
-          break;
-        case 'player_anim':
-          setTimeout(() => setPlayerAnim(effect.payload as string), d);
-          if (effect.payload === 'hit' || effect.payload === 'faint') delay += sd(400);
-          break;
-        case 'enemy_anim':
-          setTimeout(() => setEnemyAnim(effect.payload as string), d);
-          if (effect.payload === 'hit' || effect.payload === 'faint' || effect.payload === 'attack') delay += sd(400);
-          break;
-        case 'screen_flash':
-          setTimeout(() => { setScreenFlash(true); setTimeout(() => setScreenFlash(false), sd(400)); }, d);
-          delay += sd(200);
-          break;
-        case 'battle_shake':
-          setTimeout(() => { setBattleShake(true); setTimeout(() => setBattleShake(false), sd(400)); }, d);
-          break;
-      }
-    });
-    return delay;
-  };
-
-  /** Resolve post-battle outcomes (win, blackout, fled) */
-  const resolveBattleOutcome = (newState: BattleState) => {
-    if (newState.outcome === 'player_win') {
-      if (newState.isTrainerBattle) {
-        const trainer = npcs[currentMap].find(n => n.isTrainer && n.trainerTeam?.some(p => p.id === newState.enemyPokemon.id));
-        if (trainer) {
-          const moneyReward = newState.enemyPokemon.level * 20;
-          setDefeatedTrainers(prev => [...prev, trainer.id]);
-          if (moneyReward > 0) setMoney(prev => prev + moneyReward);
-          if (trainer.id === 'brock') {
-            setBadges(prev => [...prev, 'BOULDER']);
-            setBattleLog(prev => `${prev}\n¡Recibiste la MEDALLA ROCA de BROCK!`);
-          }
-        }
-      }
-      setTimeout(() => {
-        setInventory(newState.inventory);
-        setPhase(EXPLORING);
-        setEnemyAnim('idle');
-        if (storyStep === 'PICKED_STARTER') {
-          setStoryStep('RIVAL_BATTLE');
-          setDialogue('AZUL: ¡Maldición! ¡He perdido! Pero no volverá a pasar.');
-        }
-      }, sd(2000));
-    } else if (newState.outcome === 'player_blackout') {
-      setPhase(BLACKOUT);
-      setTimeout(() => {
-        setCurrentMap(lastHealLocation.map);
-        setPlayerPos(lastHealLocation.pos);
-      }, sd(1200));
-      setTimeout(() => {
-        setPhase(HEALING);
-        setTimeout(() => {
-          setPlayerTeam(prev => prev.map(p => ({ ...p, hp: p.maxHp, status: 'none', moves: p.moves.map(m => ({ ...m, pp: m.maxPp })) })));
-          soundManager.play('SELECT');
-        }, sd(800));
-        setTimeout(() => {
-          setPhase(EXPLORING);
-          setDialogue('¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.');
-        }, sd(1600));
-      }, sd(2400));
-    } else if (newState.outcome === 'fled') {
-      setInventory(newState.inventory);
-      setPhase(EXPLORING);
-    }
-  };
-
-  const dispatchBattle = (action: BattleAction) => {
-    if (!battleStateRef.current) return;
-    // Reject actions if the battle is already resolved or not in a choosable phase
-    if (battleStateRef.current.outcome !== 'ongoing') return;
-    const ph = battleStateRef.current.phase;
-    const validPhase = ph === 'CHOOSING' || (ph === 'FORCED_SWITCH' && action.type === 'SWITCH');
-    if (!validPhase && action.type !== 'TICK') return;
-
-    // Lock input immediately — prevents double-clicks during animation
-    setPhase(battle(B_PLAYER_ATTACK));
-    setShowMoves(false);
-
-    const { state: newState, effects } = stepBattle(battleStateRef.current, action);
-    battleStateRef.current = newState;
-
-    // Special-case: CATCH has its own long animation (4s)
-    if (action.type === 'CATCH') {
-      setPhase(battle(B_CATCHING));
-      setCatchResult(null);
-      setBattleLog('¡Pablo lanzó una POKÉ BALL!');
-      soundManager.play('SELECT');
-      setInventory(newState.inventory);
-
-      if (newState.outcome === 'caught') {
-        setTimeout(() => setCatchResult(true), sd(2800));
-        setTimeout(() => {
-          setCatchResult(null);
-          setPokedex(prev => ({ ...prev, [newState.enemyPokemon.id]: { seen: true, caught: true } }));
-          setPcStorage(newState.pcStorage);
-          setPlayerTeam(newState.playerTeam);
-          setPhase(EXPLORING);
-        }, sd(4000));
-      } else {
-        // Failed catch — enemy gets a turn after animation
-        setTimeout(() => setCatchResult(false), sd(2800));
-        setTimeout(() => {
-          setCatchResult(null);
-          setPlayerTeam(newState.playerTeam);
-          setEnemyPokemon(newState.enemyPokemon);
-          setPhase(mapEnginePhase(newState.phase));
-        }, sd(4000));
-      }
-      return;
-    }
-
-    // Split effects into player-turn and enemy-turn at the `enemy_anim: attack` boundary
-    const enemyTurnIdx = effects.findIndex(e => e.type === 'enemy_anim' && e.payload === 'attack');
-    const playerEffects = enemyTurnIdx >= 0 ? effects.slice(0, enemyTurnIdx) : effects;
-    const enemyEffects = enemyTurnIdx >= 0 ? effects.slice(enemyTurnIdx) : [];
-
-    // ── Phase 1: Player turn ──
-    if (action.type === 'ATTACK') {
-      setPlayerAnim('attack');
-      soundManager.play('SELECT');
-    }
-    // Sync enemy state now (player dealt damage)
-    setEnemyPokemon(newState.enemyPokemon);
-    // For non-ATTACKs (items, switches), sync player state immediately too (shows heal / new pokemon)
-    if (action.type !== 'ATTACK') {
-      setPlayerTeam(newState.playerTeam);
-    }
-
-    const playerDuration = playBattleEffects(playerEffects);
-    const playerDelay = Math.max(playerDuration + sd(300), sd(800));
-
-    if (enemyEffects.length > 0) {
-      // ── Phase 2: Enemy turn ──
-      setTimeout(() => {
-        setPlayerAnim('idle');
-        setEnemyAnim('idle');
-        // Now sync player HP (enemy's damage)
-        setPlayerTeam(newState.playerTeam);
-        const enemyDuration = playBattleEffects(enemyEffects);
-        const enemyDelay = Math.max(enemyDuration + sd(300), sd(800));
-
-        setTimeout(() => {
-          setPlayerAnim('idle');
-          setEnemyAnim('idle');
-          setPhase(mapEnginePhase(newState.phase));
-          resolveBattleOutcome(newState);
-        }, enemyDelay);
-      }, playerDelay);
-    } else {
-      // No enemy turn (enemy fainted, fled, switched, etc.)
-      setPlayerTeam(newState.playerTeam);
-      setTimeout(() => {
-        setPlayerAnim('idle');
-        setEnemyAnim('idle');
-        setPhase(mapEnginePhase(newState.phase));
-        resolveBattleOutcome(newState);
-      }, playerDelay);
-    }
-  };
 
   const handleUseItem = (itemId: string) => {
     if (!hasItem(itemId)) return;
@@ -1133,765 +298,114 @@ export default function App() {
     }
   };
 
-  // Expose debug API in dev mode for preview testing
-  useEffect(() => {
-    if (import.meta.env.DEV) {
-      (window as any).__game = {
-        dispatchBattle,
-        battleStateRef,
-        getPhase: () => phase,
-        dismissDialogue: () => setDialogue(null),
-        setPhase,
-        handleMove,
-        handleAction,
-        isTrainerBattle,
-        phases: { EXPLORING, battle, B_CHOOSING },
-        startTestBattle: () => {
-          let team = gameState.current.playerTeam;
-          if (team.length === 0) {
-            const starter = makePokemon('charmander', 'CHARMANDER', 10, 'fire', [MOVES.SCRATCH, MOVES.EMBER, MOVES.GROWL], 4);
-            setPlayerTeam([starter]);
-            team = [starter];
-            gameState.current = { ...gameState.current, playerTeam: team };
-          }
-          const enemy = makePokemon('rattata', 'RATTATA', 3, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19);
-          setEnemyPokemon(enemy);
-          battleStateRef.current = createBattleState(team, enemy, {
-            inventory: gameState.current.inventory,
-            pcStorage: gameState.current.pcStorage,
-            hasBoulderBadge: gameState.current.badges.includes('BOULDER'),
-          });
-          setIsTrainerBattle(false);
-          setBattleLog(`¡Un ${enemy.name} salvaje apareció!`);
-          setPhase(battle(B_CHOOSING));
-        },
-      };
-    }
+  useDebugAPI({
+    dispatchBattle,
+    battleStateRef,
+    phase,
+    setDialogue,
+    setPhase,
+    handleMove,
+    handleAction,
+    isTrainerBattle,
+    gameState,
+    setPlayerTeam,
+    setEnemyPokemon,
+    setBattleLog,
+    setIsTrainerBattle,
   });
 
-  const pressedKeys = useRef<Set<Direction>>(new Set());
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (inBattle) {
-        const battleSubPhase = phase.type === 'BATTLE' ? phase.sub.type : null;
-        const team = playerTeam;
-        if (e.key === 'Escape') {
-          // Close sub-menus back to choosing, never exit the battle
-          if (battleSubPhase === 'BATTLE_INVENTORY' || battleSubPhase === 'BATTLE_TEAM') {
-            setPhase(battle(B_CHOOSING));
-          }
-          // FORCED_SWITCH: don't allow closing without picking
-        }
-        if (battleSubPhase === 'CHOOSING') {
-          const inMovesMenu = showMoves;
-          if (e.key === 'Escape' && inMovesMenu) {
-            setShowMoves(false);
-            return;
-          }
-          if (!inMovesMenu) {
-            // Main battle menu shortcuts
-            if (e.key === '1') { setShowMoves(true); return; }
-            if (e.key === 'b' || e.key === 'B') { setPhase(battle(B_BATTLE_INVENTORY)); return; }
-            if (e.key === 'p' || e.key === 'P') { setPhase(battle(B_BATTLE_TEAM)); return; }
-            if ((e.key === 'h' || e.key === 'H') && !isTrainerBattle) { dispatchBattle({ type: 'FLEE' }); return; }
-          } else {
-            // Moves submenu shortcuts: 1-4 select move
-            const idx = parseInt(e.key) - 1;
-            if (idx >= 0 && idx <= 3) {
-              const mv = team[0]?.moves[idx];
-              if (mv && mv.pp > 0) dispatchBattle({ type: 'ATTACK', move: mv });
-            }
-          }
-        }
-        return;
-      }
-
-      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
-
-      if (e.key === 'E' && e.shiftKey) {
-        setPhase(prev => prev.type === 'EDITOR' ? EXPLORING : EDITOR);
-        return;
-      }
-
-      if (dialogue) {
-        setDialogue(null);
-        return;
-      }
-
-      let dir: Direction | null = null;
-      switch (e.key) {
-        case 'ArrowUp': dir = 'up'; break;
-        case 'ArrowDown': dir = 'down'; break;
-        case 'ArrowLeft': dir = 'left'; break;
-        case 'ArrowRight': dir = 'right'; break;
-        case 'z': case 'Enter': case ' ': handleAction(); break;
-        case 'x': case 'Shift': case 'Escape': setPhase(prev => prev.type === 'MENU' ? EXPLORING : MENU); break;
-      }
-      if (dir) {
-        const wasEmpty = pressedKeys.current.size === 0;
-        pressedKeys.current.add(dir);
-        if (wasEmpty) handleMove(dir); // immediate first step on key press
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowUp': pressedKeys.current.delete('up'); break;
-        case 'ArrowDown': pressedKeys.current.delete('down'); break;
-        case 'ArrowLeft': pressedKeys.current.delete('left'); break;
-        case 'ArrowRight': pressedKeys.current.delete('right'); break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [handleMove, handleAction, dialogue, inBattle]);
-
-  // Self-trigger: the moment a move finishes, immediately start the next one if a key is held.
-  // This eliminates the interval desync — moves chain with zero gap.
-  useEffect(() => {
-    if (!isMoving && pressedKeys.current.size > 0) {
-      const dir = Array.from(pressedKeys.current)[0] as Direction;
-      handleMove(dir);
-    }
-  }, [isMoving, handleMove]);
+  useInputHandler({
+    handleMove,
+    handleAction,
+    dispatchBattle,
+    isMoving,
+    inBattle,
+    dialogue,
+    phase,
+    playerTeam,
+    isTrainerBattle,
+    showMoves,
+    setShowMoves,
+    setPhase,
+    setDialogue,
+  });
 
   return (
     <div className="h-screen bg-slate-900 flex flex-col items-center justify-center overflow-hidden font-sans selection:bg-red-500 selection:text-white">
-      
-      {/* Scanline Effect */}
       <div className="scanline" />
 
-      {/* Game Header */}
-      <div className="absolute top-8 left-8 z-20 flex items-center gap-4">
-        <div className="w-12 h-12 bg-red-600 rounded-xl shadow-lg flex items-center justify-center border-2 border-red-400">
-          <Gamepad2 className="text-white" size={24} />
-        </div>
-        <div>
-          <h1 className="text-white font-bold text-xl tracking-tight">POKÉMON FIRE RED</h1>
-          <p className="text-slate-400 text-xs font-mono uppercase tracking-widest">Modern Remake Engine</p>
-        </div>
-        <button
-          onClick={() => setIsMuted(soundManager.toggleMute())}
-          className="w-9 h-9 bg-slate-700/80 hover:bg-slate-600 rounded-lg flex items-center justify-center border border-slate-500/50 transition-colors"
-          title={isMuted ? 'Activar sonido' : 'Silenciar'}
-        >
-          {isMuted ? <VolumeX className="text-slate-400" size={16} /> : <Volume2 className="text-white" size={16} />}
-        </button>
-      </div>
+      <GameHeader isMuted={isMuted} onToggleMute={() => setIsMuted(soundManager.toggleMute())} />
 
-      {/* World Container */}
-      <div className="relative flex-1 w-full overflow-hidden">
-        {/* HP HUD */}
-        <AnimatePresence>
-          {playerTeam.length > 0 && !inBattle && (
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="fixed top-24 sm:top-24 left-4 sm:left-8 z-20 bg-white/90 backdrop-blur-md p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-slate-800 shadow-xl w-32 sm:w-48"
-            >
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-[8px] sm:text-[10px] font-black text-slate-800 uppercase tracking-tighter">{playerTeam[0].name}</span>
-                <span className="text-[8px] sm:text-[10px] font-mono font-bold text-slate-500">Lv {playerTeam[0].level}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[6px] sm:text-[8px] font-black text-yellow-600">HP</span>
-                <div className="flex-1 h-1.5 sm:h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-300">
-                  <motion.div 
-                    initial={false}
-                    animate={{ width: `${(playerTeam[0].hp / playerTeam[0].maxHp) * 100}%` }}
-                    className={`h-full ${playerTeam[0].hp > playerTeam[0].maxHp / 2 ? 'bg-emerald-500' : playerTeam[0].hp > playerTeam[0].maxHp / 5 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                  />
-                </div>
-              </div>
-              <div className="text-right mt-0.5 sm:mt-1">
-                <span className="text-[8px] sm:text-[10px] font-mono font-bold text-slate-600">{playerTeam[0].hp}/{playerTeam[0].maxHp}</span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <motion.div 
-          className="absolute bg-emerald-50 rounded-[2rem] shadow-2xl overflow-hidden border-8 border-slate-800"
-          initial={false}
-          animate={{ 
-            x: overworldShake
-              ? [
-                  -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2),
-                  -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2) - 8,
-                  -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2) + 8,
-                  -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2),
-                ]
-              : -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2),
-            y: -playerPos.y * TILE_SIZE + (windowSize.height / 2) - (TILE_SIZE / 2)
-          }}
-          transition={{ type: "tween", duration: 0.1, ease: "linear" }}
-        >
-          {/* Map Grid */}
-          <div 
-            className="relative" 
-            style={{ 
-              width: GRID_SIZE * TILE_SIZE,
-              height: GRID_SIZE * TILE_SIZE
-            }}
-          >
-            {(() => {
-              const mapData = maps[currentMap];
-              const grid = mapData.tiles; // Access the tile array from the new map object
-              const mapHasEncounters = currentMap in WILD_POKEMON_DATABASE;
-              
-              const cullRadius = 8;
-              const cullStep = 4;
-              
-              const rawMinY = Math.max(0, playerPos.y - cullRadius);
-              const rawMaxY = Math.min(GRID_SIZE - 1, playerPos.y + cullRadius);
-              const rawMinX = Math.max(0, playerPos.x - cullRadius);
-              const rawMaxX = Math.min(GRID_SIZE - 1, playerPos.x + cullRadius);
-              
-              const minY = Math.max(0, Math.floor(rawMinY / cullStep) * cullStep);
-              const minX = Math.max(0, Math.floor(rawMinX / cullStep) * cullStep);
-              const maxY = Math.min(GRID_SIZE - 1, Math.ceil((rawMaxY + 1) / cullStep) * cullStep - 1);
-              const maxX = Math.min(GRID_SIZE - 1, Math.ceil((rawMaxX + 1) / cullStep) * cullStep - 1);
-              
-              const tiles = [];
-              for (let y = minY; y <= maxY; y++) {
-                for (let x = minX; x <= maxX; x++) {
-                  const tile = grid[y][x]; // Correctly indexes the 2D array
-                  tiles.push(
-                    <div
-                      key={`${x}-${y}`}
-                      className="absolute"
-                      style={{ 
-                        left: x * TILE_SIZE, 
-                        top: y * TILE_SIZE, 
-                        width: TILE_SIZE, 
-                        height: TILE_SIZE 
-                      }}
-                    >
-                      <GameTile
-                        type={tile.type}
-                        isGrassActive={grassEffect?.x === x && grassEffect?.y === y}
-                        hasEncounters={mapHasEncounters}
-                      />
-                    </div>
-                  );
-                }
-              }
-              return tiles;
-            })()}
-          </div>
-
-          {/* Trainer vision shadows */}
-          {npcs[currentMap]
-            .filter(npc => npc.isTrainer && !defeatedTrainers.includes(npc.id))
-            .flatMap(trainer =>
-              [1, 2, 3].map(i => {
-                let vx = trainer.position.x, vy = trainer.position.y;
-                if (trainer.direction === 'up') vy -= i;
-                if (trainer.direction === 'down') vy += i;
-                if (trainer.direction === 'left') vx -= i;
-                if (trainer.direction === 'right') vx += i;
-                if (vx < 0 || vx >= GRID_SIZE || vy < 0 || vy >= GRID_SIZE) return null;
-                return (
-                  <div
-                    key={`vision-${trainer.id}-${i}`}
-                    className="absolute z-10 pointer-events-none"
-                    style={{
-                      left: vx * TILE_SIZE,
-                      top: vy * TILE_SIZE,
-                      width: TILE_SIZE,
-                      height: TILE_SIZE,
-                      background: 'rgba(248, 56, 56, 0.18)',
-                      borderRadius: 4,
-                    }}
-                  />
-                );
-              }).filter(Boolean)
-            )
-          }
-
-          {/* Teleport exit indicators (Metadata defined in JSON) */}
-          {maps[currentMap].warps?.map(warp => (
-            <div
-              key={`warp-${warp.x}-${warp.y}`}
-              className="absolute z-25 pointer-events-none flex items-end justify-center pb-1"
-              style={{ left: warp.x * TILE_SIZE, top: warp.y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}
-            >
-              <motion.div
-                animate={{ y: [0, -6, 0] }}
-                transition={{ repeat: Infinity, duration: 0.8, ease: 'easeInOut' }}
-                className="text-white text-lg drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
-              >
-                {warp.targetDir === 'up' ? '▲' : warp.targetDir === 'down' ? '▼' : warp.targetDir === 'left' ? '◀' : '▶'}
-              </motion.div>
-            </div>
-          ))}
-
-          {/* NPCs */}
-          {npcs[currentMap].map(npc => (
-            <NPCComponent
-              key={npc.id}
-              npc={
-                npc.id === spottedTrainerId && spottedTrainerPos
-                  ? { ...npc, position: spottedTrainerPos }
-                  : npc
-              }
-              isSpotted={npc.id === spottedTrainerId}
-            />
-          ))}
-
-          {/* Items / Pokéballs / Objects */}
-          {items[currentMap].map(item => (
-            <motion.div
-              key={item.id}
-              className="absolute top-0 left-0 flex items-center justify-center"
-              animate={{ x: item.position.x * TILE_SIZE, y: item.position.y * TILE_SIZE }}
-              style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 18 + item.position.y }}
-            >
-              {item.type === 'item' ? (
-                <div className="w-8 h-8 bg-red-500 rounded-full border-2 border-[#383838] flex items-center justify-center relative shadow-md">
-                  <div className="w-full h-0.5 bg-[#383838] absolute top-1/2 -translate-y-1/2" />
-                  <div className="w-2 h-2 bg-white border-2 border-[#383838] rounded-full z-10" />
-                  {item.sprite?.startsWith('http') ? <img src={item.sprite} className="absolute -top-10 left-1/2 -translate-x-1/2 w-16 h-16 object-contain pixelated drop-shadow-md" alt="item" /> : <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-3xl font-bold text-slate-400 drop-shadow-md">{item.sprite}</div>}
-                </div>
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center relative">
-                  <div className="w-1 h-3 bg-[#a05030] border-x-2 border-[#383838] absolute bottom-2" />
-                  <div className="w-10 h-8 bg-[#d8b888] border-2 border-[#383838] rounded-sm absolute bottom-5 flex flex-col items-center justify-center gap-1">
-                    <div className="w-6 h-0.5 bg-[#383838]/20" />
-                    <div className="w-6 h-0.5 bg-[#383838]/20" />
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          ))}
-
-          {/* Player */}
-          <Player position={playerPos} direction={direction} isMoving={isMoving} />
-
-          {/* Tree canopy overlay layer: appears above actors for perspective */}
-          {maps[currentMap].tiles.flatMap((row, y) => 
-            row.map((tile, x) => {
-              if (tile.type !== 'tree') return null;
-              return (
-                <div
-                  key={`tree-canopy-${x}-${y}`}
-                  className="absolute pointer-events-none"
-                  style={{
-                    left: x * TILE_SIZE - 6,
-                    top: y * TILE_SIZE - 18,
-                    width: TILE_SIZE + 12,
-                    height: TILE_SIZE,
-                    zIndex: 40 + y,
-                  }}
-                >
-                  <div className="w-full h-full bg-[#88d8b0] border-2 border-[#383838] rounded-full flex flex-col items-center justify-center gap-1 shadow-sm">
-                    <div className="w-8  h-1 bg-white/20 rounded-full" />
-                    <div className="w-6 h-1 bg-white/20 rounded-full" />
-                  </div>
-                </div>
-              );
-            })
-          )}
-
-          {/* Interaction Indicator */}
-          <AnimatePresence>
-            {!inBattle && !dialogue && !isMoving && (() => {
-              let targetX = playerPos.x;
-              let targetY = playerPos.y;
-              switch (direction) {
-                case 'up': targetY--; break;
-                case 'down': targetY++; break;
-                case 'left': targetX--; break;
-                case 'right': targetX++; break;
-              }
-              
-              const mapData = maps[currentMap];
-              const interactable = 
-                npcs[currentMap].some(npc => npc.position.x === targetX && npc.position.y === targetY) ||
-                items[currentMap].some(item => item.position.x === targetX && item.position.y === targetY) ||
-                (targetX >= 0 && targetX < GRID_SIZE && targetY >= 0 && targetY < GRID_SIZE && 
-                 ['tree', 'table', 'cut_tree', 'boulder'].includes(mapData.tiles[targetY][targetX].type)); 
-              
-              if (!interactable) return null;
-
-              return (
-                <motion.div
-                  key="interact-indicator"
-                  initial={{ opacity: 0, y: 10, scale: 0.5 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.5 }}
-                  className="absolute z-30 pointer-events-none flex flex-col items-center"
-                  style={{ 
-                    left: targetX * TILE_SIZE, 
-                    top: targetY * TILE_SIZE - 24,
-                    width: TILE_SIZE
-                  }}
-                >
-                  <div className="bg-white/90 backdrop-blur-sm rounded-full w-6 h-6 shadow-lg border-2 border-blue-500 flex items-center justify-center animate-bounce">
-                    <span className="text-[10px] font-black text-blue-600">A</span>
-                  </div>
-                  <div className="w-2 h-2 bg-blue-500 rotate-45 -mt-1 shadow-sm" />
-                </motion.div>
-              );
-            })()}
-          </AnimatePresence>
-
-        </motion.div>
-      </div>
-
-      {/* Mobile Controls (Visible on small screens) */}
-      <div className="fixed bottom-0 left-0 w-full p-6 lg:hidden flex justify-between items-end z-30 pointer-events-none">
-        {/* Joystick */}
-        <Joystick onMove={(dir) => dir && handleMove(dir)} />
-
-        {/* Action Buttons */}
-        <div className="flex gap-4 pointer-events-auto mb-4">
-          <div className="flex flex-col gap-8">
-             <button 
-              onPointerDown={(e) => { 
-                e.preventDefault(); 
-                soundManager.play('SELECT');
-                setPhase(prev => prev.type === 'MENU' ? EXPLORING : MENU);
-              }} 
-              className="w-12 h-12 bg-slate-700/80 backdrop-blur-md rounded-full flex items-center justify-center text-white active:bg-slate-500 shadow-lg border-2 border-white/10 text-[10px] font-bold"
-            >
-              START
-            </button>
-          </div>
-          <div className="flex gap-4 items-center">
-            <button 
-              onPointerDown={(e) => { e.preventDefault(); /* B button logic */ }} 
-              className="w-16 h-16 bg-red-700/90 backdrop-blur-md rounded-full flex items-center justify-center text-white active:bg-red-500 shadow-xl border-4 border-black/20 font-black text-2xl"
-            >
-              B
-            </button>
-            <button 
-              onPointerDown={(e) => { e.preventDefault(); handleAction(); }} 
-              className="w-20 h-20 bg-red-600 backdrop-blur-md rounded-full flex items-center justify-center text-white active:bg-red-400 shadow-xl border-4 border-black/20 font-black text-3xl mb-8"
-            >
-              A
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Side Menu */}
-      <AnimatePresence>
-        {phase.type === 'MENU' && (
-          <motion.div 
-            initial={{ x: 300, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 300, opacity: 0 }}
-            className="fixed right-2 sm:right-8 top-1/2 -translate-y-1/2 w-56 sm:w-64 bg-white/95 backdrop-blur-xl border-4 border-slate-800 rounded-3xl p-3 sm:p-4 shadow-2xl z-40 max-h-[90vh] overflow-y-auto"
-          >
-            <h2 className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold mb-4 px-2">Menú Principal</h2>
-            <div className="space-y-2">
-              {[
-                { icon: MapIcon, label: 'Pokédex', color: 'bg-red-500', action: () => {
-                  if (hasPokedex) {
-                    soundManager.play('SELECT');
-                    setPhase(POKEDEX);
-                  } else {
-                    setDialogue("Aún no tienes una Pokédex.");
-                  }
-                } },
-                { icon: User, label: 'Pokémon', color: 'bg-emerald-500', action: () => {
-                  soundManager.play('SELECT');
-                  setPhase(TEAM);
-                } },
-                { icon: Backpack, label: 'Mochila', color: 'bg-orange-500', action: () => {
-                  soundManager.play('SELECT');
-                  setPhase(INVENTORY);
-                } },
-                { icon: Gamepad2, label: 'PC Storage', color: 'bg-blue-500', action: () => {
-                  soundManager.play('SELECT');
-                  setPhase(PC);
-                } },
-                { icon: Settings, label: 'Guardar', color: 'bg-slate-500', action: () => {
-                  soundManager.play('SELECT');
-                  setDialogue(`¡Partida guardada en ${SAVE_SLOT_NAMES[activeSaveSlot] || activeSaveSlot}!`);
-                } },
-                { icon: X, label: 'Reiniciar', color: 'bg-red-500', action: () => {
-                  resetGame();
-                } },
-              ].map((item, i) => (
-                <button 
-                  key={i} 
-                  onClick={() => {
-                    // Just run the action. 
-                    // The action itself (like setPhase(TEAM)) will handle the transition.
-                    item.action(); 
-                  }}
-                  className="w-full flex items-center gap-4 p-3 hover:bg-slate-100 rounded-2xl transition-colors group"
-                >
-                  <div className={`w-10 h-10 ${item.color} rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform`}>
-                    <item.icon className="text-white" size={20} />
-                  </div>
-                  <span className="font-bold text-slate-700">{item.label}</span>
-                </button>
-              ))}
-            </div>
-            
-            <div className="mt-6 pt-4 border-t border-slate-200">
-              <h3 className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold mb-2 px-2">Historia</h3>
-              <div className="space-y-2 px-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-slate-600">Paso actual</span>
-                  <span className="text-xs font-bold text-red-500">{storyStep}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-slate-600">Equipo</span>
-                  <span className="text-xs font-mono text-slate-400">{playerTeam.length}/6</span>
-                </div>
-                <div className="mt-2 space-y-1">
-                  {playerTeam.map((p, i) => (
-  <div key={i} className="flex flex-col gap-1 mt-2">
-    {/* HP Row */}
-    <div className="flex justify-between text-[10px] font-bold">
-      <span>{p.name}</span>
-      <span className="text-slate-500">HP {p.hp}/{p.maxHp}</span>
-    </div>
-    <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
-      <div 
-        className={`h-full transition-all ${p.hp > p.maxHp / 2 ? 'bg-emerald-500' : p.hp > p.maxHp / 5 ? 'bg-yellow-500' : 'bg-red-500'}`}
-        style={{ width: `${(p.hp / p.maxHp) * 100}%` }}
+      <WorldView
+        playerPos={playerPos}
+        direction={direction}
+        isMoving={isMoving}
+        currentMap={currentMap}
+        maps={maps}
+        npcs={npcs}
+        items={items}
+        grassEffect={grassEffect}
+        overworldShake={overworldShake}
+        windowSize={windowSize}
+        spottedTrainerId={spottedTrainerId}
+        spottedTrainerPos={spottedTrainerPos}
+        defeatedTrainers={defeatedTrainers}
+        inBattle={inBattle}
+        dialogue={dialogue}
+        playerTeam={playerTeam}
       />
-    </div>
 
-    {/* NEW: Experience Points Row */}
-    <div className="flex justify-between text-[9px] font-mono text-slate-400 mt-0.5">
-      <span>EXP</span>
-      <span>{p.exp || 0} / {p.expToNextLevel || 100}</span>
-    </div>
-    <div className="w-full h-0.5 bg-slate-200 rounded-full overflow-hidden">
-      <div 
-        className="h-full bg-blue-400 transition-all"
-        style={{ width: `${((p.exp || 0) / (p.expToNextLevel || 100)) * 100}%` }}
+      <MobileControls onMove={handleMove} onAction={handleAction} setPhase={setPhase} />
+
+      <SideMenu
+        phase={phase}
+        playerTeam={playerTeam}
+        storyStep={storyStep}
+        inventory={inventory}
+        activeSaveSlot={activeSaveSlot}
+        hasPokedex={hasPokedex}
+        setPhase={setPhase}
+        setDialogue={setDialogue}
+        setActiveSaveSlot={setActiveSaveSlot}
+        resetGame={resetGame}
       />
-    </div>
-  </div>
-))}
-                </div>
-                <div className="flex flex-col gap-1 mt-2">
-                  <span className="text-[10px] text-slate-400 uppercase">Inventario</span>
-                  <div className="flex flex-wrap gap-1">
-                    {Object.entries(inventory).map(([item, qty]) => (
-                      <span key={item} className="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{item} x{qty}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <div className="mt-4 pt-4 border-t border-slate-200">
-              <h3 className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold mb-2 px-2">Perfiles</h3>
-              <div className="grid grid-cols-3 gap-2 px-2">
-                {Object.keys(SAVE_SLOT_NAMES).map(slotId => (
-                  <button
-                    key={slotId}
-                    onClick={() => {
-                      if (slotId === activeSaveSlot) return;
-                      localStorage.setItem('pokemon_active_slot', slotId);
-                      setActiveSaveSlot(slotId);
-                      window.location.reload();
-                    }}
-                    className={`text-[10px] font-bold rounded-lg px-2 py-2 border ${
-                      slotId === activeSaveSlot
-                        ? 'bg-red-500 text-white border-red-600'
-                        : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-                    }`}
-                  >
-                    {SAVE_SLOT_NAMES[slotId]}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GameModals
+        phase={phase}
+        battlePhase={battlePhase}
+        inBattle={inBattle}
+        currentMap={currentMap}
+        battleShake={battleShake}
+        enemyPokemon={enemyPokemon}
+        enemyAnim={enemyAnim}
+        catchResult={catchResult}
+        projectile={projectile}
+        hitEffect={hitEffect}
+        damageNumber={damageNumber}
+        healNumber={healNumber}
+        playerTeam={playerTeam}
+        playerAnim={playerAnim}
+        battleLog={battleLog}
+        showMoves={showMoves}
+        isTrainerBattle={isTrainerBattle}
+        dialogue={dialogue}
+        inventory={inventory}
+        pcStorage={pcStorage}
+        money={money}
+        pokedex={pokedex}
+        setShowMoves={setShowMoves}
+        setPhase={setPhase}
+        setDialogue={setDialogue}
+        setPlayerTeam={setPlayerTeam}
+        setMoney={setMoney}
+        addInventoryItem={addInventoryItem}
+        handlePCSwap={handlePCSwap}
+        handleUseItem={handleUseItem}
+        dispatchBattle={dispatchBattle}
+      />
 
-      {/* Battle View */}
-      <AnimatePresence>
-        {inBattle && (
-          <BattleScreen
-            currentMap={currentMap}
-            battleShake={battleShake}
-            enemyPokemon={enemyPokemon}
-            enemyAnim={enemyAnim}
-            isCatching={battlePhase?.type === 'CATCHING'}
-            catchResult={catchResult}
-            projectile={projectile}
-            hitEffect={hitEffect}
-            damageNumber={damageNumber}
-            healNumber={healNumber}
-            playerTeam={playerTeam}
-            playerAnim={playerAnim}
-            battleLog={battleLog}
-            showMoves={showMoves}
-            setShowMoves={setShowMoves}
-            isTrainerBattle={isTrainerBattle}
-            isPlayerTurn={battlePhase?.type === 'CHOOSING'}
-            setIsBattle={(v) => { if (!v) setPhase(EXPLORING); }}
-            onFlee={() => dispatchBattle({ type: 'FLEE' })}
-            setShowInventory={() => { setShowMoves(false); setPhase(battle(B_BATTLE_INVENTORY)); }}
-            setShowTeam={() => { setShowMoves(false); setPhase(battle(B_BATTLE_TEAM)); }}
-            handleAttack={(move) => dispatchBattle({ type: 'ATTACK', move })}
-          />
-        )}
-      </AnimatePresence>
+      <ScreenEffects phaseType={phase.type} battlePhase={battlePhase} />
 
-
-      {/* Battle Transition */}
-      <AnimatePresence>
-        {phase.type === 'BATTLE_TRANSITION' && (
-          <BattleTransition onComplete={() => {
-            setPhase(battle(B_CHOOSING));
-          }} />
-        )}
-      </AnimatePresence>
-
-      {phase.type === 'EDITOR' && <MapEditor onClose={() => setPhase(EXPLORING)} />}
-
-      {/* Dialogue */}
-      <AnimatePresence>
-        {dialogue && (
-          <DialogueBox text={dialogue} onComplete={() => setDialogue(null)} />
-        )}
-      </AnimatePresence>
-
-      {/* Inventory */}
-      <AnimatePresence>
-        {(phase.type === 'INVENTORY' || battlePhase?.type === 'BATTLE_INVENTORY') && (
-          <InventoryUI
-            items={inventory}
-            onClose={() => setPhase(inBattle ? battle(B_CHOOSING) : EXPLORING)}
-            onUse={handleUseItem}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {(phase.type === 'TEAM' || battlePhase?.type === 'BATTLE_TEAM' || battlePhase?.type === 'FORCED_SWITCH') && (
-          <TeamMenuUI
-            team={playerTeam}
-            forcedSwitch={battlePhase?.type === 'FORCED_SWITCH'}
-            onClose={() => setPhase(battlePhase ? battle(B_CHOOSING) : EXPLORING)}
-            onSwap={(index) => {
-              if (battlePhase) {
-                dispatchBattle({ type: 'SWITCH', index });
-              } else {
-                setPlayerTeam(prev => {
-                  const updated = [...prev];
-                  const [moved] = updated.splice(index, 1);
-                  updated.unshift(moved);
-                  return updated;
-                });
-                setPhase(EXPLORING);
-              }
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Shop */}
-      <AnimatePresence>
-        {phase.type === 'SHOP' && (
-          <ShopUI
-            money={money}
-            onClose={() => setPhase(EXPLORING)}
-            onBuy={(id) => {
-              const price = SHOP_PRICES[id] ?? 200;
-              setMoney(prev => prev - price);
-              addInventoryItem(id);
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {phase.type === 'POKEDEX' && (
-          <PokedexUI
-            pokedex={pokedex}
-            onClose={() => setPhase(EXPLORING)}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {phase.type === 'PC' && (
-          <PCStorageUI
-            team={playerTeam}
-            pc={pcStorage}
-            onClose={() => setPhase(EXPLORING)}
-            onSwap={handlePCSwap}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Level-up flash */}
-      <AnimatePresence>
-        {battlePhase?.type === 'LEVEL_UP' && (
-          <motion.div
-            className="fixed inset-0 bg-yellow-300 z-[300] pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 0.7, 0, 0.7, 0, 0.7, 0] }}
-            transition={{ duration: sdur(1.8), times: [0, 0.1, 0.3, 0.45, 0.6, 0.75, 1], ease: "linear" }}
-            exit={{ opacity: 0 }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Evolution flash */}
-      <AnimatePresence>
-        {battlePhase?.type === 'EVOLVING' && (
-          <motion.div
-            className="fixed inset-0 bg-white z-[300] pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 1, 0, 1, 0, 1, 0, 1, 0] }}
-            transition={{ duration: sdur(3), times: [0, 0.1, 0.22, 0.33, 0.44, 0.56, 0.67, 0.78, 1], ease: "linear" }}
-            exit={{ opacity: 0 }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Blackout overlay (all fainted) */}
-      <AnimatePresence>
-        {phase.type === 'BLACKOUT' && (
-          <motion.div
-            className="fixed inset-0 bg-black z-[300] pointer-events-none"
-            initial={{ opacity: 1 }}
-            animate={{ opacity: [1, 0.2, 1, 0.2, 1, 0.2, 1, 0] }}
-            transition={{ duration: sdur(2.4), times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.88, 1], ease: "linear" }}
-            exit={{ opacity: 0 }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Heal animation (Nurse Joy / Mom) */}
-      <AnimatePresence>
-        {phase.type === 'HEALING' && (
-          <motion.div
-            className="fixed inset-0 bg-white z-[300] pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 0.85, 0, 0.85, 0, 0.85, 0] }}
-            transition={{ duration: sdur(1.6), times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 1], ease: "linear" }}
-            exit={{ opacity: 0 }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Overlay Vignette */}
-      <div className="fixed inset-0 pointer-events-none shadow-[inset_0_0_40px_rgba(0,0,0,0.2)] z-10" />
-
-      {/* Demo Mode (dev only) */}
       {import.meta.env.DEV && <DemoModeButton />}
     </div>
   );

@@ -95,7 +95,9 @@ EVOLUTIONS['kadabra'] = {
 
 ## Adding a New NPC
 
-Edit `src/data/worldConfig.ts` inside `generateWorldNPCs()`, in the appropriate map's NPC array.
+Edit `src/data/npcDatabase.ts` inside `buildNPCDatabase()`, in the appropriate map's NPC array.
+
+`buildNPCDatabase` receives `(playerTeam, hasParcel, hasPokedex, badges)` so NPCs can have dynamic behavior based on game state.
 
 ### Regular NPC
 
@@ -134,7 +136,7 @@ After defeating a trainer, their ID is added to `defeatedTrainers` in the store,
 
 ### Dynamic Dialogue
 
-You can make NPC dialogue conditional on game state by branching inside `generateWorldNPCs`:
+You can make NPC dialogue conditional on game state directly in the function body:
 
 ```typescript
 {
@@ -143,6 +145,19 @@ You can make NPC dialogue conditional on game state by branching inside `generat
   dialogue: hasPokedex
     ? ['Has registrado varios POKÉMON. ¡Sigue así!']
     : ['Necesito que completes la POKÉDEX.']
+}
+```
+
+### Heal NPCs
+
+To make an NPC heal the player's team (like a Nurse Joy or Mom), add `onInteract: 'heal'` to the NPC definition. The interaction engine handles the rest.
+
+```typescript
+{
+  id: 'nurse_joy',
+  name: 'ENFERMERA JOY',
+  onInteract: 'heal',
+  // ...
 }
 ```
 
@@ -225,8 +240,8 @@ Add a corresponding return teleport in the destination map.
 
 ### 5. Add NPCs and wild encounters
 
-- Add NPCs to `generateWorldNPCs()` in `worldConfig.ts` under the new map key.
-- Add wild Pokemon to `WILD_POKEMON_DATABASE` under the same key (if the map has grass encounters).
+- Add NPCs to `buildNPCDatabase()` in `src/data/npcDatabase.ts` under the new map key.
+- Add wild Pokemon to `WILD_POKEMON_DATABASE` in `src/constants.ts` under the same key (if the map has grass encounters).
 
 ---
 
@@ -234,9 +249,7 @@ Add a corresponding return teleport in the destination map.
 
 1. **Never hardcode HP values.** Always use `makePokemon()` — it auto-calculates `maxHp` and `hp`.
 
-2. **Keep battle logic in App.tsx.** Don't move `handleAttack` or `handleEnemyTurn` to separate hooks — stale closure bugs will result.
-
-3. **Never call side effects inside state updaters.** Compute data synchronously, then call setters in sequence outside the updater:
+2. **Never call side effects inside state updaters.** Compute data synchronously, then call setters in sequence outside the updater:
    ```typescript
    // WRONG
    setPlayerTeam(prev => {
@@ -245,10 +258,12 @@ Add a corresponding return teleport in the destination map.
    });
 
    // CORRECT
-   const newTeam = [...playerTeamRef.current];
+   const newTeam = [...gameState.current.playerTeam];
    setPlayerTeam(newTeam);
    setTimeout(() => setPhase(EXPLORING), 1000);
    ```
+
+3. **Read deferred state from `gameState.current`, not from React closures.** Any code that runs inside a `setTimeout` callback must read game state from the `gameState` ref (passed from App.tsx), not from hook parameters. Hook parameters are captured at the time the hook runs and will be stale inside delayed callbacks.
 
 4. **All in-game text must be in Spanish.** Battle logs, dialogues, UI labels, move names.
 

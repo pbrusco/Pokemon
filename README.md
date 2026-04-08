@@ -30,13 +30,17 @@ export PATH="/opt/homebrew/bin:$PATH"
 
 ## Project Structure
 
-- `src/App.tsx` — main runtime orchestrator (movement, phase transitions, menus); drives battle via `dispatchBattle()` → `battleEngine.ts`
-- `src/hooks/` — extracted state slices:
+- `src/App.tsx` — thin orchestrator (~400 lines): wires hooks together, composes top-level JSX
+- `src/hooks/` — all game logic:
+  - `useMovementEngine.ts` — movement, collision, teleports, trainer vision, wild encounters
+  - `useBattleEngine.ts` — battle turn dispatch, VFX sequencing, win/loss/catch outcomes
   - `useInteractionEngine.ts` — overworld NPC/item/tile interaction flow
+  - `useInputHandler.ts` — keyboard events + movement self-trigger loop
+  - `useDebugAPI.ts` — dev-only `window.__game` console API
   - `useBattleVFX.ts` — battle animation state (anims, flash, projectile, damage numbers)
   - `useOverworldVFX.ts` — overworld VFX state (grass, trainer spotted, shake)
   - `usePokedex.ts` — Pokédex state and `updatePokedex()`
-  - `useSaveSystem.ts` — slot-based save/load effects and play-time tracking
+  - `useSaveSystem.ts` — slot-based save/load and play-time tracking
   - `useWindowSize.ts` — responsive window dimensions
 - `src/store/gameStore.ts` — Zustand store (player, team, inventory, money, badges, flags)
 - `src/lib/battleEngine.ts` — pure battle state machine (no React, no side effects)
@@ -44,7 +48,14 @@ export PATH="/opt/homebrew/bin:$PATH"
 - `src/lib/sounds.ts` — synthesized SFX + music manager
 - `src/types/gamePhase.ts` — top-level and battle sub-phase FSM types
 - `src/constants.ts` — Pokemon/moves/items/evolution/static game data
-- `src/components/` — UI surfaces (battle, inventory, team, pokedex, PC, map editor, dialogue)
+- `src/components/` — UI surfaces:
+  - `WorldView.tsx` — overworld viewport (tiles, player, NPCs, HUD)
+  - `GameModals.tsx` — all overlay screens (battle, menus, dialogue, shop, etc.)
+  - `SideMenu.tsx` — main menu panel
+  - `ScreenEffects.tsx` — full-screen flash/fade effects
+  - `overworld/` — `GameTile`, `PlayerSprite`, `NPCComponent`
+  - `BattleScreen.tsx`, `DialogueBox.tsx`, `InventoryUI.tsx`, `TeamMenuUI.tsx`, etc.
+- `src/data/npcDatabase.ts` — `buildNPCDatabase()` + `buildItemDatabase()`
 - `src/data/maps/` — compact map sources + parser/export
 
 ## Map Format
