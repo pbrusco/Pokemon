@@ -68,6 +68,21 @@ function pickDir(s: any): Dir {
   const map = worldMaps?.[currentMap];
   if (!map) return all[Math.floor(Math.random() * 4)];
 
+  // Navigate toward middle starter when in Oak's Lab with no team
+  if (currentMap === 'OAKS_LAB' && s.playerTeam?.length === 0) {
+    const target = { x: 10, y: 9 }; // one tile south of middle starter (10,8)
+    const dx = target.x - pos.x;
+    const dy = target.y - pos.y;
+    if (dx !== 0 || dy !== 0) {
+      const preferred: Dir = Math.abs(dx) >= Math.abs(dy)
+        ? (dx > 0 ? 'right' : 'left')
+        : (dy > 0 ? 'down' : 'up');
+      if (map[pos.y + (preferred === 'down' ? 1 : preferred === 'up' ? -1 : 0)]?.[pos.x + (preferred === 'right' ? 1 : preferred === 'left' ? -1 : 0)]?.walkable) {
+        return preferred;
+      }
+    }
+  }
+
   // Get NPCs to avoid walking into them
   const npcs = s.getNPCs?.() ?? {};
   const mapNpcs = npcs[currentMap] ?? [];
@@ -166,6 +181,11 @@ function tick() {
       ds.battleLogged = false;
       ds.outcome = 'ongoing';
       if (s.isMoving) return;
+      // Interact with starter when standing adjacent to it (facing up toward y=8)
+      if (s.currentMap === 'OAKS_LAB' && s.playerTeam?.length === 0 && s.playerPos?.y === 9 && s.playerPos?.x === 10) {
+        g.handleAction();
+        return;
+      }
       const d = pickDir(s);
       ds.dir = d;
       g.handleMove(d);
