@@ -29,6 +29,9 @@ function makeGrid(overrides: Partial<Record<string, Tile>> = {}): Tile[][] {
 
 const EMPTY_MAPS: Record<MapID, { tiles: Tile[][] }> = {
   PALLET_TOWN: { tiles: makeGrid() },
+  PLAYERS_HOUSE_1F: { tiles: makeGrid() },
+  PLAYERS_HOUSE_2F: { tiles: makeGrid() },
+  RIVALS_HOUSE: { tiles: makeGrid() },
   OAKS_LAB: { tiles: makeGrid() },
   ROUTE_1: { tiles: makeGrid() },
   VIRIDIAN_CITY: { tiles: makeGrid() },
@@ -65,12 +68,14 @@ function makeItem(overrides: Partial<Entity> = {}): Entity {
   };
 }
 
+const ALL_MAP_IDS = ['PALLET_TOWN','PLAYERS_HOUSE_1F','PLAYERS_HOUSE_2F','RIVALS_HOUSE','OAKS_LAB','ROUTE_1','VIRIDIAN_CITY','POKECENTER','POKEMART','VIRIDIAN_FOREST','PEWTER_CITY','PEWTER_GYM','ROUTE_3','MT_MOON','ROUTE_2'];
+
 const EMPTY_NPCS: Record<MapID, NPC[]> = Object.fromEntries(
-  ['PALLET_TOWN','OAKS_LAB','ROUTE_1','VIRIDIAN_CITY','POKECENTER','POKEMART','VIRIDIAN_FOREST','PEWTER_CITY','PEWTER_GYM','ROUTE_3','MT_MOON','ROUTE_2'].map(k => [k, []])
+  ALL_MAP_IDS.map(k => [k, []])
 ) as Record<MapID, NPC[]>;
 
 const EMPTY_ITEMS: Record<MapID, Entity[]> = Object.fromEntries(
-  ['PALLET_TOWN','OAKS_LAB','ROUTE_1','VIRIDIAN_CITY','POKECENTER','POKEMART','VIRIDIAN_FOREST','PEWTER_CITY','PEWTER_GYM','ROUTE_3','MT_MOON','ROUTE_2'].map(k => [k, []])
+  ALL_MAP_IDS.map(k => [k, []])
 ) as Record<MapID, Entity[]>;
 
 // ─── Hook factory ─────────────────────────────────────────────────────────────
@@ -86,6 +91,7 @@ interface Overrides {
   badges?: string[];
   inventory?: InventoryCounts;
   playerTeam?: Pokemon[];
+  pickedItemIds?: string[];
   npcs?: Record<MapID, NPC[]>;
   items?: Record<MapID, Entity[]>;
   maps?: Record<MapID, { tiles: Tile[][] }>;
@@ -116,6 +122,7 @@ function setup(overrides: Overrides = {}) {
     badges: overrides.badges ?? [],
     inventory: overrides.inventory ?? {},
     playerTeam: overrides.playerTeam ?? [],
+    pickedItemIds: overrides.pickedItemIds ?? [],
     npcs: overrides.npcs ?? EMPTY_NPCS,
     items: overrides.items ?? EMPTY_ITEMS,
     maps: overrides.maps ?? EMPTY_MAPS,
@@ -148,6 +155,7 @@ function setup(overrides: Overrides = {}) {
     setStoryStep,
     setEnemyPokemon,
     setIsTrainerBattle,
+    initBattle,
   };
 }
 
@@ -413,7 +421,7 @@ describe('Starter selection', () => {
       direction: 'down',
       sprite: STARTERS[0].sprite,
     };
-    const { handleAction, setPhase, setIsTrainerBattle, setEnemyPokemon } = setup({
+    const { handleAction, initBattle } = setup({
       currentMap: 'OAKS_LAB',
       playerTeam: [],
       items: { ...EMPTY_ITEMS, OAKS_LAB: [starterItem] },
@@ -422,9 +430,10 @@ describe('Starter selection', () => {
     act(() => handleAction());
     act(() => vi.advanceTimersByTime(1500));
 
-    expect(setIsTrainerBattle).toHaveBeenCalledWith(true);
-    expect(setEnemyPokemon).toHaveBeenCalled();
-    expect(setPhase).toHaveBeenCalledWith(BATTLE_TRANSITION);
+    expect(initBattle).toHaveBeenCalledWith(
+      expect.objectContaining({ name: expect.stringContaining('RIVAL') }),
+      true,
+    );
   });
 
   it('does not pick a starter when player already has a team', () => {

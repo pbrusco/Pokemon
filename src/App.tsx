@@ -181,6 +181,7 @@ export default function App() {
     badges,
     inventory,
     playerTeam,
+    pickedItemIds,
     npcs,
     items,
     maps,

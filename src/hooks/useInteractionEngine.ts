@@ -26,6 +26,7 @@ interface UseInteractionEngineParams {
   badges: string[];
   inventory: InventoryCounts;
   playerTeam: Pokemon[];
+  pickedItemIds: string[];
   npcs: Record<MapID, NPC[]>;
   items: Record<MapID, Entity[]>;
   maps: Record<MapID, { tiles: Tile[][] }>;
@@ -54,6 +55,7 @@ export const useInteractionEngine = ({
   badges,
   inventory,
   playerTeam,
+  pickedItemIds,
   npcs,
   items,
   maps,
@@ -103,11 +105,15 @@ export const useInteractionEngine = ({
     const npc = npcs[currentMap]?.find(n => n.position.x === targetX && n.position.y === targetY);
     if (npc) {
       if (npc.onInteract === 'heal') {
+        // Mom: no heal before player has a Pokémon
+        if (npc.id === 'mom' && playerTeam.length === 0) {
+          setDialogue(`MAMÁ: ${npc.dialogue[0]}`);
+          return;
+        }
         const name = npc.name.includes('JOY') ? 'JOY' : 'MAMÁ';
-        const healPos: { map: MapID; pos: { x: number; y: number } } =
-          npc.name.includes('JOY')
-            ? { map: 'POKECENTER', pos: { x: 10, y: 14 } }
-            : { map: 'PALLET_TOWN', pos: { x: 7, y: 11 } };
+        const healPos: HealLocation = npc.name.includes('JOY')
+          ? { map: 'POKECENTER', pos: { x: 10, y: 14 } }
+          : { map: 'PLAYERS_HOUSE_1F', pos: { x: 10, y: 13 } };
         setLastHealLocation(healPos);
         setDialogue(`${name}: ¡Hola! Pareces cansado. Deberías descansar un poco...`);
 
@@ -136,6 +142,15 @@ export const useInteractionEngine = ({
         setHasPokedex(true);
         removeItem('OAK_PARCEL');
         setDialogue("PROF. OAK: ¡Oh! ¡Es el paquete que pedí! ¡Gracias! Como recompensa, tomad esto: ¡Una POKÉDEX!");
+      } else if (npc.onInteract === 'give_town_map') {
+        if (!hasPokedex) {
+          setDialogue(`MARGARITA: ${npc.dialogue[0]}`);
+        } else if (!hasItem('TOWN_MAP')) {
+          addItem('TOWN_MAP');
+          setDialogue("MARGARITA: ¡Aquí tienes el MAPA CIUDAD! ¡Te servirá para orientarte por KANTO!");
+        } else {
+          setDialogue(`MARGARITA: ${npc.dialogue[0]}`);
+        }
       } else {
         setDialogue(npc.dialogue[0]);
       }
@@ -161,7 +176,9 @@ export const useInteractionEngine = ({
 
           setTimeout(() => {
             setDialogue("AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!");
-            const rivalPkmn = { ...STARTERS[1], name: 'RIVAL ' + STARTERS[1].name };
+            const starterIndex = STARTERS.findIndex(s => s.sprite === item.sprite);
+            const rivalIndex = (starterIndex + 1) % STARTERS.length;
+            const rivalPkmn = { ...STARTERS[rivalIndex], name: 'RIVAL ' + STARTERS[rivalIndex].name };
             initBattle(rivalPkmn, true);
           }, sd(1500));
         }
@@ -177,10 +194,20 @@ export const useInteractionEngine = ({
         }
         soundManager.play('SELECT');
       } else if (item.type === 'object') {
-        if (item.id === 'sign_home') setDialogue("CASA DE PABLO: Hogar, dulce hogar.");
-        if (item.id === 'sign_rival') setDialogue("CASA DE AZUL: ¡No pasar!");
-        if (item.id === 'sign_lab') setDialogue("LABORATORIO DEL PROF. OAK: Investigando POKÉMON.");
-        if (item.id === 'sign_route1') setDialogue("RUTA 1: Hacia CIUDAD VERDE.");
+        if (item.id === 'sign_home') setDialogue("CASA DE PABLO");
+        else if (item.id === 'sign_rival') setDialogue("CASA DE AZUL");
+        else if (item.id === 'sign_lab') setDialogue("LABORATORIO DEL PROF. OAK: Investigando POKÉMON.");
+        else if (item.id === 'sign_route1') setDialogue("RUTA 1: Hacia CIUDAD VERDE.");
+        else if (item.id === 'snes') setDialogue("¡Red está jugando a la SNES! ... ¡Vale! ¡Es hora de irse!");
+        else if (item.id === 'pc_reds_house') {
+          if (!pickedItemIds.includes('item_potion_pc')) {
+            setPickedItemIds(prev => [...prev, 'item_potion_pc']);
+            addItem('POTION');
+            setDialogue("¡Has sacado una POCIÓN del PC!");
+          } else {
+            setDialogue("El PC está encendido.");
+          }
+        }
       }
       return;
     }
@@ -231,6 +258,7 @@ export const useInteractionEngine = ({
     badges,
     inventory,
     playerTeam,
+    pickedItemIds,
     npcs,
     items,
     maps,

@@ -9,8 +9,35 @@ export function buildNPCDatabase(
 ): Record<MapID, NPC[]> {
   return {
     PALLET_TOWN: [
-      { id: 'mom', name: 'MAMÁ', type: 'npc', onInteract: 'heal', position: { x: 7, y: 10 }, direction: 'down', dialogue: ["¡Ten cuidado ahí fuera, hijo!", "Recuerda que el Prof. Oak te está buscando."] },
-      ...(playerTeam.length === 0 ? [{ id: 'oak_pallet', name: 'PROF. OAK', type: 'npc' as const, position: { x: 10, y: 4 }, direction: 'down' as const, dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."] }] : [])
+      ...(playerTeam.length === 0 ? [{ id: 'oak_pallet', name: 'PROF. OAK', type: 'npc' as const, position: { x: 10, y: 4 }, direction: 'down' as const, dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."] }] : []),
+      { id: 'fat_man', name: 'SEÑOR GORDO', type: 'npc', position: { x: 16, y: 10 }, direction: 'left', dialogue: ["¡La tecnología es increíble!", "¡Ahora puedes guardar POKÉMON y objetos como datos en el PC!"] }
+    ],
+    PLAYERS_HOUSE_1F: [
+      {
+        id: 'mom',
+        name: 'MAMÁ',
+        type: 'npc',
+        onInteract: 'heal',
+        position: { x: 10, y: 8 },
+        direction: 'down',
+        dialogue: playerTeam.length === 0
+          ? ["¡Todos los chicos se van de casa algún día. ¡Lo dijeron en la tele!"]
+          : ["¡Red! Pareces cansado. Deja que cuide de tus POKÉMON."]
+      }
+    ],
+    PLAYERS_HOUSE_2F: [],
+    RIVALS_HOUSE: [
+      {
+        id: 'daisy',
+        name: 'MARGARITA',
+        type: 'npc',
+        position: { x: 10, y: 8 },
+        direction: 'down',
+        onInteract: 'give_town_map',
+        dialogue: !hasPokedex
+          ? ["¡Hola, Pablo! ¡Azul está en el laboratorio del abuelo!"]
+          : ["¡Cuida bien de tus POKÉMON!"]
+      }
     ],
     OAKS_LAB: [
       {
@@ -182,6 +209,12 @@ export function buildItemDatabase(pickedItemIds: string[]): Record<MapID, Entity
       { id: 'sign_rival', type: 'object', position: { x: 12, y: 10 }, direction: 'down', sprite: '🪧' },
       { id: 'sign_lab', type: 'object', position: { x: 11, y: 14 }, direction: 'down', sprite: '🪧' },
     ],
+    PLAYERS_HOUSE_1F: [],
+    PLAYERS_HOUSE_2F: [
+      { id: 'snes', type: 'object', position: { x: 5, y: 5 }, direction: 'down', sprite: '🎮' },
+      { id: 'pc_reds_house', type: 'object', position: { x: 15, y: 5 }, direction: 'down', sprite: '💻' },
+    ],
+    RIVALS_HOUSE: [],
     ROUTE_1: [
       { id: 'sign_route1', type: 'object', position: { x: 8, y: 15 }, direction: 'down', sprite: '🪧' },
       { id: 'item_potion_1', type: 'item', position: { x: 12, y: 5 }, direction: 'down', sprite: '🧪' }
