@@ -3,6 +3,7 @@ import { Pokemon } from '../types';
 import { GamePhase, battle, B_CHOOSING, EXPLORING } from '../types/gamePhase';
 import { BattleAction, BattleState, createBattleState } from '../lib/battleEngine';
 import { MOVES, makePokemon } from '../constants';
+import { isGodMode, toggleGodMode } from '../lib/godMode';
 
 interface GameStateRef {
   playerTeam: Pokemon[];
@@ -54,6 +55,8 @@ export function useDebugAPI({
         handleAction,
         isTrainerBattle,
         phases: { EXPLORING, battle, B_CHOOSING },
+        isGodMode,
+        toggleGodMode,
         startTestBattle: () => {
           let team = gameState.current.playerTeam;
           if (team.length === 0) {

@@ -6,6 +6,7 @@ import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
 import { calcHp } from '../lib/damage';
 import { WILD_POKEMON_DATABASE } from '../constants';
+import { isGodMode, applyGodMode } from '../lib/godMode';
 
 interface GameStateSnapshot {
   playerPos: Position;
@@ -78,7 +79,8 @@ export function useMovementEngine({
 
   const initBattle = useCallback((enemyPkmn: Pokemon, isTrainer: boolean) => {
     setEnemyPokemon(enemyPkmn);
-    battleStateRef.current = createBattleState(gameState.current.playerTeam, enemyPkmn, {
+    const team = isGodMode() ? applyGodMode(gameState.current.playerTeam) : gameState.current.playerTeam;
+    battleStateRef.current = createBattleState(team, enemyPkmn, {
       isTrainerBattle: isTrainer,
       inventory: gameState.current.inventory,
       pcStorage: gameState.current.pcStorage,
@@ -210,7 +212,8 @@ export function useMovementEngine({
               setSpottedTrainerPos(null);
               soundManager.play('BATTLE_START');
               setEnemyPokemon(trainer.trainerTeam![0]);
-              battleStateRef.current = createBattleState(gameState.current.playerTeam, trainer.trainerTeam![0], {
+              const trainerTeam = isGodMode() ? applyGodMode(gameState.current.playerTeam) : gameState.current.playerTeam;
+              battleStateRef.current = createBattleState(trainerTeam, trainer.trainerTeam![0], {
                 isTrainerBattle: true,
                 inventory: gameState.current.inventory,
                 pcStorage: gameState.current.pcStorage,
@@ -250,7 +253,8 @@ export function useMovementEngine({
           maxHp: finalMaxHp,
         };
         setEnemyPokemon(finalPkmn);
-        battleStateRef.current = createBattleState(gameState.current.playerTeam, finalPkmn, {
+        const wildTeam = isGodMode() ? applyGodMode(gameState.current.playerTeam) : gameState.current.playerTeam;
+        battleStateRef.current = createBattleState(wildTeam, finalPkmn, {
           inventory: gameState.current.inventory,
           pcStorage: gameState.current.pcStorage,
           hasBoulderBadge: gameState.current.badges.includes('BOULDER'),

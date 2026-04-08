@@ -9,6 +9,7 @@ import { worldMaps } from './data/maps';
 import { soundManager } from './lib/sounds';
 import { BattleState } from './lib/battleEngine';
 import { DemoModeButton } from './components/DemoModeButton';
+import { GodModeButton } from './components/GodModeButton';
 import './lib/demoMode'; // side-effect: attaches window.__demo in dev
 import { useInteractionEngine } from './hooks/useInteractionEngine';
 import { useWindowSize } from './hooks/useWindowSize';
@@ -364,6 +365,11 @@ export default function App() {
 
       <ScreenEffects phaseType={phase.type} battlePhase={battlePhase} />
 
+      {import.meta.env.DEV && (
+        <div className="fixed bottom-4 left-4 z-[200]">
+          <GodModeButton />
+        </div>
+      )}
       {import.meta.env.DEV && <DemoModeButton />}
     </div>
   );
