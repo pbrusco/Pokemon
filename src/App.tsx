@@ -459,18 +459,7 @@ export default function App() {
     };
   }, []);
 
-  const maps: Record<MapID, Tile[][]> = {
-    PALLET_TOWN: MAP_PALLET_TOWN,
-    OAKS_LAB: MAP_OAKS_LAB,
-    ROUTE_1: MAP_ROUTE_1,
-    VIRIDIAN_CITY: MAP_VIRIDIAN_CITY,
-    POKECENTER: MAP_POKECENTER,
-    POKEMART: MAP_POKEMART,
-    VIRIDIAN_FOREST: MAP_VIRIDIAN_FOREST,
-    PEWTER_CITY: MAP_PEWTER_CITY,
-    PEWTER_GYM: MAP_PEWTER_GYM,
-    ROUTE_3: MAP_ROUTE_3
-  };
+  const maps = worldMaps;
 
   const npcs: Record<MapID, NPC[]> = {
     PALLET_TOWN: [
@@ -626,48 +615,6 @@ export default function App() {
     ]
   };
 
-  const teleports: Record<MapID, Entity[]> = {
-    PALLET_TOWN: [
-      { id: 'to_lab', type: 'teleport', position: { x: 10, y: 14 }, direction: 'up', targetMap: 'OAKS_LAB', targetPos: { x: 10, y: 14 } },
-      { id: 'to_route1', type: 'teleport', position: { x: 10, y: 5 }, direction: 'up', targetMap: 'ROUTE_1', targetPos: { x: 10, y: 19 } }
-    ],
-    OAKS_LAB: [
-      { id: 'to_pallet', type: 'teleport', position: { x: 10, y: 15 }, direction: 'down', targetMap: 'PALLET_TOWN', targetPos: { x: 10, y: 14 } }
-    ],
-    ROUTE_1: [
-      { id: 'to_pallet_from_route1', type: 'teleport', position: { x: 10, y: 19 }, direction: 'down', targetMap: 'PALLET_TOWN', targetPos: { x: 10, y: 6 } },
-      { id: 'to_viridian', type: 'teleport', position: { x: 10, y: 0 }, direction: 'up', targetMap: 'VIRIDIAN_CITY', targetPos: { x: 10, y: 19 } }
-    ],
-    VIRIDIAN_CITY: [
-      { id: 'to_route1_from_viridian', type: 'teleport', position: { x: 10, y: 19 }, direction: 'down', targetMap: 'ROUTE_1', targetPos: { x: 10, y: 1 } },
-      { id: 'to_center', type: 'teleport', position: { x: 7, y: 8 }, direction: 'up', targetMap: 'POKECENTER', targetPos: { x: 10, y: 14 } },
-      { id: 'to_mart', type: 'teleport', position: { x: 14, y: 8 }, direction: 'up', targetMap: 'POKEMART', targetPos: { x: 10, y: 14 } },
-      { id: 'to_forest', type: 'teleport', position: { x: 10, y: 0 }, direction: 'up', targetMap: 'VIRIDIAN_FOREST', targetPos: { x: 10, y: 17 } }
-    ],
-    POKECENTER: [
-      { id: 'to_viridian', type: 'teleport', position: { x: 10, y: 15 }, direction: 'down', targetMap: 'VIRIDIAN_CITY', targetPos: { x: 7, y: 9 } }
-    ],
-    POKEMART: [
-      { id: 'to_viridian', type: 'teleport', position: { x: 10, y: 15 }, direction: 'down', targetMap: 'VIRIDIAN_CITY', targetPos: { x: 14, y: 9 } }
-
-    ],
-    VIRIDIAN_FOREST: [
-      { id: 'to_viridian_from_forest', type: 'teleport', position: { x: 10, y: 18 }, direction: 'down', targetMap: 'VIRIDIAN_CITY', targetPos: { x: 10, y: 1 } },
-      { id: 'to_pewter', type: 'teleport', position: { x: 10, y: 0 }, direction: 'up', targetMap: 'PEWTER_CITY', targetPos: { x: 10, y: 17 } }
-    ],
-    PEWTER_CITY: [
-      { id: 'to_forest_from_pewter', type: 'teleport', position: { x: 10, y: 17 }, direction: 'down', targetMap: 'VIRIDIAN_FOREST', targetPos: { x: 10, y: 1 } },
-      { id: 'to_gym', type: 'teleport', position: { x: 10, y: 13 }, direction: 'up', targetMap: 'PEWTER_GYM', targetPos: { x: 10, y: 14 } },
-      { id: 'to_route3', type: 'teleport', position: { x: 17, y: 8 }, direction: 'right', targetMap: 'ROUTE_3', targetPos: { x: 1, y: 8 } }
-    ],
-    PEWTER_GYM: [
-      { id: 'to_pewter_from_gym', type: 'teleport', position: { x: 10, y: 15 }, direction: 'down', targetMap: 'PEWTER_CITY', targetPos: { x: 10, y: 14 } }
-    ],
-    ROUTE_3: [
-      { id: 'to_pewter_from_route3', type: 'teleport', position: { x: 0, y: 8 }, direction: 'left', targetMap: 'PEWTER_CITY', targetPos: { x: 16, y: 8 } }
-    ]
-  };
-
   const rawItems: Record<MapID, Entity[]> = {
     OAKS_LAB: [
       { id: 'starter_1', type: 'item', position: { x: 9, y: 8 }, direction: 'down', sprite: STARTERS[0].sprite },
@@ -711,10 +658,10 @@ export default function App() {
     soundManager.play('SELECT');
   };
 
-  const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges });
+  const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges });
   useEffect(() => {
-    gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, battleSubPhase: phase.type === 'BATTLE' ? phase.sub.type : null, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges };
-  }, [playerPos, direction, isMoving, dialogue, inBattle, phase, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges]);
+    gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, battleSubPhase: phase.type === 'BATTLE' ? phase.sub.type : null, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges };
+  }, [playerPos, direction, isMoving, dialogue, inBattle, phase, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges]);
 
   const initBattle = useCallback((enemyPkmn: Pokemon, isTrainer: boolean) => {
     setEnemyPokemon(enemyPkmn);
@@ -796,7 +743,7 @@ export default function App() {
   }, [activeSaveSlot]);
 
   const handleMove = useCallback((dir: Direction) => {
-    const { isMoving, dialogue, phaseType, playerPos, currentMap, playerTeam, maps, teleports, npcs, items, defeatedTrainers, inventory, storyStep } = gameState.current;
+    const { isMoving, dialogue, phaseType, playerPos, currentMap, playerTeam, npcs, items, defeatedTrainers, inventory, storyStep } = gameState.current;
     const lockedPhases = ['BATTLE', 'BATTLE_TRANSITION', 'HEALING', 'BLACKOUT'];
     if (isMoving || dialogue || lockedPhases.includes(phaseType)) return;
 
@@ -812,7 +759,7 @@ export default function App() {
       case 'right': nextX++; break;
     }
 
-    // Story: Oak stops player
+    // Story Event: Oak stops the player from leaving Pallet Town
     if (currentMap === 'PALLET_TOWN' && nextY === 5 && playerTeam.length === 0) {
       setDialogue("OAK: ¡Espera! ¡No vayas por ahí!");
       setStoryStep('OAK_STOPPED');
@@ -824,19 +771,25 @@ export default function App() {
       return;
     }
 
-    // Boundary and collision check
-    const map = maps[currentMap];
+    // Dynamic Map Data Access
+    const mapData = maps[currentMap];
+    const grid = mapData.tiles;
+
+    // Boundary and collision check using the new grid structure
     const npcAtNext = npcs[currentMap]?.some(n => n.position.x === nextX && n.position.y === nextY);
     const objectAtNext = items[currentMap]?.some(i => i.type === 'object' && i.position.x === nextX && i.position.y === nextY);
+    
     if (
       nextX >= 0 && nextX < GRID_SIZE &&
       nextY >= 0 && nextY < GRID_SIZE &&
-      map[nextY][nextX].walkable &&
+      grid[nextY][nextX].walkable &&
       !npcAtNext &&
       !objectAtNext
     ) {
       setIsMoving(true);
       setPlayerPos({ x: nextX, y: nextY });
+
+      // Poison overworld damage logic
       const leadPokemon = playerTeam[0];
       if (leadPokemon?.status === 'poison' && leadPokemon.hp > 1) {
         poisonStepCounter.current += 1;
@@ -855,7 +808,8 @@ export default function App() {
         poisonStepCounter.current = 0;
       }
 
-      if (map[nextY][nextX].type === 'grass') {
+      // Visual grass rustle effect
+      if (grid[nextY][nextX].type === 'grass') {
         setGrassEffect({ x: nextX, y: nextY });
         setTimeout(() => setGrassEffect(null), 500);
       }
@@ -865,17 +819,18 @@ export default function App() {
         setIsMoving(false);
       }, 110);
 
-      // Check for teleports
-      const teleport = teleports[currentMap].find(t => t.position.x === nextX && t.position.y === nextY);
-      if (teleport && teleport.targetMap && teleport.targetPos) {
+      // Dynamic Warp Check: Searches the map's JSON-defined warps
+      const warp = mapData.warps.find(w => w.x === nextX && w.y === nextY);
+      if (warp) {
         soundManager.play('SELECT');
         setTimeout(() => {
-          setCurrentMap(teleport.targetMap);
-          setPlayerPos(teleport.targetPos!);
+          setCurrentMap(warp.targetMap);
+          setPlayerPos(warp.targetPos);
+          if (warp.targetDir) setDirection(warp.targetDir);
         }, 200);
       }
 
-      // Check for trainers
+      // Check for trainer vision/sight
       const currentMapTrainers = npcs[currentMap].filter(n => n.isTrainer && !defeatedTrainers.includes(n.id));
       for (const trainer of currentMapTrainers) {
         for (let i = 1; i <= 3; i++) {
@@ -926,14 +881,13 @@ export default function App() {
         }
       }
 
-      // Random encounter chance in grass
-      if (map[nextY][nextX].type === 'grass' && Math.random() < 0.1 && playerTeam.length > 0) {
-        // Don't start battle if all pokemon are fainted
+      // Random wild Pokémon encounters in tall grass
+      if (grid[nextY][nextX].type === 'grass' && Math.random() < 0.1 && playerTeam.length > 0) {
         if (playerTeam.every(p => p.hp === 0)) return;
 
         const routeWilds = WILD_POKEMON_DATABASE[currentMap] || WILD_POKEMON_DATABASE['ROUTE_1'];
         const randomPkmn = routeWilds[Math.floor(Math.random() * routeWilds.length)];
-        const levelVariation = Math.floor(Math.random() * 3) - 1; // -1, 0, or +1
+        const levelVariation = Math.floor(Math.random() * 3) - 1;
         const finalLevel = Math.max(2, randomPkmn.level + levelVariation);
         
         soundManager.play('BATTLE_START');
@@ -962,7 +916,12 @@ export default function App() {
         setPhase(BATTLE_TRANSITION);
       }
     }
-  }, []);
+  }, [
+    setCurrentMap, setPlayerPos, setDirection, setIsMoving, setDialogue, setStoryStep, 
+    setPlayerTeam, setOverworldShake, setGrassEffect, setSpottedTrainerId, 
+    setSpottedTrainerPos, setEnemyPokemon, setIsTrainerBattle, setBattleLog, 
+    setPhase, updatePokedex
+  ]);
 
   /** Maps battleEngine phase string to App GamePhase */
   function mapEnginePhase(p: string): GamePhase {
@@ -1383,28 +1342,37 @@ export default function App() {
             }}
           >
             {(() => {
+              const mapData = maps[currentMap];
+              const grid = mapData.tiles; // Access the tile array from the new map object
               const mapHasEncounters = currentMap in WILD_POKEMON_DATABASE;
+              
               const cullRadius = 8;
-              // Quantize culling bounds to reduce tile-window "sliding" artifacts
-              // that can make the floor look like it moves with the player.
               const cullStep = 4;
+              
               const rawMinY = Math.max(0, playerPos.y - cullRadius);
               const rawMaxY = Math.min(GRID_SIZE - 1, playerPos.y + cullRadius);
               const rawMinX = Math.max(0, playerPos.x - cullRadius);
               const rawMaxX = Math.min(GRID_SIZE - 1, playerPos.x + cullRadius);
+              
               const minY = Math.max(0, Math.floor(rawMinY / cullStep) * cullStep);
               const minX = Math.max(0, Math.floor(rawMinX / cullStep) * cullStep);
               const maxY = Math.min(GRID_SIZE - 1, Math.ceil((rawMaxY + 1) / cullStep) * cullStep - 1);
               const maxX = Math.min(GRID_SIZE - 1, Math.ceil((rawMaxX + 1) / cullStep) * cullStep - 1);
+              
               const tiles = [];
               for (let y = minY; y <= maxY; y++) {
                 for (let x = minX; x <= maxX; x++) {
-                  const tile = maps[currentMap][y][x];
+                  const tile = grid[y][x]; // Correctly indexes the 2D array
                   tiles.push(
                     <div
                       key={`${x}-${y}`}
                       className="absolute"
-                      style={{ left: x * TILE_SIZE, top: y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}
+                      style={{ 
+                        left: x * TILE_SIZE, 
+                        top: y * TILE_SIZE, 
+                        width: TILE_SIZE, 
+                        height: TILE_SIZE 
+                      }}
                     >
                       <GameTile
                         type={tile.type}
@@ -1448,19 +1416,19 @@ export default function App() {
             )
           }
 
-          {/* Teleport exit indicators */}
-          {teleports[currentMap]?.map(tp => (
+          {/* Teleport exit indicators (Metadata defined in JSON) */}
+          {maps[currentMap].warps?.map(warp => (
             <div
-              key={`tp-${tp.id}`}
+              key={`warp-${warp.x}-${warp.y}`}
               className="absolute z-25 pointer-events-none flex items-end justify-center pb-1"
-              style={{ left: tp.position.x * TILE_SIZE, top: tp.position.y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}
+              style={{ left: warp.x * TILE_SIZE, top: warp.y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}
             >
               <motion.div
                 animate={{ y: [0, -6, 0] }}
                 transition={{ repeat: Infinity, duration: 0.8, ease: 'easeInOut' }}
                 className="text-white text-lg drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
               >
-                {tp.direction === 'up' ? '▲' : tp.direction === 'down' ? '▼' : tp.direction === 'left' ? '◀' : '▶'}
+                {warp.targetDir === 'up' ? '▲' : warp.targetDir === 'down' ? '▼' : warp.targetDir === 'left' ? '◀' : '▶'}
               </motion.div>
             </div>
           ))}
@@ -1508,7 +1476,7 @@ export default function App() {
           <Player position={playerPos} direction={direction} isMoving={isMoving} />
 
           {/* Tree canopy overlay layer: appears above actors for perspective */}
-          {maps[currentMap].flatMap((row, y) =>
+          {maps[currentMap].tiles.flatMap((row, y) => 
             row.map((tile, x) => {
               if (tile.type !== 'tree') return null;
               return (
@@ -1524,7 +1492,7 @@ export default function App() {
                   }}
                 >
                   <div className="w-full h-full bg-[#88d8b0] border-2 border-[#383838] rounded-full flex flex-col items-center justify-center gap-1 shadow-sm">
-                    <div className="w-8 h-1 bg-white/20 rounded-full" />
+                    <div className="w-8  h-1 bg-white/20 rounded-full" />
                     <div className="w-6 h-1 bg-white/20 rounded-full" />
                   </div>
                 </div>
@@ -1544,11 +1512,12 @@ export default function App() {
                 case 'right': targetX++; break;
               }
               
+              const mapData = maps[currentMap];
               const interactable = 
                 npcs[currentMap].some(npc => npc.position.x === targetX && npc.position.y === targetY) ||
                 items[currentMap].some(item => item.position.x === targetX && item.position.y === targetY) ||
                 (targetX >= 0 && targetX < GRID_SIZE && targetY >= 0 && targetY < GRID_SIZE && 
-                 ['tree', 'table', 'cut_tree', 'boulder'].includes(maps[currentMap][targetY][targetX].type));
+                 ['tree', 'table', 'cut_tree', 'boulder'].includes(mapData.tiles[targetY][targetX].type)); 
               
               if (!interactable) return null;
 

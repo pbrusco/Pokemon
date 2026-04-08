@@ -20,5 +20,8 @@
     "WWWWWWWWWWWWWWWWWWWW",
     "WWWWWWWWWWWWWWWWWWWW",
     "WWWWWWWWWWWWWWWWWWWW"
+  ],
+  "warps": [
+    { "x": 10, "y": 15, "targetMap": "PALLET_TOWN", "targetPos": { "x": 12, "y": 15 }, "targetDir": "down" }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "rows": [
-    "TTTTTTTTTTTTTTTTTTTT",
-    "TTTTTTTTTTTTTTTTTTTT",
+    "TTTTTTTTTTPTTTTTTTTT",
+    "TTTTTTTTTTPTTTTTTTTT",
     "TTTGGGGGGGGGGGGGGTTT",
     "TTTGGGGGGGGGGGGGGTTT",
     "TTTGGGGGGGGGGGGGGTTT",
@@ -18,7 +18,11 @@
     "TTTGGGGGGGGGGGGGGTTT",
     "TTTGGGGGGGGGGGGGGTTT",
     "TTTGGGGGGGGGGGGGGTTT",
-    "TTTTTTTTTTTTTTTTTTTT",
-    "TTTTTTTTTTTTTTTTTTTT"
+    "TTTTTTTTTTPTTTTTTTTT",
+    "TTTTTTTTTTPTTTTTTTTT"
+  ],
+  "warps": [
+    { "x": 10, "y": 19, "targetMap": "VIRIDIAN_CITY", "targetPos": { "x": 10, "y": 1 }, "targetDir": "down" },
+    { "x": 10, "y": 0, "targetMap": "PEWTER_CITY", "targetPos": { "x": 10, "y": 16 }, "targetDir": "up" }
   ]
 }

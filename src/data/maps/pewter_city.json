@@ -20,5 +20,10 @@
     "WWPPPPPPPPPPPPPPPPWW",
     "WWWWWWWWWWWWWWWWWWWW",
     "WWWWWWWWWWWWWWWWWWWW"
+  ],
+  "warps": [
+    { "x": 10, "y": 17, "targetMap": "VIRIDIAN_FOREST", "targetPos": { "x": 10, "y": 1 }, "targetDir": "down" },
+    { "x": 10, "y": 13, "targetMap": "PEWTER_GYM", "targetPos": { "x": 10, "y": 14 }, "targetDir": "up" },
+    { "x": 17, "y": 8, "targetMap": "ROUTE_3", "targetPos": { "x": 1, "y": 8 }, "targetDir": "right" }
   ]
 }

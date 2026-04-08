@@ -1,7 +1,7 @@
 {
   "rows": [
-    "TTTTTTTTTTTTTTTTTTTT",
-    "TTTTTTTTTTTTTTTTTTTT",
+    "TTTTTTTTTTPTTTTTTTTT",
+    "TTTTTTTTTTPTTTTTTTTT",
     "PGGGGGGPTTTTPGGGGGPP",
     "PGGGGGGPTTTTPGGGGGPP",
     "PPPPPPPTTTTTPPPPPPPP",
@@ -20,5 +20,9 @@
     "PPPPPPPPPPPPPPPGGGPP",
     "TTTTTTTTTTTTTTTTTTTT",
     "TTTTTTTTTTTTTTTTTTTT"
+  ],
+  "warps": [
+    { "x": 0, "y": 8, "targetMap": "PEWTER_CITY", "targetPos": { "x": 16, "y": 8 }, "targetDir": "left" },
+    { "x": 10, "y": 0, "targetMap": "MT_MOON", "targetPos": { "x": 10, "y": 17 }, "targetDir": "up" }
   ]
 }

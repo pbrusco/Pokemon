@@ -20,5 +20,9 @@
     "TTTTTTTTTTTTTTTTTTTT",
     "TTTTTTTTTTTTTTTTTTTT",
     "TTTTTTTTTTTTTTTTTTTT"
+  ],
+  "warps": [
+    { "x": 12, "y": 14, "targetMap": "OAKS_LAB", "targetPos": { "x": 10, "y": 14 }, "targetDir": "up" },
+    { "x": 10, "y": 5, "targetMap": "ROUTE_1", "targetPos": { "x": 10, "y": 19 }, "targetDir": "up" }
   ]
 }
