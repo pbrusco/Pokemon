@@ -1,4 +1,4 @@
-import { useCallback, Dispatch, SetStateAction, MutableRefObject } from 'react';
+import { useCallback, useState, Dispatch, SetStateAction, MutableRefObject } from 'react';
 import { Pokemon, MapID, NPC, Entity, InventoryCounts } from '../types';
 import { GamePhase, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING, BLACKOUT, HEALING } from '../types/gamePhase';
 import { stepBattle, BattleState, BattleAction, BattleEffect } from '../lib/battleEngine';
@@ -24,11 +24,8 @@ interface UseBattleEngineParams {
   setPhase: Dispatch<SetStateAction<GamePhase>>;
   setShowMoves: Dispatch<SetStateAction<boolean>>;
   setPlayerTeam: (team: Pokemon[]) => void;
-  setEnemyPokemon: Dispatch<SetStateAction<Pokemon | null>>;
   setPlayerAnim: (anim: string) => void;
   setEnemyAnim: (anim: string) => void;
-  setBattleLog: Dispatch<SetStateAction<string>>;
-  setCatchResult: Dispatch<SetStateAction<boolean | null>>;
   setDefeatedTrainers: (fn: (prev: string[]) => string[]) => void;
   setBadges: (fn: (prev: string[]) => string[]) => void;
   setMoney: (fn: (prev: number) => number) => void;
@@ -65,11 +62,8 @@ export function useBattleEngine({
   setPhase,
   setShowMoves,
   setPlayerTeam,
-  setEnemyPokemon,
   setPlayerAnim,
   setEnemyAnim,
-  setBattleLog,
-  setCatchResult,
   setDefeatedTrainers,
   setBadges,
   setMoney,
@@ -82,6 +76,10 @@ export function useBattleEngine({
   setPokedex,
   setBattleShake,
 }: UseBattleEngineParams) {
+  const [enemyPokemon, setEnemyPokemon] = useState<Pokemon | null>(null);
+  const [battleLog, setBattleLog] = useState("");
+  const [isTrainerBattle, setIsTrainerBattle] = useState(false);
+  const [catchResult, setCatchResult] = useState<boolean | null>(null);
   const playBattleEffects = (effects: BattleEffect[]): number => {
     let delay = 0;
     effects.forEach(effect => {
@@ -240,5 +238,5 @@ export function useBattleEngine({
     }
   }, [battleStateRef]);
 
-  return { dispatchBattle };
+  return { dispatchBattle, enemyPokemon, setEnemyPokemon, battleLog, setBattleLog, isTrainerBattle, setIsTrainerBattle, catchResult };
 }

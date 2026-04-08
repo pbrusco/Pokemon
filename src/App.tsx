@@ -4,7 +4,6 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Pokemon } from './types';
 import { GamePhase, EXPLORING } from './types/gamePhase';
 import { worldMaps } from './data/maps';
 import { soundManager } from './lib/sounds';
@@ -44,7 +43,6 @@ export default function App() {
   const dialogue = useGameStore(s => s.dialogue);
   const setDialogue = useGameStore(s => s.setDialogue);
   const [phase, setPhase] = useState<GamePhase>(EXPLORING);
-  const [isTrainerBattle, setIsTrainerBattle] = useState(false);
   const [showMoves, setShowMoves] = useState(false);
   const [isMuted, setIsMuted] = useState(soundManager.muted);
   const [pickedItemIds, setPickedItemIds] = useState<string[]>([]);
@@ -68,15 +66,12 @@ export default function App() {
 
   const playerTeam = useGameStore(s => s.playerTeam);
   const setPlayerTeam = useGameStore(s => s.setPlayerTeam);
-  const [enemyPokemon, setEnemyPokemon] = useState<Pokemon | null>(null);
-  const [battleLog, setBattleLog] = useState("");
   const {
     playerAnim, setPlayerAnim,
     enemyAnim, setEnemyAnim,
     battleShake, setBattleShake,
     resetBattleVFX,
   } = useBattleVFX();
-  const [catchResult, setCatchResult] = useState<boolean | null>(null);
   const lastHealLocation = useGameStore(s => s.lastHealLocation);
   const setLastHealLocation = useGameStore(s => s.setLastHealLocation);
   const money = useGameStore(s => s.money);
@@ -138,6 +133,27 @@ export default function App() {
     gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, battleSubPhase: phase.type === 'BATTLE' ? phase.sub.type : null, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges, lastHealLocation };
   }, [playerPos, direction, isMoving, dialogue, inBattle, phase, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges, lastHealLocation]);
 
+  const { dispatchBattle, enemyPokemon, setEnemyPokemon, battleLog, setBattleLog, isTrainerBattle, setIsTrainerBattle, catchResult } = useBattleEngine({
+    battleStateRef,
+    gameState,
+    setPhase,
+    setShowMoves,
+    setPlayerTeam,
+    setPlayerAnim,
+    setEnemyAnim,
+    setDefeatedTrainers,
+    setBadges,
+    setMoney,
+    setStoryStep,
+    setDialogue,
+    setInventory,
+    setPcStorage,
+    setCurrentMap,
+    setPlayerPos,
+    setPokedex,
+    setBattleShake,
+  });
+
   const { handleMove, initBattle } = useMovementEngine({
     gameState,
     battleStateRef,
@@ -157,30 +173,6 @@ export default function App() {
     setIsTrainerBattle,
     setBattleLog,
     updatePokedex,
-  });
-
-  const { dispatchBattle } = useBattleEngine({
-    battleStateRef,
-    gameState,
-    setPhase,
-    setShowMoves,
-    setPlayerTeam,
-    setEnemyPokemon,
-    setPlayerAnim,
-    setEnemyAnim,
-    setBattleLog,
-    setCatchResult,
-    setDefeatedTrainers,
-    setBadges,
-    setMoney,
-    setStoryStep,
-    setDialogue,
-    setInventory,
-    setPcStorage,
-    setCurrentMap,
-    setPlayerPos,
-    setPokedex,
-    setBattleShake,
   });
 
   const { handleAction } = useInteractionEngine({
