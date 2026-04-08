@@ -22,10 +22,6 @@ interface GameModalsProps {
   enemyPokemon: Pokemon | null;
   enemyAnim: string;
   catchResult: boolean | null;
-  projectile: any;
-  hitEffect: any;
-  damageNumber: any;
-  healNumber: any;
   playerTeam: Pokemon[];
   playerAnim: string;
   battleLog: string;
@@ -56,10 +52,6 @@ export const GameModals = ({
   enemyPokemon,
   enemyAnim,
   catchResult,
-  projectile,
-  hitEffect,
-  damageNumber,
-  healNumber,
   playerTeam,
   playerAnim,
   battleLog,
@@ -91,10 +83,6 @@ export const GameModals = ({
           enemyAnim={enemyAnim}
           isCatching={battlePhase?.type === 'CATCHING'}
           catchResult={catchResult}
-          projectile={projectile}
-          hitEffect={hitEffect}
-          damageNumber={damageNumber}
-          healNumber={healNumber}
           playerTeam={playerTeam}
           playerAnim={playerAnim}
           battleLog={battleLog}

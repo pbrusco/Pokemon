@@ -4,34 +4,11 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { 
-  User,
-  Home,
-  Trees as Tree,
-  DoorOpen,
-  MessageSquare,
-  ChevronUp,
-  ChevronLeft,
-  ChevronRight,
-  Backpack,
-  Settings,
-  Map as MapIcon,
-  Package,
-  Zap,
-  Circle,
-  X,
-  Gamepad2,
-  Volume2,
-  VolumeX
-} from 'lucide-react';
-import { Direction, Position, TILE_SIZE, GRID_SIZE, NPC, Entity, Pokemon, MapID, InventoryCounts } from './types';
-import { GamePhase, EXPLORING, MENU, INVENTORY, TEAM, SHOP, POKEDEX, PC, EDITOR, battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM } from './types/gamePhase';
+import { Pokemon } from './types';
+import { GamePhase, EXPLORING } from './types/gamePhase';
 import { worldMaps } from './data/maps';
 import { soundManager } from './lib/sounds';
-import { WILD_POKEMON_DATABASE } from './constants';
-import { sd, sdur } from './lib/gameSpeed';
-import { BattleState, BattleAction } from './lib/battleEngine';
+import { BattleState } from './lib/battleEngine';
 import { DemoModeButton } from './components/DemoModeButton';
 import './lib/demoMode'; // side-effect: attaches window.__demo in dev
 import { useInteractionEngine } from './hooks/useInteractionEngine';
@@ -96,11 +73,6 @@ export default function App() {
   const {
     playerAnim, setPlayerAnim,
     enemyAnim, setEnemyAnim,
-    screenFlash, setScreenFlash,
-    hitEffect, setHitEffect,
-    projectile, setProjectile,
-    damageNumber, setDamageNumber,
-    healNumber, setHealNumber,
     battleShake, setBattleShake,
     resetBattleVFX,
   } = useBattleVFX();
@@ -109,7 +81,6 @@ export default function App() {
   const setLastHealLocation = useGameStore(s => s.setLastHealLocation);
   const money = useGameStore(s => s.money);
   const setMoney = useGameStore(s => s.setMoney);
-  const badgeBoostGlitchStacks = useGameStore(s => s.badgeBoostGlitchStacks);
   const setBadgeBoostGlitchStacks = useGameStore(s => s.setBadgeBoostGlitchStacks);
   // Story State
   const storyStep = useGameStore(s => s.storyStep);
@@ -120,7 +91,7 @@ export default function App() {
   const removeInventoryItem = useGameStore(s => s.removeInventoryItem);
   const hasItem = useCallback((itemId: string) => (inventory[itemId] ?? 0) > 0, [inventory]);
 
-  const { activeSaveSlot, setActiveSaveSlot, playTimeMs, setPlayTimeMs, sessionStartMs } = useSaveSystem({
+  const { activeSaveSlot, setActiveSaveSlot, setPlayTimeMs, sessionStartMs } = useSaveSystem({
     setPlayerPos, setCurrentMap, setPlayerTeam, setInventory, setDefeatedTrainers,
     setHasPokedex, setHasParcel, setStoryStep, setLastHealLocation, setPokedex, setMoney,
     playerTeam, playerPos, currentMap, inventory, defeatedTrainers, hasPokedex, hasParcel,
@@ -209,7 +180,6 @@ export default function App() {
     setCurrentMap,
     setPlayerPos,
     setPokedex,
-    setScreenFlash,
     setBattleShake,
   });
 
@@ -379,10 +349,6 @@ export default function App() {
         enemyPokemon={enemyPokemon}
         enemyAnim={enemyAnim}
         catchResult={catchResult}
-        projectile={projectile}
-        hitEffect={hitEffect}
-        damageNumber={damageNumber}
-        healNumber={healNumber}
         playerTeam={playerTeam}
         playerAnim={playerAnim}
         battleLog={battleLog}

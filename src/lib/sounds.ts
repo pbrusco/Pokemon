@@ -160,7 +160,7 @@ class SoundManager {
 // Comfortable SFX
 // ---------------------------------------------------------------------------
 
-export const SFX = {
+const SFX = {
   SELECT: () => playTone('triangle', [600, 700], 0.1, 0.06),
   MOVE: () => playTone('sine', [200, 240], 0.06, 0.06),
   HIT: () => playTone('triangle', [150, 50], 0.15, 0.1),
@@ -178,7 +178,7 @@ export const SFX = {
 /**
  * Utility for playing a single tone with comfort filtering
  */
-export function playTone(type: OscillatorType, freqs: number[], duration: number, volume = 0.05, startDelay = 0) {
+function playTone(type: OscillatorType, freqs: number[], duration: number, volume = 0.05, startDelay = 0) {
   try {
     const ctx = getCtx();
     const t0 = ctx.currentTime + startDelay;

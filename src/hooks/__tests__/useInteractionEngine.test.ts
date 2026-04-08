@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useInteractionEngine } from '../useInteractionEngine';
 import type { NPC, Entity, Tile, Pokemon, Position, InventoryCounts } from '../../types';
 import type { MapID } from '../../types';
-import { MOVES, STARTERS } from '../../constants';
+import { STARTERS } from '../../constants';
 import { EXPLORING, HEALING, SHOP, BATTLE_TRANSITION } from '../../types/gamePhase';
 
 // ─── Mock soundManager ────────────────────────────────────────────────────────
@@ -15,7 +15,6 @@ vi.mock('../../lib/sounds', () => ({
 // ─── Map / world fixtures ─────────────────────────────────────────────────────
 
 const WALKABLE_TILE: Tile = { type: 'path', walkable: true };
-const GRASS_TILE: Tile = { type: 'grass', walkable: true };
 const TREE_TILE: Tile = { type: 'tree', walkable: false };
 const CUT_TREE_TILE: Tile = { type: 'cut_tree', walkable: false };
 const BOULDER_TILE: Tile = { type: 'boulder', walkable: false };

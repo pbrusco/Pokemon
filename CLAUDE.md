@@ -94,6 +94,24 @@ setTimeout(() => setPhase(EXPLORING), 1000);
 
 **NPC placement** — Add NPCs to `buildNPCDatabase()` in `src/data/npcDatabase.ts`, not `worldConfig.ts`. `worldConfig.ts` owns static map/warp config only.
 
+## Dead Code Checks
+
+Run these two commands after completing any task to catch unused variables, dead imports, and unused dependencies:
+
+```bash
+# 1. TypeScript unused locals/parameters (no new errors should appear)
+npx tsc --noEmit --noUnusedLocals --noUnusedParameters 2>&1 | grep -E "error TS(6133|6192|6196|6198)" | grep -v node_modules
+
+# 2. Unused exports and dependencies
+npx knip --no-progress 2>&1
+```
+
+**What to do with findings:**
+- Unused imports/locals → delete them
+- Unused `export` on internal constants/functions → remove the `export` keyword
+- Unused dependencies in `package.json` → remove them
+- Setter exists but value never read → either wire the value into JSX or remove the whole state
+
 ## Invariants
 
 - All in-game text (dialogue, battle logs, UI labels, move names) must be in **Spanish**.

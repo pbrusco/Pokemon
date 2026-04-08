@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { X, User } from 'lucide-react';
 import { Pokemon } from '../types';
 import { soundManager } from '../lib/sounds';

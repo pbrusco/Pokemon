@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence, useAnimate } from 'framer-motion';
+import { motion, useAnimate } from 'framer-motion';
 import { Pokemon, Move } from '../types';
 import { soundManager } from '../lib/sounds';
 import { sd, sdur } from '../lib/gameSpeed';
@@ -11,10 +11,6 @@ export interface BattleScreenProps {
   enemyAnim: 'idle' | 'attack' | 'hit' | 'faint';
   isCatching: boolean;
   catchResult: boolean | null;
-  projectile: { type: string, from: 'player' | 'enemy' } | null;
-  hitEffect: { x: number, y: number, type: string } | null;
-  damageNumber: { x: number, y: number, value: number } | null;
-  healNumber: { x: number, y: number, value: number } | null;
   playerTeam: Pokemon[];
   playerAnim: 'idle' | 'attack' | 'hit' | 'faint';
   battleLog: string;
@@ -138,7 +134,7 @@ function PokeballAnim({ isCatching, catchResult }: { isCatching: boolean; catchR
 
 export function BattleScreen({
   currentMap,
-  battleShake, enemyPokemon, enemyAnim, isCatching, catchResult, projectile, hitEffect, damageNumber, healNumber,
+  battleShake, enemyPokemon, enemyAnim, isCatching, catchResult,
   playerTeam, playerAnim, battleLog, isTrainerBattle, isPlayerTurn, onFlee,
   setShowInventory, setShowTeam, handleAttack, showMoves, setShowMoves
 }: BattleScreenProps) {
@@ -336,46 +332,6 @@ export function BattleScreen({
 </div>
         {/* Pokeball animation */}
         <PokeballAnim isCatching={isCatching} catchResult={catchResult} />
-
-        {/* Visual FX */}
-        <AnimatePresence>
-          {projectile && (
-            <motion.div
-              initial={{ left: projectile.from === 'player' ? '30%' : '70%', top: projectile.from === 'player' ? '70%' : '30%', scale: 0, opacity: 0 }}
-              animate={{ left: projectile.from === 'player' ? '70%' : '30%', top: projectile.from === 'player' ? '30%' : '70%', scale: [1, 1.5, 1], opacity: 1, rotate: projectile.from === 'player' ? 45 : -135 }}
-              exit={{ scale: 0, opacity: 0 }}
-              className="fixed z-[105] text-4xl pointer-events-none"
-            >
-              {projectile.type === 'fire' ? '🔥' : projectile.type === 'water' ? '💧' : '⚪'}
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {hitEffect && (
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
-              exit={{ opacity: 0 }}
-              className="fixed z-[100] pointer-events-none text-4xl sm:text-6xl"
-              style={{ left: `${hitEffect.x}%`, top: `${hitEffect.y}%`, transform: 'translate(-50%, -50%)' }}
-            >
-              💥
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {healNumber && (
-            <motion.div
-              initial={{ opacity: 0, y: 0, scale: 0.5 }}
-              animate={{ opacity: [0, 1, 1, 0], y: -60, scale: [0.5, 1.2, 1, 1] }}
-              transition={{ duration: sdur(1) }}
-              className="fixed z-[110] pointer-events-none font-black text-2xl sm:text-3xl text-emerald-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
-              style={{ left: `${healNumber.x}%`, top: `${healNumber.y}%`, transform: 'translate(-50%, -50%)' }}
-            >
-              +{healNumber.value}
-            </motion.div>
-          )}
-        </AnimatePresence>
 
       </div>
 

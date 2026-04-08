@@ -5,10 +5,6 @@ const PHYSICAL_TYPES = new Set([
   'normal', 'fighting', 'flying', 'poison', 'ground', 'rock', 'bug', 'ghost',
 ]);
 
-const SPECIAL_TYPES = new Set([
-  'water', 'grass', 'fire', 'ice', 'electric', 'psychic', 'dragon',
-]);
-
 // Gen I type effectiveness chart
 // effectiveness[attackType][defenseType] = multiplier
 const TYPE_CHART: Record<string, Record<string, number>> = {

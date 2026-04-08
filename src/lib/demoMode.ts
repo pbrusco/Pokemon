@@ -4,7 +4,7 @@
 // ───────────────────────────────────────────────────────────────────────────────
 
 import { getTypeEffectiveness } from './damage';
-import { setGameSpeed, getGameSpeed } from './gameSpeed';
+import { setGameSpeed } from './gameSpeed';
 
 type Dir = 'up' | 'down' | 'left' | 'right';
 

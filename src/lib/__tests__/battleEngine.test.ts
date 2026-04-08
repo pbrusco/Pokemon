@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { stepBattle, createBattleState } from '../battleEngine';
 import type { BattleState } from '../battleEngine';
 import type { Pokemon, Move } from '../../types';
-import { MOVES } from '../../constants';
 
 // ─── Test helpers ─────────────────────────────────────────────────────────────
 

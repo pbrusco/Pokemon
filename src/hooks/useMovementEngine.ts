@@ -90,7 +90,7 @@ export function useMovementEngine({
   }, []);
 
   const handleMove = useCallback((dir: Direction) => {
-    const { isMoving, dialogue, phaseType, playerPos, currentMap, playerTeam, npcs, items, defeatedTrainers, inventory, storyStep, maps } = gameState.current;
+    const { isMoving, dialogue, phaseType, playerPos, currentMap, playerTeam, npcs, items, defeatedTrainers, maps } = gameState.current;
     const lockedPhases = ['BATTLE', 'BATTLE_TRANSITION', 'HEALING', 'BLACKOUT'];
     if (isMoving || dialogue || lockedPhases.includes(phaseType)) return;
 

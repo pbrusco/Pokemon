@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { X, Backpack } from 'lucide-react';
 import { ITEMS_DATABASE } from '../constants';
 import { soundManager } from '../lib/sounds';

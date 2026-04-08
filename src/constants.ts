@@ -2,7 +2,7 @@ import { Move, Pokemon, InventoryItem, PokemonSummary, BaseStats } from './types
 import { calcHp } from './lib/damage';
 
 /** Gen I base stats for all 151 Pokemon */
-export const BASE_STATS: Record<string, BaseStats> = {
+const BASE_STATS: Record<string, BaseStats> = {
   // #001–#009: Bulbasaur line, Charmander line, Squirtle line
   bulbasaur:   { hp: 45,  attack: 49,  defense: 49,  special: 65,  speed: 45 },
   ivysaur:     { hp: 60,  attack: 62,  defense: 63,  special: 80,  speed: 60 },

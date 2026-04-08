@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { User, MapIcon, Backpack, Gamepad2, Settings, X } from 'lucide-react';
 import { soundManager } from '../lib/sounds';
 import { Pokemon, InventoryCounts } from '../types';
-import { GamePhase, POKEDEX, TEAM, INVENTORY, PC, EXPLORING } from '../types/gamePhase';
+import { GamePhase, POKEDEX, TEAM, INVENTORY, PC } from '../types/gamePhase';
 import { Dispatch, SetStateAction } from 'react';
 
 const SAVE_SLOT_NAMES: Record<string, string> = { slot1: 'Perfil 1', slot2: 'Perfil 2', slot3: 'Perfil 3' };

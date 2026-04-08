@@ -5,7 +5,6 @@ import { HM_REQUIREMENTS, STARTERS } from '../constants';
 import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
 import {
-  BATTLE_TRANSITION,
   EXPLORING,
   HEALING,
   SHOP,

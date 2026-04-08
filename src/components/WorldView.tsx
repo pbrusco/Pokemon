@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Position, Direction, NPC, Entity, Pokemon, MapID, TILE_SIZE, GRID_SIZE, InventoryCounts } from '../types';
+import { Position, Direction, NPC, Entity, Pokemon, MapID, TILE_SIZE, GRID_SIZE } from '../types';
 import { WILD_POKEMON_DATABASE } from '../constants';
 import { NPCComponent } from './overworld/NPCComponent';
 import { GameTile } from './overworld/GameTile';

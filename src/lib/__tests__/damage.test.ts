@@ -8,7 +8,6 @@ import {
   getEffectivenessLabel,
   doesMoveHit,
   calculateDamage,
-  ZERO_BOOSTS,
 } from '../damage';
 import type { Pokemon } from '../../types';
 import { MOVES } from '../../constants';
@@ -271,18 +270,12 @@ describe('calculateDamage', () => {
   it('applies STAB bonus (1.5x) when move type matches attacker type', () => {
     // Fire attacker using fire move vs neutral defender
     const fireAttacker = makePkmn({ type: 'fire' });
-    const normalDefender = makePkmn({ type: 'water', baseStats: { hp: 44, attack: 48, defense: 65, special: 50, speed: 43 } });
     const fireMove = { name: 'BRASA', type: 'fire', power: 40, accuracy: 100, pp: 25, maxPp: 25 };
     const noStabMove = { ...MOVES.TACKLE }; // normal type
 
-    randomSpy.mockReturnValue(0.999); // no crit, max random
-
-    const stabResult = calculateDamage(fireAttacker, normalDefender, fireMove);
-    const noStabResult = calculateDamage(fireAttacker, normalDefender, noStabMove);
-
-    // STAB should give more damage (fire vs water: 0.5x type, but stab 1.5x vs no stab 1x)
-    // Let's use a neutral defender type
+    // Use a neutral defender to isolate the STAB multiplier (avoids type effectiveness noise)
     const neutralDefender = makePkmn({ type: 'normal', baseStats: { hp: 40, attack: 45, defense: 40, special: 35, speed: 56 } });
+    randomSpy.mockReturnValue(0.999); // no crit, max random
     randomSpy.mockReturnValue(0.999);
     const stabVsNeutral = calculateDamage(fireAttacker, neutralDefender, fireMove);
     const noStabVsNeutral = calculateDamage(fireAttacker, neutralDefender, noStabMove);

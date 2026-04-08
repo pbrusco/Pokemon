@@ -1,5 +1,4 @@
 import { Gamepad2, Volume2, VolumeX } from 'lucide-react';
-import { soundManager } from '../lib/sounds';
 
 interface GameHeaderProps {
   isMuted: boolean;

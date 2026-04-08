@@ -39,7 +39,6 @@ interface UseBattleEngineParams {
   setCurrentMap: (map: MapID) => void;
   setPlayerPos: (pos: { x: number; y: number }) => void;
   setPokedex: (fn: (prev: Record<string, { seen: boolean; caught: boolean }>) => Record<string, { seen: boolean; caught: boolean }>) => void;
-  setScreenFlash: (v: boolean) => void;
   setBattleShake: (v: boolean) => void;
 }
 
@@ -81,7 +80,6 @@ export function useBattleEngine({
   setCurrentMap,
   setPlayerPos,
   setPokedex,
-  setScreenFlash,
   setBattleShake,
 }: UseBattleEngineParams) {
   const playBattleEffects = (effects: BattleEffect[]): number => {
@@ -103,10 +101,6 @@ export function useBattleEngine({
         case 'enemy_anim':
           setTimeout(() => setEnemyAnim(effect.payload as string), d);
           if (effect.payload === 'hit' || effect.payload === 'faint' || effect.payload === 'attack') delay += sd(400);
-          break;
-        case 'screen_flash':
-          setTimeout(() => { setScreenFlash(true); setTimeout(() => setScreenFlash(false), sd(400)); }, d);
-          delay += sd(200);
           break;
         case 'battle_shake':
           setTimeout(() => { setBattleShake(true); setTimeout(() => setBattleShake(false), sd(400)); }, d);
