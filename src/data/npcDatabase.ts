@@ -38,7 +38,8 @@ export function buildNPCDatabase(
         dialogue: ["¡Eh! ¡Tú! ¡Mis POKÉMON son de lo mejor!", "¡No me ignores cuando te hablo!"],
         isTrainer: true,
         trainerTeam: [
-          makePokemon('rattata', 'RATTATA', 4, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19)
+          makePokemon('rattata', 'RATTATA', 4, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19),
+          makePokemon('spearow', 'SPEAROW', 4, 'flying', [MOVES.PECK, MOVES.GROWL], 21, { types: ['normal', 'flying'] })
         ]
       },
       {
@@ -50,7 +51,8 @@ export function buildNPCDatabase(
         dialogue: ["¿Te gustan los POKÉMON bicho?", "¡Son los más guays del mundo!"],
         isTrainer: true,
         trainerTeam: [
-          makePokemon('caterpie', 'CATERPIE', 3, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10)
+          makePokemon('caterpie', 'CATERPIE', 3, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10),
+          makePokemon('weedle', 'WEEDLE', 4, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 13, { types: ['bug', 'poison'] })
         ]
       }
     ],
@@ -83,7 +85,9 @@ export function buildNPCDatabase(
         dialogue: ["¡Mi POKÉMON bicho es el más fuerte!", "¡No podrás pasar de aquí!"],
         isTrainer: true,
         trainerTeam: [
-          makePokemon('metapod', 'METAPOD', 6, 'bug', [MOVES.HARDEN, MOVES.TACKLE], 11)
+          makePokemon('caterpie', 'CATERPIE', 5, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10),
+          makePokemon('metapod', 'METAPOD', 6, 'bug', [MOVES.HARDEN, MOVES.TACKLE], 11),
+          makePokemon('weedle', 'WEEDLE', 5, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 13, { types: ['bug', 'poison'] })
         ]
       }
     ],
@@ -100,6 +104,7 @@ export function buildNPCDatabase(
         dialogue: ["¡Para llegar a BROCK tendrás que vencerme!", "¡Mis POKÉMON son duros!"],
         isTrainer: true,
         trainerTeam: [
+          makePokemon('geodude', 'GEODUDE', 9, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }),
           makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] })
         ]
       },
@@ -155,6 +160,7 @@ export function buildNPCDatabase(
         dialogue: ["¡Llevo mis pantalones cortos todo el año!", "¡Eso me hace más fuerte!"],
         isTrainer: true,
         trainerTeam: [
+          makePokemon('rattata', 'RATTATA', 11, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19),
           makePokemon('mankey', 'MANKEY', 12, 'fighting', [MOVES.SCRATCH, MOVES.TACKLE], 56)
         ]
       }

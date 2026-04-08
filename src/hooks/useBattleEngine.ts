@@ -1,9 +1,10 @@
 import { useCallback, useState, Dispatch, SetStateAction, MutableRefObject } from 'react';
 import { Pokemon, MapID, NPC, Entity, InventoryCounts } from '../types';
-import { GamePhase, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING, BLACKOUT, HEALING } from '../types/gamePhase';
+import { GamePhase, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, B_TRAINER_NEXT_POKEMON, EXPLORING, BLACKOUT, HEALING } from '../types/gamePhase';
 import { stepBattle, BattleState, BattleAction, BattleEffect } from '../lib/battleEngine';
 import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
+import { fullHeal } from '../lib/healUtils';
 
 interface GameStateSnapshot {
   npcs: Record<MapID, NPC[]>;
@@ -52,6 +53,7 @@ function mapEnginePhase(p: string): GamePhase {
     case 'EVOLVING': return battle(B_EVOLVING);
     case 'BATTLE_INVENTORY': return battle(B_BATTLE_INVENTORY);
     case 'BATTLE_TEAM': return battle(B_BATTLE_TEAM);
+    case 'TRAINER_NEXT_POKEMON': return battle(B_TRAINER_NEXT_POKEMON);
     default: return battle(B_CHOOSING);
   }
 }
@@ -141,7 +143,7 @@ export function useBattleEngine({
       setTimeout(() => {
         setPhase(HEALING);
         setTimeout(() => {
-          setPlayerTeam(newState.playerTeam.map(p => ({ ...p, hp: p.maxHp, status: 'none' as const, moves: p.moves.map(m => ({ ...m, pp: m.maxPp })) })));
+          setPlayerTeam(newState.playerTeam.map(fullHeal));
           soundManager.play('SELECT');
         }, sd(800));
         setTimeout(() => {
@@ -212,6 +214,25 @@ export function useBattleEngine({
     const playerDuration = playBattleEffects(playerEffects);
     const playerDelay = Math.max(playerDuration + sd(300), sd(800));
 
+    const handlePostBattle = (state: BattleState, delay: number) => {
+      setTimeout(() => {
+        setPlayerAnim('idle');
+        setEnemyAnim('idle');
+        setPhase(mapEnginePhase(state.phase));
+        resolveBattleOutcome(state);
+
+        if (state.phase === 'TRAINER_NEXT_POKEMON') {
+          setTimeout(() => {
+            if (!battleStateRef.current || battleStateRef.current.outcome !== 'ongoing') return;
+            const r = stepBattle(battleStateRef.current, { type: 'TICK' });
+            battleStateRef.current = r.state;
+            setEnemyPokemon(r.state.enemyPokemon);
+            setPhase(mapEnginePhase(r.state.phase));
+          }, sd(1200));
+        }
+      }, delay);
+    };
+
     if (enemyEffects.length > 0) {
       setTimeout(() => {
         setPlayerAnim('idle');
@@ -219,22 +240,11 @@ export function useBattleEngine({
         setPlayerTeam(newState.playerTeam);
         const enemyDuration = playBattleEffects(enemyEffects);
         const enemyDelay = Math.max(enemyDuration + sd(300), sd(800));
-
-        setTimeout(() => {
-          setPlayerAnim('idle');
-          setEnemyAnim('idle');
-          setPhase(mapEnginePhase(newState.phase));
-          resolveBattleOutcome(newState);
-        }, enemyDelay);
+        handlePostBattle(newState, enemyDelay);
       }, playerDelay);
     } else {
       setPlayerTeam(newState.playerTeam);
-      setTimeout(() => {
-        setPlayerAnim('idle');
-        setEnemyAnim('idle');
-        setPhase(mapEnginePhase(newState.phase));
-        resolveBattleOutcome(newState);
-      }, playerDelay);
+      handlePostBattle(newState, playerDelay);
     }
   }, [battleStateRef]);
 

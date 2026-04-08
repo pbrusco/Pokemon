@@ -74,8 +74,6 @@ interface GameState {
   setMoney: (money: SetStateAction<number>) => void;
   setBadgeBoostGlitchStacks: (stacks: SetStateAction<number>) => void;
 
-  // Global Save/Load Handlers
-  loadPersistedState: (savePayload: any) => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -166,19 +164,6 @@ export const useGameStore = create<GameState>((set, get) => ({
   setShowBattleTransition: (show) => set({ showBattleTransition: show }),
   setIsCatching: (c) => set({ isCatching: c }),
 
-  loadPersistedState: (data) => set({
-    playerPos: data.pos,
-    currentMap: data.map as MapID,
-    playerTeam: data.team,
-    inventory: data.inventory ?? {},
-    defeatedTrainers: data.defeatedTrainers,
-    hasPokedex: data.hasPokedex,
-    hasParcel: data.hasParcel,
-    storyStep: data.storyStep,
-    lastHealLocation: data.lastHealLocation || { map: 'PALLET_TOWN', pos: { x: 7, y: 11 } },
-    money: data.money ?? 3000,
-    badgeBoostGlitchStacks: data.badgeBoostGlitchStacks ?? 0,
-  })
 }));
 
 // Expose store for dev tools / preview testing

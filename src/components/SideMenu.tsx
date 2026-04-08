@@ -1,22 +1,18 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { User, MapIcon, Backpack, Gamepad2, Settings, X } from 'lucide-react';
+import { User, MapIcon, Backpack, Gamepad2, X } from 'lucide-react';
 import { soundManager } from '../lib/sounds';
 import { Pokemon, InventoryCounts } from '../types';
 import { GamePhase, POKEDEX, TEAM, INVENTORY, PC } from '../types/gamePhase';
 import { Dispatch, SetStateAction } from 'react';
-
-const SAVE_SLOT_NAMES: Record<string, string> = { slot1: 'Perfil 1', slot2: 'Perfil 2', slot3: 'Perfil 3' };
 
 interface SideMenuProps {
   phase: GamePhase;
   playerTeam: Pokemon[];
   storyStep: string;
   inventory: InventoryCounts;
-  activeSaveSlot: string;
   hasPokedex: boolean;
   setPhase: Dispatch<SetStateAction<GamePhase>>;
   setDialogue: (d: string | null) => void;
-  setActiveSaveSlot: (slot: string) => void;
   resetGame: () => void;
 }
 
@@ -25,11 +21,9 @@ export const SideMenu = ({
   playerTeam,
   storyStep,
   inventory,
-  activeSaveSlot,
   hasPokedex,
   setPhase,
   setDialogue,
-  setActiveSaveSlot,
   resetGame,
 }: SideMenuProps) => (
   <AnimatePresence>
@@ -50,10 +44,6 @@ export const SideMenu = ({
             { icon: User, label: 'Pokémon', color: 'bg-emerald-500', action: () => { soundManager.play('SELECT'); setPhase(TEAM); }},
             { icon: Backpack, label: 'Mochila', color: 'bg-orange-500', action: () => { soundManager.play('SELECT'); setPhase(INVENTORY); }},
             { icon: Gamepad2, label: 'PC Storage', color: 'bg-blue-500', action: () => { soundManager.play('SELECT'); setPhase(PC); }},
-            { icon: Settings, label: 'Guardar', color: 'bg-slate-500', action: () => {
-              soundManager.play('SELECT');
-              setDialogue(`¡Partida guardada en ${SAVE_SLOT_NAMES[activeSaveSlot] || activeSaveSlot}!`);
-            }},
             { icon: X, label: 'Reiniciar', color: 'bg-red-500', action: resetGame },
           ].map((item, i) => (
             <button
@@ -117,29 +107,6 @@ export const SideMenu = ({
           </div>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-slate-200">
-          <h3 className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold mb-2 px-2">Perfiles</h3>
-          <div className="grid grid-cols-3 gap-2 px-2">
-            {Object.keys(SAVE_SLOT_NAMES).map(slotId => (
-              <button
-                key={slotId}
-                onClick={() => {
-                  if (slotId === activeSaveSlot) return;
-                  localStorage.setItem('pokemon_active_slot', slotId);
-                  setActiveSaveSlot(slotId);
-                  window.location.reload();
-                }}
-                className={`text-[10px] font-bold rounded-lg px-2 py-2 border ${
-                  slotId === activeSaveSlot
-                    ? 'bg-red-500 text-white border-red-600'
-                    : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-                }`}
-              >
-                {SAVE_SLOT_NAMES[slotId]}
-              </button>
-            ))}
-          </div>
-        </div>
       </motion.div>
     )}
   </AnimatePresence>

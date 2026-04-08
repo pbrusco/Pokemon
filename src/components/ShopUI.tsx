@@ -1,9 +1,7 @@
 import { motion } from 'motion/react';
 import { X } from 'lucide-react';
-import { ITEMS_DATABASE } from '../constants';
+import { ITEMS_DATABASE, SHOP_PRICES } from '../constants';
 import { soundManager } from '../lib/sounds';
-
-export const SHOP_PRICES: Record<string, number> = { POTION: 200, POKEBALL: 200 };
 
 export const ShopUI = ({ onBuy, onClose, money }: { onBuy: (itemId: string) => void, onClose: () => void, money: number }) => {
   const shopItems = ['POTION', 'POKEBALL'];

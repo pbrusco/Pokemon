@@ -16,6 +16,7 @@ export type BattlePhase =
   | { type: 'EVOLVING' }
   | { type: 'BATTLE_INVENTORY' }
   | { type: 'BATTLE_TEAM' }
+  | { type: 'TRAINER_NEXT_POKEMON' }
 
 /** Top-level game phase */
 export type GamePhase =
@@ -64,3 +65,4 @@ export const B_LEVEL_UP      = { type: 'LEVEL_UP' } as const;
 export const B_EVOLVING      = { type: 'EVOLVING' } as const;
 export const B_BATTLE_INVENTORY = { type: 'BATTLE_INVENTORY' } as const;
 export const B_BATTLE_TEAM   = { type: 'BATTLE_TEAM' } as const;
+export const B_TRAINER_NEXT_POKEMON = { type: 'TRAINER_NEXT_POKEMON' } as const;

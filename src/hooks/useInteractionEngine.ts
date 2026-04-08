@@ -4,6 +4,7 @@ import type { Direction, Entity, InventoryCounts, MapID, NPC, Pokemon, Position,
 import { HM_REQUIREMENTS, STARTERS } from '../constants';
 import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
+import { fullHeal } from '../lib/healUtils';
 import {
   EXPLORING,
   HEALING,
@@ -113,14 +114,7 @@ export const useInteractionEngine = ({
         setTimeout(() => {
           setPhase(HEALING);
           setTimeout(() => {
-            setPlayerTeam(prev =>
-              prev.map(p => ({
-                ...p,
-                hp: p.maxHp,
-                status: 'none',
-                moves: p.moves.map(m => ({ ...m, pp: m.maxPp })),
-              })),
-            );
+            setPlayerTeam(prev => prev.map(fullHeal));
             soundManager.play('SELECT');
           }, sd(800));
           setTimeout(() => {

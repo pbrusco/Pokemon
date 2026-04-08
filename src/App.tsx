@@ -16,13 +16,13 @@ import { useWindowSize } from './hooks/useWindowSize';
 import { useBattleVFX } from './hooks/useBattleVFX';
 import { useOverworldVFX } from './hooks/useOverworldVFX';
 import { usePokedex } from './hooks/usePokedex';
-import { useSaveSystem } from './hooks/useSaveSystem';
 import { useGameStore } from './store/gameStore';
 import { buildNPCDatabase, buildItemDatabase } from './data/npcDatabase';
 import { useInputHandler } from './hooks/useInputHandler';
 import { useDebugAPI } from './hooks/useDebugAPI';
 import { useBattleEngine } from './hooks/useBattleEngine';
 import { useMovementEngine } from './hooks/useMovementEngine';
+import { applyPotion } from './lib/healUtils';
 import { GameHeader } from './components/GameHeader';
 import { WorldView } from './components/WorldView';
 import { MobileControls } from './components/MobileControls';
@@ -87,12 +87,6 @@ export default function App() {
   const removeInventoryItem = useGameStore(s => s.removeInventoryItem);
   const hasItem = useCallback((itemId: string) => (inventory[itemId] ?? 0) > 0, [inventory]);
 
-  const { activeSaveSlot, setActiveSaveSlot, setPlayTimeMs, sessionStartMs } = useSaveSystem({
-    setPlayerPos, setCurrentMap, setPlayerTeam, setInventory, setDefeatedTrainers,
-    setHasPokedex, setHasParcel, setStoryStep, setLastHealLocation, setPokedex, setMoney,
-    playerTeam, playerPos, currentMap, inventory, defeatedTrainers, hasPokedex, hasParcel,
-    storyStep, lastHealLocation, pokedex, money,
-  });
 
 
   const battleStateRef = useRef<BattleState | null>(null);
@@ -205,17 +199,6 @@ export default function App() {
   });
 
   const resetGame = useCallback(() => {
-    const slotsRaw = localStorage.getItem('pokemon_save_slots');
-    if (slotsRaw) {
-      try {
-        const slotsPayload = JSON.parse(slotsRaw) as Record<string, { data: any; updatedAt: number; playTimeMs: number }>;
-        delete slotsPayload[activeSaveSlot];
-        localStorage.setItem('pokemon_save_slots', JSON.stringify(slotsPayload));
-      } catch {
-        localStorage.removeItem('pokemon_save_slots');
-      }
-    }
-    localStorage.removeItem('pokemon_save');
     setCurrentMap('PALLET_TOWN');
     setPlayerPos({ x: 10, y: 10 });
     setDirection('down');
@@ -237,17 +220,15 @@ export default function App() {
     setInventory({ POTION: 1, POKEBALL: 1 });
     setMoney(3000);
     setBadgeBoostGlitchStacks(0);
-    setPlayTimeMs(0);
-    sessionStartMs.current = Date.now();
     soundManager.play('SELECT');
-  }, [activeSaveSlot]);
+  }, []);
 
 
   const handleUseItem = (itemId: string) => {
     if (!hasItem(itemId)) return;
     if (!inBattle) {
       if (itemId === 'POTION') {
-        const healedTeam = playerTeam.map(p => ({ ...p, hp: Math.min(p.maxHp, p.hp + 20) }));
+        const healedTeam = playerTeam.map(applyPotion);
         setPlayerTeam(healedTeam);
         removeInventoryItem('POTION');
         setDialogue('¡Usaste una POCIÓN! Tus POKÉMON recuperaron salud.');
@@ -325,11 +306,9 @@ export default function App() {
         playerTeam={playerTeam}
         storyStep={storyStep}
         inventory={inventory}
-        activeSaveSlot={activeSaveSlot}
         hasPokedex={hasPokedex}
         setPhase={setPhase}
         setDialogue={setDialogue}
-        setActiveSaveSlot={setActiveSaveSlot}
         resetGame={resetGame}
       />
 

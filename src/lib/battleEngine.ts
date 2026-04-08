@@ -52,11 +52,15 @@ export type BattleSubPhase =
   | 'LEVEL_UP'
   | 'EVOLVING'
   | 'BATTLE_INVENTORY'
-  | 'BATTLE_TEAM';
+  | 'BATTLE_TEAM'
+  | 'TRAINER_NEXT_POKEMON';
 
 export interface BattleState {
   playerTeam: Pokemon[];
   enemyPokemon: Pokemon;
+  enemyTeam: Pokemon[];
+  currentEnemyIndex: number;
+  trainerName: string;
   phase: BattleSubPhase;
   isTrainerBattle: boolean;
   inventory: InventoryCounts;
@@ -352,9 +356,20 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           }
         }
 
-        // Final cleanup: outcome = player_win, let TICK finish
-        const cleared = clearBoosts(s.playerTeam, s.enemyPokemon);
-        s = { ...s, playerTeam: cleared.playerTeam, enemyPokemon: cleared.enemyPokemon, badgeBoostGlitchStacks: 0, outcome: 'player_win' };
+        // Check if trainer has more pokemon
+        const nextEnemyIdx = s.currentEnemyIndex + 1;
+        if (s.isTrainerBattle && nextEnemyIdx < s.enemyTeam.length) {
+          const nextEnemy = s.enemyTeam[nextEnemyIdx];
+          const trainerLabel = s.trainerName || 'El entrenador';
+          const nextLog = `¡${trainerLabel} saca a ${nextEnemy.name}!`;
+          effects.push(log(nextLog));
+          const cleared = clearBoosts(s.playerTeam, s.enemyPokemon);
+          s = { ...s, playerTeam: cleared.playerTeam, currentEnemyIndex: nextEnemyIdx, badgeBoostGlitchStacks: 0, log: nextLog, phase: 'TRAINER_NEXT_POKEMON' };
+        } else {
+          // Final cleanup: outcome = player_win
+          const cleared = clearBoosts(s.playerTeam, s.enemyPokemon);
+          s = { ...s, playerTeam: cleared.playerTeam, enemyPokemon: cleared.enemyPokemon, badgeBoostGlitchStacks: 0, outcome: 'player_win' };
+        }
       } else {
         // Enemy still alive — enemy turn
         s = { ...s, phase: 'ENEMY_ATTACK' };
@@ -478,6 +493,11 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       // TICK in other phases = no-op (advance to CHOOSING after animations)
       if (s.phase === 'ENEMY_FAINTED' || s.phase === 'LEVEL_UP' || s.phase === 'EVOLVING') {
         s = { ...s, phase: 'CHOOSING' };
+      }
+
+      if (s.phase === 'TRAINER_NEXT_POKEMON') {
+        const nextEnemy = s.enemyTeam[s.currentEnemyIndex];
+        s = { ...s, enemyPokemon: nextEnemy, phase: 'CHOOSING' };
       }
 
       return { state: s, effects };
@@ -614,6 +634,8 @@ export function createBattleState(
   enemyPokemon: Pokemon,
   options: {
     isTrainerBattle?: boolean;
+    enemyTeam?: Pokemon[];
+    trainerName?: string;
     inventory?: InventoryCounts;
     pcStorage?: Pokemon[];
     hasBoulderBadge?: boolean;
@@ -622,9 +644,13 @@ export function createBattleState(
   if (playerTeam.length === 0) throw new Error('createBattleState: playerTeam must not be empty');
   // Sanitize: filter out null/undefined moves
   const sanitizedTeam = playerTeam.map(p => ({ ...p, moves: p.moves.filter(Boolean) }));
+  const enemyTeam = options.enemyTeam ?? [enemyPokemon];
   return {
     playerTeam: sanitizedTeam,
     enemyPokemon,
+    enemyTeam,
+    currentEnemyIndex: 0,
+    trainerName: options.trainerName ?? '',
     phase: 'CHOOSING',
     isTrainerBattle: options.isTrainerBattle ?? false,
     inventory: options.inventory ?? {},

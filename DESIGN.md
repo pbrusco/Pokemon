@@ -9,7 +9,7 @@ A faithful browser-based recreation of **Pokémon Red / Fire Red** (Gen I) built
 ## Design Principles
 
 1. **Mechanics over aesthetics.** The damage formula, type chart, stat calculation, and status effects follow Gen I rules exactly. Visual presentation can deviate; mechanical behavior should not.
-2. **Playable in the browser.** No install, no backend. Everything runs client-side. Saves go to `localStorage`.
+2. **Playable in the browser.** No install, no backend. Everything runs client-side.
 3. **Mobile-friendly.** On-screen joystick and touch controls are first-class — not an afterthought.
 4. **Spanish language.** All in-game text (dialogue, move names, battle logs, UI labels) is in Spanish, following the official Spanish localization of the games.
 5. **Condensed but complete.** The story is shorter than the original, but all major beats are present: starter selection, rival battle, gym badges, blackout/heal loop.
@@ -26,7 +26,6 @@ A faithful browser-based recreation of **Pokémon Red / Fire Red** (Gen I) built
 - **Gen I damage formula** — including the physical/special split by type (not the Gen IV stat split)
 - **Overworld systems** — tile movement, collision, NPC interaction, trainer vision cones, wild encounters in tall grass, teleports/warps
 - **Progression systems** — badges, Pokédex, party management, PC box storage, inventory, money
-- **Save system** — auto-save to localStorage every 30 seconds
 - **Sound** — synthesized SFX and looping background music per map/phase
 
 ### Out of scope
@@ -47,8 +46,6 @@ A faithful browser-based recreation of **Pokémon Red / Fire Red** (Gen I) built
 | Original behavior | This game |
 |-------------------|-----------|
 | English text | All text in Spanish |
-| Complex save system (battery save) | Auto-save to localStorage |
-| Multiple save files | Single save slot |
 | Full Kanto (10 gyms, 200+ routes) | Condensed — Pallet Town to Pewter City |
 | Exact Gen I catch formula | Simplified: `1 - (hp/maxHp) * 0.8` |
 | EXP groups (Fast/Medium/Slow) | Simplified: `enemy.level * 10` EXP per win |
@@ -87,4 +84,3 @@ A faithful browser-based recreation of **Pokémon Red / Fire Red** (Gen I) built
 | Tile maps as JSON arrays | Simple to edit; parsed at load time; editable in-game via MapEditor |
 | PokeAPI sprites | Free, reliable, all 151 available by Pokédex number |
 | Web Audio API for SFX | No asset files needed; synthesized on the fly |
-| localStorage for saves | Zero backend; works offline |

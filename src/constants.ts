@@ -448,3 +448,5 @@ export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {
     makePokemon('nidoran-f', 'NIDORAN♀', 9, 'poison', [MOVES.TACKLE, MOVES.GROWL], 29, { types: ['poison'] }),
   ],
 };
+
+export const SHOP_PRICES: Record<string, number> = { POTION: 200, POKEBALL: 200 };

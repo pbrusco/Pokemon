@@ -215,6 +215,8 @@ export function useMovementEngine({
               const trainerTeam = isGodMode() ? applyGodMode(gameState.current.playerTeam) : gameState.current.playerTeam;
               battleStateRef.current = createBattleState(trainerTeam, trainer.trainerTeam![0], {
                 isTrainerBattle: true,
+                enemyTeam: trainer.trainerTeam!,
+                trainerName: trainer.name,
                 inventory: gameState.current.inventory,
                 pcStorage: gameState.current.pcStorage,
                 hasBoulderBadge: gameState.current.badges.includes('BOULDER'),
