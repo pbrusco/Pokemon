@@ -4,6 +4,7 @@
 // ───────────────────────────────────────────────────────────────────────────────
 
 import { getTypeEffectiveness } from './damage';
+import { setGameSpeed, getGameSpeed } from './gameSpeed';
 
 type Dir = 'up' | 'down' | 'left' | 'right';
 
@@ -233,9 +234,11 @@ function restartInterval() {
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
-export function startDemo(opts?: { tickMs?: number; maxTicks?: number }) {
+export function startDemo(opts?: { tickMs?: number; maxTicks?: number; gameSpeed?: number }) {
   if (ds.intervalId) { console.log('[DEMO] Already running'); return; }
-  ds.tickMs = opts?.tickMs ?? 400;
+  const speed = opts?.gameSpeed ?? 1;
+  setGameSpeed(speed);
+  ds.tickMs = opts?.tickMs ?? Math.max(30, 400 / speed);
   ds.maxTicks = opts?.maxTicks ?? Infinity;
   ds.tick = 0;
   ds.map = store()?.currentMap ?? '';
@@ -243,13 +246,14 @@ export function startDemo(opts?: { tickMs?: number; maxTicks?: number }) {
   ds.outcome = 'ongoing';
   ds.battleLogged = false;
   ds.paused = false;
-  console.log(`[DEMO] Started (${ds.tickMs}ms/tick)`);
+  console.log(`[DEMO] Started (${ds.tickMs}ms/tick, ${speed}x speed)`);
   restartInterval();
 }
 
 export function stopDemo() {
   if (ds.intervalId) { clearInterval(ds.intervalId); ds.intervalId = null; }
   ds.paused = false;
+  setGameSpeed(1);
   console.log(`[DEMO] Stopped. ${ds.tick} ticks, ${ds.log.length} entries.`);
 }
 
@@ -263,10 +267,11 @@ export function resumeDemo() {
   console.log('[DEMO] Resumed');
 }
 
-export function setSpeed(ms: number) {
-  ds.tickMs = Math.max(50, ms);
+export function setSpeed(speed: number) {
+  setGameSpeed(speed);
+  ds.tickMs = Math.max(30, 400 / speed);
   if (ds.intervalId) restartInterval();
-  console.log(`[DEMO] Speed: ${ds.tickMs}ms/tick`);
+  console.log(`[DEMO] Speed: ${speed}x (${ds.tickMs}ms/tick)`);
 }
 
 export function getDemoLog(): LogEntry[] { return ds.log; }

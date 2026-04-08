@@ -1,24 +1,26 @@
 import { useState, useEffect } from 'react';
 import { startDemo, stopDemo, pauseDemo, resumeDemo, setSpeed, isDemoRunning, isDemoPaused, getDemoLog, exportDemoLog } from '../lib/demoMode';
+import { getGameSpeed } from '../lib/gameSpeed';
 
 export function DemoModeButton() {
   const [running, setRunning] = useState(isDemoRunning);
   const [paused, setPaused] = useState(isDemoPaused);
   const [logCount, setLogCount] = useState(0);
-  const [speedMs, setSpeedMs] = useState(400);
+  const [currentSpeed, setCurrentSpeed] = useState(1);
 
   useEffect(() => {
     const id = setInterval(() => {
       setRunning(isDemoRunning());
       setPaused(isDemoPaused());
       setLogCount(getDemoLog().length);
+      setCurrentSpeed(getGameSpeed());
     }, 500);
     return () => clearInterval(id);
   }, []);
 
   const toggle = () => {
     if (running) { stopDemo(); setRunning(false); setPaused(false); }
-    else { startDemo({ tickMs: speedMs }); setRunning(true); }
+    else { startDemo({ gameSpeed: currentSpeed || 1 }); setRunning(true); }
   };
 
   const togglePause = () => {
@@ -26,9 +28,9 @@ export function DemoModeButton() {
     else { pauseDemo(); setPaused(true); }
   };
 
-  const changeSpeed = (ms: number) => {
-    setSpeedMs(ms);
-    setSpeed(ms);
+  const changeSpeed = (speed: number) => {
+    setCurrentSpeed(speed);
+    setSpeed(speed);
   };
 
   const download = () => {
@@ -55,10 +57,10 @@ export function DemoModeButton() {
           </button>
 
           {/* Speed controls */}
-          {[['1x', 400], ['2x', 200], ['4x', 100]].map(([label, ms]) => (
+          {[['1x', 1], ['2x', 2], ['5x', 5], ['10x', 10], ['20x', 20]].map(([label, speed]) => (
             <button key={label as string}
-              onClick={() => changeSpeed(ms as number)}
-              className={`px-1.5 py-0.5 rounded text-[9px] ${speedMs === ms ? 'bg-white/40 font-bold' : 'bg-white/15 hover:bg-white/25'}`}>
+              onClick={() => changeSpeed(speed as number)}
+              className={`px-1.5 py-0.5 rounded text-[9px] ${currentSpeed === speed ? 'bg-white/40 font-bold' : 'bg-white/15 hover:bg-white/25'}`}>
               {label as string}
             </button>
           ))}

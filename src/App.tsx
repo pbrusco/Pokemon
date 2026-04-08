@@ -28,10 +28,11 @@ import {
 } from 'lucide-react';
 import { Direction, Position, TILE_SIZE, GRID_SIZE, NPC, Entity, Pokemon, Move, InventoryItem, Tile, MapID, MAP_IDS, InventoryCounts } from './types';
 import { GamePhase, BattlePhase, EXPLORING, MENU, INVENTORY, TEAM, SHOP, POKEDEX, PC, EDITOR, BATTLE_TRANSITION, BLACKOUT, HEALING, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM } from './types/gamePhase';
-import { MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, MAP_VIRIDIAN_FOREST, MAP_PEWTER_CITY, MAP_PEWTER_GYM, MAP_ROUTE_3 } from './data/maps';
+import { MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, MAP_VIRIDIAN_FOREST, MAP_PEWTER_CITY, MAP_PEWTER_GYM, MAP_ROUTE_3, worldMaps } from './data/maps';
 import { soundManager } from './lib/sounds';
 import { MOVES, STARTERS, WILD_POKEMON_DATABASE, POKEMON_LIST, ITEMS_DATABASE, BASE_STATS, makePokemon } from './constants';
 import { calcHp } from './lib/damage';
+import { sd, sdur } from './lib/gameSpeed';
 import { stepBattle, createBattleState, BattleState, BattleAction, BattleEffect } from './lib/battleEngine';
 import { InventoryUI } from './components/InventoryUI';
 import { TeamMenuUI } from './components/TeamMenuUI';
@@ -767,7 +768,7 @@ export default function App() {
         setCurrentMap('OAKS_LAB');
         setPlayerPos({ x: 10, y: 14 });
         setDialogue("OAK: ¡Es peligroso ir solo! Ven, elige un POKÉMON.");
-      }, 1000);
+      }, sd(1000));
       return;
     }
 
@@ -802,7 +803,7 @@ export default function App() {
             return updated;
           });
           setOverworldShake(true);
-          setTimeout(() => setOverworldShake(false), 220);
+          setTimeout(() => setOverworldShake(false), sd(220));
         }
       } else {
         poisonStepCounter.current = 0;
@@ -811,13 +812,13 @@ export default function App() {
       // Visual grass rustle effect
       if (grid[nextY][nextX].type === 'grass') {
         setGrassEffect({ x: nextX, y: nextY });
-        setTimeout(() => setGrassEffect(null), 500);
+        setTimeout(() => setGrassEffect(null), sd(500));
       }
 
       if (moveTimeout.current) clearTimeout(moveTimeout.current);
       moveTimeout.current = setTimeout(() => {
         setIsMoving(false);
-      }, 110);
+      }, sd(110));
 
       // Dynamic Warp Check: Searches the map's JSON-defined warps
       const warp = mapData.warps.find(w => w.x === nextX && w.y === nextY);
@@ -827,7 +828,7 @@ export default function App() {
           setCurrentMap(warp.targetMap);
           setPlayerPos(warp.targetPos);
           if (warp.targetDir) setDirection(warp.targetDir);
-        }, 200);
+        }, sd(200));
       }
 
       // Check for trainer vision/sight
@@ -858,7 +859,7 @@ export default function App() {
                   if (trainer.direction === 'right') next.x += 1;
                   return next;
                 });
-              }, step * 220);
+              }, sd(step * 220));
             }
             setTimeout(() => {
               setSpottedTrainerId(null);
@@ -875,7 +876,7 @@ export default function App() {
               setIsTrainerBattle(true);
               setBattleLog(`¡${trainer.name} te desafía!`);
               setPhase(BATTLE_TRANSITION);
-            }, Math.max(1500, spottedDistance * 240));
+            }, sd(Math.max(1500, spottedDistance * 240)));
             break;
           }
         }
@@ -948,25 +949,25 @@ export default function App() {
       switch (effect.type) {
         case 'log':
           setTimeout(() => setBattleLog(effect.payload as string), d);
-          delay += 500;
+          delay += sd(500);
           break;
         case 'sound':
           soundManager.play(effect.payload as string);
           break;
         case 'player_anim':
           setTimeout(() => setPlayerAnim(effect.payload as string), d);
-          if (effect.payload === 'hit' || effect.payload === 'faint') delay += 400;
+          if (effect.payload === 'hit' || effect.payload === 'faint') delay += sd(400);
           break;
         case 'enemy_anim':
           setTimeout(() => setEnemyAnim(effect.payload as string), d);
-          if (effect.payload === 'hit' || effect.payload === 'faint' || effect.payload === 'attack') delay += 400;
+          if (effect.payload === 'hit' || effect.payload === 'faint' || effect.payload === 'attack') delay += sd(400);
           break;
         case 'screen_flash':
-          setTimeout(() => { setScreenFlash(true); setTimeout(() => setScreenFlash(false), 400); }, d);
-          delay += 200;
+          setTimeout(() => { setScreenFlash(true); setTimeout(() => setScreenFlash(false), sd(400)); }, d);
+          delay += sd(200);
           break;
         case 'battle_shake':
-          setTimeout(() => { setBattleShake(true); setTimeout(() => setBattleShake(false), 400); }, d);
+          setTimeout(() => { setBattleShake(true); setTimeout(() => setBattleShake(false), sd(400)); }, d);
           break;
       }
     });
@@ -996,24 +997,24 @@ export default function App() {
           setStoryStep('RIVAL_BATTLE');
           setDialogue('AZUL: ¡Maldición! ¡He perdido! Pero no volverá a pasar.');
         }
-      }, 2000);
+      }, sd(2000));
     } else if (newState.outcome === 'player_blackout') {
       setPhase(BLACKOUT);
       setTimeout(() => {
         setCurrentMap(lastHealLocation.map);
         setPlayerPos(lastHealLocation.pos);
-      }, 1200);
+      }, sd(1200));
       setTimeout(() => {
         setPhase(HEALING);
         setTimeout(() => {
           setPlayerTeam(prev => prev.map(p => ({ ...p, hp: p.maxHp, status: 'none', moves: p.moves.map(m => ({ ...m, pp: m.maxPp })) })));
           soundManager.play('SELECT');
-        }, 800);
+        }, sd(800));
         setTimeout(() => {
           setPhase(EXPLORING);
           setDialogue('¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.');
-        }, 1600);
-      }, 2400);
+        }, sd(1600));
+      }, sd(2400));
     } else if (newState.outcome === 'fled') {
       setInventory(newState.inventory);
       setPhase(EXPLORING);
@@ -1044,23 +1045,23 @@ export default function App() {
       setInventory(newState.inventory);
 
       if (newState.outcome === 'caught') {
-        setTimeout(() => setCatchResult(true), 2800);
+        setTimeout(() => setCatchResult(true), sd(2800));
         setTimeout(() => {
           setCatchResult(null);
           setPokedex(prev => ({ ...prev, [newState.enemyPokemon.id]: { seen: true, caught: true } }));
           setPcStorage(newState.pcStorage);
           setPlayerTeam(newState.playerTeam);
           setPhase(EXPLORING);
-        }, 4000);
+        }, sd(4000));
       } else {
         // Failed catch — enemy gets a turn after animation
-        setTimeout(() => setCatchResult(false), 2800);
+        setTimeout(() => setCatchResult(false), sd(2800));
         setTimeout(() => {
           setCatchResult(null);
           setPlayerTeam(newState.playerTeam);
           setEnemyPokemon(newState.enemyPokemon);
           setPhase(mapEnginePhase(newState.phase));
-        }, 4000);
+        }, sd(4000));
       }
       return;
     }
@@ -1083,7 +1084,7 @@ export default function App() {
     }
 
     const playerDuration = playBattleEffects(playerEffects);
-    const playerDelay = Math.max(playerDuration + 300, 800);
+    const playerDelay = Math.max(playerDuration + sd(300), sd(800));
 
     if (enemyEffects.length > 0) {
       // ── Phase 2: Enemy turn ──
@@ -1093,7 +1094,7 @@ export default function App() {
         // Now sync player HP (enemy's damage)
         setPlayerTeam(newState.playerTeam);
         const enemyDuration = playBattleEffects(enemyEffects);
-        const enemyDelay = Math.max(enemyDuration + 300, 800);
+        const enemyDelay = Math.max(enemyDuration + sd(300), sd(800));
 
         setTimeout(() => {
           setPlayerAnim('idle');
@@ -1842,7 +1843,7 @@ export default function App() {
             className="fixed inset-0 bg-yellow-300 z-[300] pointer-events-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 0.7, 0, 0.7, 0, 0.7, 0] }}
-            transition={{ duration: 1.8, times: [0, 0.1, 0.3, 0.45, 0.6, 0.75, 1], ease: "linear" }}
+            transition={{ duration: sdur(1.8), times: [0, 0.1, 0.3, 0.45, 0.6, 0.75, 1], ease: "linear" }}
             exit={{ opacity: 0 }}
           />
         )}
@@ -1855,7 +1856,7 @@ export default function App() {
             className="fixed inset-0 bg-white z-[300] pointer-events-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 1, 0, 1, 0, 1, 0, 1, 0] }}
-            transition={{ duration: 3, times: [0, 0.1, 0.22, 0.33, 0.44, 0.56, 0.67, 0.78, 1], ease: "linear" }}
+            transition={{ duration: sdur(3), times: [0, 0.1, 0.22, 0.33, 0.44, 0.56, 0.67, 0.78, 1], ease: "linear" }}
             exit={{ opacity: 0 }}
           />
         )}
@@ -1868,7 +1869,7 @@ export default function App() {
             className="fixed inset-0 bg-black z-[300] pointer-events-none"
             initial={{ opacity: 1 }}
             animate={{ opacity: [1, 0.2, 1, 0.2, 1, 0.2, 1, 0] }}
-            transition={{ duration: 2.4, times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.88, 1], ease: "linear" }}
+            transition={{ duration: sdur(2.4), times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.88, 1], ease: "linear" }}
             exit={{ opacity: 0 }}
           />
         )}
@@ -1881,7 +1882,7 @@ export default function App() {
             className="fixed inset-0 bg-white z-[300] pointer-events-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 0.85, 0, 0.85, 0, 0.85, 0] }}
-            transition={{ duration: 1.6, times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 1], ease: "linear" }}
+            transition={{ duration: sdur(1.6), times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 1], ease: "linear" }}
             exit={{ opacity: 0 }}
           />
         )}

@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { Direction, Entity, InventoryCounts, MapID, NPC, Pokemon, Position, Tile } from '../types';
 import { HM_REQUIREMENTS, STARTERS } from '../constants';
 import { soundManager } from '../lib/sounds';
+import { sd } from '../lib/gameSpeed';
 import {
   BATTLE_TRANSITION,
   EXPLORING,
@@ -122,12 +123,12 @@ export const useInteractionEngine = ({
               })),
             );
             soundManager.play('SELECT');
-          }, 800);
+          }, sd(800));
           setTimeout(() => {
             setPhase(EXPLORING);
             setDialogue("... ... ... ¡Tus POKÉMON están en plena forma!");
-          }, 1600);
-        }, 1500);
+          }, sd(1600));
+        }, sd(1500));
       } else if (npc.onInteract === 'shop' && currentMap === 'POKEMART') {
         if (!hasParcel && !hasPokedex) {
           setHasParcel(true);
@@ -135,7 +136,7 @@ export const useInteractionEngine = ({
           setDialogue("DEPENDIENTE: ¡Ah! ¡Tú vienes de PUEBLO PALETA! Tengo un paquete para el PROF. OAK. ¿Se lo llevarías?");
         } else {
           setDialogue("DEPENDIENTE: ¡Hola! ¿Quieres comprar algo?");
-          setTimeout(() => setPhase(SHOP), 1000);
+          setTimeout(() => setPhase(SHOP), sd(1000));
         }
       } else if (npc.onInteract === 'oak_parcel_turnin' && hasParcel) {
         setHasParcel(false);
@@ -169,7 +170,7 @@ export const useInteractionEngine = ({
             setDialogue("AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!");
             const rivalPkmn = { ...STARTERS[1], name: 'RIVAL ' + STARTERS[1].name };
             initBattle(rivalPkmn, true);
-          }, 1500);
+          }, sd(1500));
         }
       } else if (item.type === 'item') {
         if (item.id.startsWith('item_potion')) {

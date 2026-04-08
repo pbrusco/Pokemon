@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useAnimate } from 'framer-motion';
 import { Pokemon, Move } from '../types';
 import { soundManager } from '../lib/sounds';
+import { sd, sdur } from '../lib/gameSpeed';
 
 export interface BattleScreenProps {
   currentMap: string;
@@ -60,7 +61,7 @@ function PokeballAnim({ isCatching, catchResult }: { isCatching: boolean; catchR
     setVisible(true);
 
     (async () => {
-      await new Promise(r => setTimeout(r, 30)); // wait for mount
+      await new Promise(r => setTimeout(r, sd(30))); // wait for mount
       if (!scope.current) return;
 
       // Reset to start position
@@ -69,41 +70,41 @@ function PokeballAnim({ isCatching, catchResult }: { isCatching: boolean; catchR
       // Phase 1: Throw arc toward enemy (upper-right)
       await animate(scope.current,
         { x: [0, 260], y: [0, -190], rotate: [0, 540], scale: [0.7, 1.1, 1] },
-        { duration: 0.65, ease: 'easeOut' }
+        { duration: sdur(0.65), ease: 'easeOut' }
       );
 
       // Phase 2: Drop to resting spot
       await animate(scope.current,
         { y: [-190, -110] },
-        { duration: 0.25, ease: 'easeIn' }
+        { duration: sdur(0.25), ease: 'easeIn' }
       );
 
       // Small bounce
       await animate(scope.current,
         { y: [-110, -130, -110] },
-        { duration: 0.2, ease: 'easeOut' }
+        { duration: sdur(0.2), ease: 'easeOut' }
       );
 
       // Phase 3: Three wobbles, tapering off
       const wobbleAngles = [[540, 516, 564, 540], [540, 520, 560, 540], [540, 524, 556, 540]];
       for (let i = 0; i < 3; i++) {
-        await animate(scope.current, { rotate: wobbleAngles[i] }, { duration: 0.45, ease: 'easeInOut' });
-        if (i < 2) await new Promise(r => setTimeout(r, 120));
+        await animate(scope.current, { rotate: wobbleAngles[i] }, { duration: sdur(0.45), ease: 'easeInOut' });
+        if (i < 2) await new Promise(r => setTimeout(r, sd(120)));
       }
 
       // Brief pause — catchResult should be set by now
-      await new Promise(r => setTimeout(r, 350));
+      await new Promise(r => setTimeout(r, sd(350)));
 
       const result = catchResultRef.current;
       if (result === true) {
         // Caught: three quick flashes then settle
         for (let i = 0; i < 3; i++) {
-          await animate(scope.current, { opacity: [1, 0.15, 1] }, { duration: 0.28 });
+          await animate(scope.current, { opacity: [1, 0.15, 1] }, { duration: sdur(0.28) });
         }
-        await animate(scope.current, { scale: [1, 1.15, 1] }, { duration: 0.35 });
+        await animate(scope.current, { scale: [1, 1.15, 1] }, { duration: sdur(0.35) });
       } else {
         // Escaped: ball bursts open
-        await animate(scope.current, { scale: [1, 1.5], rotate: [540, 610], opacity: [1, 0] }, { duration: 0.4 });
+        await animate(scope.current, { scale: [1, 1.5], rotate: [540, 610], opacity: [1, 0] }, { duration: sdur(0.4) });
       }
     })();
   }, [isCatching]);
@@ -203,9 +204,9 @@ export function BattleScreen({
               className="w-24 h-24 sm:w-40 sm:h-40 relative z-10"
               variants={{
                 idle: { y: [0, -4, 0], transition: { repeat: Infinity, duration: 1.5, ease: "easeInOut" } },
-                attack: { x: [0, -40, 0], scale: [1, 1.1, 1], transition: { duration: 0.3 } },
-                hit: { x: [0, -10, 10, -10, 10, 0], filter: ["brightness(1)", "invert(1)", "brightness(1)"], transition: { duration: 0.4 } },
-                faint: { y: [0, 100], opacity: [1, 0], transition: { duration: 0.6, ease: "easeIn" } }
+                attack: { x: [0, -40, 0], scale: [1, 1.1, 1], transition: { duration: sdur(0.3) } },
+                hit: { x: [0, -10, 10, -10, 10, 0], filter: ["brightness(1)", "invert(1)", "brightness(1)"], transition: { duration: sdur(0.4) } },
+                faint: { y: [0, 100], opacity: [1, 0], transition: { duration: sdur(0.6), ease: "easeIn" } }
               }}
               animate={isCatching ? { opacity: 0, scale: 0 } : enemyAnim}
             >
@@ -240,7 +241,7 @@ export function BattleScreen({
                 <motion.div
                   initial={{ width: '100%' }}
                   animate={{ width: `${(enemyPokemon?.hp || 0) / (enemyPokemon?.maxHp || 1) * 100}%` }}
-                  transition={{ duration: 0.7, ease: 'linear' }}
+                  transition={{ duration: sdur(0.7), ease: 'linear' }}
                   className={`h-full border-t-2 border-white/50 ${hpColor(enemyPokemon?.hp || 0, enemyPokemon?.maxHp || 1)}`}
                 />
               </div>
@@ -261,9 +262,9 @@ export function BattleScreen({
               className="w-32 h-32 sm:w-56 sm:h-56"
               variants={{
                 idle: { y: [0, -2, 0], opacity: 1, x: 0, transition: { repeat: Infinity, duration: 2, ease: "easeInOut" } },
-                attack: { x: [0, 40, 0], scale: [1, 1.05, 1], transition: { duration: 0.3 } },
-                hit: { x: [0, -10, 10, -10, 10, 0], filter: ["brightness(1)", "invert(1)", "brightness(1)"], transition: { duration: 0.4 } },
-                faint: { y: [0, 100], opacity: [1, 0], transition: { duration: 0.5, ease: "easeIn" } }
+                attack: { x: [0, 40, 0], scale: [1, 1.05, 1], transition: { duration: sdur(0.3) } },
+                hit: { x: [0, -10, 10, -10, 10, 0], filter: ["brightness(1)", "invert(1)", "brightness(1)"], transition: { duration: sdur(0.4) } },
+                faint: { y: [0, 100], opacity: [1, 0], transition: { duration: sdur(0.5), ease: "easeIn" } }
               }}
               animate={playerAnim}
             >
@@ -300,7 +301,7 @@ export function BattleScreen({
         <motion.div
           initial={false}
           animate={{ width: `${(playerPkmn?.hp || 0) / (playerPkmn?.maxHp || 1) * 100}%` }}
-          transition={{ duration: 0.7, ease: 'linear' }}
+          transition={{ duration: sdur(0.7), ease: 'linear' }}
           className={`h-full border-t-2 border-white/50 ${hpColor(playerPkmn?.hp || 0, playerPkmn?.maxHp || 1)}`}
         />
       </div>
@@ -367,7 +368,7 @@ export function BattleScreen({
             <motion.div
               initial={{ opacity: 0, y: 0, scale: 0.5 }}
               animate={{ opacity: [0, 1, 1, 0], y: -60, scale: [0.5, 1.2, 1, 1] }}
-              transition={{ duration: 1 }}
+              transition={{ duration: sdur(1) }}
               className="fixed z-[110] pointer-events-none font-black text-2xl sm:text-3xl text-emerald-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
               style={{ left: `${healNumber.x}%`, top: `${healNumber.y}%`, transform: 'translate(-50%, -50%)' }}
             >
