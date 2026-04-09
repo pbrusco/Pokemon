@@ -71,3 +71,9 @@ setTimeout(() => setPhase(EXPLORING), 1000);
 - No backward compatibility — delete old code, no shims.
 - If npm is not found on macOS: `export PATH="/opt/homebrew/bin:$PATH"`
 - After every task run: `npx tsc --noEmit`, `npx tsc --noEmit --noUnusedLocals --noUnusedParameters 2>&1 | grep -E "error TS(6133|6192|6196|6198)" | grep -v node_modules`, `npx knip --no-progress 2>&1` — delete unused imports/exports/deps.
+
+## Testing
+
+When testing UX, interactions, or game logic, prioritize using the existing **Vitest** implementation over interacting manually via the browser. 
+- Run tests via `npm run test:run`.
+- The game uses `@testing-library/react` to render hooks and test state machines efficiently without the overhead of a headless browser. See `src/hooks/__tests__/useInteractionEngine.test.ts` for examples.

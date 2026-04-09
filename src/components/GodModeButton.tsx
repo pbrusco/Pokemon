@@ -7,6 +7,7 @@ export function GodModeButton() {
   const toggle = () => {
     const next = toggleGodMode();
     setActive(next);
+    window.dispatchEvent(new CustomEvent('godModeToggled', { detail: next }));
   };
 
   return (

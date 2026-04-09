@@ -29,6 +29,8 @@ interface DS {
   maxTicks: number;
   levelMap: Record<string, number>;
   lastDialogue: string;
+  targetQueue: { x: number, y: number }[];
+  exploredMap: string;
 }
 
 const W = window as any;
@@ -41,6 +43,8 @@ if (!W.__ds) {
     paused: false, tickMs: 400, maxTicks: Infinity,
     levelMap: {} as Record<string, number>,
     lastDialogue: '',
+    targetQueue: [],
+    exploredMap: '',
   };
 }
 const ds: DS = W.__ds;
@@ -60,28 +64,55 @@ function nextPos(pos: { x: number; y: number }, d: Dir) {
   return { x: pos.x + dx, y: pos.y + dy };
 }
 
+function findPath(start: { x: number, y: number }, target: { x: number, y: number }, s: any): Dir[] | null {
+  const map = s.worldMaps?.[s.currentMap];
+  if (!map) return null;
+  const npcs = s.getNPCs?.()[s.currentMap] ?? [];
+
+  const queue: { pos: { x: number, y: number }, path: Dir[] }[] = [{ pos: start, path: [] }];
+  const visited = new Set<string>();
+  visited.add(`${start.x},${start.y}`);
+
+  while (queue.length > 0) {
+    const { pos, path } = queue.shift()!;
+    const dirs: Dir[] = ['up', 'down', 'left', 'right'];
+    for (const d of dirs) {
+      const n = nextPos(pos, d);
+      
+      if (n.x === target.x && n.y === target.y) {
+        return path;
+      }
+
+      const key = `${n.x},${n.y}`;
+      if (visited.has(key)) continue;
+
+      if (n.x < 0 || n.x >= 20 || n.y < 0 || n.y >= 20) continue;
+      if (!map[n.y]?.[n.x]?.walkable) continue;
+      if (npcs.some((npc: any) => npc.position.x === n.x && n.y === npc.position.y)) continue;
+
+      visited.add(key);
+      queue.push({ pos: n, path: [...path, d] });
+    }
+  }
+  return null;
+}
+
 // ─── Movement AI ──────────────────────────────────────────────────────────────
+
+function getOppositeDir(dir: Dir): Dir {
+  switch (dir) {
+    case 'up': return 'down';
+    case 'down': return 'up';
+    case 'left': return 'right';
+    case 'right': return 'left';
+  }
+}
 
 function pickDir(s: any): Dir {
   const all: Dir[] = ['up', 'down', 'left', 'right'];
   const { playerPos: pos, currentMap, worldMaps } = s;
   const map = worldMaps?.[currentMap];
   if (!map) return all[Math.floor(Math.random() * 4)];
-
-  // Navigate toward middle starter when in Oak's Lab with no team
-  if (currentMap === 'OAKS_LAB' && s.playerTeam?.length === 0) {
-    const target = { x: 10, y: 9 }; // one tile south of middle starter (10,8)
-    const dx = target.x - pos.x;
-    const dy = target.y - pos.y;
-    if (dx !== 0 || dy !== 0) {
-      const preferred: Dir = Math.abs(dx) >= Math.abs(dy)
-        ? (dx > 0 ? 'right' : 'left')
-        : (dy > 0 ? 'down' : 'up');
-      if (map[pos.y + (preferred === 'down' ? 1 : preferred === 'up' ? -1 : 0)]?.[pos.x + (preferred === 'right' ? 1 : preferred === 'left' ? -1 : 0)]?.walkable) {
-        return preferred;
-      }
-    }
-  }
 
   // Get NPCs to avoid walking into them
   const npcs = s.getNPCs?.() ?? {};
@@ -107,9 +138,18 @@ function pickDir(s: any): Dir {
     return grass[Math.floor(Math.random() * grass.length)];
   }
 
-  // Continue current direction (55%)
-  if (valid.includes(ds.dir) && Math.random() < 0.55) return ds.dir;
+  // Stronger bias to continue current direction (80%) for straight-line exploring
+  if (valid.includes(ds.dir) && Math.random() < 0.8) return ds.dir;
 
+  // Avoid immediate backtracking if possible
+  const opposite = getOppositeDir(ds.dir);
+  const forwardValid = valid.filter(d => d !== opposite);
+
+  if (forwardValid.length > 0) {
+    return forwardValid[Math.floor(Math.random() * forwardValid.length)];
+  }
+
+  // Dead end constraint, must go back
   return valid[Math.floor(Math.random() * valid.length)];
 }
 
@@ -181,11 +221,81 @@ function tick() {
       ds.battleLogged = false;
       ds.outcome = 'ongoing';
       if (s.isMoving) return;
-      // Interact with starter when standing adjacent to it (facing up toward y=8)
-      if (s.currentMap === 'OAKS_LAB' && s.playerTeam?.length === 0 && s.playerPos?.y === 9 && s.playerPos?.x === 10) {
-        g.handleAction();
-        return;
+
+      if (ds.exploredMap !== s.currentMap) {
+        ds.exploredMap = s.currentMap;
+        const targets: { x: number, y: number }[] = [];
+        
+        // Scan NPCs
+        const mapNpcs = s.getNPCs?.()[s.currentMap] ?? [];
+        for (const npc of mapNpcs) {
+          targets.push({ x: npc.position.x, y: npc.position.y });
+        }
+        
+        // Scan Items
+        const mapItems = s.items?.[s.currentMap] ?? [];
+        for (const item of mapItems) {
+          targets.push({ x: item.position.x, y: item.position.y });
+        }
+        
+        // Scan Tiles
+        const m = s.worldMaps?.[s.currentMap];
+        if (m && m.tiles) {
+          for (let y = 0; y < m.tiles.length; y++) {
+            for (let x = 0; x < m.tiles[y].length; x++) {
+              if (['tree', 'table', 'cut_tree', 'boulder'].includes(m.tiles[y][x]?.type)) {
+                targets.push({ x, y });
+              }
+            }
+          }
+        }
+        
+        // Sort left-to-right, top-to-bottom
+        targets.sort((a, b) => a.y - b.y || a.x - b.x);
+        ds.targetQueue = targets;
       }
+
+      // Check current target
+      while (ds.targetQueue.length > 0) {
+        const target = ds.targetQueue[0];
+        const dx = target.x - s.playerPos.x;
+        const dy = target.y - s.playerPos.y;
+
+        // Are we adjacent?
+        if (Math.abs(dx) + Math.abs(dy) === 1) {
+          let neededDir: Dir = 'up';
+          if (dx === 1) neededDir = 'right';
+          else if (dx === -1) neededDir = 'left';
+          else if (dy === 1) neededDir = 'down';
+
+          if (s.direction !== neededDir) {
+            ds.dir = neededDir;
+            g.handleMove(neededDir); // Turning to face
+          } else {
+            g.handleAction();
+            ds.targetQueue.shift(); // Done
+          }
+          return;
+        } else if (dx === 0 && dy === 0) {
+           // We are standing ON the item. Usually items require stepping on them.
+           // Or maybe we can't be on an interactable. Let's just pop it.
+           ds.targetQueue.shift();
+           continue;
+        }
+
+        // Try to pathfind
+        const path = findPath(s.playerPos, target, s);
+        if (path !== null && path.length > 0) {
+          ds.dir = path[0];
+          g.handleMove(path[0]);
+          return;
+        } else {
+          // Unreachable
+          ds.targetQueue.shift();
+        }
+      }
+
+      // Fallback
       const d = pickDir(s);
       ds.dir = d;
       g.handleMove(d);

@@ -130,7 +130,7 @@ export const generateWorldNPCs = (hasParcel: boolean, hasPokedex: boolean, badge
 
 export const INITIAL_TELEPORTS: Record<string, Entity[]> = {
   PALLET_TOWN: [
-    { id: 'to_lab', type: 'teleport', position: { x: 10, y: 14 }, direction: 'up', targetMap: 'OAKS_LAB', targetPos: { x: 10, y: 14 } },
+    { id: 'to_lab', type: 'teleport', position: { x: 12, y: 14 }, direction: 'up', targetMap: 'OAKS_LAB', targetPos: { x: 10, y: 14 } },
     { id: 'to_route1', type: 'teleport', position: { x: 10, y: 5 }, direction: 'up', targetMap: 'ROUTE_1', targetPos: { x: 10, y: 19 } }
   ],
   OAKS_LAB: [
@@ -187,7 +187,10 @@ export const INITIAL_ITEMS: Record<string, Entity[]> = {
     { id: 'item_pokeball_1', type: 'item', position: { x: 5, y: 5 }, direction: 'down', sprite: '🔴' },
     { id: 'item_potion_forest', type: 'item', position: { x: 15, y: 15 }, direction: 'down', sprite: '🧪' }
   ],
-  PEWTER_CITY: [],
+  PEWTER_CITY: [
+    { id: 'door_locked_1', type: 'object', position: { x: 6, y: 9 }, direction: 'up', dialogue: ['La puerta está cerrada por dentro.'] },
+    { id: 'door_locked_2', type: 'object', position: { x: 14, y: 9 }, direction: 'up', dialogue: ['La puerta está cerrada por dentro.'] }
+  ],
   PEWTER_GYM: []
 };
 

@@ -1,10 +1,11 @@
-import { useCallback, useState, Dispatch, SetStateAction, MutableRefObject } from 'react';
+import { useCallback, useState, useEffect, Dispatch, SetStateAction, MutableRefObject } from 'react';
 import { Pokemon, MapID, NPC, Entity, InventoryCounts } from '../types';
 import { GamePhase, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, B_TRAINER_NEXT_POKEMON, EXPLORING, BLACKOUT, HEALING } from '../types/gamePhase';
 import { stepBattle, BattleState, BattleAction, BattleEffect } from '../lib/battleEngine';
 import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
+import { applyGodMode } from '../lib/godMode';
 
 interface GameStateSnapshot {
   npcs: Record<MapID, NPC[]>;
@@ -82,6 +83,20 @@ export function useBattleEngine({
   const [battleLog, setBattleLog] = useState("");
   const [isTrainerBattle, setIsTrainerBattle] = useState(false);
   const [catchResult, setCatchResult] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const onGodModeToggled = (e: Event) => {
+      const active = (e as CustomEvent).detail;
+      if (active && battleStateRef.current) {
+        const newTeam = applyGodMode(battleStateRef.current.playerTeam);
+        battleStateRef.current = { ...battleStateRef.current, playerTeam: newTeam };
+        setPlayerTeam(newTeam);
+      }
+    };
+    window.addEventListener('godModeToggled', onGodModeToggled);
+    return () => window.removeEventListener('godModeToggled', onGodModeToggled);
+  }, [battleStateRef, setPlayerTeam]);
+
   const playBattleEffects = (effects: BattleEffect[]): number => {
     let delay = 0;
     effects.forEach(effect => {

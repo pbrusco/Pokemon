@@ -369,8 +369,8 @@ describe('Catch mechanics', () => {
     );
 
     const result = stepBattle(state, { type: 'CATCH' });
-    expect(result.state.phase).toBe('CHOOSING'); // unchanged
-    expect(result.state.inventory['POKEBALL']).toBe(3); // not consumed
+    expect(result.state.phase).toBe('ENEMY_ATTACK'); // Gives enemy a turn
+    expect(result.state.inventory['POKEBALL']).toBe(2); // consumed 1
   });
 
   it('cannot catch with no Pokeballs', () => {
@@ -413,11 +413,13 @@ describe('Flee mechanics', () => {
     expect(['CHOOSING', 'FORCED_SWITCH', 'PLAYER_FAINTED']).toContain(result.state.phase);
   });
 
-  it('cannot flee from a trainer battle', () => {
+  it('cannot flee from a trainer battle and logs an explanation', () => {
     const state = createBattleState([makePkmn()], makePkmn(), { isTrainerBattle: true });
     const result = stepBattle(state, { type: 'FLEE' });
     expect(result.state.outcome).toBe('ongoing');
     expect(result.state.phase).toBe('CHOOSING');
+    // THIS EXPECTS A MESSAGE BUT LOGIC CURRENTLY DOES NOTHING:
+    expect(getLogs(result.effects).join(' ')).toContain('No puedes huir');
   });
 });
 
@@ -599,5 +601,38 @@ describe('Phase guards', () => {
     const state: BattleState = { ...makeState(), phase: 'ENEMY_ATTACK' };
     const result = stepBattle(state, { type: 'FLEE' });
     expect(result.state.phase).toBe('ENEMY_ATTACK');
+  });
+});
+
+// ─── Scenario 12: Battle text state cleanup / formatting ────────────────────
+
+describe('Battle text cleanup and formatting', () => {
+  it('clears or resets the log when phase returns to CHOOSING waiting for player input', () => {
+    randomSpy.mockReturnValue(0.5);
+    const state = makeState();
+    const move = makeMove({ name: 'TACKLE', type: 'normal', power: 40 });
+    state.playerTeam[0] = { ...state.playerTeam[0], moves: [move] };
+
+    const result = stepBattle(state, { type: 'ATTACK', move });
+
+    // Phase is returned to CHOOSING, dialogue log must be empty or prompt player
+    expect(result.state.phase).toBe('CHOOSING');
+    expect(result.state.log).toBe(''); // This currently fails since the old attack text lingers
+  });
+
+  it('formats enemy names gracefully by stripping raw prefixes like RIVAL', () => {
+    randomSpy.mockReturnValue(0.5);
+    const state = createBattleState([makePkmn()], makePkmn({ name: 'RIVAL SQUIRTLE' }));
+    const move = makeMove({ power: 40 });
+    state.enemyPokemon = { ...state.enemyPokemon, moves: [move] };
+    
+    // Simulate enemy attacking
+    const stateWithEnemyTurn: BattleState = { ...state, phase: 'ENEMY_ATTACK' };
+    const result = stepBattle(stateWithEnemyTurn, { type: 'TICK' });
+
+    const allLogs = getLogs(result.effects).join(' ');
+    // This currently fails: it says "¡RIVAL SQUIRTLE usó..."
+    expect(allLogs).toContain('El SQUIRTLE rival usó');
+    expect(allLogs).not.toContain('RIVAL SQUIRTLE');
   });
 });

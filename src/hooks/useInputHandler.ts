@@ -13,6 +13,7 @@ interface UseInputHandlerParams {
   phase: GamePhase;
   playerTeam: Pokemon[];
   isTrainerBattle: boolean;
+  spottedTrainerId: string | null;
   showMoves: boolean;
   setShowMoves: Dispatch<SetStateAction<boolean>>;
   setPhase: Dispatch<SetStateAction<GamePhase>>;
@@ -29,6 +30,7 @@ export function useInputHandler({
   phase,
   playerTeam,
   isTrainerBattle,
+  spottedTrainerId,
   showMoves,
   setShowMoves,
   setPhase,
@@ -90,6 +92,7 @@ export function useInputHandler({
         case 'x': case 'Shift': case 'Escape': setPhase(prev => prev.type === 'MENU' ? EXPLORING : MENU); break;
       }
       if (dir) {
+        if (spottedTrainerId) return; // Block movement if a trainer has spotted us
         const wasEmpty = pressedKeys.current.size === 0;
         pressedKeys.current.add(dir);
         if (wasEmpty) handleMove(dir);
@@ -112,13 +115,13 @@ export function useInputHandler({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [handleMove, handleAction, dialogue, inBattle]);
+  }, [handleMove, handleAction, dialogue, inBattle, spottedTrainerId]);
 
   // Self-trigger: the moment a move finishes, immediately start the next one if a key is held.
   useEffect(() => {
-    if (!isMoving && pressedKeys.current.size > 0) {
+    if (!isMoving && pressedKeys.current.size > 0 && !spottedTrainerId) {
       const dir = Array.from(pressedKeys.current)[0] as Direction;
       handleMove(dir);
     }
-  }, [isMoving, handleMove]);
+  }, [isMoving, handleMove, spottedTrainerId]);
 }

@@ -1,50 +1,33 @@
 # TODO: Pokémon Fire Red Remake (Next Phase)
 
-## ✅ Completed Milestones
-
-- [x] State consolidation (phase 1): core overworld/progression/team/inventory state connected to `useGameStore`
-- [x] Data-driven interactions via `NPC.onInteract`
-- [x] Type-safe map IDs and map typing
-- [x] Gen I 1/256 miss behavior
-- [x] Sprite fallback handling in battle
-- [x] Badge boost glitch behavior
-- [x] Prize money reward flow
-- [x] Poison overworld status ticks
-- [x] HM obstacle groundwork (`cut_tree`, `boulder`, parser/editor/constants wiring)
-- [x] Inventory quantity stacking
-- [x] Move SFX categories + synth mapping
-- [x] HP drain animation polish
-- [x] Viewport culling
-- [x] Map-based battle backgrounds
-- [x] Trainer spotted approach transition
-- [x] MapEditor compact export
-- [x] Multiple save slots
-- [x] Tree canopy/trunk perspective layering
-- [x] Vitest damage test setup
-- [x] Battle engine extracted to pure state machine (`src/lib/battleEngine.ts`) with 29 scenario tests
-- [x] `App.tsx` wired to `battleEngine.ts` via `dispatchBattle()` — ~550 lines of duplicate setTimeout battle logic removed
-- [x] Difficulty balance: wild Pokémon 85% atk/special, trainer AI picks moves smartly, trainer kills give 1.5× exp
-- [x] Interaction engine tests (24 tests covering NPCs, items, HM obstacles, starter selection)
-- [x] Status/volatile rules audit (25 Gen I edge-case tests)
-- [x] State Consolidation (phase 2): extracted `useWindowSize`, `useBattleVFX`, `useOverworldVFX`, `usePokedex`, `useSaveSystem`; moved `money` + `badgeBoostGlitchStacks` to Zustand
-- [x] State Consolidation (phase 3): `enemyPokemon`, `battleLog`, `isTrainerBattle`, `catchResult` moved into `useBattleEngine`; `handleMove`, `moveTimeout`, `poisonStepCounter` already in `useMovementEngine`
-
-## 🔴 Priority 1: Stabilization & Architecture
-- [ ] **App.tsx inline component extraction** — move `NPCComponent`, `ShopUI`, `BattleTransition`, `GameTile`, and `Player` out of `App.tsx` into `src/components/`. Also move `SHOP_PRICES` / `SAVE_SLOT_NAMES` to `src/constants.ts`.
-- [ ] **Healing logic deduplication** — the full-restore pattern (`hp: p.maxHp, status: 'none', moves: pp restore`) is duplicated in `App.tsx` (blackout recovery) and `useInteractionEngine.ts` (pokecenter). Extract to a shared utility.
-- [ ] **Save Slot Manager UI** — add profile metadata panel (name, playtime, last save date) and create/delete/rename flows.
-
-## 🟠 Priority 2: Gameplay Depth
 
 - [ ] **Trainer Teams Progression** — scale trainer teams and levels by route/gym progression for smoother difficulty curve.
 - [ ] **Status/Volatile Rules Audit** — validate Gen I edge cases (sleep turns, paralysis interaction, stat-reset timing) with tests.
-- [ ] **HM Progression Content** — place real cut/strength obstacles in maps and gate meaningful shortcuts/rewards.
-
-## 🟡 Priority 3: UX & Presentation
 
 - [ ] **Battle HUD Pass 2** — add classic command cursor behavior and tighter menu alignment for both desktop and mobile.
 - [ ] **Touch Move Details** — mobile-friendly tap-to-expand move details (hover parity).
 - [ ] **Audio Mixing Pass** — normalize SFX/music volumes and add per-channel volume settings.
+
+## ⚔️ Battle UX Improvements
+- [ ] **Persistent Dialogue Cleanup** — battle text (e.g. "¡RIVAL SQUIRTLE usó PLACAJE!...") persists in the dialogue box even after the action menu re-appears. It should instead clear or read "¿Qué hará [NAME]?" when waiting for player input.
+- [ ] **Wait/Delay Desync on Action Menu** — sometimes the action menu area on the right would remain blank after a turn resolves until the user interacts with the UI again.
+- [ ] **Enable "HUIR" Button** — the Run button appears to be entirely inactive (greyed out) during rival/trainer battles, but it should still be clickable to inform the player they cannot run.
+- [ ] **String Formatting for Enemy Names** — the prefix "RIVAL" is currently burned directly into the species name string in the event log (e.g., "¡RIVAL SQUIRTLE usó..."). It should be grammatically improved to read "¡El SQUIRTLE rival usó..." or simply "SQUIRTLE usó...".
+
+## 🔴 User Reported Bugs
+- [ ] **Oak's Lab Teleport Alignment** — the teleport tile for Oak's lab does not match the visual door in Pallet Town.
+- [ ] **Pokeball vs Rival** — able to choose to throw a Pokeball at the rival, but nothing happens (silently fails without consuming turn or alerting).
+- [ ] **Battle Potion Failure** — choosing a Potion from the bag during battle does not do anything.
+- [ ] **Tile Culling Artifacts** — moving completely to edge of map makes opposite columns of tiles disappear prematurely.
+- [ ] **Spotted Trainer Movement Glitch** — can still move continuously while the exclamation mark (!) animation is playing before a battle starts.
+- [ ] **God Mode in Battle** — toggling God mode during a battle has no effect on the current battle stats.
+- [ ] **Pewter City Dead Doors** — standard house doors in Pewter City don't have teleport triggers. Need blocking signs or warps.
+
+## 🟣 Demo Mode & Simulation Improvements
+- [ ] **Pathfinding Aesthetics (BFS)** — update the BFS navigation to minimize turns (penalize changing directions). Currently, the pathfinding generates zig-zag "stair-step" patterns to targets, which looks unnatural compared to straight L-shaped paths.
+- [ ] **Lab Tile Textures** — investigate and add textures for empty white tiles and weird striped wall segments in Oak's Lab that look out of place.
+- [ ] **Interaction Indicator Suppression** — hide the bouncing "A" action button UI prompts (e.g., above signs) when the AI demo mode is driving the character to maintain immersion.
+- [ ] **Demo Mode State Reset** — investigate why the Demo sometimes shuts off completely after interacting with all objects in Oak's Lab, instead of gracefully transitioning back to the random-walk heuristic fallback.
 
 ## 🛠️ Tooling & Quality
 

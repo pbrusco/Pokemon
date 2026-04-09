@@ -391,7 +391,8 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           if (!wakeUp) {
             const sleepLog = `¡${s.enemyPokemon.name} está profundamente dormido!`;
             effects.push(log(sleepLog));
-            s = { ...s, log: sleepLog, phase: 'CHOOSING' };
+            effects.push(log(''));
+            s = { ...s, log: '', phase: 'CHOOSING' };
             return { state: s, effects };
           }
           effects.push(log(`¡${s.enemyPokemon.name} se ha despertado!`));
@@ -402,7 +403,8 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         if (s.enemyPokemon.status === 'paralyzed' && Math.random() < 0.25) {
           const paraLog = `¡${s.enemyPokemon.name} está paralizado! ¡No puede moverse!`;
           effects.push(log(paraLog));
-          s = { ...s, log: paraLog, phase: 'CHOOSING' };
+          effects.push(log(''));
+          s = { ...s, log: '', phase: 'CHOOSING' };
           return { state: s, effects };
         }
 
@@ -415,7 +417,8 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         if (!doesMoveHit(enemyMove.accuracy)) {
           const missLog = `¡${s.enemyPokemon.name} usó ${enemyMove.name}! ¡Pero falló!`;
           effects.push(log(missLog));
-          s = { ...s, log: missLog, phase: 'CHOOSING' };
+          effects.push(log(''));
+          s = { ...s, log: '', phase: 'CHOOSING' };
           return { state: s, effects };
         }
 
@@ -434,7 +437,8 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           }
 
           effects.push(log(moveLog));
-          s = { ...s, log: moveLog, phase: 'CHOOSING' };
+          effects.push(log(''));
+          s = { ...s, log: '', phase: 'CHOOSING' };
           return { state: s, effects };
         }
 
@@ -483,8 +487,8 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
             effects.push(log(faintLog));
             s = { ...s, log: faintLog, phase: 'FORCED_SWITCH' };
           }
-        } else {
-          s = { ...s, phase: 'CHOOSING' };
+          effects.push(log(''));
+          s = { ...s, log: '', phase: 'CHOOSING' };
         }
 
         return { state: s, effects };
@@ -492,12 +496,14 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
 
       // TICK in other phases = no-op (advance to CHOOSING after animations)
       if (s.phase === 'ENEMY_FAINTED' || s.phase === 'LEVEL_UP' || s.phase === 'EVOLVING') {
-        s = { ...s, phase: 'CHOOSING' };
+        effects.push(log(''));
+        s = { ...s, log: '', phase: 'CHOOSING' };
       }
 
       if (s.phase === 'TRAINER_NEXT_POKEMON') {
         const nextEnemy = s.enemyTeam[s.currentEnemyIndex];
-        s = { ...s, enemyPokemon: nextEnemy, phase: 'CHOOSING' };
+        effects.push(log(''));
+        s = { ...s, enemyPokemon: nextEnemy, log: '', phase: 'CHOOSING' };
       }
 
       return { state: s, effects };
@@ -557,13 +563,20 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
     // ── CATCH ────────────────────────────────────────────────────────────────
     case 'CATCH': {
       if (s.phase !== 'CHOOSING') return { state, effects };
-      if (s.isTrainerBattle) return { state, effects };
       const pkbQty = s.inventory['POKEBALL'] ?? 0;
       if (pkbQty <= 0) return { state, effects };
 
       const newInv = pkbQty - 1 > 0
         ? { ...s.inventory, POKEBALL: pkbQty - 1 }
         : (() => { const { POKEBALL: _, ...rest } = s.inventory; return rest; })();
+
+      if (s.isTrainerBattle) {
+        const theftLog = '¡El entrenador bloqueó la BALL! ¡No seas ladrón!';
+        effects.push(log(theftLog));
+        s = { ...s, inventory: newInv, log: theftLog, phase: 'ENEMY_ATTACK' };
+        const tickResult = stepBattle(s, { type: 'TICK' });
+        return { state: tickResult.state, effects: [...effects, ...tickResult.effects] };
+      }
 
       const hpPercent = s.enemyPokemon.hp / s.enemyPokemon.maxHp;
       const catchRate = (1 - hpPercent) * 0.7 + 0.1;

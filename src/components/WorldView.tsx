@@ -56,7 +56,7 @@ export const WorldView = ({
   const grid = mapData.tiles;
   const mapHasEncounters = currentMap in WILD_POKEMON_DATABASE;
 
-  const cullRadius = 8;
+  const cullRadius = 24;
   const cullStep = 4;
   const rawMinY = Math.max(0, playerPos.y - cullRadius);
   const rawMaxY = Math.min(GRID_SIZE - 1, playerPos.y + cullRadius);
