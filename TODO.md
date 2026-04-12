@@ -1,43 +1,44 @@
-# TODO: Pokémon Fire Red Remake (Next Phase)
+# TODO
 
+## ~~Priority 1 — Install Node & verify the build~~ DONE
+- [x] Install Node.js on this machine (v20.19.4, npm 11.12.1)
+- [x] Run `npm install` — 179 packages, 0 vulnerabilities
+- [x] Run `npx tsc --noEmit` — clean (fixed 2 missing tile types: `bookshelf`, `machine`)
+- [x] Run `npm run test:run` — 121 tests passing across 4 test files
 
-- [ ] **Trainer Teams Progression** — scale trainer teams and levels by route/gym progression for smoother difficulty curve.
-- [ ] **Status/Volatile Rules Audit** — validate Gen I edge cases (sleep turns, paralysis interaction, stat-reset timing) with tests.
+## Priority 2 — Save/load system
+- [ ] Add localStorage persistence to the Zustand store
+- [ ] Persist progression data: playerTeam, inventory, currentMap, playerPos, storyStep, badges, defeatedTrainers, pcStorage, money, pickedItemIds, pokedex
+- [ ] Add save-on-change (or periodic auto-save)
+- [ ] Load saved state on app mount
+- [ ] Add a "New Game" option that clears saved data
 
-- [ ] **Battle HUD Pass 2** — add classic command cursor behavior and tighter menu alignment for both desktop and mobile.
-- [ ] **Touch Move Details** — mobile-friendly tap-to-expand move details (hover parity).
-- [ ] **Audio Mixing Pass** — normalize SFX/music volumes and add per-channel volume settings.
+## Priority 3 — Consolidate state into Zustand
+- [ ] Move `phase` / `setPhase` into the Zustand store
+- [ ] Move `pickedItemIds`, `showMoves`, `isMuted` into the store
+- [ ] Replace the `gameState` ref with `useGameStore.getState()` calls inside setTimeout callbacks
+- [ ] Simplify App.tsx — hooks subscribe directly to the store instead of receiving 15+ setter props
 
-## ⚔️ Battle UX Improvements
-- [ ] **Persistent Dialogue Cleanup** — battle text (e.g. "¡RIVAL SQUIRTLE usó PLACAJE!...") persists in the dialogue box even after the action menu re-appears. It should instead clear or read "¿Qué hará [NAME]?" when waiting for player input.
-- [ ] **Wait/Delay Desync on Action Menu** — sometimes the action menu area on the right would remain blank after a turn resolves until the user interacts with the UI again.
-- [ ] **Enable "HUIR" Button** — the Run button appears to be entirely inactive (greyed out) during rival/trainer battles, but it should still be clickable to inform the player they cannot run.
-- [ ] **String Formatting for Enemy Names** — the prefix "RIVAL" is currently burned directly into the species name string in the event log (e.g., "¡RIVAL SQUIRTLE usó..."). It should be grammatically improved to read "¡El SQUIRTLE rival usó..." or simply "SQUIRTLE usó...".
+## Priority 4 — PP tracking in battle
+- [ ] Decrement PP when a move is used in `battleEngine.ts`
+- [ ] Prevent selecting moves with 0 PP
+- [ ] Implement Struggle (used when all moves have 0 PP): typeless, 50 power, 1/4 recoil damage
+- [ ] Restore PP on heal at Pokécenter
+- [ ] Display current/max PP in the battle move selection UI
 
-## 🔴 User Reported Bugs
-- [ ] **Oak's Lab Teleport Alignment** — the teleport tile for Oak's lab does not match the visual door in Pallet Town.
-- [ ] **Pokeball vs Rival** — able to choose to throw a Pokeball at the rival, but nothing happens (silently fails without consuming turn or alerting).
-- [ ] **Battle Potion Failure** — choosing a Potion from the bag during battle does not do anything.
-- [ ] **Tile Culling Artifacts** — moving completely to edge of map makes opposite columns of tiles disappear prematurely.
-- [ ] **Spotted Trainer Movement Glitch** — can still move continuously while the exclamation mark (!) animation is playing before a battle starts.
-- [ ] **God Mode in Battle** — toggling God mode during a battle has no effect on the current battle stats.
-- [ ] **Pewter City Dead Doors** — standard house doors in Pewter City don't have teleport triggers. Need blocking signs or warps.
+## Priority 5 — Memoize NPC/item databases
+- [ ] Wrap `buildNPCDatabase()` and `buildItemDatabase()` calls in `useMemo` with correct deps
+- [ ] Or move the derivation into Zustand selectors so it's computed once per state change
 
-## 🟣 Demo Mode & Simulation Improvements
-- [ ] **Pathfinding Aesthetics (BFS)** — update the BFS navigation to minimize turns (penalize changing directions). Currently, the pathfinding generates zig-zag "stair-step" patterns to targets, which looks unnatural compared to straight L-shaped paths.
-- [ ] **Lab Tile Textures** — investigate and add textures for empty white tiles and weird striped wall segments in Oak's Lab that look out of place.
-- [ ] **Interaction Indicator Suppression** — hide the bouncing "A" action button UI prompts (e.g., above signs) when the AI demo mode is driving the character to maintain immersion.
-- [ ] **Demo Mode State Reset** — investigate why the Demo sometimes shuts off completely after interacting with all objects in Oak's Lab, instead of gracefully transitioning back to the random-walk heuristic fallback.
+## Priority 6 — More map content
+- [ ] Expand Mt. Moon interior (encounters, items, trainers)
+- [ ] Add Cerulean City map
+- [ ] Add Cerulean Gym (Misty)
+- [ ] Add Route 4 (Mt. Moon exit → Cerulean)
+- [ ] Populate routes with trainers, wild encounter tables, and items
 
-## 🛠️ Tooling & Quality
-
-- [ ] **E2E Smoke Tests** — add a minimal Playwright flow: move, battle, catch/use item, save/load.
-- [ ] **Performance Budget Checks** — measure frame time and memory after culling/layer changes on low-end devices.
-- [ ] **Refactor Guardrails** — add lint/test checks that enforce no regressions in FSM transitions and save schema migrations.
-
----
-
-### Current Coverage
-- **Maps:** Pallet Town, Oak's Lab, Route 1, Viridian City, Pokecenter, Pokemart, Viridian Forest, Pewter City, Pewter Gym, Route 3
-- **Bosses:** Brock
-- **Core systems:** movement, encounters, battle FSM, XP/level/evolution, inventory quantities, save slots, Pokedex, PC
+## Priority 7 — Overworld poison damage
+- [ ] Tick 1 HP per step for poisoned Pokémon while walking
+- [ ] Faint poisoned Pokémon at 0 HP (Gen I: poison can kill outside battle)
+- [ ] Show poison damage visual/text feedback on the overworld
+- [ ] Clear poison on heal at Pokécenter

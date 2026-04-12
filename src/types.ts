@@ -115,7 +115,7 @@ export interface Entity {
 }
 
 export interface Tile {
-  type: 'grass' | 'water' | 'path' | 'wall' | 'door' | 'floor' | 'carpet' | 'table' | 'tree' | 'sign' | 'cut_tree' | 'boulder';
+  type: 'grass' | 'water' | 'path' | 'wall' | 'door' | 'floor' | 'carpet' | 'table' | 'tree' | 'sign' | 'cut_tree' | 'boulder' | 'bookshelf' | 'machine';
   walkable: boolean;
 }
 
