@@ -1,4 +1,5 @@
 import { Tile, Position, MapID, Direction } from '../../types';
+import { buildRenderLayers, RenderLayers } from '../tileset/autotiler';
 
 export interface Warp {
   x: number;
@@ -11,6 +12,8 @@ export interface Warp {
 export interface ParsedMap {
   tiles: Tile[][];
   warps: Warp[];
+  /** Rendering layers – tile IDs resolved by the autotiler */
+  layers: RenderLayers;
 }
 
 const TILE_LEGEND: Record<string, Tile> = {
@@ -37,8 +40,11 @@ export function parseTileMap(data: { rows: string[], warps?: Array<{ x: number; 
     row.split('').map(char => TILE_LEGEND[char] ?? FALLBACK_TILE)
   );
 
+  const layers = buildRenderLayers(tiles);
+
   return {
     tiles,
-    warps: (data.warps || []) as Warp[]
+    warps: (data.warps || []) as Warp[],
+    layers,
   };
 }
