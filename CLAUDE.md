@@ -6,23 +6,18 @@ This is a faithful recreation of Pokémon Red / Fire Red (Gen I) built with mode
 
 ## Architecture
 
-`App.tsx` owns React state, two shared refs (`gameState`, `battleStateRef`), hook wiring, and JSX. Logic lives in hooks: `useBattleEngine` drives `battleEngine.ts` (pure state machine), `useMovementEngine` handles movement/collision/encounters, `useInteractionEngine` handles NPC/item/tile interactions, `useInputHandler` manages keyboard + movement loop.
-
-## The `gameState` Ref
-
-All hooks read this inside `setTimeout` to avoid stale closures. **Never** read closure-captured hook params inside `setTimeout` — always use `gameState.current`.
-
-```typescript
-gameState.current = {
-  playerPos, direction, isMoving, dialogue,
-  inBattle, phaseType, battleSubPhase,
-  currentMap, playerTeam, maps, npcs, items,
-  defeatedTrainers, inventory, storyStep,
-  pcStorage, badges, lastHealLocation
-}
-```
+All game state lives in a Zustand store (`src/store/gameStore.ts`) with `zustand/persist` for localStorage save/load. `App.tsx` is a thin shell that wires hooks and renders components. Logic lives in hooks: `useBattleEngine` drives `battleEngine.ts` (pure state machine), `useMovementEngine` handles movement/collision/encounters, `useInteractionEngine` handles NPC/item/tile interactions, `useInputHandler` manages keyboard + movement loop. Hooks read state via `useGameStore.getState()` inside `setTimeout` to avoid stale closures.
 
 `battleStateRef` holds mutable `BattleState` during fights (initialized by `initBattle`, driven by `useBattleEngine`).
+
+## Tileset Rendering
+
+Maps are rendered via a canvas-generated pixel art tileset (`src/data/tileset/tilesetGenerator.ts`). The autotiler (`src/data/tileset/autotiler.ts`) converts the semantic `Tile[][]` grid into three rendering layers:
+- **ground** — base terrain (grass, path, floor, roof, walls)
+- **objects** — tree trunks, furniture, signs (z-indexed by row, below player/NPCs)
+- **overhead** — tree canopies (z-indexed above player for walk-behind depth)
+
+`GameTile` is a `React.memo` component that renders a single `<div>` with `background-position` on the tileset spritesheet. Tile IDs are defined in `tilesetGenerator.ts` as `T.GRASS`, `T.ROOF_M`, etc.
 
 ## Phase FSM
 
