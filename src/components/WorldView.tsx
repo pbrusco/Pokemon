@@ -100,42 +100,22 @@ export const WorldView = ({
         groundId = T.TALL_GRASS;
       }
 
-      const posStyle = { left: x * TILE_SIZE, top: y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE };
-
-      // Ground
+      // Ground — single flat div per tile (no wrapper)
       visibleGroundTiles.push(
-        <div key={`g-${x}-${y}`} className="absolute" style={posStyle}>
-          <GameTile
-            tileId={groundId}
-            isGrassActive={grassEffect?.x === x && grassEffect?.y === y}
-            type={tile.type}
-          />
-        </div>
+        <GameTile key={`g-${x}-${y}`} tileId={groundId} x={x} y={y} />
       );
 
       // Objects (trunks, tables, bookshelves, etc.)
       if (objectId !== T.EMPTY) {
         visibleObjectTiles.push(
-          <div
-            key={`o-${x}-${y}`}
-            className="absolute"
-            style={{ ...posStyle, zIndex: 15 + y }}
-          >
-            <GameTile tileId={objectId} />
-          </div>
+          <GameTile key={`o-${x}-${y}`} tileId={objectId} x={x} y={y} z={15 + y} />
         );
       }
 
       // Overhead (tree canopies)
       if (overheadId !== T.EMPTY) {
         visibleOverheadTiles.push(
-          <div
-            key={`h-${x}-${y}`}
-            className="absolute pointer-events-none"
-            style={{ ...posStyle, zIndex: 40 + y }}
-          >
-            <GameTile tileId={overheadId} />
-          </div>
+          <GameTile key={`h-${x}-${y}`} tileId={overheadId} x={x} y={y} z={40 + y} noPointerEvents />
         );
       }
     }
@@ -286,6 +266,23 @@ export const WorldView = ({
               )}
             </motion.div>
           ))}
+
+          {/* Grass rustle effect — single overlay instead of per-tile AnimatePresence */}
+          <AnimatePresence>
+            {grassEffect && (
+              <motion.div
+                key={`rustle-${grassEffect.x}-${grassEffect.y}`}
+                initial={{ opacity: 0, scale: 0.6, y: 4 }}
+                animate={{ opacity: [0, 1, 1, 0], scale: [0.6, 1.1, 1, 0.8], y: [4, -2, 0, 2] }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.45, ease: 'easeOut' }}
+                className="absolute flex items-center justify-center z-10 pointer-events-none text-base"
+                style={{ left: grassEffect.x * TILE_SIZE, top: grassEffect.y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}
+              >
+                🌿
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Player */}
           <PlayerSprite position={playerPos} direction={direction} isMoving={isMoving} />
