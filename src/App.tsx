@@ -109,7 +109,7 @@ export default function App() {
 
   const maps = worldMaps;
 
-  const npcs = buildNPCDatabase(playerTeam, hasParcel, hasPokedex, badges);
+  const npcs = buildNPCDatabase(playerTeam, hasParcel, hasPokedex, badges, storyStep);
   const items = buildItemDatabase(pickedItemIds);
 
   const handlePCSwap = (teamIdx: number, pcIdx: number) => {

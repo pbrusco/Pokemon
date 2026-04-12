@@ -24,7 +24,7 @@
   "warps": [
     { "x": 7,  "y": 9,  "targetMap": "PLAYERS_HOUSE_1F", "targetPos": { "x": 10, "y": 13 }, "targetDir": "up" },
     { "x": 12, "y": 9,  "targetMap": "RIVALS_HOUSE",      "targetPos": { "x": 10, "y": 13 }, "targetDir": "up" },
-    { "x": 12, "y": 14, "targetMap": "OAKS_LAB",          "targetPos": { "x": 10, "y": 14 }, "targetDir": "up" },
+    { "x": 10, "y": 14, "targetMap": "OAKS_LAB",          "targetPos": { "x": 10, "y": 14 }, "targetDir": "up" },
     { "x": 10, "y": 5,  "targetMap": "ROUTE_1",           "targetPos": { "x": 10, "y": 19 }, "targetDir": "up" }
   ]
 }

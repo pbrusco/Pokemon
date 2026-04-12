@@ -5,7 +5,8 @@ export function buildNPCDatabase(
   playerTeam: Pokemon[],
   hasParcel: boolean,
   hasPokedex: boolean,
-  badges: string[]
+  badges: string[],
+  storyStep: string = 'START'
 ): Record<MapID, NPC[]> {
   return {
     PALLET_TOWN: [
@@ -40,19 +41,19 @@ export function buildNPCDatabase(
       }
     ],
     OAKS_LAB: [
-      {
+      ...(storyStep !== 'START' ? [{
         id: 'oak',
         name: 'PROF. OAK',
-        type: 'npc',
-        onInteract: 'oak_parcel_turnin',
+        type: 'npc' as const,
+        onInteract: 'oak_parcel_turnin' as const,
         position: { x: 10, y: 7 },
-        direction: 'down',
+        direction: 'down' as const,
         dialogue: hasParcel
           ? ["¡Oh! ¡Es el paquete que pedí!", "¡Gracias! Como recompensa, tomad esto: ¡Una POKÉDEX!", "¡Es un inventario de alta tecnología!"]
           : hasPokedex
             ? ["¡La POKÉDEX es un gran invento!", "¡Trata de capturarlos a todos!"]
             : ["¡Hola Pablo! Por fin llegas.", "Toma uno de estos POKÉMON, te ayudará en tu viaje."]
-      },
+      }] : []),
       { id: 'rival', name: 'AZUL', type: 'npc', position: { x: 11, y: 7 }, direction: 'left', dialogue: ["¡Abuelo! ¡Yo también quiero un POKÉMON!", "¡Ja! Mi POKÉMON es mucho más fuerte que el tuyo."], isRival: true }
     ],
     ROUTE_1: [
