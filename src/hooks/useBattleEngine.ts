@@ -1,43 +1,17 @@
-import { useCallback, useState, useEffect, Dispatch, SetStateAction, MutableRefObject } from 'react';
-import { Pokemon, MapID, NPC, Entity, InventoryCounts } from '../types';
+import { useCallback, useState, useEffect, MutableRefObject } from 'react';
+import { Pokemon } from '../types';
 import { GamePhase, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, B_TRAINER_NEXT_POKEMON, EXPLORING, BLACKOUT, HEALING } from '../types/gamePhase';
 import { stepBattle, BattleState, BattleAction, BattleEffect } from '../lib/battleEngine';
 import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
 import { applyGodMode } from '../lib/godMode';
-
-interface GameStateSnapshot {
-  npcs: Record<MapID, NPC[]>;
-  currentMap: MapID;
-  storyStep: string;
-  lastHealLocation: { map: MapID; pos: { x: number; y: number } };
-  inventory: InventoryCounts;
-  pcStorage: Pokemon[];
-  playerTeam: Pokemon[];
-  badges: string[];
-  items: Record<MapID, Entity[]>;
-  [key: string]: unknown;
-}
+import { useGameStore } from '../store/gameStore';
 
 interface UseBattleEngineParams {
   battleStateRef: MutableRefObject<BattleState | null>;
-  gameState: MutableRefObject<GameStateSnapshot>;
-  setPhase: Dispatch<SetStateAction<GamePhase>>;
-  setShowMoves: Dispatch<SetStateAction<boolean>>;
-  setPlayerTeam: (team: Pokemon[]) => void;
   setPlayerAnim: (anim: 'idle' | 'attack' | 'hit' | 'faint') => void;
   setEnemyAnim: (anim: 'idle' | 'attack' | 'hit' | 'faint') => void;
-  setDefeatedTrainers: (fn: (prev: string[]) => string[]) => void;
-  setBadges: (fn: (prev: string[]) => string[]) => void;
-  setMoney: (fn: (prev: number) => number) => void;
-  setStoryStep: (step: 'START' | 'OAK_STOPPED' | 'IN_LAB' | 'PICKED_STARTER' | 'RIVAL_BATTLE' | 'EXPLORING') => void;
-  setDialogue: (d: string | null) => void;
-  setInventory: (inv: InventoryCounts) => void;
-  setPcStorage: (pc: Pokemon[]) => void;
-  setCurrentMap: (map: MapID) => void;
-  setPlayerPos: (pos: { x: number; y: number }) => void;
-  setPokedex: (fn: (prev: Record<string, { seen: boolean; caught: boolean }>) => Record<string, { seen: boolean; caught: boolean }>) => void;
   setBattleShake: (v: boolean) => void;
 }
 
@@ -61,22 +35,8 @@ function mapEnginePhase(p: string): GamePhase {
 
 export function useBattleEngine({
   battleStateRef,
-  gameState,
-  setPhase,
-  setShowMoves,
-  setPlayerTeam,
   setPlayerAnim,
   setEnemyAnim,
-  setDefeatedTrainers,
-  setBadges,
-  setMoney,
-  setStoryStep,
-  setDialogue,
-  setInventory,
-  setPcStorage,
-  setCurrentMap,
-  setPlayerPos,
-  setPokedex,
   setBattleShake,
 }: UseBattleEngineParams) {
   const [enemyPokemon, setEnemyPokemon] = useState<Pokemon | null>(null);
@@ -90,12 +50,12 @@ export function useBattleEngine({
       if (active && battleStateRef.current) {
         const newTeam = applyGodMode(battleStateRef.current.playerTeam);
         battleStateRef.current = { ...battleStateRef.current, playerTeam: newTeam };
-        setPlayerTeam(newTeam);
+        useGameStore.getState().setPlayerTeam(newTeam);
       }
     };
     window.addEventListener('godModeToggled', onGodModeToggled);
     return () => window.removeEventListener('godModeToggled', onGodModeToggled);
-  }, [battleStateRef, setPlayerTeam]);
+  }, [battleStateRef]);
 
   const playBattleEffects = (effects: BattleEffect[]): number => {
     let delay = 0;
@@ -126,92 +86,95 @@ export function useBattleEngine({
   };
 
   const resolveBattleOutcome = (newState: BattleState) => {
-    const { npcs, currentMap, storyStep, lastHealLocation } = gameState.current;
+    const store = useGameStore.getState();
+    const npcs = store.getNPCs();
+    
     if (newState.outcome === 'player_win') {
       if (newState.isTrainerBattle) {
-        const trainer = npcs[currentMap]?.find(n => n.isTrainer && n.trainerTeam?.some(p => p.id === newState.enemyPokemon.id));
+        const trainer = npcs[store.currentMap]?.find(n => n.isTrainer && n.trainerTeam?.some(p => p.id === newState.enemyPokemon.id));
         if (trainer) {
           const moneyReward = newState.enemyPokemon.level * 20;
-          setDefeatedTrainers(prev => [...prev, trainer.id]);
-          if (moneyReward > 0) setMoney(prev => prev + moneyReward);
+          store.setDefeatedTrainers(prev => [...prev, trainer.id]);
+          if (moneyReward > 0) store.setMoney(prev => prev + moneyReward);
           if (trainer.id === 'brock') {
-            setBadges(prev => [...prev, 'BOULDER']);
+            store.setBadges(prev => [...prev, 'BOULDER']);
             setBattleLog(prev => `${prev}\n¡Recibiste la MEDALLA ROCA de BROCK!`);
           }
         }
       }
       setTimeout(() => {
-        setInventory(newState.inventory);
-        setPhase(EXPLORING);
+        store.setInventory(newState.inventory);
+        store.setPhase(EXPLORING);
         setEnemyAnim('idle');
-        if (storyStep === 'PICKED_STARTER') {
-          setStoryStep('RIVAL_BATTLE');
-          setDialogue('AZUL: ¡Maldición! ¡He perdido! Pero no volverá a pasar.');
+        if (store.storyStep === 'PICKED_STARTER') {
+          store.setStoryStep('RIVAL_BATTLE');
+          store.setDialogue('AZUL: ¡Maldición! ¡He perdido! Pero no volverá a pasar.');
         }
       }, sd(2000));
     } else if (newState.outcome === 'player_blackout') {
-      setPhase(BLACKOUT);
+      store.setPhase(BLACKOUT);
       setTimeout(() => {
-        setCurrentMap(lastHealLocation.map);
-        setPlayerPos(lastHealLocation.pos);
+        store.setCurrentMap(store.lastHealLocation.map);
+        store.setPlayerPos(store.lastHealLocation.pos);
       }, sd(1200));
       setTimeout(() => {
-        setPhase(HEALING);
+        store.setPhase(HEALING);
         setTimeout(() => {
-          setPlayerTeam(newState.playerTeam.map(fullHeal));
+          store.setPlayerTeam(newState.playerTeam.map(fullHeal));
           soundManager.play('SELECT');
         }, sd(800));
         setTimeout(() => {
-          setPhase(EXPLORING);
-          setDialogue('¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.');
+          store.setPhase(EXPLORING);
+          store.setDialogue('¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.');
         }, sd(1600));
       }, sd(2400));
     } else if (newState.outcome === 'fled') {
-      setInventory(newState.inventory);
-      setPhase(EXPLORING);
+      store.setInventory(newState.inventory);
+      store.setPhase(EXPLORING);
     }
   };
 
   const dispatchBattle = useCallback((action: BattleAction) => {
     if (!battleStateRef.current) return;
     if (battleStateRef.current.outcome !== 'ongoing') return;
+    
     const ph = battleStateRef.current.phase;
     const validPhase = ph === 'CHOOSING' || (ph === 'FORCED_SWITCH' && action.type === 'SWITCH');
     if (!validPhase && action.type !== 'TICK') return;
 
-    setPhase(battle(B_PLAYER_ATTACK));
-    setShowMoves(false);
+    useGameStore.getState().setPhase(battle(B_PLAYER_ATTACK));
+    useGameStore.getState().setShowMoves(false);
 
     const { state: newState, effects } = stepBattle(battleStateRef.current, action);
     battleStateRef.current = newState;
     
     if (action.type !== 'TICK') {
-      setInventory(newState.inventory);
+      useGameStore.getState().setInventory(newState.inventory);
     }
 
     if (action.type === 'CATCH') {
-      setPhase(battle(B_CATCHING));
+      useGameStore.getState().setPhase(battle(B_CATCHING));
       setCatchResult(null);
       setBattleLog('¡Pablo lanzó una POKÉ BALL!');
       soundManager.play('SELECT');
-      setInventory(newState.inventory);
+      useGameStore.getState().setInventory(newState.inventory);
 
       if (newState.outcome === 'caught') {
         setTimeout(() => setCatchResult(true), sd(2800));
         setTimeout(() => {
           setCatchResult(null);
-          setPokedex(prev => ({ ...prev, [newState.enemyPokemon.id]: { seen: true, caught: true } }));
-          setPcStorage(newState.pcStorage);
-          setPlayerTeam(newState.playerTeam);
-          setPhase(EXPLORING);
+          useGameStore.getState().updatePokedex(newState.enemyPokemon.id, true);
+          useGameStore.getState().setPcStorage(newState.pcStorage);
+          useGameStore.getState().setPlayerTeam(newState.playerTeam);
+          useGameStore.getState().setPhase(EXPLORING);
         }, sd(4000));
       } else {
         setTimeout(() => setCatchResult(false), sd(2800));
         setTimeout(() => {
           setCatchResult(null);
-          setPlayerTeam(newState.playerTeam);
+          useGameStore.getState().setPlayerTeam(newState.playerTeam);
           setEnemyPokemon(newState.enemyPokemon);
-          setPhase(mapEnginePhase(newState.phase));
+          useGameStore.getState().setPhase(mapEnginePhase(newState.phase));
         }, sd(4000));
       }
       return;
@@ -227,7 +190,7 @@ export function useBattleEngine({
     }
     setEnemyPokemon(newState.enemyPokemon);
     if (action.type !== 'ATTACK') {
-      setPlayerTeam(newState.playerTeam);
+      useGameStore.getState().setPlayerTeam(newState.playerTeam);
     }
 
     const playerDuration = playBattleEffects(playerEffects);
@@ -237,7 +200,7 @@ export function useBattleEngine({
       setTimeout(() => {
         setPlayerAnim('idle');
         setEnemyAnim('idle');
-        setPhase(mapEnginePhase(state.phase));
+        useGameStore.getState().setPhase(mapEnginePhase(state.phase));
         resolveBattleOutcome(state);
 
         if (state.phase === 'TRAINER_NEXT_POKEMON') {
@@ -246,7 +209,7 @@ export function useBattleEngine({
             const r = stepBattle(battleStateRef.current, { type: 'TICK' });
             battleStateRef.current = r.state;
             setEnemyPokemon(r.state.enemyPokemon);
-            setPhase(mapEnginePhase(r.state.phase));
+            useGameStore.getState().setPhase(mapEnginePhase(r.state.phase));
           }, sd(1200));
         }
       }, delay);
@@ -256,13 +219,13 @@ export function useBattleEngine({
       setTimeout(() => {
         setPlayerAnim('idle');
         setEnemyAnim('idle');
-        setPlayerTeam(newState.playerTeam);
+        useGameStore.getState().setPlayerTeam(newState.playerTeam);
         const enemyDuration = playBattleEffects(enemyEffects);
         const enemyDelay = Math.max(enemyDuration + sd(300), sd(800));
         handlePostBattle(newState, enemyDelay);
       }, playerDelay);
     } else {
-      setPlayerTeam(newState.playerTeam);
+      useGameStore.getState().setPlayerTeam(newState.playerTeam);
       handlePostBattle(newState, playerDelay);
     }
   }, [battleStateRef]);

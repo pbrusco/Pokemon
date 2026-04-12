@@ -353,9 +353,9 @@ export function BattleScreen({
             <div className="grid grid-cols-2 h-full gap-2 text-[#2f2f2f] font-bold text-sm sm:text-lg items-center tracking-tight uppercase">
               {([
                 { label: 'LUCHAR', shortcut: '1', action: () => setShowMoves(true), disabled: false },
-                { label: 'POKÉMON', shortcut: 'P', action: () => setShowTeam(true), disabled: false },
-                { label: 'BOLSA', shortcut: 'B', action: () => setShowInventory(true), disabled: false },
-                { label: 'HUIR', shortcut: 'H', action: () => onFlee(), disabled: isTrainerBattle },
+                { label: 'POKÉMON', shortcut: '2', action: () => setShowTeam(true), disabled: false },
+                { label: 'BOLSA', shortcut: '3', action: () => setShowInventory(true), disabled: false },
+                { label: 'HUIR', shortcut: '4', action: () => onFlee(), disabled: isTrainerBattle },
               ] as { label: string; shortcut: string; action: () => void; disabled: boolean }[]).map((entry) => (
                 <button
                   key={entry.label}

@@ -11,7 +11,7 @@ export const PlayerSprite = ({ position, direction, isMoving }: { position: Posi
         x: position.x * TILE_SIZE,
         y: position.y * TILE_SIZE,
       }}
-      transition={{ type: "tween", duration: 0.1, ease: "linear" }}
+      transition={{ type: "tween", duration: 0.11, ease: "linear" }}
       style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 30 + position.y }}
     >
       <div className="relative">
