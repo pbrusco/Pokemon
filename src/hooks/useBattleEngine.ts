@@ -184,6 +184,10 @@ export function useBattleEngine({
 
     const { state: newState, effects } = stepBattle(battleStateRef.current, action);
     battleStateRef.current = newState;
+    
+    if (action.type !== 'TICK') {
+      setInventory(newState.inventory);
+    }
 
     if (action.type === 'CATCH') {
       setPhase(battle(B_CATCHING));

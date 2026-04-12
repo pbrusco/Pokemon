@@ -192,8 +192,49 @@ export function buildNPCDatabase(
         ]
       }
     ],
-    MT_MOON: [],
-    ROUTE_2: [],
+    MT_MOON: [
+      {
+        id: 'hiker_mtmoon',
+        name: 'MONTAÑERO MARCOS',
+        type: 'npc',
+        position: { x: 6, y: 10 },
+        direction: 'down',
+        dialogue: ["¡Cuidado! ¡Aquí abundan los ZUBAT!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE], 74, { types: ['rock', 'ground'] }),
+          makePokemon('zubat', 'ZUBAT', 10, 'poison', [MOVES.TACKLE], 41, { types: ['poison', 'flying'] })
+        ]
+      },
+      {
+        id: 'rocket_mtmoon',
+        name: 'SOLDADO ROCKET',
+        type: 'npc',
+        position: { x: 12, y: 5 },
+        direction: 'left',
+        dialogue: ["¡El TEAM ROCKET se hará con todos los fósiles de MT MOON!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('rattata', 'RATTATA', 11, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19),
+          makePokemon('zubat', 'ZUBAT', 11, 'poison', [MOVES.TACKLE], 41, { types: ['poison', 'flying'] })
+        ]
+      }
+    ],
+    ROUTE_2: [
+      {
+        id: 'bug_catcher_rt2',
+        name: 'CAZABICHOS TOMY',
+        type: 'npc',
+        position: { x: 9, y: 12 },
+        direction: 'right',
+        dialogue: ["¡Atrapé estos bichos en el Bosque Verde!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('caterpie', 'CATERPIE', 4, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10),
+          makePokemon('weedle', 'WEEDLE', 4, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 13, { types: ['bug', 'poison'] })
+        ]
+      }
+    ],
   };
 }
 
@@ -232,8 +273,13 @@ export function buildItemDatabase(pickedItemIds: string[]): Record<MapID, Entity
     ],
     PEWTER_GYM: [],
     ROUTE_3: [],
-    MT_MOON: [],
-    ROUTE_2: [],
+    MT_MOON: [
+      { id: 'item_potion_mtmoon', type: 'item', position: { x: 14, y: 14 }, direction: 'down', sprite: '🧪' }
+    ],
+    ROUTE_2: [
+      { id: 'sign_route2', type: 'object', position: { x: 4, y: 15 }, direction: 'down', sprite: '🪧', dialogue: ['RUTA 2: Al norte a CIUDAD PLATEADA.'] },
+      { id: 'item_potion_rt2', type: 'item', position: { x: 10, y: 5 }, direction: 'down', sprite: '🧪' }
+    ],
   };
 
   return Object.fromEntries(

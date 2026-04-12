@@ -238,10 +238,8 @@ export default function App() {
     }
     if (itemId === 'POKEBALL') {
       dispatchBattle({ type: 'CATCH' });
-      setPhase({ type: 'BATTLE', sub: { type: 'CHOOSING' } });
     } else {
       dispatchBattle({ type: 'USE_ITEM', itemId });
-      setPhase({ type: 'BATTLE', sub: { type: 'CHOOSING' } });
     }
   };
 
