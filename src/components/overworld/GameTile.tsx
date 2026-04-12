@@ -22,6 +22,8 @@ export const GameTile = ({ type, isGrassActive, hasEncounters }: TileProps & { i
       case 'cut_tree': return 'bg-[#72c08f] border-[#4c9b6b]';
       case 'boulder': return 'bg-[#b8b8b8] border-[#8a8a8a]';
       case 'sign': return 'bg-[#e0f8d0] border-[#d0e8c0]/50';
+      case 'bookshelf': return 'bg-[#9a6a4a] border-[#6b4a3a]';
+      case 'machine': return 'bg-[#d0d8e0] border-[#8090a0]';
       default: return 'bg-white';
     }
   };
@@ -90,10 +92,31 @@ export const GameTile = ({ type, isGrassActive, hasEncounters }: TileProps & { i
       </AnimatePresence>
       {type === 'wall' && (
         <div className="w-full h-full flex flex-col items-center justify-center">
-          <div className="w-full h-1/3 bg-[#f85858] border-b-2 border-[#383838]" />
-          <div className="w-full h-2/3 bg-[#f8f8f8] flex items-center justify-center">
-             <div className="w-4 h-4 border-2 border-[#d8d8d8] rounded-sm" />
+          <div className="w-full h-[40%] bg-[#f4a0a0] border-b-2 border-[#505050]" />
+          <div className="w-full h-[60%] bg-[#efefef] flex items-center justify-center">
+             <div className="w-3 h-3 bg-white border-b-2 border-[#d0d0d0] rounded-sm" />
           </div>
+        </div>
+      )}
+      {type === 'floor' && (
+        <div className="absolute inset-0 opacity-10">
+          <div className="w-full h-full bg-[linear-gradient(45deg,#000_25%,transparent_25%,transparent_75%,#000_75%,#000),linear-gradient(45deg,#000_25%,transparent_25%,transparent_75%,#000_75%,#000)] bg-[length:16px_16px] bg-[position:0_0,8px_8px]" />
+        </div>
+      )}
+      {type === 'bookshelf' && (
+        <div className="w-full h-full flex flex-col gap-1 p-1 items-center justify-center">
+          <div className="flex gap-0.5"><div className="w-1.5 h-3 bg-red-400 rounded-sm"/><div className="w-1.5 h-3 bg-blue-400 rounded-sm"/><div className="w-1.5 h-3 bg-green-400 rounded-sm"/></div>
+          <div className="w-full h-1 bg-[#4a3020] rounded-sm" />
+          <div className="flex gap-0.5"><div className="w-1.5 h-3 bg-yellow-400 rounded-sm"/><div className="w-1.5 h-3 bg-purple-400 rounded-sm"/></div>
+        </div>
+      )}
+      {type === 'machine' && (
+        <div className="w-full h-full flex flex-col p-1 items-center justify-between border-2 border-slate-400 bg-slate-300">
+          <div className="w-full h-3 bg-slate-800 rounded-sm flex items-center justify-center gap-1">
+             <div className="w-1 h-1 bg-green-500 rounded-full" />
+             <div className="w-1 h-1 bg-red-500 rounded-full" />
+          </div>
+          <div className="w-full h-2 bg-slate-400" />
         </div>
       )}
       {type === 'door' && (

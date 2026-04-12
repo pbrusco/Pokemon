@@ -69,29 +69,34 @@ function findPath(start: { x: number, y: number }, target: { x: number, y: numbe
   if (!map) return null;
   const npcs = s.getNPCs?.()[s.currentMap] ?? [];
 
-  const queue: { pos: { x: number, y: number }, path: Dir[] }[] = [{ pos: start, path: [] }];
-  const visited = new Set<string>();
-  visited.add(`${start.x},${start.y}`);
+  const queue: { pos: { x: number, y: number }, path: Dir[], cost: number }[] = [{ pos: start, path: [], cost: 0 }];
+  const visited = new Map<string, number>();
+  visited.set(`${start.x},${start.y}`, 0);
 
   while (queue.length > 0) {
-    const { pos, path } = queue.shift()!;
+    queue.sort((a, b) => a.cost - b.cost);
+    const { pos, path, cost } = queue.shift()!;
     const dirs: Dir[] = ['up', 'down', 'left', 'right'];
     for (const d of dirs) {
       const n = nextPos(pos, d);
       
       if (n.x === target.x && n.y === target.y) {
-        return path;
+        return [...path, d];
       }
 
+      const prevDir = path.length > 0 ? path[path.length - 1] : null;
+      const turnPenalty = prevDir && prevDir !== d ? 1.5 : 0;
+      const newCost = cost + 1 + turnPenalty;
+
       const key = `${n.x},${n.y}`;
-      if (visited.has(key)) continue;
+      if (visited.has(key) && visited.get(key)! <= newCost) continue;
 
       if (n.x < 0 || n.x >= 20 || n.y < 0 || n.y >= 20) continue;
       if (!map[n.y]?.[n.x]?.walkable) continue;
       if (npcs.some((npc: any) => npc.position.x === n.x && n.y === npc.position.y)) continue;
 
-      visited.add(key);
-      queue.push({ pos: n, path: [...path, d] });
+      visited.set(key, newCost);
+      queue.push({ pos: n, path: [...path, d], cost: newCost });
     }
   }
   return null;
@@ -124,6 +129,9 @@ function pickDir(s: any): Dir {
     if (!map[n.y]?.[n.x]?.walkable) return false;
     // Check NPC collision
     if (mapNpcs.some((npc: any) => npc.position.x === n.x && npc.position.y === n.y)) return false;
+    // Check object collision
+    const mapItems = s.items?.[currentMap] ?? [];
+    if (mapItems.some((item: any) => item.position.x === n.x && item.position.y === n.y)) return false;
     return true;
   });
 
@@ -364,6 +372,12 @@ function restartInterval() {
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
+function emitState() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('demoModeChanged', { detail: { running: isDemoRunning(), paused: isDemoPaused() } }));
+  }
+}
+
 export function startDemo(opts?: { tickMs?: number; maxTicks?: number; gameSpeed?: number }) {
   if (ds.intervalId) { console.log('[DEMO] Already running'); return; }
   const speed = opts?.gameSpeed ?? 1;
@@ -378,6 +392,7 @@ export function startDemo(opts?: { tickMs?: number; maxTicks?: number; gameSpeed
   ds.paused = false;
   console.log(`[DEMO] Started (${ds.tickMs}ms/tick, ${speed}x speed)`);
   restartInterval();
+  emitState();
 }
 
 export function stopDemo() {
@@ -385,16 +400,19 @@ export function stopDemo() {
   ds.paused = false;
   setGameSpeed(1);
   console.log(`[DEMO] Stopped. ${ds.tick} ticks, ${ds.log.length} entries.`);
+  emitState();
 }
 
 export function pauseDemo() {
   ds.paused = true;
   console.log('[DEMO] Paused');
+  emitState();
 }
 
 export function resumeDemo() {
   ds.paused = false;
   console.log('[DEMO] Resumed');
+  emitState();
 }
 
 export function setSpeed(speed: number) {

@@ -26,6 +26,8 @@ const TILE_LEGEND: Record<string, Tile> = {
   'H': { type: 'cut_tree', walkable: false },
   'B': { type: 'boulder', walkable: false },
   '~': { type: 'water', walkable: false },
+  'K': { type: 'bookshelf', walkable: false },
+  'M': { type: 'machine', walkable: false },
 };
 
 const FALLBACK_TILE: Tile = { type: 'path', walkable: true };

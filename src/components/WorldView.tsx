@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Position, Direction, NPC, Entity, Pokemon, MapID, TILE_SIZE, GRID_SIZE } from '../types';
 import { WILD_POKEMON_DATABASE } from '../constants';
@@ -55,6 +56,14 @@ export const WorldView = ({
   const mapData = maps[currentMap];
   const grid = mapData.tiles;
   const mapHasEncounters = currentMap in WILD_POKEMON_DATABASE;
+
+  const [isDemoActive, setIsDemoActive] = useState(() => (window as typeof window & { __demo?: any }).__demo?.running?.() ?? false);
+
+  useEffect(() => {
+    const handleDemoChange = (e: any) => setIsDemoActive(e.detail.running && !e.detail.paused);
+    window.addEventListener('demoModeChanged', handleDemoChange);
+    return () => window.removeEventListener('demoModeChanged', handleDemoChange);
+  }, []);
 
   const cullRadius = 24;
   const cullStep = 4;
@@ -254,7 +263,7 @@ export const WorldView = ({
 
         {/* Interaction indicator */}
         <AnimatePresence>
-          {isInteractable && (
+          {isInteractable && !isDemoActive && (
             <motion.div
               key="interact-indicator"
               initial={{ opacity: 0, y: 10, scale: 0.5 }}
