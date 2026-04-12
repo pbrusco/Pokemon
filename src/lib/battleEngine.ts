@@ -451,7 +451,8 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         effects.push({ type: 'screen_flash' });
         effects.push({ type: 'battle_shake' });
 
-        let enemyLog = `¡${s.enemyPokemon.name} usó ${enemyMove.name}!`;
+        const eName = s.enemyPokemon.name.startsWith('RIVAL ') ? `El ${s.enemyPokemon.name.replace('RIVAL ', '')} rival` : s.enemyPokemon.name;
+        let enemyLog = `¡${eName} usó ${enemyMove.name}!`;
         if (enemyResult.effectivenessLabel === 'no_effect') {
           enemyLog += ` No afecta a ${playerPkmn.name}...`;
         } else {
@@ -487,6 +488,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
             effects.push(log(faintLog));
             s = { ...s, log: faintLog, phase: 'FORCED_SWITCH' };
           }
+        } else {
           effects.push(log(''));
           s = { ...s, log: '', phase: 'CHOOSING' };
         }
@@ -612,7 +614,13 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
     // ── FLEE ─────────────────────────────────────────────────────────────────
     case 'FLEE': {
       if (s.phase !== 'CHOOSING') return { state, effects };
-      if (s.isTrainerBattle) return { state, effects };
+      if (s.isTrainerBattle) {
+        const logMsg = `¡No puedes huir de un combate contra un entrenador!`;
+        effects.push(log(logMsg));
+        s = { ...s, log: logMsg, phase: 'ENEMY_ATTACK' };
+        const r = stepBattle(s, { type: 'TICK' });
+        return { state: r.state, effects: [...effects, ...r.effects] };
+      }
 
       const playerSpeed = s.playerTeam[0].baseStats.speed;
       const enemySpeed = Math.max(1, s.enemyPokemon.baseStats.speed);

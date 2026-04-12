@@ -4,7 +4,7 @@ import { useInteractionEngine } from '../useInteractionEngine';
 import type { NPC, Entity, Tile, Pokemon, Position, InventoryCounts } from '../../types';
 import type { MapID } from '../../types';
 import { STARTERS } from '../../constants';
-import { EXPLORING, HEALING, SHOP, BATTLE_TRANSITION } from '../../types/gamePhase';
+import { EXPLORING, HEALING, SHOP } from '../../types/gamePhase';
 
 // ─── Mock soundManager ────────────────────────────────────────────────────────
 

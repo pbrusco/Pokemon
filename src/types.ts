@@ -111,6 +111,7 @@ export interface Entity {
   sprite?: string;
   targetMap?: MapID;
   targetPos?: Position;
+  dialogue?: string[];
 }
 
 export interface Tile {

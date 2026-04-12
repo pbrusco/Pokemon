@@ -226,7 +226,10 @@ export function buildItemDatabase(pickedItemIds: string[]): Record<MapID, Entity
       { id: 'item_pokeball_1', type: 'item', position: { x: 5, y: 5 }, direction: 'down', sprite: '🔴' },
       { id: 'item_potion_forest', type: 'item', position: { x: 15, y: 15 }, direction: 'down', sprite: '🧪' }
     ],
-    PEWTER_CITY: [],
+    PEWTER_CITY: [
+      { id: 'door_locked_1', type: 'object', position: { x: 6, y: 9 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },
+      { id: 'door_locked_2', type: 'object', position: { x: 14, y: 9 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] }
+    ],
     PEWTER_GYM: [],
     ROUTE_3: [],
     MT_MOON: [],

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Pokemon, Position, Direction, Entity, NPC, InventoryCounts, MapID } from '../types';
-import { generateWorldNPCs, worldConfig } from '../data/worldConfig';
+import { worldConfig } from '../data/worldConfig';
+import { buildNPCDatabase, buildItemDatabase } from '../data/npcDatabase';
 import type { SetStateAction } from 'react';
 
 interface GameState {
@@ -26,17 +27,15 @@ interface GameState {
   badgeBoostGlitchStacks: number;
   
   // Ephemeral Action State
-  dialogue: string | null;
-  isLocked: boolean;
-  isBattle: boolean;
-  showBattleTransition: boolean;
-  isCatching: boolean;
-  enemyPokemon: Pokemon | null;
-
+  dialogue: string | null,
+  isLocked: boolean,
+  showBattleTransition: boolean,
+  pickedItemIds: string[],
+  
   // Active World Database (Mutable by Editor)
-  worldMaps: typeof worldConfig.maps;
-  teleports: Record<MapID, Entity[]>;
-  items: Record<MapID, Entity[]>;
+  worldMaps: typeof worldConfig.maps,
+  teleports: Record<MapID, Entity[]>,
+  items: Record<MapID, Entity[]>,
   
   // Dynamically evaluated derived states
   getNPCs: () => Record<MapID, NPC[]>;
@@ -65,12 +64,7 @@ interface GameState {
   updateTeam: (team: Pokemon[]) => void;
   updatePcStorage: (pc: Pokemon[]) => void;
   
-  // Battle Mutators
-  setBattleState: (isBattle: boolean, enemy?: Pokemon | null) => void;
-  setEnemyPokemon: (enemy: Pokemon | null) => void;
-  setShowBattleTransition: (show: boolean) => void;
-  setIsCatching: (c: boolean) => void;
-  
+  // Ephemeral states moved to component level or not needed here
   setMoney: (money: SetStateAction<number>) => void;
   setBadgeBoostGlitchStacks: (stacks: SetStateAction<number>) => void;
 
@@ -98,20 +92,16 @@ export const useGameStore = create<GameState>((set, get) => ({
   
   dialogue: null,
   isLocked: false,
-  isBattle: false,
   showBattleTransition: false,
-  isCatching: false,
-  enemyPokemon: null,
+  pickedItemIds: [],
 
   worldMaps: worldConfig.maps,
   teleports: worldConfig.teleports,
-  items: worldConfig.items,
+  items: buildItemDatabase([]),
 
   getNPCs: () => {
-    // Generate NPC mapping tracking live player state booleans 
-    // This allows conditional NPC spawns/dialogue strings on the fly!
     const state = get();
-    return generateWorldNPCs(state.hasParcel, state.hasPokedex, state.badges);
+    return buildNPCDatabase(state.playerTeam, state.hasParcel, state.hasPokedex, state.badges);
   },
 
   setPlayerPos: (pos) => set({ playerPos: pos }),
@@ -159,11 +149,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   setMoney: (money) => set((state) => ({ money: typeof money === 'function' ? money(state.money) : money })),
   setBadgeBoostGlitchStacks: (stacks) => set((state) => ({ badgeBoostGlitchStacks: typeof stacks === 'function' ? stacks(state.badgeBoostGlitchStacks) : stacks })),
 
-  setBattleState: (isBattle, enemy = null) => set({ isBattle, enemyPokemon: enemy }),
-  setEnemyPokemon: (enemy) => set({ enemyPokemon: enemy }),
-  setShowBattleTransition: (show) => set({ showBattleTransition: show }),
-  setIsCatching: (c) => set({ isCatching: c }),
-
+// removed setBattleState etc
 }));
 
 // Expose store for dev tools / preview testing

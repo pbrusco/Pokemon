@@ -207,6 +207,8 @@ export const useInteractionEngine = ({
           } else {
             setDialogue("El PC está encendido.");
           }
+        } else if (item.dialogue && item.dialogue.length > 0) {
+          setDialogue(item.dialogue[0]);
         }
       }
       return;

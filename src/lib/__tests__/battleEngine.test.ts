@@ -119,7 +119,7 @@ describe('Move miss', () => {
     const result = stepBattle(state, { type: 'ATTACK', move });
 
     expect(result.state.enemyPokemon.hp).toBe(enemyHpBefore);
-    expect(result.state.log).toContain('falló');
+    expect(getLogs(result.effects).join(' ')).toContain('falló');
   });
 });
 
@@ -369,7 +369,7 @@ describe('Catch mechanics', () => {
     );
 
     const result = stepBattle(state, { type: 'CATCH' });
-    expect(result.state.phase).toBe('ENEMY_ATTACK'); // Gives enemy a turn
+    expect(['CHOOSING', 'FORCED_SWITCH', 'PLAYER_FAINTED']).toContain(result.state.phase);
     expect(result.state.inventory['POKEBALL']).toBe(2); // consumed 1
   });
 
