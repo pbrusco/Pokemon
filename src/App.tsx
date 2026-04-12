@@ -1,23 +1,14 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { GamePhase, EXPLORING } from './types/gamePhase';
-import { worldMaps } from './data/maps';
+import { useEffect, useRef } from 'react';
 import { soundManager } from './lib/sounds';
 import { BattleState } from './lib/battleEngine';
 import { DemoModeButton } from './components/DemoModeButton';
 import { GodModeButton } from './components/GodModeButton';
-import './lib/demoMode'; // side-effect: attaches window.__demo in dev
+import './lib/demoMode'; 
 import { useInteractionEngine } from './hooks/useInteractionEngine';
 import { useWindowSize } from './hooks/useWindowSize';
 import { useBattleVFX } from './hooks/useBattleVFX';
 import { useOverworldVFX } from './hooks/useOverworldVFX';
-import { usePokedex } from './hooks/usePokedex';
 import { useGameStore } from './store/gameStore';
-import { buildNPCDatabase, buildItemDatabase } from './data/npcDatabase';
 import { useInputHandler } from './hooks/useInputHandler';
 import { useDebugAPI } from './hooks/useDebugAPI';
 import { useBattleEngine } from './hooks/useBattleEngine';
@@ -30,136 +21,57 @@ import { SideMenu } from './components/SideMenu';
 import { GameModals } from './components/GameModals';
 import { ScreenEffects } from './components/ScreenEffects';
 
-// --- Main App ---
-
 export default function App() {
-  const currentMap = useGameStore(s => s.currentMap);
-  const setCurrentMap = useGameStore(s => s.setCurrentMap);
-  const playerPos = useGameStore(s => s.playerPos);
-  const setPlayerPos = useGameStore(s => s.setPlayerPos);
-  const direction = useGameStore(s => s.direction);
-  const setDirection = useGameStore(s => s.setDirection);
-  const isMoving = useGameStore(s => s.isMoving);
-  const setIsMoving = useGameStore(s => s.setIsMoving);
-  const dialogue = useGameStore(s => s.dialogue);
-  const setDialogue = useGameStore(s => s.setDialogue);
-  const [phase, setPhase] = useState<GamePhase>(EXPLORING);
-  const [showMoves, setShowMoves] = useState(false);
-  const [isMuted, setIsMuted] = useState(soundManager.muted);
-  const [pickedItemIds, setPickedItemIds] = useState<string[]>([]);
+  const store = useGameStore();
 
-  // Phase-derived helpers
+  const phase = store.phase;
   const inBattle = phase.type === 'BATTLE';
   const battlePhase = phase.type === 'BATTLE' ? phase.sub : null;
-  const hasPokedex = useGameStore(s => s.hasPokedex);
-  const setHasPokedex = useGameStore(s => s.setHasPokedex);
-  const hasParcel = useGameStore(s => s.hasParcel);
-  const setHasParcel = useGameStore(s => s.setHasParcel);
-  const { pokedex, setPokedex, updatePokedex } = usePokedex();
-  const pcStorage = useGameStore(s => s.pcStorage);
-  const setPcStorage = useGameStore(s => s.setPcStorage);
-  const badges = useGameStore(s => s.badges);
-  const setBadges = useGameStore(s => s.setBadges);
-  const defeatedTrainers = useGameStore(s => s.defeatedTrainers);
-  const setDefeatedTrainers = useGameStore(s => s.setDefeatedTrainers);
-  const { grassEffect, setGrassEffect, spottedTrainerId, setSpottedTrainerId, spottedTrainerPos, setSpottedTrainerPos, overworldShake, setOverworldShake } = useOverworldVFX();
+  const npcs = store.getNPCs();
+  const items = store.getItems();
+
   const windowSize = useWindowSize();
-
-  const playerTeam = useGameStore(s => s.playerTeam);
-  const setPlayerTeam = useGameStore(s => s.setPlayerTeam);
-  const {
-    playerAnim, setPlayerAnim,
-    enemyAnim, setEnemyAnim,
-    battleShake, setBattleShake,
-    resetBattleVFX,
-  } = useBattleVFX();
-  const lastHealLocation = useGameStore(s => s.lastHealLocation);
-  const setLastHealLocation = useGameStore(s => s.setLastHealLocation);
-  const money = useGameStore(s => s.money);
-  const setMoney = useGameStore(s => s.setMoney);
-  const setBadgeBoostGlitchStacks = useGameStore(s => s.setBadgeBoostGlitchStacks);
-  // Story State
-  const storyStep = useGameStore(s => s.storyStep);
-  const setStoryStep = useGameStore(s => s.setStoryStep);
-  const inventory = useGameStore(s => s.inventory);
-  const setInventory = useGameStore(s => s.setInventory);
-  const addInventoryItem = useGameStore(s => s.addInventoryItem);
-  const removeInventoryItem = useGameStore(s => s.removeInventoryItem);
-  const hasItem = useCallback((itemId: string) => (inventory[itemId] ?? 0) > 0, [inventory]);
-
-
+  const { grassEffect, setGrassEffect, spottedTrainerId, setSpottedTrainerId, spottedTrainerPos, setSpottedTrainerPos, overworldShake, setOverworldShake } = useOverworldVFX();
+  const { playerAnim, setPlayerAnim, enemyAnim, setEnemyAnim, battleShake, setBattleShake } = useBattleVFX();
 
   const battleStateRef = useRef<BattleState | null>(null);
+
   useEffect(() => {
     if (inBattle) {
       soundManager.play('BATTLE_START');
     }
   }, [inBattle]);
 
-  // Background music
   useEffect(() => {
     if (inBattle) {
       soundManager.playMusic('BATTLE');
-    } else if (currentMap === 'POKECENTER') {
+    } else if (store.currentMap === 'POKECENTER') {
       soundManager.playMusic('POKECENTER');
     } else {
       soundManager.playMusic('OVERWORLD');
     }
-  }, [inBattle, currentMap]);
-
-  const maps = worldMaps;
-
-  const npcs = buildNPCDatabase(playerTeam, hasParcel, hasPokedex, badges, storyStep);
-  const items = buildItemDatabase(pickedItemIds);
+  }, [inBattle, store.currentMap]);
 
   const handlePCSwap = (teamIdx: number, pcIdx: number) => {
-    const newTeam = [...playerTeam];
-    const newPC = [...pcStorage];
+    const newTeam = [...store.playerTeam];
+    const newPC = [...store.pcStorage];
     const temp = newTeam[teamIdx];
     newTeam[teamIdx] = newPC[pcIdx];
     newPC[pcIdx] = temp;
-    setPlayerTeam(newTeam);
-    setPcStorage(newPC);
+    store.updateTeam(newTeam);
+    store.updatePcStorage(newPC);
     soundManager.play('SELECT');
   };
 
-  const gameState = useRef({ playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, battleSubPhase: null as string | null, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges, lastHealLocation });
-  useEffect(() => {
-    gameState.current = { playerPos, direction, isMoving, dialogue, inBattle, phaseType: phase.type, battleSubPhase: phase.type === 'BATTLE' ? phase.sub.type : null, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges, lastHealLocation };
-  }, [playerPos, direction, isMoving, dialogue, inBattle, phase, currentMap, playerTeam, maps, npcs, items, defeatedTrainers, inventory, storyStep, pcStorage, badges, lastHealLocation]);
-
   const { dispatchBattle, enemyPokemon, setEnemyPokemon, battleLog, setBattleLog, isTrainerBattle, setIsTrainerBattle, catchResult } = useBattleEngine({
     battleStateRef,
-    gameState,
-    setPhase,
-    setShowMoves,
-    setPlayerTeam,
     setPlayerAnim,
     setEnemyAnim,
-    setDefeatedTrainers,
-    setBadges,
-    setMoney,
-    setStoryStep,
-    setDialogue,
-    setInventory,
-    setPcStorage,
-    setCurrentMap,
-    setPlayerPos,
-    setPokedex,
     setBattleShake,
   });
 
   const { handleMove, initBattle } = useMovementEngine({
-    gameState,
     battleStateRef,
-    setCurrentMap,
-    setPlayerPos,
-    setDirection,
-    setIsMoving,
-    setDialogue,
-    setStoryStep,
-    setPlayerTeam,
-    setPhase,
     setOverworldShake,
     setGrassEffect,
     setSpottedTrainerId,
@@ -167,72 +79,21 @@ export default function App() {
     setEnemyPokemon,
     setIsTrainerBattle,
     setBattleLog,
-    updatePokedex,
   });
 
   const { handleAction } = useInteractionEngine({
-    dialogue,
-    inBattle,
-    playerPos,
-    direction,
-    currentMap,
-    hasParcel,
-    hasPokedex,
-    badges,
-    inventory,
-    playerTeam,
-    pickedItemIds,
-    npcs,
-    items,
-    maps,
-    setDialogue,
-    setPhase,
-    setPlayerTeam,
-    setLastHealLocation,
-    setHasParcel,
-    setHasPokedex,
-    setInventory,
-    setPickedItemIds,
-    setStoryStep,
-    setEnemyPokemon,
-    setIsTrainerBattle,
     initBattle,
   });
 
-  const resetGame = useCallback(() => {
-    setCurrentMap('PALLET_TOWN');
-    setPlayerPos({ x: 10, y: 10 });
-    setDirection('down');
-    setIsMoving(false);
-    setDialogue("¡Bienvenido a Pueblo Paleta! Usa las flechas para moverte.");
-    setPhase(EXPLORING);
-    setHasPokedex(false);
-    setHasParcel(false);
-    setPokedex({});
-    setPcStorage([]);
-    setBadges([]);
-    setDefeatedTrainers([]);
-    setPickedItemIds([]);
-    setPlayerTeam([]);
-    setEnemyPokemon(null);
-    setBattleLog("");
-    resetBattleVFX();
-    setStoryStep('START');
-    setInventory({ POTION: 1, POKEBALL: 1 });
-    setMoney(3000);
-    setBadgeBoostGlitchStacks(0);
-    soundManager.play('SELECT');
-  }, []);
-
-
   const handleUseItem = (itemId: string) => {
-    if (!hasItem(itemId)) return;
+    const hasItem = (store.inventory[itemId] ?? 0) > 0;
+    if (!hasItem) return;
     if (!inBattle) {
       if (itemId === 'POTION') {
-        const healedTeam = playerTeam.map(applyPotion);
-        setPlayerTeam(healedTeam);
-        removeInventoryItem('POTION');
-        setDialogue('¡Usaste una POCIÓN! Tus POKÉMON recuperaron salud.');
+        const healedTeam = store.playerTeam.map(applyPotion);
+        store.updateTeam(healedTeam);
+        store.removeInventoryItem('POTION');
+        store.setDialogue('¡Usaste una POCIÓN! Tus POKÉMON recuperaron salud.');
       }
       return;
     }
@@ -247,13 +108,13 @@ export default function App() {
     dispatchBattle,
     battleStateRef,
     phase,
-    setDialogue,
-    setPhase,
+    setDialogue: store.setDialogue,
+    setPhase: store.setPhase,
     handleMove,
     handleAction,
     isTrainerBattle,
-    gameState,
-    setPlayerTeam,
+    gameState: { current: store }, // Patch ref interface
+    setPlayerTeam: store.updateTeam,
     setEnemyPokemon,
     setBattleLog,
     setIsTrainerBattle,
@@ -263,16 +124,7 @@ export default function App() {
     handleMove,
     handleAction,
     dispatchBattle,
-    isMoving,
-    inBattle,
-    dialogue,
-    phase,
-    playerTeam,
     isTrainerBattle,
-    showMoves,
-    setShowMoves,
-    setPhase,
-    setDialogue,
     spottedTrainerId,
   });
 
@@ -280,14 +132,14 @@ export default function App() {
     <div className="h-screen bg-slate-900 flex flex-col items-center justify-center overflow-hidden font-sans selection:bg-red-500 selection:text-white">
       <div className="scanline" />
 
-      <GameHeader isMuted={isMuted} onToggleMute={() => setIsMuted(soundManager.toggleMute())} />
+      <GameHeader isMuted={store.isMuted} onToggleMute={() => store.setIsMuted(soundManager.toggleMute())} />
 
       <WorldView
-        playerPos={playerPos}
-        direction={direction}
-        isMoving={isMoving}
-        currentMap={currentMap}
-        maps={maps}
+        playerPos={store.playerPos}
+        direction={store.direction}
+        isMoving={store.isMoving}
+        currentMap={store.currentMap}
+        maps={store.worldMaps}
         npcs={npcs}
         items={items}
         grassEffect={grassEffect}
@@ -295,50 +147,50 @@ export default function App() {
         windowSize={windowSize}
         spottedTrainerId={spottedTrainerId}
         spottedTrainerPos={spottedTrainerPos}
-        defeatedTrainers={defeatedTrainers}
+        defeatedTrainers={store.defeatedTrainers}
         inBattle={inBattle}
-        dialogue={dialogue}
-        playerTeam={playerTeam}
+        dialogue={store.dialogue}
+        playerTeam={store.playerTeam}
       />
 
-      <MobileControls onMove={handleMove} onAction={handleAction} setPhase={setPhase} />
+      <MobileControls onMove={handleMove} onAction={handleAction} setPhase={store.setPhase} />
 
       <SideMenu
         phase={phase}
-        playerTeam={playerTeam}
-        storyStep={storyStep}
-        inventory={inventory}
-        hasPokedex={hasPokedex}
-        setPhase={setPhase}
-        setDialogue={setDialogue}
-        resetGame={resetGame}
+        playerTeam={store.playerTeam}
+        storyStep={store.storyStep}
+        inventory={store.inventory}
+        hasPokedex={store.hasPokedex}
+        setPhase={store.setPhase}
+        setDialogue={store.setDialogue}
+        resetGame={store.resetGame}
       />
 
       <GameModals
         phase={phase}
         battlePhase={battlePhase}
         inBattle={inBattle}
-        currentMap={currentMap}
+        currentMap={store.currentMap}
         battleShake={battleShake}
         enemyPokemon={enemyPokemon}
         enemyAnim={enemyAnim}
         catchResult={catchResult}
-        playerTeam={playerTeam}
+        playerTeam={store.playerTeam}
         playerAnim={playerAnim}
         battleLog={battleLog}
-        showMoves={showMoves}
+        showMoves={store.showMoves}
         isTrainerBattle={isTrainerBattle}
-        dialogue={dialogue}
-        inventory={inventory}
-        pcStorage={pcStorage}
-        money={money}
-        pokedex={pokedex}
-        setShowMoves={setShowMoves}
-        setPhase={setPhase}
-        setDialogue={setDialogue}
-        setPlayerTeam={setPlayerTeam}
-        setMoney={setMoney}
-        addInventoryItem={addInventoryItem}
+        dialogue={store.dialogue}
+        inventory={store.inventory}
+        pcStorage={store.pcStorage}
+        money={store.money}
+        pokedex={store.pokedex}
+        setShowMoves={store.setShowMoves}
+        setPhase={store.setPhase}
+        setDialogue={store.setDialogue}
+        setPlayerTeam={store.updateTeam}
+        setMoney={store.setMoney}
+        addInventoryItem={store.addInventoryItem}
         handlePCSwap={handlePCSwap}
         handleUseItem={handleUseItem}
         dispatchBattle={dispatchBattle}

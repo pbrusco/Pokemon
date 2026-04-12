@@ -1,5 +1,5 @@
 import { useCallback, useRef, useEffect, MutableRefObject, Dispatch, SetStateAction } from 'react';
-import { Direction, Position, Pokemon, MapID, NPC, Entity, InventoryCounts, GRID_SIZE } from '../types';
+import { Direction, Position, Pokemon } from '../types';
 import { GamePhase, BATTLE_TRANSITION } from '../types/gamePhase';
 import { BattleState, createBattleState } from '../lib/battleEngine';
 import { soundManager } from '../lib/sounds';
@@ -7,37 +7,11 @@ import { sd } from '../lib/gameSpeed';
 import { calcHp } from '../lib/damage';
 import { WILD_POKEMON_DATABASE } from '../constants';
 import { isGodMode, applyGodMode } from '../lib/godMode';
-
-interface GameStateSnapshot {
-  playerPos: Position;
-  direction: Direction;
-  isMoving: boolean;
-  dialogue: string | null;
-  phaseType: string;
-  currentMap: MapID;
-  playerTeam: Pokemon[];
-  maps: Record<MapID, { tiles: { type: string; walkable: boolean }[][]; warps: Array<{ x: number; y: number; targetMap: MapID; targetPos: Position; targetDir?: Direction }> }>;
-  npcs: Record<MapID, NPC[]>;
-  items: Record<MapID, Entity[]>;
-  defeatedTrainers: string[];
-  inventory: InventoryCounts;
-  storyStep: string;
-  pcStorage: Pokemon[];
-  badges: string[];
-  [key: string]: unknown;
-}
+import { useGameStore } from '../store/gameStore';
+import { GRID_SIZE } from '../types';
 
 interface UseMovementEngineParams {
-  gameState: MutableRefObject<GameStateSnapshot>;
   battleStateRef: MutableRefObject<BattleState | null>;
-  setCurrentMap: (map: MapID) => void;
-  setPlayerPos: (pos: Position) => void;
-  setDirection: (dir: Direction) => void;
-  setIsMoving: (v: boolean) => void;
-  setDialogue: (d: string | null) => void;
-  setStoryStep: (step: 'START' | 'OAK_STOPPED' | 'IN_LAB' | 'PICKED_STARTER' | 'RIVAL_BATTLE' | 'EXPLORING') => void;
-  setPlayerTeam: (fn: ((prev: Pokemon[]) => Pokemon[]) | Pokemon[]) => void;
-  setPhase: Dispatch<SetStateAction<GamePhase>>;
   setOverworldShake: (v: boolean) => void;
   setGrassEffect: (pos: Position | null) => void;
   setSpottedTrainerId: (id: string | null) => void;
@@ -45,20 +19,10 @@ interface UseMovementEngineParams {
   setEnemyPokemon: (p: Pokemon | null) => void;
   setIsTrainerBattle: Dispatch<SetStateAction<boolean>>;
   setBattleLog: Dispatch<SetStateAction<string>>;
-  updatePokedex: (id: string) => void;
 }
 
 export function useMovementEngine({
-  gameState,
   battleStateRef,
-  setCurrentMap,
-  setPlayerPos,
-  setDirection,
-  setIsMoving,
-  setDialogue,
-  setStoryStep,
-  setPlayerTeam,
-  setPhase,
   setOverworldShake,
   setGrassEffect,
   setSpottedTrainerId,
@@ -66,7 +30,6 @@ export function useMovementEngine({
   setEnemyPokemon,
   setIsTrainerBattle,
   setBattleLog,
-  updatePokedex,
 }: UseMovementEngineParams) {
   const moveTimeout = useRef<NodeJS.Timeout | null>(null);
   const poisonStepCounter = useRef(0);
@@ -78,25 +41,31 @@ export function useMovementEngine({
   }, []);
 
   const initBattle = useCallback((enemyPkmn: Pokemon, isTrainer: boolean) => {
+    const store = useGameStore.getState();
     setEnemyPokemon(enemyPkmn);
-    const team = isGodMode() ? applyGodMode(gameState.current.playerTeam) : gameState.current.playerTeam;
+    const team = isGodMode() ? applyGodMode(store.playerTeam) : store.playerTeam;
     battleStateRef.current = createBattleState(team, enemyPkmn, {
       isTrainerBattle: isTrainer,
-      inventory: gameState.current.inventory,
-      pcStorage: gameState.current.pcStorage,
-      hasBoulderBadge: gameState.current.badges.includes('BOULDER'),
+      inventory: store.inventory,
+      pcStorage: store.pcStorage,
+      hasBoulderBadge: store.badges.includes('BOULDER'),
     });
     setIsTrainerBattle(isTrainer);
     soundManager.play('BATTLE_START');
-    setPhase(BATTLE_TRANSITION);
-  }, []);
+    store.setPhase(BATTLE_TRANSITION);
+  }, [battleStateRef, setEnemyPokemon, setIsTrainerBattle]);
 
   const handleMove = useCallback((dir: Direction) => {
-    const { isMoving, dialogue, phaseType, playerPos, currentMap, playerTeam, npcs, items, defeatedTrainers, maps } = gameState.current;
+    const store = useGameStore.getState();
+    const { isMoving, dialogue, phase, playerPos, currentMap, playerTeam, worldMaps, defeatedTrainers } = store;
+    const npcs = store.getNPCs();
+    const items = store.getItems();
+    const phaseType = phase.type;
+    
     const lockedPhases = ['BATTLE', 'BATTLE_TRANSITION', 'HEALING', 'BLACKOUT'];
     if (isMoving || dialogue || lockedPhases.includes(phaseType)) return;
 
-    setDirection(dir);
+    store.setDirection(dir);
 
     let nextX = playerPos.x;
     let nextY = playerPos.y;
@@ -110,17 +79,17 @@ export function useMovementEngine({
 
     // Story Event: Oak stops the player from leaving Pallet Town
     if (currentMap === 'PALLET_TOWN' && nextY === 5 && playerTeam.length === 0) {
-      setDialogue("OAK: ¡Espera! ¡No vayas por ahí!");
-      setStoryStep('OAK_STOPPED');
+      store.setDialogue("OAK: ¡Espera! ¡No vayas por ahí!");
+      store.setStoryStep('OAK_STOPPED');
       setTimeout(() => {
-        setCurrentMap('OAKS_LAB');
-        setPlayerPos({ x: 10, y: 14 });
-        setDialogue("OAK: ¡Es peligroso ir solo! Ven, elige un POKÉMON.");
+        useGameStore.getState().setCurrentMap('OAKS_LAB');
+        useGameStore.getState().setPlayerPos({ x: 10, y: 14 });
+        useGameStore.getState().setDialogue("OAK: ¡Es peligroso ir solo! Ven, elige un POKÉMON.");
       }, sd(1000));
       return;
     }
 
-    const mapData = maps[currentMap];
+    const mapData = worldMaps[currentMap];
     const grid = mapData.tiles;
 
     const npcAtNext = npcs[currentMap]?.some(n => n.position.x === nextX && n.position.y === nextY);
@@ -133,8 +102,13 @@ export function useMovementEngine({
       !npcAtNext &&
       !objectAtNext
     ) {
-      setIsMoving(true);
-      setPlayerPos({ x: nextX, y: nextY });
+      const warpOnNext = mapData.warps.find(w => w.x === nextX && w.y === nextY);
+      if (warpOnNext && warpOnNext.targetDir && dir !== warpOnNext.targetDir) {
+        return; // Validly rejected warp due to entry angle constraints
+      }
+      
+      store.setIsMoving(true);
+      store.setPlayerPos({ x: nextX, y: nextY });
 
       // Poison overworld damage
       const leadPokemon = playerTeam[0];
@@ -142,7 +116,7 @@ export function useMovementEngine({
         poisonStepCounter.current += 1;
         if (poisonStepCounter.current >= 4) {
           poisonStepCounter.current = 0;
-          setPlayerTeam((prev: Pokemon[]) => {
+          store.setPlayerTeam((prev: Pokemon[]) => {
             if (prev.length === 0) return prev;
             const updated = [...prev];
             updated[0] = { ...updated[0], hp: Math.max(1, updated[0].hp - 1) };
@@ -163,7 +137,7 @@ export function useMovementEngine({
 
       if (moveTimeout.current) clearTimeout(moveTimeout.current);
       moveTimeout.current = setTimeout(() => {
-        setIsMoving(false);
+        useGameStore.getState().setIsMoving(false);
       }, sd(110));
 
       // Warp check
@@ -171,9 +145,9 @@ export function useMovementEngine({
       if (warp) {
         soundManager.play('SELECT');
         setTimeout(() => {
-          setCurrentMap(warp.targetMap);
-          setPlayerPos(warp.targetPos);
-          if (warp.targetDir) setDirection(warp.targetDir);
+          useGameStore.getState().setCurrentMap(warp.targetMap);
+          useGameStore.getState().setPlayerPos(warp.targetPos);
+          if (warp.targetDir) useGameStore.getState().setDirection(warp.targetDir);
         }, sd(200));
       }
 
@@ -192,7 +166,7 @@ export function useMovementEngine({
             setSpottedTrainerId(trainer.id);
             setSpottedTrainerPos({ ...trainer.position });
             soundManager.play('TRAINER_SPOTTED');
-            setDialogue(`${trainer.name}: ¡Eh! ¡Te he visto! ¡Vamos a luchar!`);
+            store.setDialogue(`${trainer.name}: ¡Eh! ¡Te he visto! ¡Vamos a luchar!`);
             const spottedDistance = i;
             for (let step = 1; step < spottedDistance; step++) {
               setTimeout(() => {
@@ -212,19 +186,20 @@ export function useMovementEngine({
               setSpottedTrainerPos(null);
               soundManager.play('BATTLE_START');
               setEnemyPokemon(trainer.trainerTeam![0]);
-              const trainerTeam = isGodMode() ? applyGodMode(gameState.current.playerTeam) : gameState.current.playerTeam;
+              const freshStore = useGameStore.getState();
+              const trainerTeam = isGodMode() ? applyGodMode(freshStore.playerTeam) : freshStore.playerTeam;
               battleStateRef.current = createBattleState(trainerTeam, trainer.trainerTeam![0], {
                 isTrainerBattle: true,
                 enemyTeam: trainer.trainerTeam!,
                 trainerName: trainer.name,
-                inventory: gameState.current.inventory,
-                pcStorage: gameState.current.pcStorage,
-                hasBoulderBadge: gameState.current.badges.includes('BOULDER'),
+                inventory: freshStore.inventory,
+                pcStorage: freshStore.pcStorage,
+                hasBoulderBadge: freshStore.badges.includes('BOULDER'),
               });
-              updatePokedex(trainer.trainerTeam![0].id);
+              freshStore.updatePokedex(trainer.trainerTeam![0].id, false);
               setIsTrainerBattle(true);
               setBattleLog(`¡${trainer.name} te desafía!`);
-              setPhase(BATTLE_TRANSITION);
+              freshStore.setPhase(BATTLE_TRANSITION);
             }, sd(Math.max(1500, spottedDistance * 240)));
             break;
           }
@@ -255,23 +230,22 @@ export function useMovementEngine({
           maxHp: finalMaxHp,
         };
         setEnemyPokemon(finalPkmn);
-        const wildTeam = isGodMode() ? applyGodMode(gameState.current.playerTeam) : gameState.current.playerTeam;
+        const freshStore = useGameStore.getState();
+        const wildTeam = isGodMode() ? applyGodMode(freshStore.playerTeam) : freshStore.playerTeam;
         battleStateRef.current = createBattleState(wildTeam, finalPkmn, {
-          inventory: gameState.current.inventory,
-          pcStorage: gameState.current.pcStorage,
-          hasBoulderBadge: gameState.current.badges.includes('BOULDER'),
+          inventory: freshStore.inventory,
+          pcStorage: freshStore.pcStorage,
+          hasBoulderBadge: freshStore.badges.includes('BOULDER'),
         });
         setIsTrainerBattle(false);
-        updatePokedex(randomPkmn.id);
+        freshStore.updatePokedex(randomPkmn.id, false);
         setBattleLog(`¡Un ${randomPkmn.name} salvaje apareció!`);
-        setPhase(BATTLE_TRANSITION);
+        freshStore.setPhase(BATTLE_TRANSITION);
       }
     }
   }, [
-    setCurrentMap, setPlayerPos, setDirection, setIsMoving, setDialogue, setStoryStep,
-    setPlayerTeam, setOverworldShake, setGrassEffect, setSpottedTrainerId,
-    setSpottedTrainerPos, setEnemyPokemon, setIsTrainerBattle, setBattleLog,
-    setPhase, updatePokedex
+    battleStateRef, setOverworldShake, setGrassEffect, setSpottedTrainerId,
+    setSpottedTrainerPos, setEnemyPokemon, setIsTrainerBattle, setBattleLog
   ]);
 
   return { handleMove, initBattle };

@@ -23,6 +23,9 @@ export interface Position {
   y: number;
 }
 
+export type PokedexEntry = { seen: boolean; caught: boolean };
+export type PokedexState = Record<string, PokedexEntry>;
+
 export interface StatChange {
   target: 'self' | 'enemy';
   stat: 'attack' | 'defense' | 'special' | 'speed';

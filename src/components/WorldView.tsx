@@ -156,7 +156,7 @@ export const WorldView = ({
             : centerX,
           y: -playerPos.y * TILE_SIZE + (windowSize.height / 2) - (TILE_SIZE / 2)
         }}
-        transition={{ type: "tween", duration: 0.1, ease: "linear" }}
+        transition={{ type: "tween", duration: 0.11, ease: "linear" }}
       >
         {/* Map grid */}
         <div className="relative" style={{ width: GRID_SIZE * TILE_SIZE, height: GRID_SIZE * TILE_SIZE }}>

@@ -24,7 +24,8 @@ export const InventoryUI = ({ items, onClose, onUse }: { items: InventoryCounts,
           <button onClick={() => {
             soundManager.play('SELECT');
             onClose();
-          }} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+          }} className="p-2 hover:bg-white/20 rounded-full transition-colors flex items-center gap-1">
+            <span className="text-[10px] font-mono tracking-widest text-red-200 uppercase">[ESC]</span>
             <X size={24} />
           </button>
         </div>

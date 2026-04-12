@@ -1,68 +1,53 @@
-import { useEffect, useRef, Dispatch, SetStateAction } from 'react';
+import { useEffect, useRef } from 'react';
 import { Direction, Pokemon } from '../types';
 import { GamePhase, battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING, MENU, EDITOR } from '../types/gamePhase';
 import { BattleAction } from '../lib/battleEngine';
+import { useGameStore } from '../store/gameStore';
 
 interface UseInputHandlerParams {
   handleMove: (dir: Direction) => void;
   handleAction: () => void;
   dispatchBattle: (action: BattleAction) => void;
-  isMoving: boolean;
-  inBattle: boolean;
-  dialogue: string | null;
-  phase: GamePhase;
-  playerTeam: Pokemon[];
   isTrainerBattle: boolean;
   spottedTrainerId: string | null;
-  showMoves: boolean;
-  setShowMoves: Dispatch<SetStateAction<boolean>>;
-  setPhase: Dispatch<SetStateAction<GamePhase>>;
-  setDialogue: (d: string | null) => void;
 }
 
 export function useInputHandler({
   handleMove,
   handleAction,
   dispatchBattle,
-  isMoving,
-  inBattle,
-  dialogue,
-  phase,
-  playerTeam,
   isTrainerBattle,
   spottedTrainerId,
-  showMoves,
-  setShowMoves,
-  setPhase,
-  setDialogue,
 }: UseInputHandlerParams): void {
   const pressedKeys = useRef<Set<Direction>>(new Set());
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const store = useGameStore.getState();
+      const inBattle = store.phase.type === 'BATTLE';
+      
       if (inBattle) {
-        const battleSubPhase = phase.type === 'BATTLE' ? phase.sub.type : null;
-        const team = playerTeam;
+        const battleSubPhase = store.phase.type === 'BATTLE' ? store.phase.sub.type : null;
         if (e.key === 'Escape') {
           if (battleSubPhase === 'BATTLE_INVENTORY' || battleSubPhase === 'BATTLE_TEAM') {
-            setPhase(battle(B_CHOOSING));
+             store.setPhase(battle(B_CHOOSING));
           }
         }
         if (battleSubPhase === 'CHOOSING') {
-          const inMovesMenu = showMoves;
+          const inMovesMenu = store.showMoves;
           if (e.key === 'Escape' && inMovesMenu) {
-            setShowMoves(false);
+             store.setShowMoves(false);
             return;
           }
           if (!inMovesMenu) {
-            if (e.key === '1') { setShowMoves(true); return; }
-            if (e.key === 'b' || e.key === 'B') { setPhase(battle(B_BATTLE_INVENTORY)); return; }
-            if (e.key === 'p' || e.key === 'P') { setPhase(battle(B_BATTLE_TEAM)); return; }
-            if ((e.key === 'h' || e.key === 'H') && !isTrainerBattle) { dispatchBattle({ type: 'FLEE' }); return; }
+            if (e.key === '1') { store.setShowMoves(true); return; }
+            if (e.key === '2') { store.setPhase(battle(B_BATTLE_TEAM)); return; }
+            if (e.key === '3') { store.setPhase(battle(B_BATTLE_INVENTORY)); return; }
+            if (e.key === '4' && !isTrainerBattle) { dispatchBattle({ type: 'FLEE' }); return; }
           } else {
             const idx = parseInt(e.key) - 1;
             if (idx >= 0 && idx <= 3) {
-              const mv = team[0]?.moves[idx];
+              const mv = store.playerTeam[0]?.moves[idx];
               if (mv && mv.pp > 0) dispatchBattle({ type: 'ATTACK', move: mv });
             }
           }
@@ -73,12 +58,12 @@ export function useInputHandler({
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
 
       if (e.key === 'E' && e.shiftKey) {
-        setPhase(prev => prev.type === 'EDITOR' ? EXPLORING : EDITOR);
+        store.setPhase(prev => prev.type === 'EDITOR' ? EXPLORING : EDITOR);
         return;
       }
 
-      if (dialogue) {
-        setDialogue(null);
+      if (store.dialogue) {
+         store.setDialogue(null);
         return;
       }
 
@@ -89,7 +74,7 @@ export function useInputHandler({
         case 'ArrowLeft': dir = 'left'; break;
         case 'ArrowRight': dir = 'right'; break;
         case 'z': case 'Enter': case ' ': handleAction(); break;
-        case 'x': case 'Shift': case 'Escape': setPhase(prev => prev.type === 'MENU' ? EXPLORING : MENU); break;
+        case 'x': case 'Shift': case 'Escape': store.setPhase(prev => prev.type === 'MENU' ? EXPLORING : MENU); break;
       }
       if (dir) {
         if (spottedTrainerId) return; // Block movement if a trainer has spotted us
@@ -115,8 +100,9 @@ export function useInputHandler({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [handleMove, handleAction, dialogue, inBattle, spottedTrainerId]);
+  }, [handleMove, handleAction, isTrainerBattle, spottedTrainerId]);
 
+  const isMoving = useGameStore(s => s.isMoving);
   // Self-trigger: the moment a move finishes, immediately start the next one if a key is held.
   useEffect(() => {
     if (!isMoving && pressedKeys.current.size > 0 && !spottedTrainerId) {
