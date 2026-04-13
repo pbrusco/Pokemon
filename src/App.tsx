@@ -20,6 +20,7 @@ import { MobileControls } from './components/MobileControls';
 import { SideMenu } from './components/SideMenu';
 import { GameModals } from './components/GameModals';
 import { ScreenEffects } from './components/ScreenEffects';
+import { EXPLORING } from './types/gamePhase';
 
 export default function App() {
   const store = useGameStore();
@@ -95,6 +96,7 @@ export default function App() {
         store.removeInventoryItem('POTION');
         store.setDialogue('¡Usaste una POCIÓN! Tus POKÉMON recuperaron salud.');
       }
+      store.setPhase(EXPLORING);
       return;
     }
     if (itemId === 'POKEBALL') {
@@ -188,7 +190,7 @@ export default function App() {
         setShowMoves={store.setShowMoves}
         setPhase={store.setPhase}
         setDialogue={store.setDialogue}
-        setPlayerTeam={store.updateTeam}
+        setPlayerTeam={fn => store.setPlayerTeam(fn)}
         setMoney={store.setMoney}
         addInventoryItem={store.addInventoryItem}
         handlePCSwap={handlePCSwap}

@@ -27,7 +27,7 @@
 - [x] Move grass rustle to single AnimatePresence overlay (was ~500 instances → 1)
 
 ## Priority 5 — Fix broken interactions and tests from store refactor
-- [ ] Fix Pokéball item pickups (animations and interactions broken)
+- [x] Fix broken Pokéball catch animation and battle item use — `InventoryUI.onClick` called `onClose()` after `onUse()`, overwriting the phase set by `dispatchBattle` (B_CATCHING → B_CHOOSING)
 - [ ] Fix 19 failing tests in `src/hooks/__tests__/useInteractionEngine.test.ts` — the upstream store refactor changed hook APIs (setters now come from the store, not props)
 - [ ] Fix `updateTeam` type mismatch in App.tsx:191 (`(team: Pokemon[]) => void` vs `(fn: (prev: Pokemon[]) => Pokemon[]) => void`)
 

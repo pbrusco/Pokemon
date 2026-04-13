@@ -48,7 +48,10 @@ export const InventoryUI = ({ items, onClose, onUse }: { items: InventoryCounts,
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05 }}
                     onClick={() => {
-                      if (onUse) onUse(id);
+                      if (onUse) {
+                        onUse(id);
+                        return;
+                      }
                       onClose();
                     }}
                     className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border-2 border-slate-100 hover:border-red-200 hover:bg-red-50 transition-all group cursor-pointer"

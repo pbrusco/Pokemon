@@ -132,21 +132,52 @@ function origin(tileId: number): [number, number] {
 // ── Individual tile draw functions ────────────────────────────────
 
 function drawGrass(ctx: Ctx, ox: number, oy: number) {
-  fill(ctx, ox, oy, 16, 16, C.GRASS);
-  // Scattered darker dots
-  const dkDots = [[3,2],[10,6],[6,11],[14,3],[1,8],[8,14],[12,10],[5,5]];
-  for (const [dx, dy] of dkDots) px(ctx, ox+dx, oy+dy, C.GRASS_DK);
-  // Lighter accents
-  const ltDots = [[8,3],[2,12],[13,8],[0,4],[11,1]];
-  for (const [dx, dy] of ltDots) px(ctx, ox+dx, oy+dy, C.GRASS_LT);
+  // Base fill with subtle gradient for depth
+  for (let y = 0; y < 16; y++) {
+    for (let x = 0; x < 16; x++) {
+      // Slightly lighter at the top, darker at the bottom
+      const grad = y < 5 ? C.GRASS_LT : y > 12 ? C.GRASS_DK : C.GRASS;
+      px(ctx, ox + x, oy + y, grad);
+    }
+  }
+  // Denser, more varied dark blades
+  const dkBlades = [
+    [3,2],[10,6],[6,11],[14,3],[1,8],[8,14],[12,10],[5,5],
+    [2,5],[7,8],[13,12],[4,13],[11,4],[9,2],[0,10],[15,7]
+  ];
+  for (const [dx, dy] of dkBlades) px(ctx, ox+dx, oy+dy, C.GRASS_DK);
+  // More highlights for lushness
+  const ltBlades = [
+    [8,3],[2,12],[13,8],[0,4],[11,1],[6,4],[10,13],[12,2],[4,7],[9,10]
+  ];
+  for (const [dx, dy] of ltBlades) px(ctx, ox+dx, oy+dy, C.GRASS_LT);
+  // Add a few white sparkle pixels for extra vibrancy
+  px(ctx, ox+7, oy+7, C.WHITE);
+  px(ctx, ox+12, oy+5, C.WHITE);
 }
 
 function drawGrassAlt(ctx: Ctx, ox: number, oy: number) {
-  fill(ctx, ox, oy, 16, 16, C.GRASS);
-  const dkDots = [[1,1],[7,4],[13,2],[4,9],[10,12],[2,15],[15,8],[9,0]];
-  for (const [dx, dy] of dkDots) px(ctx, ox+dx, oy+dy, C.GRASS_DK);
-  const ltDots = [[5,6],[11,10],[3,13],[14,5],[0,10]];
-  for (const [dx, dy] of ltDots) px(ctx, ox+dx, oy+dy, C.GRASS_LT);
+  // Base fill with subtle gradient for depth
+  for (let y = 0; y < 16; y++) {
+    for (let x = 0; x < 16; x++) {
+      const grad = y < 5 ? C.GRASS_LT : y > 12 ? C.GRASS_DK : C.GRASS;
+      px(ctx, ox + x, oy + y, grad);
+    }
+  }
+  // Alternate dark blades
+  const dkBlades = [
+    [1,1],[7,4],[13,2],[4,9],[10,12],[2,15],[15,8],[9,0],
+    [3,7],[12,6],[5,13],[8,11],[0,6],[14,13],[6,2],[11,14]
+  ];
+  for (const [dx, dy] of dkBlades) px(ctx, ox+dx, oy+dy, C.GRASS_DK);
+  // Alternate highlights
+  const ltBlades = [
+    [5,6],[11,10],[3,13],[14,5],[0,10],[7,2],[12,9],[2,8],[10,4],[8,13]
+  ];
+  for (const [dx, dy] of ltBlades) px(ctx, ox+dx, oy+dy, C.GRASS_LT);
+  // Add a few white sparkle pixels for extra vibrancy
+  px(ctx, ox+5, oy+8, C.WHITE);
+  px(ctx, ox+13, oy+3, C.WHITE);
 }
 
 function drawTallGrass(ctx: Ctx, ox: number, oy: number) {
