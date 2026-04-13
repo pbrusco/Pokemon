@@ -178,6 +178,65 @@ const BASE_STATS: Record<string, BaseStats> = {
   mew:         { hp: 100, attack: 100, defense: 100, special: 100, speed: 100 },
 };
 
+// ─── Gen I catch rates (0–255) per species ────────────────────────────────────
+
+const CATCH_RATES: Record<string, number> = {
+  bulbasaur: 45,   ivysaur: 45,   venusaur: 45,
+  charmander: 45,  charmeleon: 45, charizard: 45,
+  squirtle: 45,    wartortle: 45,  blastoise: 45,
+  caterpie: 255,   metapod: 120,   butterfree: 45,
+  weedle: 255,     kakuna: 120,    beedrill: 45,
+  pidgey: 255,     pidgeotto: 120, pidgeot: 45,
+  rattata: 255,    raticate: 127,
+  spearow: 255,    fearow: 90,
+  pikachu: 190,    raichu: 75,
+  jigglypuff: 170, wigglytuff: 50,
+  mankey: 190,     primeape: 75,
+  geodude: 255,    graveler: 120,  golem: 45,
+  onix: 45,
+  zubat: 255,      golbat: 90,
+  'nidoran-f': 235, nidorina: 120, nidoqueen: 45,
+  'nidoran-m': 235, nidorino: 120, nidoking: 45,
+};
+
+// ─── Gen I growth rates per species ───────────────────────────────────────────
+
+const GROWTH_RATES: Record<string, Pokemon['growthRate']> = {
+  // Starters: medium_slow (gains exp slowly early, faster late)
+  bulbasaur: 'medium_slow',  ivysaur: 'medium_slow',  venusaur: 'medium_slow',
+  charmander: 'medium_slow', charmeleon: 'medium_slow', charizard: 'medium_slow',
+  squirtle: 'medium_slow',   wartortle: 'medium_slow',  blastoise: 'medium_slow',
+  // Bug Pokémon: fast
+  caterpie: 'fast',  metapod: 'fast',  butterfree: 'fast',
+  weedle: 'fast',    kakuna: 'fast',   beedrill: 'fast',
+  // Common wilds: medium_fast
+  pidgey: 'medium_fast',    pidgeotto: 'medium_fast', pidgeot: 'medium_fast',
+  rattata: 'medium_fast',   raticate: 'medium_fast',
+  spearow: 'medium_fast',   fearow: 'medium_fast',
+  pikachu: 'medium_fast',   raichu: 'medium_fast',
+  jigglypuff: 'fast',       wigglytuff: 'fast',
+  mankey: 'medium_fast',    primeape: 'medium_fast',
+  geodude: 'medium_slow',   graveler: 'medium_slow',  golem: 'medium_slow',
+  onix: 'medium_fast',
+  zubat: 'medium_fast',     golbat: 'medium_fast',
+  'nidoran-f': 'medium_slow', nidorina: 'medium_slow', nidoqueen: 'medium_slow',
+  'nidoran-m': 'medium_slow', nidorino: 'medium_slow', nidoking: 'medium_slow',
+};
+
+/**
+ * Total experience required to reach a given level, per Gen I growth rate.
+ * Fast: 0.8·L³ | Medium Fast: L³ | Medium Slow: 1.2·L³−15·L²+100·L−140 | Slow: 1.25·L³
+ */
+export function expForLevel(level: number, rate: Pokemon['growthRate'] = 'medium_fast'): number {
+  const L = level;
+  switch (rate) {
+    case 'fast':        return Math.floor(0.8 * L ** 3);
+    case 'medium_slow': return Math.max(0, Math.floor(1.2 * L ** 3 - 15 * L ** 2 + 100 * L - 140));
+    case 'slow':        return Math.floor(1.25 * L ** 3);
+    default:            return L ** 3; // medium_fast
+  }
+}
+
 /** Helper: create a Pokemon with HP computed from base stats */
 export function makePokemon(
   id: string,
@@ -190,6 +249,8 @@ export function makePokemon(
 ): Pokemon {
   const baseStats = BASE_STATS[id];
   const maxHp = calcHp(baseStats.hp, level);
+  const growthRate = GROWTH_RATES[id] ?? 'medium_fast';
+  const expToNextLevel = Math.max(1, expForLevel(level + 1, growthRate) - expForLevel(level, growthRate));
   return {
     id,
     name,
@@ -201,7 +262,9 @@ export function makePokemon(
     moves,
     sprite: getSprite(spriteId),
     exp: 0,
-    expToNextLevel: level * 100 || 100,
+    expToNextLevel,
+    catchRate: CATCH_RATES[id] ?? 45,
+    growthRate,
     ...extra,
   };
 }
@@ -231,6 +294,9 @@ export const MOVES: Record<string, Move> = {
   STRENGTH:      move('FUERZA',        'normal',   80, 100, 15),
   HARDEN:        move('FORTALEZA',     'normal',    0, 100, 30, { statChange: { target: 'self',  stat: 'defense', stages: +1 } }),
   POUND:         move('GOLPE NORMAL',  'normal',   40, 100, 35),
+  // High-crit moves (baseSpeed × 8 / 512 crit chance)
+  SLASH:         move('CUCHILLADA',    'normal',   70, 100, 20, { highCrit: true }),
+  RAZOR_LEAF:    move('HOJA AFILADA',  'grass',    55,  95, 25, { highCrit: true }),
 };
 
 export const HM_REQUIREMENTS = {
@@ -243,11 +309,18 @@ const getSprite = (id: number) => `https://raw.githubusercontent.com/PokeAPI/spr
 export const STARTERS: Pokemon[] = [
   makePokemon('bulbasaur', 'BULBASAUR', 5, 'grass', [MOVES.TACKLE, MOVES.GROWL], 1, {
     types: ['grass', 'poison'], evolutionLevel: 16, evolvesTo: 'ivysaur',
-    movesToLearn: [{ level: 7, move: MOVES.VINE_WHIP }, { level: 13, move: MOVES.POISON_POWDER }],
+    movesToLearn: [
+      { level: 7, move: MOVES.VINE_WHIP },
+      { level: 13, move: MOVES.POISON_POWDER },
+      { level: 17, move: MOVES.RAZOR_LEAF },
+    ],
   }),
   makePokemon('charmander', 'CHARMANDER', 5, 'fire', [MOVES.SCRATCH, MOVES.GROWL], 4, {
     evolutionLevel: 16, evolvesTo: 'charmeleon',
-    movesToLearn: [{ level: 7, move: MOVES.EMBER }],
+    movesToLearn: [
+      { level: 7, move: MOVES.EMBER },
+      { level: 17, move: MOVES.SLASH },
+    ],
   }),
   makePokemon('squirtle', 'SQUIRTLE', 5, 'water', [MOVES.TACKLE, MOVES.GROWL], 7, {
     evolutionLevel: 16, evolvesTo: 'wartortle',
@@ -423,6 +496,13 @@ export const EVOLUTIONS: Record<string, Partial<Pokemon>> = {
   charizard: { name: 'CHARIZARD', sprite: getSprite(6), baseStats: BASE_STATS.charizard, types: ['fire', 'flying'] },
   wartortle: { name: 'WARTORTLE', sprite: getSprite(8), baseStats: BASE_STATS.wartortle, evolutionLevel: 36, evolvesTo: 'blastoise' },
   blastoise: { name: 'BLASTOISE', sprite: getSprite(9), baseStats: BASE_STATS.blastoise },
+};
+
+/** Gen I encounter rate per map (0–255). Roll 0–255; if roll < rate, battle starts. */
+export const WILD_ENCOUNTER_RATES: Record<string, number> = {
+  ROUTE_1: 25,
+  VIRIDIAN_FOREST: 30,
+  ROUTE_3: 25,
 };
 
 export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {

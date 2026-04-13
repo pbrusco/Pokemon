@@ -106,13 +106,12 @@ describe('Normal attack flow', () => {
 
 describe('Move miss', () => {
   it('when move misses, enemy HP is unchanged and enemy gets a turn', () => {
-    // doesMoveHit uses floor(random * 256) < threshold
-    // For accuracy=100, threshold = floor(100*255/100) = 255
-    // roll=255 → 255 < 255 is false → miss
-    randomSpy.mockReturnValue(255 / 256); // no crit first call, then miss roll
+    // doesMoveHit: r = floor(random*100)+1; miss if r > accuracy
+    // accuracy=50, random=0.5 → r=51 > 50 → miss
+    randomSpy.mockReturnValue(0.5);
 
     const state = makeState();
-    const move = makeMove({ accuracy: 100, power: 40 });
+    const move = makeMove({ accuracy: 50, power: 40 });
     const enemyHpBefore = state.enemyPokemon.hp;
     state.playerTeam[0] = { ...state.playerTeam[0], moves: [move] };
 

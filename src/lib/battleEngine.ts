@@ -17,7 +17,7 @@ import {
   ZERO_BOOSTS,
   getTypeEffectiveness,
 } from './damage';
-import { EVOLUTIONS } from '../constants';
+import { EVOLUTIONS, expForLevel } from '../constants';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -153,10 +153,14 @@ function computeExpAndLevelUp(pkmn: Pokemon, expGain: number): {
   let didLevelUp = false;
   let learnedMove: Move | null = null;
 
-  while (p.exp >= (p.expToNextLevel || 100)) {
-    p.exp -= (p.expToNextLevel || 100);
+  let threshold = Math.max(1, expForLevel(p.level + 1, p.growthRate) - expForLevel(p.level, p.growthRate));
+  p.expToNextLevel = threshold;
+
+  while (p.exp >= p.expToNextLevel) {
+    p.exp -= p.expToNextLevel;
     p.level += 1;
-    p.expToNextLevel = p.level * 100;
+    threshold = Math.max(1, expForLevel(p.level + 1, p.growthRate) - expForLevel(p.level, p.growthRate));
+    p.expToNextLevel = threshold;
     const newMaxHp = calcHp(p.baseStats.hp, p.level);
     p.hp = Math.min(p.hp + (newMaxHp - p.maxHp), newMaxHp);
     p.maxHp = newMaxHp;
@@ -259,8 +263,8 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         return { state: r.state, effects: [...effects, ...r.effects] };
       }
 
-      // Accuracy check
-      if (!doesMoveHit(move.accuracy)) {
+      // Accuracy check (player attacker accuracy stage vs enemy evasion stage)
+      if (!doesMoveHit(move.accuracy, playerPkmn.statBoosts?.accuracy ?? 0, s.enemyPokemon.statBoosts?.evasion ?? 0)) {
         const missLog = `¡${playerPkmn.name} usó ${move.name}! ¡Pero falló!`;
         effects.push(log(missLog));
         s = { ...s, log: missLog, phase: 'ENEMY_ATTACK' };
@@ -413,8 +417,8 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           : s.enemyPokemon.moves[Math.floor(Math.random() * s.enemyPokemon.moves.length)];
         effects.push({ type: 'enemy_anim', payload: 'attack' });
 
-        // Accuracy check
-        if (!doesMoveHit(enemyMove.accuracy)) {
+        // Accuracy check (enemy attacker accuracy stage vs player evasion stage)
+        if (!doesMoveHit(enemyMove.accuracy, s.enemyPokemon.statBoosts?.accuracy ?? 0, playerPkmn.statBoosts?.evasion ?? 0)) {
           const missLog = `¡${s.enemyPokemon.name} usó ${enemyMove.name}! ¡Pero falló!`;
           effects.push(log(missLog));
           effects.push(log(''));
@@ -580,9 +584,26 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         ? { ...s.inventory, POKEBALL: pkbQty - 1 }
         : (() => { const { POKEBALL: _, ...rest } = s.inventory; return rest; })();
 
-      const hpPercent = s.enemyPokemon.hp / s.enemyPokemon.maxHp;
-      const catchRate = (1 - hpPercent) * 0.7 + 0.1;
-      const caught = Math.random() < catchRate;
+      // ── Gen I catch formula ──────────────────────────────────────────────────
+      // Step 1: Status pre-check (R1 0–255)
+      let caught = false;
+      const catchStatus = s.enemyPokemon.status;
+      const r1 = Math.floor(Math.random() * 256);
+      if ((catchStatus === 'sleep' || catchStatus === 'frozen') && r1 < 25) {
+        caught = true;
+      } else if ((catchStatus === 'paralyzed' || catchStatus === 'burn' || catchStatus === 'poison') && r1 < 12) {
+        caught = true;
+      }
+
+      // Step 2: CatchV formula — only if Step 1 failed
+      if (!caught) {
+        const speciesCatchRate = s.enemyPokemon.catchRate ?? 45;
+        const catchV = Math.floor(
+          speciesCatchRate * (s.enemyPokemon.maxHp * 3 - s.enemyPokemon.hp * 2) / (s.enemyPokemon.maxHp * 3)
+        );
+        const r2 = Math.floor(Math.random() * 256);
+        caught = r2 < catchV;
+      }
 
       s = { ...s, inventory: newInv, phase: 'CATCHING' };
       effects.push(log('¡Pablo lanzó una POKÉ BALL!'));

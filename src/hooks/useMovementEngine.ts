@@ -5,7 +5,7 @@ import { BattleState, createBattleState } from '../lib/battleEngine';
 import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
 import { calcHp } from '../lib/damage';
-import { WILD_POKEMON_DATABASE } from '../constants';
+import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES } from '../constants';
 import { isGodMode, applyGodMode } from '../lib/godMode';
 import { useGameStore } from '../store/gameStore';
 import { GRID_SIZE } from '../types';
@@ -205,8 +205,10 @@ export function useMovementEngine({
         }
       }
 
-      // Wild encounter
-      if (grid[nextY][nextX].type === 'grass' && Math.random() < 0.1 && playerTeam.length > 0) {
+      // Wild encounter: Gen I style — roll 0–255 vs per-route encounter rate
+      const encounterRate = WILD_ENCOUNTER_RATES[currentMap] ?? 10;
+      const encounterRoll = Math.floor(Math.random() * 256);
+      if (grid[nextY][nextX].type === 'grass' && encounterRoll < encounterRate && playerTeam.length > 0) {
         if (playerTeam.every(p => p.hp === 0)) return;
 
         const routeWilds = WILD_POKEMON_DATABASE[currentMap] || WILD_POKEMON_DATABASE['ROUTE_1'];

@@ -28,6 +28,7 @@ export interface Move {
   statusEffect?: 'paralyzed' | 'sleep' | 'poison' | 'burn' | 'frozen';
   statusChance?: number;
   statChange?: StatChange;
+  highCrit?: boolean;
 }
 
 export interface BaseStats {
@@ -43,6 +44,8 @@ export interface StatBoosts {
   defense: number;
   special: number;
   speed: number;
+  accuracy?: number;
+  evasion?: number;
 }
 
 export interface Pokemon {
@@ -63,6 +66,8 @@ export interface Pokemon {
   evolutionLevel?: number;
   evolvesTo?: string;
   movesToLearn?: { level: number, move: Move }[];
+  catchRate?: number;
+  growthRate?: 'fast' | 'medium_fast' | 'medium_slow' | 'slow';
 }
 
 export interface PokemonSummary {

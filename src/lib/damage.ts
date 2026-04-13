@@ -82,15 +82,20 @@ export function getEffectivenessLabel(multiplier: number): string | null {
 }
 
 /**
- * Gen I-style accuracy check.
- * Uses a 0-255 roll and a truncated 255-based threshold, which preserves
- * the classic 1/256 miss chance even for nominal 100% accurate moves.
+ * Accuracy check per the "intended" Gen I formula.
+ * P = moveAccuracy × attackerAccuracyStageMultiplier / defenderEvasionStageMultiplier
+ * Roll R between 1–100; move hits if R ≤ P (clamped to 100).
+ * This removes the classic 1/256 miss glitch.
  */
-export function doesMoveHit(accuracyPercent: number): boolean {
-  const clamped = Math.max(1, Math.min(100, accuracyPercent));
-  const threshold = Math.floor((clamped * 255) / 100);
-  const roll = Math.floor(Math.random() * 256); // 0..255
-  return roll < threshold;
+export function doesMoveHit(
+  accuracyPercent: number,
+  attackerAccuracyStage = 0,
+  defenderEvasionStage = 0,
+): boolean {
+  const mod = getStageMultiplier(attackerAccuracyStage) / getStageMultiplier(defenderEvasionStage);
+  const p = Math.min(100, accuracyPercent * mod);
+  const r = Math.floor(Math.random() * 100) + 1; // 1..100
+  return r <= p;
 }
 
 interface DamageResult {
@@ -116,9 +121,10 @@ export function calculateDamage(
 
   const level = attacker.level;
 
-  // Critical hit: Gen I uses base Speed / 512 chance (capped at ~99.6%)
+  // Critical hit: normal = baseSpeed/512; high-crit moves (Slash, Razor Leaf) = baseSpeed×8/512
   const baseSpeed = attacker.baseStats.speed;
-  const critChance = Math.min(baseSpeed / 512, 0.996);
+  const critMultiplier = move.highCrit ? 8 : 1;
+  const critChance = Math.min(baseSpeed * critMultiplier / 512, 0.996);
   const isCritical = Math.random() < critChance;
   const critical = isCritical ? 2 : 1;
 

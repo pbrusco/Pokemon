@@ -185,7 +185,7 @@ describe('getEffectivenessLabel', () => {
   });
 });
 
-// ─── doesMoveHit (Gen I 1/256 bug) ────────────────────────────────────────────
+// ─── doesMoveHit ─────────────────────────────────────────────────────────────
 
 describe('doesMoveHit', () => {
   let randomSpy: ReturnType<typeof vi.spyOn>;
@@ -198,19 +198,37 @@ describe('doesMoveHit', () => {
     randomSpy.mockRestore();
   });
 
-  it('100% accuracy still misses on roll 255 (1/256 bug)', () => {
-    randomSpy.mockReturnValue(255 / 256); // floor(255)
-    expect(doesMoveHit(100)).toBe(false);
-  });
+  // R = floor(random * 100) + 1 → range [1, 100]; hit if R ≤ P
 
-  it('100% accuracy hits on roll 254', () => {
-    randomSpy.mockReturnValue(254 / 256); // floor(254)
+  it('100% accuracy always hits — no 1/256 glitch', () => {
+    // highest possible roll: floor(0.999 * 100) + 1 = 100 ≤ 100 → hit
+    randomSpy.mockReturnValue(0.999);
     expect(doesMoveHit(100)).toBe(true);
   });
 
-  it('50% accuracy misses at threshold and above', () => {
-    randomSpy.mockReturnValue(127 / 256); // floor(127), threshold=127 -> miss
+  it('50% accuracy hits when roll ≤ 50', () => {
+    // floor(0.49 * 100) + 1 = 50 ≤ 50 → hit
+    randomSpy.mockReturnValue(0.49);
+    expect(doesMoveHit(50)).toBe(true);
+  });
+
+  it('50% accuracy misses when roll > 50', () => {
+    // floor(0.50 * 100) + 1 = 51 > 50 → miss
+    randomSpy.mockReturnValue(0.50);
     expect(doesMoveHit(50)).toBe(false);
+  });
+
+  it('positive accuracy stage boosts hit probability', () => {
+    // stage +2 multiplier = 4/2 = 2; 50% × 2 = 100% → always hits
+    randomSpy.mockReturnValue(0.999);
+    expect(doesMoveHit(50, 2, 0)).toBe(true);
+  });
+
+  it('positive evasion stage reduces hit probability', () => {
+    // defender evasion +6 = 8/2 = 4x; 100% / 4 = 25% effective accuracy
+    // roll of 26 (> 25) → miss
+    randomSpy.mockReturnValue(0.25); // floor(0.25 * 100) + 1 = 26 > 25 → miss
+    expect(doesMoveHit(100, 0, 6)).toBe(false);
   });
 });
 
@@ -317,6 +335,18 @@ describe('calculateDamage', () => {
 
     const result = calculateDamage(attacker, defender, tackle);
     expect(result.isCritical).toBe(false);
+  });
+
+  it('high-crit move (SLASH) has 8× higher crit chance than normal', () => {
+    // speed 65: normal critChance = 65/512 ≈ 0.127; high-crit = 65*8/512 ≈ 1.0 (capped)
+    const attacker = makePkmn({ baseStats: { hp: 39, attack: 52, defense: 43, special: 50, speed: 65 } });
+    const defender = makePkmn({ type: 'normal' });
+    const slash = { name: 'CUCHILLADA', type: 'normal', power: 70, accuracy: 100, pp: 20, maxPp: 20, highCrit: true };
+
+    randomSpy.mockReturnValue(0.5); // 0.5 < capped critChance → always crit for speed 65 high-crit
+
+    const result = calculateDamage(attacker, defender, slash);
+    expect(result.isCritical).toBe(true);
   });
 
   it('not very effective is labeled correctly', () => {
