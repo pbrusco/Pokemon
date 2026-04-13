@@ -27,6 +27,10 @@ npm run preview   # Preview production build
 | [components.md](./components.md) | Devs / AI agents | UI component API reference |
 | [adding-content.md](./adding-content.md) | Devs / AI agents | How to add maps, NPCs, Pokemon, moves |
 
+### Testing
+
+131 tests run via `npm run test:run` (Vitest). A headless `GameSimulator` (`src/test/simulator/`) drives all game hooks without UI for integration testing. See `CLAUDE.md` for simulator usage and scenario examples.
+
 ---
 
 ## Tech Stack

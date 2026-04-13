@@ -57,6 +57,7 @@ export PATH="/opt/homebrew/bin:$PATH"
   - `BattleScreen.tsx`, `DialogueBox.tsx`, `InventoryUI.tsx`, `TeamMenuUI.tsx`, etc.
 - `src/data/npcDatabase.ts` — `buildNPCDatabase()` + `buildItemDatabase()`
 - `src/data/maps/` — compact map sources + parser/export
+- `src/test/simulator/` — headless game simulator for integration testing
 
 ## Map Format
 
@@ -84,11 +85,26 @@ Notable tiles:
 
 ## Testing
 
-118 unit and scenario tests covering damage math, battle engine flows, interaction engine, and Gen I status rules:
+131 tests covering damage math, battle engine flows, interaction engine, Gen I status rules, and integration scenarios:
 
 ```bash
 npm run test:run   # single run (CI)
 npm test           # watch mode
 ```
+
+### Game Simulator
+
+A headless `GameSimulator` class (`src/test/simulator/`) drives the real game hooks without UI for deterministic integration testing. It uses fake timers and seeded `Math.random` so scenarios run instantly and reproducibly.
+
+```typescript
+const sim = new GameSimulator().init({ currentMap: 'OAKS_LAB', playerPos: { x: 9, y: 9 } });
+sim.interact();           // pick starter
+sim.tick(2000);           // advance timers
+sim.skipBattleTransition();
+expect(sim.team).toHaveLength(1);
+sim.destroy();
+```
+
+10 predefined scenarios cover: Oak's intro, starter selection, rival battle, healing (Mom + Pokécenter), wild encounters, parcel delivery, Pokédex unlock.
 
 See `CLAUDE.md` for implementation details and `TODO.md` for task tracking.

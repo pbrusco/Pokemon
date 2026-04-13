@@ -56,6 +56,13 @@ src/
 │   ├── Joystick.tsx            # Touch directional input
 │   └── MapEditor.tsx           # Developer tile map painter
 │
+├── test/
+│   ├── setup.ts                # Test setup (jest-dom matchers)
+│   └── simulator/
+│       ├── GameSimulator.ts    # Headless game driver (commands, queries, event log)
+│       ├── useGameLoop.ts      # Composite hook wiring all engines for headless testing
+│       └── scenarios.test.ts   # 10 integration scenarios (start → mid-game)
+│
 └── data/
     ├── npcDatabase.ts          # buildNPCDatabase() + buildItemDatabase() — live NPC/item data
     ├── worldConfig.ts          # INITIAL_MAPS, teleports, static world config
@@ -87,28 +94,28 @@ Game logic lives in dedicated hooks:
 
 Presentation is split into focused components. `WorldView` renders the overworld map. `GameModals` renders all overlay screens. `ScreenEffects` renders full-screen flash/fade effects.
 
-### 2. State in Zustand, Ephemeral State in App.tsx
+### 2. State in Zustand, Ephemeral State in Hooks
 
-The Zustand store (`gameStore.ts`) owns persistent game state. `App.tsx` holds ephemeral state that doesn't need to survive a page reload:
+The Zustand store (`gameStore.ts`) owns both persistent game state and runtime state (phase, dialogue, flags). Battle-specific ephemeral state lives in `useBattleEngine`:
 
-- `phase` / `battlePhase` — the FSM (local `useState` in App.tsx)
 - `battleLog` — log text for the current turn
 - `enemyPokemon` — the current opponent
-- Animation states (`playerAnim`, `enemyAnim`, `projectile`, etc.)
+- `isTrainerBattle` — whether the current battle is a trainer battle
+- `catchResult` — result of a catch attempt
 
-### 3. Avoiding Stale Closures: The `gameState` Ref
+Animation state (`playerAnim`, `enemyAnim`, `battleShake`) lives in `useBattleVFX` / `useOverworldVFX`.
 
-React state inside `setTimeout` callbacks can be stale. All hooks that use deferred callbacks (battle effects, trainer approach animation, poison damage) receive a single `gameState` ref owned by App.tsx:
+### 3. Avoiding Stale Closures: `useGameStore.getState()`
+
+React state inside `setTimeout` callbacks can be stale. All hooks that use deferred callbacks (battle effects, trainer approach animation, poison damage) call `useGameStore.getState()` at the point of use to get fresh state:
 
 ```typescript
-// In App.tsx — one snapshot ref, updated every render
-const gameState = useRef({ playerPos, direction, currentMap, playerTeam, npcs, ... });
-useEffect(() => {
-  gameState.current = { playerPos, direction, currentMap, playerTeam, npcs, ... };
-}, [playerPos, direction, currentMap, playerTeam, npcs, ...]);
-
 // Inside a hook's setTimeout:
-const { playerTeam, currentMap } = gameState.current; // always fresh
+setTimeout(() => {
+  const store = useGameStore.getState(); // always fresh
+  store.setPhase(EXPLORING);
+  store.setDialogue('¡Tus POKÉMON están en plena forma!');
+}, sd(1600));
 ```
 
 `battleStateRef` is a separate ref holding the mutable `BattleState` during a fight. It is owned by App.tsx and shared between `useMovementEngine` (to initialize it) and `useBattleEngine` (to drive it).

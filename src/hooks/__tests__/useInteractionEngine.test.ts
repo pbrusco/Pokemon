@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useInteractionEngine } from '../useInteractionEngine';
+import { useGameStore } from '../../store/gameStore';
 import type { NPC, Entity, Tile, Pokemon, Position, InventoryCounts } from '../../types';
 import type { MapID } from '../../types';
 import { STARTERS } from '../../constants';
-import { EXPLORING, HEALING, SHOP } from '../../types/gamePhase';
+import { EXPLORING, HEALING, SHOP, battle, B_CHOOSING } from '../../types/gamePhase';
+import { worldConfig } from '../../data/worldConfig';
 
 // ─── Mock soundManager ────────────────────────────────────────────────────────
 
@@ -79,6 +81,8 @@ const EMPTY_ITEMS: Record<MapID, Entity[]> = Object.fromEntries(
 ) as Record<MapID, Entity[]>;
 
 // ─── Hook factory ─────────────────────────────────────────────────────────────
+// The hook now reads all state from the Zustand store, so setup() configures
+// the store directly and overrides getNPCs/getItems/worldMaps for isolation.
 
 interface Overrides {
   currentMap?: MapID;
@@ -98,64 +102,49 @@ interface Overrides {
 }
 
 function setup(overrides: Overrides = {}) {
-  const setDialogue = vi.fn();
-  const setPhase = vi.fn();
-  const setPlayerTeam = vi.fn();
-  const setLastHealLocation = vi.fn();
-  const setHasParcel = vi.fn();
-  const setHasPokedex = vi.fn();
-  const setInventory = vi.fn();
-  const setPickedItemIds = vi.fn();
-  const setStoryStep = vi.fn();
-  const setEnemyPokemon = vi.fn();
-  const setIsTrainerBattle = vi.fn();
   const initBattle = vi.fn();
 
-  const params = {
+  useGameStore.setState({
+    // Runtime defaults
+    isMoving: false,
+    badgeBoostGlitchStacks: 0,
+    showMoves: false,
+    isMuted: true,
+    isLocked: false,
+    showBattleTransition: false,
+    teleports: worldConfig.teleports,
+    lastHealLocation: { map: 'PALLET_TOWN' as MapID, pos: { x: 7, y: 11 } },
+    pcStorage: [],
+    pokedex: {},
+    money: 3000,
+    defeatedTrainers: [],
+    storyStep: 'START',
+
+    // Overrideable state
     currentMap: (overrides.currentMap ?? 'PALLET_TOWN') as MapID,
     playerPos: overrides.playerPos ?? { x: 5, y: 5 },
     direction: overrides.direction ?? 'up',
     dialogue: overrides.dialogue ?? null,
-    inBattle: overrides.inBattle ?? false,
+    phase: overrides.inBattle ? battle(B_CHOOSING) : EXPLORING,
     hasParcel: overrides.hasParcel ?? false,
     hasPokedex: overrides.hasPokedex ?? false,
     badges: overrides.badges ?? [],
     inventory: overrides.inventory ?? {},
     playerTeam: overrides.playerTeam ?? [],
     pickedItemIds: overrides.pickedItemIds ?? [],
-    npcs: overrides.npcs ?? EMPTY_NPCS,
-    items: overrides.items ?? EMPTY_ITEMS,
-    maps: overrides.maps ?? EMPTY_MAPS,
-    setDialogue,
-    setPhase,
-    setPlayerTeam,
-    setLastHealLocation,
-    setHasParcel,
-    setHasPokedex,
-    setInventory,
-    setPickedItemIds,
-    setStoryStep,
-    setEnemyPokemon,
-    setIsTrainerBattle,
-    initBattle,
-  };
 
-  const { result } = renderHook(() => useInteractionEngine(params));
+    // Override getNPCs/getItems/worldMaps for test isolation
+    getNPCs: () => (overrides.npcs ?? EMPTY_NPCS),
+    getItems: () => (overrides.items ?? EMPTY_ITEMS),
+    worldMaps: (overrides.maps ?? EMPTY_MAPS) as typeof worldConfig.maps,
+  });
+
+  const { result } = renderHook(() => useInteractionEngine({ initBattle }));
 
   return {
     handleAction: result.current.handleAction,
-    setDialogue,
-    setPhase,
-    setPlayerTeam,
-    setLastHealLocation,
-    setHasParcel,
-    setHasPokedex,
-    setInventory,
-    setPickedItemIds,
-    setStoryStep,
-    setEnemyPokemon,
-    setIsTrainerBattle,
     initBattle,
+    getState: () => useGameStore.getState(),
   };
 }
 
@@ -163,28 +152,29 @@ function setup(overrides: Overrides = {}) {
 
 describe('Dismiss dialogue', () => {
   it('clears dialogue when dialogue is active', () => {
-    const { handleAction, setDialogue } = setup({ dialogue: 'Hello!' });
+    const { handleAction, getState } = setup({ dialogue: 'Hello!' });
     act(() => handleAction());
-    expect(setDialogue).toHaveBeenCalledWith(null);
+    expect(getState().dialogue).toBeNull();
   });
 
   it('does not interact with world when dialogue is active', () => {
     const healNpc = makeNPC({ onInteract: 'heal', name: 'NURSE JOY' });
-    const { handleAction, setPhase } = setup({
+    const { handleAction, getState } = setup({
       dialogue: 'Some text',
       npcs: { ...EMPTY_NPCS, PALLET_TOWN: [healNpc] },
     });
     act(() => handleAction());
-    expect(setPhase).not.toHaveBeenCalled();
+    // Dialogue was cleared (dismiss), but no phase change happened
+    expect(getState().phase.type).toBe('EXPLORING');
   });
 });
 
 describe('No-op in battle', () => {
   it('returns early without interacting when inBattle=true', () => {
-    const { handleAction, setDialogue, setPhase } = setup({ inBattle: true });
+    const { handleAction, getState } = setup({ inBattle: true });
     act(() => handleAction());
-    expect(setDialogue).not.toHaveBeenCalled();
-    expect(setPhase).not.toHaveBeenCalled();
+    expect(getState().dialogue).toBeNull();
+    expect(getState().phase.type).toBe('BATTLE');
   });
 });
 
@@ -199,7 +189,7 @@ describe('Healing NPC', () => {
       onInteract: 'heal',
       position: { x: 5, y: 4 },
     });
-    const { handleAction, setLastHealLocation, setPhase, setDialogue } = setup({
+    const { handleAction, getState } = setup({
       currentMap: 'POKECENTER',
       npcs: { ...EMPTY_NPCS, POKECENTER: [healNpc] },
     });
@@ -207,16 +197,15 @@ describe('Healing NPC', () => {
     act(() => handleAction());
 
     // Immediately: sets dialogue with nurse's greeting
-    expect(setDialogue).toHaveBeenCalled();
-    const greeting = setDialogue.mock.calls[0][0] as string;
-    expect(greeting).toContain('JOY');
+    expect(getState().dialogue).toBeTruthy();
+    expect(getState().dialogue).toContain('JOY');
 
     // After 1500ms: triggers HEALING
     act(() => vi.advanceTimersByTime(1500));
-    expect(setPhase).toHaveBeenCalledWith(HEALING);
+    expect(getState().phase.type).toBe('HEALING');
 
     // Sets heal location for POKECENTER
-    expect(setLastHealLocation).toHaveBeenCalledWith(
+    expect(getState().lastHealLocation).toEqual(
       expect.objectContaining({ map: 'POKECENTER' }),
     );
   });
@@ -229,7 +218,7 @@ describe('Healing NPC', () => {
       moves: [{ name: 'PLACAJE', type: 'normal', power: 40, accuracy: 100, pp: 3, maxPp: 35 }],
       sprite: '', status: 'paralyzed',
     };
-    const { handleAction, setPlayerTeam } = setup({
+    const { handleAction, getState } = setup({
       currentMap: 'POKECENTER',
       playerTeam: [woundedPkmn],
       npcs: { ...EMPTY_NPCS, POKECENTER: [healNpc] },
@@ -238,19 +227,15 @@ describe('Healing NPC', () => {
     act(() => handleAction());
     act(() => vi.advanceTimersByTime(1500 + 800)); // trigger HEALING + heal tick
 
-    expect(setPlayerTeam).toHaveBeenCalled();
-    // Find the heal call — it maps over the team
-    const healCall = setPlayerTeam.mock.calls.find(call => typeof call[0] === 'function');
-    expect(healCall).toBeDefined();
-    const healedTeam = (healCall![0] as Function)([woundedPkmn]);
-    expect(healedTeam[0].hp).toBe(woundedPkmn.maxHp);
-    expect(healedTeam[0].status).toBe('none');
-    expect(healedTeam[0].moves[0].pp).toBe(woundedPkmn.moves[0].maxPp);
+    const healed = getState().playerTeam[0];
+    expect(healed.hp).toBe(woundedPkmn.maxHp);
+    expect(healed.status).toBe('none');
+    expect(healed.moves[0].pp).toBe(woundedPkmn.moves[0].maxPp);
   });
 
   it('returns to EXPLORING after 1600ms inside HEALING', () => {
     const healNpc = makeNPC({ name: 'NURSE JOY', onInteract: 'heal', position: { x: 5, y: 4 } });
-    const { handleAction, setPhase } = setup({
+    const { handleAction, getState } = setup({
       currentMap: 'POKECENTER',
       npcs: { ...EMPTY_NPCS, POKECENTER: [healNpc] },
     });
@@ -258,14 +243,14 @@ describe('Healing NPC', () => {
     act(() => handleAction());
     act(() => vi.advanceTimersByTime(1500 + 1600));
 
-    expect(setPhase).toHaveBeenCalledWith(EXPLORING);
+    expect(getState().phase).toEqual(EXPLORING);
   });
 });
 
 describe('Shop NPC — first visit (parcel pickup)', () => {
   it('gives parcel on first visit to POKEMART when hasParcel=false and hasPokedex=false', () => {
     const shopNpc = makeNPC({ name: 'DEPENDIENTE', onInteract: 'shop', position: { x: 5, y: 4 } });
-    const { handleAction, setHasParcel, setInventory, setDialogue } = setup({
+    const { handleAction, getState } = setup({
       currentMap: 'POKEMART',
       npcs: { ...EMPTY_NPCS, POKEMART: [shopNpc] },
       hasParcel: false,
@@ -274,11 +259,10 @@ describe('Shop NPC — first visit (parcel pickup)', () => {
 
     act(() => handleAction());
 
-    expect(setHasParcel).toHaveBeenCalledWith(true);
-    expect(setInventory).toHaveBeenCalled();
-    expect(setDialogue).toHaveBeenCalled();
-    const msg = setDialogue.mock.calls[0][0] as string;
-    expect(msg).toContain('paquete');
+    expect(getState().hasParcel).toBe(true);
+    expect(getState().inventory['OAK_PARCEL']).toBeGreaterThanOrEqual(1);
+    expect(getState().dialogue).toBeTruthy();
+    expect(getState().dialogue).toContain('paquete');
   });
 });
 
@@ -288,7 +272,7 @@ describe('Shop NPC — returning visit', () => {
 
   it('opens SHOP phase when hasParcel=true', () => {
     const shopNpc = makeNPC({ name: 'DEPENDIENTE', onInteract: 'shop', position: { x: 5, y: 4 } });
-    const { handleAction, setPhase } = setup({
+    const { handleAction, getState } = setup({
       currentMap: 'POKEMART',
       npcs: { ...EMPTY_NPCS, POKEMART: [shopNpc] },
       hasParcel: true,
@@ -298,14 +282,14 @@ describe('Shop NPC — returning visit', () => {
     act(() => handleAction());
     act(() => vi.advanceTimersByTime(1000));
 
-    expect(setPhase).toHaveBeenCalledWith(SHOP);
+    expect(getState().phase).toEqual(SHOP);
   });
 });
 
 describe('Oak parcel turn-in', () => {
   it('removes parcel and grants Pokedex', () => {
     const oakNpc = makeNPC({ name: 'PROF. OAK', onInteract: 'oak_parcel_turnin', position: { x: 5, y: 4 } });
-    const { handleAction, setHasParcel, setHasPokedex, setInventory, setDialogue } = setup({
+    const { handleAction, getState } = setup({
       currentMap: 'OAKS_LAB',
       npcs: { ...EMPTY_NPCS, OAKS_LAB: [oakNpc] },
       hasParcel: true,
@@ -314,17 +298,16 @@ describe('Oak parcel turn-in', () => {
 
     act(() => handleAction());
 
-    expect(setHasParcel).toHaveBeenCalledWith(false);
-    expect(setHasPokedex).toHaveBeenCalledWith(true);
-    expect(setInventory).toHaveBeenCalled();
-    expect(setDialogue).toHaveBeenCalled();
-    const msg = setDialogue.mock.calls[0][0] as string;
-    expect(msg).toContain('POKÉDEX');
+    expect(getState().hasParcel).toBe(false);
+    expect(getState().hasPokedex).toBe(true);
+    expect(getState().inventory['OAK_PARCEL']).toBeUndefined();
+    expect(getState().dialogue).toBeTruthy();
+    expect(getState().dialogue).toContain('POKÉDEX');
   });
 
   it('does NOT grant Pokedex when hasParcel=false', () => {
     const oakNpc = makeNPC({ name: 'PROF. OAK', onInteract: 'oak_parcel_turnin', position: { x: 5, y: 4 } });
-    const { handleAction, setHasPokedex } = setup({
+    const { handleAction, getState } = setup({
       currentMap: 'OAKS_LAB',
       npcs: { ...EMPTY_NPCS, OAKS_LAB: [oakNpc] },
       hasParcel: false,
@@ -332,20 +315,20 @@ describe('Oak parcel turn-in', () => {
 
     act(() => handleAction());
 
-    expect(setHasPokedex).not.toHaveBeenCalled();
+    expect(getState().hasPokedex).toBe(false);
   });
 });
 
 describe('Generic NPC dialogue', () => {
   it('sets dialogue from NPC.dialogue[0]', () => {
     const npc = makeNPC({ dialogue: ['¡Hola mundo!'] });
-    const { handleAction, setDialogue } = setup({
+    const { handleAction, getState } = setup({
       npcs: { ...EMPTY_NPCS, PALLET_TOWN: [npc] },
     });
 
     act(() => handleAction());
 
-    expect(setDialogue).toHaveBeenCalledWith('¡Hola mundo!');
+    expect(getState().dialogue).toBe('¡Hola mundo!');
   });
 });
 
@@ -355,17 +338,16 @@ describe('Item pickup — potion', () => {
       ...makeItem({ id: 'item_potion_1', sprite: '🧪' }),
       position: { x: 5, y: 4 },
     };
-    const { handleAction, setInventory, setPickedItemIds, setDialogue } = setup({
+    const { handleAction, getState } = setup({
       items: { ...EMPTY_ITEMS, PALLET_TOWN: [potionItem] },
     });
 
     act(() => handleAction());
 
-    expect(setInventory).toHaveBeenCalled();
-    expect(setPickedItemIds).toHaveBeenCalled();
-    expect(setDialogue).toHaveBeenCalled();
-    const msg = setDialogue.mock.calls[0][0] as string;
-    expect(msg).toContain('POCIÓN');
+    expect(getState().inventory['POTION']).toBeGreaterThanOrEqual(1);
+    expect(getState().pickedItemIds).toContain('item_potion_1');
+    expect(getState().dialogue).toBeTruthy();
+    expect(getState().dialogue).toContain('POCIÓN');
   });
 });
 
@@ -375,16 +357,15 @@ describe('Item pickup — pokeball', () => {
       ...makeItem({ id: 'item_pokeball_1', sprite: '🔴' }),
       position: { x: 5, y: 4 },
     };
-    const { handleAction, setInventory, setPickedItemIds, setDialogue } = setup({
+    const { handleAction, getState } = setup({
       items: { ...EMPTY_ITEMS, PALLET_TOWN: [ballItem] },
     });
 
     act(() => handleAction());
 
-    expect(setInventory).toHaveBeenCalled();
-    expect(setPickedItemIds).toHaveBeenCalled();
-    const msg = setDialogue.mock.calls[0][0] as string;
-    expect(msg).toContain('POKÉ BALL');
+    expect(getState().inventory['POKEBALL']).toBeGreaterThanOrEqual(1);
+    expect(getState().pickedItemIds).toContain('item_pokeball_1');
+    expect(getState().dialogue).toContain('POKÉ BALL');
   });
 });
 
@@ -400,7 +381,7 @@ describe('Starter selection', () => {
       direction: 'down',
       sprite: STARTERS[0].sprite,
     };
-    const { handleAction, setPlayerTeam, setStoryStep, setDialogue } = setup({
+    const { handleAction, getState } = setup({
       currentMap: 'OAKS_LAB',
       playerTeam: [], // empty — required for starter selection
       items: { ...EMPTY_ITEMS, OAKS_LAB: [starterItem] },
@@ -408,9 +389,9 @@ describe('Starter selection', () => {
 
     act(() => handleAction());
 
-    expect(setPlayerTeam).toHaveBeenCalledWith([STARTERS[0]]);
-    expect(setStoryStep).toHaveBeenCalledWith('PICKED_STARTER');
-    expect(setDialogue).toHaveBeenCalled();
+    expect(getState().playerTeam).toEqual([STARTERS[0]]);
+    expect(getState().storyStep).toBe('PICKED_STARTER');
+    expect(getState().dialogue).toBeTruthy();
   });
 
   it('triggers rival battle after 1500ms', () => {
@@ -449,7 +430,7 @@ describe('Starter selection', () => {
       type: 'fire', baseStats: { hp: 39, attack: 52, defense: 43, special: 50, speed: 65 },
       moves: [], sprite: '',
     };
-    const { handleAction, setStoryStep } = setup({
+    const { handleAction, getState } = setup({
       currentMap: 'OAKS_LAB',
       playerTeam: [existingPkmn], // already has a team
       items: { ...EMPTY_ITEMS, OAKS_LAB: [starterItem] },
@@ -457,7 +438,7 @@ describe('Starter selection', () => {
 
     act(() => handleAction());
 
-    expect(setStoryStep).not.toHaveBeenCalledWith('PICKED_STARTER');
+    expect(getState().storyStep).not.toBe('PICKED_STARTER');
   });
 });
 
@@ -470,15 +451,14 @@ describe('Sign / object interactions', () => {
       direction: 'down',
       sprite: '🪧',
     };
-    const { handleAction, setDialogue } = setup({
+    const { handleAction, getState } = setup({
       items: { ...EMPTY_ITEMS, PALLET_TOWN: [sign] },
     });
 
     act(() => handleAction());
 
-    expect(setDialogue).toHaveBeenCalled();
-    const msg = setDialogue.mock.calls[0][0] as string;
-    expect(msg).toContain('CASA');
+    expect(getState().dialogue).toBeTruthy();
+    expect(getState().dialogue).toContain('CASA');
   });
 });
 
@@ -488,7 +468,7 @@ describe('HM — CUT tree obstacle', () => {
       ...EMPTY_MAPS,
       PALLET_TOWN: { tiles: makeGrid({ '4,5': CUT_TREE_TILE }) },
     };
-    const { handleAction, setDialogue } = setup({
+    const { handleAction, getState } = setup({
       playerPos: { x: 5, y: 5 },
       direction: 'up',
       maps,
@@ -497,9 +477,8 @@ describe('HM — CUT tree obstacle', () => {
 
     act(() => handleAction());
 
-    expect(setDialogue).toHaveBeenCalled();
-    const msg = setDialogue.mock.calls[0][0] as string;
-    expect(msg).toContain('CASCADE');
+    expect(getState().dialogue).toBeTruthy();
+    expect(getState().dialogue).toContain('CASCADE');
   });
 
   it('shows error if player has badge but lead Pokemon lacks CUT move', () => {
@@ -513,7 +492,7 @@ describe('HM — CUT tree obstacle', () => {
       moves: [{ name: 'PLACAJE', type: 'normal', power: 40, accuracy: 100, pp: 35, maxPp: 35 }],
       sprite: '',
     };
-    const { handleAction, setDialogue } = setup({
+    const { handleAction, getState } = setup({
       maps,
       badges: ['CASCADE'],
       playerTeam: [pkmnWithoutCut],
@@ -521,9 +500,8 @@ describe('HM — CUT tree obstacle', () => {
 
     act(() => handleAction());
 
-    expect(setDialogue).toHaveBeenCalled();
-    const msg = setDialogue.mock.calls[0][0] as string;
-    expect(msg).toContain('CORTAR');
+    expect(getState().dialogue).toBeTruthy();
+    expect(getState().dialogue).toContain('CORTAR');
   });
 
   it('clears the tree tile when badge and move are present', () => {
@@ -537,7 +515,7 @@ describe('HM — CUT tree obstacle', () => {
       moves: [{ name: 'CORTAR', type: 'normal', power: 50, accuracy: 95, pp: 30, maxPp: 30 }],
       sprite: '',
     };
-    const { handleAction, setDialogue } = setup({
+    const { handleAction, getState } = setup({
       maps,
       badges: ['CASCADE'],
       playerTeam: [pkmnWithCut],
@@ -548,9 +526,8 @@ describe('HM — CUT tree obstacle', () => {
     // Tile should be mutated to path (the hook modifies the tile in place)
     expect(maps.PALLET_TOWN.tiles[4][5].type).toBe('path');
     expect(maps.PALLET_TOWN.tiles[4][5].walkable).toBe(true);
-    expect(setDialogue).toHaveBeenCalled();
-    const msg = setDialogue.mock.calls[0][0] as string;
-    expect(msg).toContain('CORTAR');
+    expect(getState().dialogue).toBeTruthy();
+    expect(getState().dialogue).toContain('CORTAR');
   });
 });
 
@@ -560,16 +537,15 @@ describe('HM — STRENGTH boulder obstacle', () => {
       ...EMPTY_MAPS,
       PALLET_TOWN: { tiles: makeGrid({ '4,5': BOULDER_TILE }) },
     };
-    const { handleAction, setDialogue } = setup({
+    const { handleAction, getState } = setup({
       maps,
       badges: [],
     });
 
     act(() => handleAction());
 
-    expect(setDialogue).toHaveBeenCalled();
-    const msg = setDialogue.mock.calls[0][0] as string;
-    expect(msg).toContain('RAINBOW');
+    expect(getState().dialogue).toBeTruthy();
+    expect(getState().dialogue).toContain('RAINBOW');
   });
 
   it('clears the boulder tile when badge and FUERZA move are present', () => {
@@ -583,7 +559,7 @@ describe('HM — STRENGTH boulder obstacle', () => {
       moves: [{ name: 'FUERZA', type: 'normal', power: 80, accuracy: 100, pp: 15, maxPp: 15 }],
       sprite: '',
     };
-    const { handleAction, setDialogue } = setup({
+    const { handleAction, getState } = setup({
       maps,
       badges: ['RAINBOW'],
       playerTeam: [pkmnWithStrength],
@@ -593,20 +569,18 @@ describe('HM — STRENGTH boulder obstacle', () => {
 
     expect(maps.PALLET_TOWN.tiles[4][5].type).toBe('path');
     expect(maps.PALLET_TOWN.tiles[4][5].walkable).toBe(true);
-    const msg = setDialogue.mock.calls[0][0] as string;
-    expect(msg).toContain('FUERZA');
+    expect(getState().dialogue).toContain('FUERZA');
   });
 });
 
 describe('No NPC or item in target tile', () => {
   it('does nothing when facing an empty walkable tile', () => {
-    const { handleAction, setDialogue, setPhase, setInventory } = setup();
+    const { handleAction, getState } = setup();
 
     act(() => handleAction());
 
-    expect(setDialogue).not.toHaveBeenCalled();
-    expect(setPhase).not.toHaveBeenCalled();
-    expect(setInventory).not.toHaveBeenCalled();
+    expect(getState().dialogue).toBeNull();
+    expect(getState().phase.type).toBe('EXPLORING');
   });
 
   it('shows dialogue for regular tree tile', () => {
@@ -614,12 +588,11 @@ describe('No NPC or item in target tile', () => {
       ...EMPTY_MAPS,
       PALLET_TOWN: { tiles: makeGrid({ '4,5': TREE_TILE }) },
     };
-    const { handleAction, setDialogue } = setup({ maps });
+    const { handleAction, getState } = setup({ maps });
 
     act(() => handleAction());
 
-    expect(setDialogue).toHaveBeenCalled();
-    const msg = setDialogue.mock.calls[0][0] as string;
-    expect(msg).toContain('árbol');
+    expect(getState().dialogue).toBeTruthy();
+    expect(getState().dialogue).toContain('árbol');
   });
 });
