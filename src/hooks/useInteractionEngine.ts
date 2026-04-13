@@ -114,6 +114,7 @@ export const useInteractionEngine = ({
           soundManager.play('SELECT');
 
           setTimeout(() => {
+            if (useGameStore.getState().playerTeam.length === 0) return;
             useGameStore.getState().setDialogue("AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!");
             const starterIndex = STARTERS.findIndex(s => s.sprite === item.sprite);
             const rivalIndex = (starterIndex + 1) % STARTERS.length;

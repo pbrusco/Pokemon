@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { soundManager } from './lib/sounds';
 import { BattleState } from './lib/battleEngine';
-import { battle, B_CHOOSING } from './types/gamePhase';
+import { battle, B_CHOOSING, EXPLORING } from './types/gamePhase';
 import { DemoModeButton } from './components/DemoModeButton';
 import { GodModeButton } from './components/GodModeButton';
 import './lib/demoMode'; 
@@ -112,6 +112,7 @@ export default function App() {
         store.removeInventoryItem('POTION');
         store.setDialogue('¡Usaste una POCIÓN! Tus POKÉMON recuperaron salud.');
       }
+      store.setPhase(EXPLORING);
       return;
     }
     if (itemId === 'POKEBALL') {

@@ -44,7 +44,7 @@ afterEach(() => {
 // ─── Scenario 1: Oak stops player from leaving Pallet Town ─────────────────
 
 describe('Scenario 1: Oak stops player at Route 1', () => {
-  it('teleports player to Oak lab when trying to leave without pokémon', () => {
+  it('teleports player immediately to Oak lab when trying to leave without pokémon', () => {
     sim = new GameSimulator().init({
       currentMap: 'PALLET_TOWN',
       playerPos: { x: 10, y: 6 },
@@ -54,12 +54,26 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
 
     // Move north toward Route 1 (y=5 triggers Oak's stop event)
     sim.move('up');
-    sim.tick(2000);
 
-    // Player should be teleported to Oak's Lab
+    // Teleport is immediate — no tick needed
     expect(sim.map).toBe('OAKS_LAB');
     expect(sim.dialogueContains('OAK')).toBe(true);
     expect(sim.storyStep).toBe('OAK_STOPPED');
+  });
+
+  it('does not retrigger when player already has a team', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'PALLET_TOWN',
+      playerPos: { x: 10, y: 6 },
+      direction: 'up',
+      playerTeam: [STARTERS[0]],
+      storyStep: 'EXPLORING',
+    });
+
+    sim.move('up');
+
+    // Player should NOT be sent to Oak's Lab
+    expect(sim.map).toBe('PALLET_TOWN');
   });
 });
 

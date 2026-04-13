@@ -259,6 +259,7 @@ export const ITEMS_DATABASE: Record<string, InventoryItem> = {
   OAK_PARCEL: { id: 'OAK_PARCEL', name: 'PAQUETE OAK', description: 'Un paquete para el Prof. Oak.', icon: '📦', type: 'key_item' },
   POTION: { id: 'POTION', name: 'POCIÓN', description: 'Restaura 20 PS de un Pokémon.', icon: '🧪', type: 'potion' },
   POKEBALL: { id: 'POKEBALL', name: 'POKÉ BALL', description: 'Sirve para atrapar Pokémon salvajes.', icon: '🔴', type: 'pokeball' },
+  TOWN_MAP: { id: 'TOWN_MAP', name: 'MAPA CIUDAD', description: 'Mapa de la región Kanto.', icon: '🗺️', type: 'key_item' },
 };
 
 export const POKEMON_LIST: PokemonSummary[] = [

@@ -5,14 +5,37 @@
 let audioCtx: AudioContext | null = null;
 let currentMusicOscillators: Array<{ osc: OscillatorNode; gain: GainNode }> = [];
 let musicTimeout: ReturnType<typeof setTimeout> | null = null;
+let audioBlocked = false;
 
-function getCtx(): AudioContext {
+function getCtx(): AudioContext | null {
+  if (audioBlocked) return null;
   if (!audioCtx) {
-    audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    try {
+      audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    } catch {
+      audioBlocked = true;
+      return null;
+    }
   }
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {
+      audioBlocked = true;
+    });
+  }
   return audioCtx;
 }
+
+// Automatically unblock on first user gesture and restart any pending music.
+function onFirstUserGesture() {
+  if (!audioBlocked) return;
+  audioBlocked = false;
+  if (audioCtx?.state === 'suspended') {
+    audioCtx.resume().catch(() => { audioBlocked = true; });
+  }
+  soundManager.restartMusic();
+}
+window.addEventListener('click', onFirstUserGesture, { once: true });
+window.addEventListener('keydown', onFirstUserGesture, { once: true });
 
 // ---------------------------------------------------------------------------
 // Expanded Melodies
@@ -97,6 +120,14 @@ class SoundManager {
     this.runMusicLoop(key);
   }
 
+  /** Called by onFirstUserGesture to resume whichever track was pending. */
+  restartMusic() {
+    if (this.muted || !this.currentMusicKey) return;
+    const key = this.currentMusicKey;
+    this.currentMusicKey = null; // reset so playMusic doesn't no-op
+    this.playMusic(key);
+  }
+
   private runMusicLoop(key: keyof typeof MELODIES) {
     if (!this.isLooping || this.currentMusicKey !== key) return;
     const melody = MELODIES[key];
@@ -115,8 +146,9 @@ class SoundManager {
   private playNote(freq: number, duration: number, delay: number, type: string) {
     if (freq === 0) return;
     const ctx = getCtx();
+    if (!ctx) return;
     const t0 = ctx.currentTime + delay;
-    
+
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     const filter = ctx.createBiquadFilter();
@@ -129,14 +161,14 @@ class SoundManager {
     filter.frequency.setValueAtTime(2200, t0);
 
     // Smooth envelope
-    gain.gain.setValueAtTime(0, t0); 
-    gain.gain.linearRampToValueAtTime(0.05, t0 + 0.02); 
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(0.05, t0 + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.02, t0 + duration);
 
     osc.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
-    
+
     osc.start(t0);
     osc.stop(t0 + duration);
     currentMusicOscillators.push({ osc, gain });
@@ -181,6 +213,7 @@ const SFX = {
 function playTone(type: OscillatorType, freqs: number[], duration: number, volume = 0.05, startDelay = 0) {
   try {
     const ctx = getCtx();
+    if (!ctx) return;
     const t0 = ctx.currentTime + startDelay;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();

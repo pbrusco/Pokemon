@@ -40,7 +40,7 @@ export const ShopUI = ({ onBuy, onClose, money }: { onBuy: (itemId: string) => v
                 <span className="text-2xl">{item.icon}</span>
                 <div className="flex-1 text-left">
                   <h3 className="font-bold text-slate-800 uppercase text-sm">{item.name}</h3>
-                  <p className="text-[10px] text-slate-500">Objeto útil para tu viaje</p>
+                  <p className="text-[10px] text-slate-500">{item.description}</p>
                 </div>
                 <span className={`font-mono font-bold ${canAfford ? 'text-blue-600' : 'text-slate-400'}`}>₽{price}</span>
               </button>

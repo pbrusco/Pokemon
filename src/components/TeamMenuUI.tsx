@@ -63,7 +63,6 @@ export const TeamMenuUI = ({ team, onClose, onSwap, forcedSwitch = false }: Team
           {team.map((pkmn, i) => {
             const fainted = pkmn.hp <= 0;
             const isActive = i === 0;
-            const selectable = canSelect(pkmn, i);
             const hpPercent = Math.max(0, (pkmn.hp / pkmn.maxHp) * 100);
 
             return (

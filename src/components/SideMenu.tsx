@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { User, MapIcon, Backpack, Gamepad2, X } from 'lucide-react';
 import { soundManager } from '../lib/sounds';
+import { ITEMS_DATABASE } from '../constants';
 import { Pokemon, InventoryCounts } from '../types';
 import { GamePhase, POKEDEX, TEAM, INVENTORY, PC } from '../types/gamePhase';
 import { Dispatch, SetStateAction } from 'react';
@@ -100,7 +101,7 @@ export const SideMenu = ({
               <span className="text-[10px] text-slate-400 uppercase">Inventario</span>
               <div className="flex flex-wrap gap-1">
                 {Object.entries(inventory).map(([item, qty]) => (
-                  <span key={item} className="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{item} x{qty}</span>
+                  <span key={item} className="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{ITEMS_DATABASE[item]?.name ?? item} x{qty}</span>
                 ))}
               </div>
             </div>

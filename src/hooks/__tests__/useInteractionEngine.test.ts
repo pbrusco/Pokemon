@@ -5,7 +5,7 @@ import { useGameStore } from '../../store/gameStore';
 import type { NPC, Entity, Tile, Pokemon, Position, InventoryCounts } from '../../types';
 import type { MapID } from '../../types';
 import { STARTERS } from '../../constants';
-import { EXPLORING, HEALING, SHOP, battle, B_CHOOSING } from '../../types/gamePhase';
+import { EXPLORING, SHOP, battle, B_CHOOSING } from '../../types/gamePhase';
 import { worldConfig } from '../../data/worldConfig';
 
 // ─── Mock soundManager ────────────────────────────────────────────────────────

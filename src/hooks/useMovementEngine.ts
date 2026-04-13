@@ -80,13 +80,10 @@ export function useMovementEngine({
 
     // Story Event: Oak stops the player from leaving Pallet Town
     if (currentMap === 'PALLET_TOWN' && nextY === 5 && playerTeam.length === 0) {
-      store.setDialogue("OAK: ¡Espera! ¡No vayas por ahí!");
       store.setStoryStep('OAK_STOPPED');
-      setTimeout(() => {
-        useGameStore.getState().setCurrentMap('OAKS_LAB');
-        useGameStore.getState().setPlayerPos({ x: 10, y: 14 });
-        useGameStore.getState().setDialogue("OAK: ¡Es peligroso ir solo! Ven, elige un POKÉMON.");
-      }, sd(1000));
+      store.setCurrentMap('OAKS_LAB');
+      store.setPlayerPos({ x: 10, y: 14 });
+      store.setDialogue("OAK: ¡Espera! ¡Es peligroso salir a la hierba sin un POKÉMON! Ven al laboratorio.");
       return;
     }
 
