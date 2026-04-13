@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, MutableRefObject } from 'react';
+import { useCallback, useState, useEffect, useRef, MutableRefObject } from 'react';
 import { Pokemon } from '../types';
 import { GamePhase, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, B_TRAINER_NEXT_POKEMON, EXPLORING, BLACKOUT, HEALING } from '../types/gamePhase';
 import { stepBattle, BattleState, BattleAction, BattleEffect } from '../lib/battleEngine';
@@ -33,6 +33,8 @@ function mapEnginePhase(p: string): GamePhase {
   }
 }
 
+export type BattleMessage = { text: string; speaker: string; id: number };
+
 export function useBattleEngine({
   battleStateRef,
   setPlayerAnim,
@@ -41,6 +43,8 @@ export function useBattleEngine({
 }: UseBattleEngineParams) {
   const [enemyPokemon, setEnemyPokemon] = useState<Pokemon | null>(null);
   const [battleLog, setBattleLog] = useState("");
+  const [battleLogs, setBattleLogs] = useState<BattleMessage[]>([]);
+  const nextLogId = useRef(0);
   const [isTrainerBattle, setIsTrainerBattle] = useState(false);
   const [catchResult, setCatchResult] = useState<boolean | null>(null);
 
@@ -63,7 +67,16 @@ export function useBattleEngine({
       const d = delay;
       switch (effect.type) {
         case 'log':
-          setTimeout(() => setBattleLog(effect.payload as string), d);
+          setTimeout(() => {
+            const text = effect.payload as string;
+            setBattleLog(text);
+            if (text.trim() !== '') {
+              setBattleLogs(prev => {
+                const newMsg = { text, speaker: effect.speaker || 'Sistema', id: nextLogId.current++ };
+                return [newMsg, ...prev].slice(0, 5);
+              });
+            }
+          }, d);
           delay += sd(500);
           break;
         case 'sound':
@@ -244,5 +257,5 @@ export function useBattleEngine({
     }
   }, [battleStateRef]);
 
-  return { dispatchBattle, enemyPokemon, setEnemyPokemon, battleLog, setBattleLog, isTrainerBattle, setIsTrainerBattle, catchResult };
+  return { dispatchBattle, enemyPokemon, setEnemyPokemon, battleLog, setBattleLog, battleLogs, setBattleLogs, isTrainerBattle, setIsTrainerBattle, catchResult };
 }

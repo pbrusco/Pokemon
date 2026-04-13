@@ -64,7 +64,7 @@ export default function App() {
     soundManager.play('SELECT');
   };
 
-  const { dispatchBattle, enemyPokemon, setEnemyPokemon, battleLog, setBattleLog, isTrainerBattle, setIsTrainerBattle, catchResult } = useBattleEngine({
+  const { dispatchBattle, enemyPokemon, setEnemyPokemon, battleLog, setBattleLog, battleLogs, setBattleLogs, isTrainerBattle, setIsTrainerBattle, catchResult } = useBattleEngine({
     battleStateRef,
     setPlayerAnim,
     setEnemyAnim,
@@ -79,6 +79,7 @@ export default function App() {
       setEnemyPokemon(s.activeBattle.enemyPokemon);
       setIsTrainerBattle(s.activeBattle.isTrainerBattle);
       setBattleLog(s.activeBattle.log);
+      setBattleLogs([{ text: s.activeBattle.log, speaker: 'Sistema', id: -1 }]);
       // If refreshed during transition, jump straight to battle
       if (s.phase.type === 'BATTLE_TRANSITION') {
         s.setPhase(battle(B_CHOOSING));
@@ -96,6 +97,7 @@ export default function App() {
     setEnemyPokemon,
     setIsTrainerBattle,
     setBattleLog,
+    setBattleLogs,
   });
 
   const { handleAction } = useInteractionEngine({
@@ -135,6 +137,7 @@ export default function App() {
     setPlayerTeam: store.updateTeam,
     setEnemyPokemon,
     setBattleLog,
+    setBattleLogs,
     setIsTrainerBattle,
   });
 
@@ -196,6 +199,7 @@ export default function App() {
         playerTeam={store.playerTeam}
         playerAnim={playerAnim}
         battleLog={battleLog}
+        battleLogs={battleLogs}
         showMoves={store.showMoves}
         isTrainerBattle={isTrainerBattle}
         dialogue={store.dialogue}

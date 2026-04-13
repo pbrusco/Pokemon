@@ -26,6 +26,7 @@ interface GameModalsProps {
   playerTeam: Pokemon[];
   playerAnim: 'idle' | 'attack' | 'hit' | 'faint';
   battleLog: string;
+  battleLogs: any[];
   showMoves: boolean;
   isTrainerBattle: boolean;
   dialogue: string | null;
@@ -56,6 +57,7 @@ export const GameModals = ({
   playerTeam,
   playerAnim,
   battleLog,
+  battleLogs,
   showMoves,
   isTrainerBattle,
   dialogue,
@@ -87,6 +89,7 @@ export const GameModals = ({
           playerTeam={playerTeam}
           playerAnim={playerAnim}
           battleLog={battleLog}
+          battleLogs={battleLogs}
           showMoves={showMoves}
           setShowMoves={setShowMoves}
           isTrainerBattle={isTrainerBattle}

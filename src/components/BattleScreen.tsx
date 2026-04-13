@@ -14,6 +14,7 @@ interface BattleScreenProps {
   playerTeam: Pokemon[];
   playerAnim: 'idle' | 'attack' | 'hit' | 'faint';
   battleLog: string;
+  battleLogs: any[];
   showMoves: boolean;
   setShowMoves: (show: boolean) => void;
   isTrainerBattle: boolean;
@@ -135,7 +136,7 @@ function PokeballAnim({ isCatching, catchResult }: { isCatching: boolean; catchR
 export function BattleScreen({
   currentMap,
   battleShake, enemyPokemon, enemyAnim, isCatching, catchResult,
-  playerTeam, playerAnim, battleLog, isTrainerBattle, isPlayerTurn, onFlee,
+  playerTeam, playerAnim, battleLog, battleLogs, isTrainerBattle, isPlayerTurn, onFlee,
   setShowInventory, setShowTeam, handleAttack, showMoves, setShowMoves
 }: BattleScreenProps) {
 
@@ -339,11 +340,21 @@ export function BattleScreen({
       <div className="h-[35vh] w-full bg-[#26343f] flex p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden border-t-4 border-[#1d2830]">
 
         {/* Left: battle log */}
-        <div className="flex-grow border-4 border-[#f8d870] bg-[#1f3558] rounded-sm p-3 sm:p-4 relative shadow-[inset_0_0_0_2px_#0f1f38] flex flex-col">
-
-          <p className="text-white font-bold tracking-tight text-base sm:text-2xl leading-relaxed mt-1">
-            {battleLog}
-          </p>
+        <div className="flex-grow border-4 border-[#f8d870] bg-[#1f3558] rounded-sm p-3 sm:p-4 relative shadow-[inset_0_0_0_2px_#0f1f38] flex flex-col justify-start overflow-hidden">
+          {battleLogs && battleLogs.length > 0 ? (
+            battleLogs.map((msg, i) => (
+              <div key={msg.id} className={`mb-1 ${i === 0 ? 'text-white' : 'text-slate-400'}`}>
+                {msg.speaker !== 'Sistema' && <span className="font-bold text-[#f8d870] mr-2">[{msg.speaker}]</span>}
+                <span className={`font-bold tracking-tight text-sm sm:text-lg leading-relaxed ${i === 0 ? 'text-white' : 'text-slate-400 opacity-80'}`}>
+                  {msg.text}
+                </span>
+              </div>
+            ))
+          ) : (
+            <p className="text-white font-bold tracking-tight text-base sm:text-2xl leading-relaxed mt-1">
+              {battleLog}
+            </p>
+          )}
         </div>
 
         {/* Right: actions / moves */}

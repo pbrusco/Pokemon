@@ -19,6 +19,7 @@ interface UseMovementEngineParams {
   setEnemyPokemon: (p: Pokemon | null) => void;
   setIsTrainerBattle: Dispatch<SetStateAction<boolean>>;
   setBattleLog: Dispatch<SetStateAction<string>>;
+  setBattleLogs: Dispatch<SetStateAction<any[]>>;
 }
 
 export function useMovementEngine({
@@ -30,6 +31,7 @@ export function useMovementEngine({
   setEnemyPokemon,
   setIsTrainerBattle,
   setBattleLog,
+  setBattleLogs,
 }: UseMovementEngineParams) {
   const moveTimeout = useRef<NodeJS.Timeout | null>(null);
   const poisonStepCounter = useRef(0);
@@ -198,6 +200,7 @@ export function useMovementEngine({
               freshStore.updatePokedex(trainer.trainerTeam![0].id, false);
               setIsTrainerBattle(true);
               setBattleLog(`¡${trainer.name} te desafía!`);
+              setBattleLogs([{ text: `¡${trainer.name} te desafía!`, speaker: 'Sistema', id: -1 }]);
               freshStore.setPhase(BATTLE_TRANSITION);
             }, sd(Math.max(1500, spottedDistance * 240)));
             break;
@@ -242,6 +245,7 @@ export function useMovementEngine({
         setIsTrainerBattle(false);
         freshStore.updatePokedex(randomPkmn.id, false);
         setBattleLog(`¡Un ${randomPkmn.name} salvaje apareció!`);
+        setBattleLogs([{ text: `¡Un ${randomPkmn.name} salvaje apareció!`, speaker: 'Sistema', id: -1 }]);
         freshStore.setPhase(BATTLE_TRANSITION);
       }
     }

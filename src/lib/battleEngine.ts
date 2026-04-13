@@ -39,6 +39,7 @@ export type EffectType =
 export interface BattleEffect {
   type: EffectType;
   payload?: string | number;
+  speaker?: string;
 }
 
 export type BattleSubPhase =
@@ -88,8 +89,8 @@ interface BattleResult {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function log(msg: string): BattleEffect {
-  return { type: 'log', payload: msg };
+function log(msg: string, speaker: string = 'Sistema'): BattleEffect {
+  return { type: 'log', payload: msg, speaker };
 }
 
 function applyStatChange(
@@ -283,7 +284,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           s = { ...s, enemyPokemon: { ...s.enemyPokemon, status: move.statusEffect } };
           moveLog += ` ¡${s.enemyPokemon.name} ahora está ${move.statusEffect}!`;
         }
-        effects.push(log(moveLog));
+        effects.push(log(moveLog, playerPkmn.name));
         s = { ...s, log: moveLog, phase: 'ENEMY_ATTACK' };
         const r = stepBattle(s, { type: 'TICK' });
         return { state: r.state, effects: [...effects, ...r.effects] };
@@ -312,7 +313,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       effects.push({ type: 'enemy_anim', payload: 'hit' });
       effects.push({ type: 'screen_flash' });
       effects.push({ type: 'battle_shake' });
-      effects.push(log(attackLog));
+      effects.push(log(attackLog, playerPkmn.name));
 
       s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: newEnemyHP } };
 
@@ -440,7 +441,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
             moveLog += ` ¡${playerPkmn.name} ahora está ${enemyMove.statusEffect}!`;
           }
 
-          effects.push(log(moveLog));
+          effects.push(log(moveLog, s.enemyPokemon.name));
           effects.push(log(''));
           s = { ...s, log: '', phase: 'CHOOSING' };
           return { state: s, effects };
@@ -475,7 +476,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           enemyLog += ` ¡${playerPkmn.name} ahora está ${enemyMove.statusEffect}!`;
         }
 
-        effects.push(log(enemyLog));
+        effects.push(log(enemyLog, s.enemyPokemon.name));
         s = { ...s, playerTeam: updatedTeam3, log: enemyLog };
 
         if (newPlayerHP === 0) {
@@ -606,7 +607,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       }
 
       s = { ...s, inventory: newInv, phase: 'CATCHING' };
-      effects.push(log('¡Pablo lanzó una POKÉ BALL!'));
+      effects.push(log('¡Pablo lanzó una POKÉ BALL!', 'Pablo'));
 
       if (caught) {
         effects.push(log(`¡Ya está! ¡${s.enemyPokemon.name} atrapado!`));
@@ -652,10 +653,10 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
 
       if (roll < fleeValue) {
         const cleared = clearBoosts(s.playerTeam, s.enemyPokemon);
-        effects.push(log('¡Has escapado con éxito!'));
+        effects.push(log('¡Has escapado con éxito!', 'Pablo'));
         s = { ...s, playerTeam: cleared.playerTeam, enemyPokemon: cleared.enemyPokemon, badgeBoostGlitchStacks: 0, outcome: 'fled', log: '¡Has escapado con éxito!' };
       } else {
-        effects.push(log('¡No has podido escapar!'));
+        effects.push(log('¡No has podido escapar!', 'Pablo'));
         s = { ...s, log: '¡No has podido escapar!', phase: 'ENEMY_ATTACK' };
         const r = stepBattle(s, { type: 'TICK' });
         return { state: r.state, effects: [...effects, ...r.effects] };
