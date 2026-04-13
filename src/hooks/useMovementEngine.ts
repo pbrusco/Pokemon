@@ -1,6 +1,6 @@
 import { useCallback, useRef, useEffect, MutableRefObject, Dispatch, SetStateAction } from 'react';
 import { Direction, Position, Pokemon } from '../types';
-import { GamePhase, BATTLE_TRANSITION } from '../types/gamePhase';
+import { BATTLE_TRANSITION } from '../types/gamePhase';
 import { BattleState, createBattleState } from '../lib/battleEngine';
 import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';

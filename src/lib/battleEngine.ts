@@ -81,7 +81,7 @@ export type BattleAction =
   /** Advance the state machine past an intermediate phase (replaces setTimeout callbacks) */
   | { type: 'TICK' };
 
-export interface BattleResult {
+interface BattleResult {
   state: BattleState;
   effects: BattleEffect[];
 }

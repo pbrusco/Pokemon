@@ -93,7 +93,7 @@ export function doesMoveHit(accuracyPercent: number): boolean {
   return roll < threshold;
 }
 
-export interface DamageResult {
+interface DamageResult {
   damage: number;
   isCritical: boolean;
   effectiveness: number;

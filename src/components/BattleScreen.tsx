@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion, useAnimate } from 'framer-motion';
+import { motion, useAnimate } from 'motion/react';
 import { Pokemon, Move } from '../types';
 import { soundManager } from '../lib/sounds';
 import { sd, sdur } from '../lib/gameSpeed';
 
-export interface BattleScreenProps {
+interface BattleScreenProps {
   currentMap: string;
   battleShake: boolean;
   enemyPokemon: Pokemon | null;

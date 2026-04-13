@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { Direction, Pokemon } from '../types';
-import { GamePhase, battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING, MENU, EDITOR } from '../types/gamePhase';
+import { Direction } from '../types';
+import { battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING, MENU, EDITOR } from '../types/gamePhase';
 import { BattleAction } from '../lib/battleEngine';
 import { useGameStore } from '../store/gameStore';
 

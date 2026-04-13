@@ -1,7 +1,7 @@
 import { MAP_PALLET_TOWN, MAP_OAKS_LAB, MAP_ROUTE_1, MAP_VIRIDIAN_CITY, MAP_POKECENTER, MAP_POKEMART, MAP_VIRIDIAN_FOREST, MAP_PEWTER_CITY, MAP_PEWTER_GYM, MAP_PLAYERS_HOUSE_1F, MAP_PLAYERS_HOUSE_2F, MAP_RIVALS_HOUSE, MAP_ROUTE_2, MAP_MT_MOON, MAP_ROUTE_3 } from './maps';
 import { Entity } from '../types';
 
-export const INITIAL_MAPS = {
+const INITIAL_MAPS = {
   PALLET_TOWN: MAP_PALLET_TOWN,
   PLAYERS_HOUSE_1F: MAP_PLAYERS_HOUSE_1F,
   PLAYERS_HOUSE_2F: MAP_PLAYERS_HOUSE_2F,
@@ -19,7 +19,7 @@ export const INITIAL_MAPS = {
   ROUTE_3: MAP_ROUTE_3,
 };
 
-export const INITIAL_TELEPORTS: Record<string, Entity[]> = {
+const INITIAL_TELEPORTS: Record<string, Entity[]> = {
   PALLET_TOWN: [
     { id: 'to_lab', type: 'teleport', position: { x: 12, y: 14 }, direction: 'up', targetMap: 'OAKS_LAB', targetPos: { x: 10, y: 14 } },
     { id: 'to_route1', type: 'teleport', position: { x: 10, y: 5 }, direction: 'up', targetMap: 'ROUTE_1', targetPos: { x: 10, y: 19 } }

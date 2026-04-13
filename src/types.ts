@@ -2,21 +2,6 @@ import type { worldMaps } from './data/maps';
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
 export type MapID = keyof typeof worldMaps;
-export const MAP_IDS = [
-  'PALLET_TOWN',
-  'PLAYERS_HOUSE_1F',
-  'PLAYERS_HOUSE_2F',
-  'RIVALS_HOUSE',
-  'OAKS_LAB',
-  'ROUTE_1',
-  'VIRIDIAN_CITY',
-  'POKECENTER',
-  'POKEMART',
-  'VIRIDIAN_FOREST',
-  'PEWTER_CITY',
-  'PEWTER_GYM',
-  'ROUTE_3',
-] as const satisfies readonly MapID[];
 
 export interface Position {
   x: number;

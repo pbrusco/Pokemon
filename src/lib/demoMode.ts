@@ -444,7 +444,7 @@ export function exportDemoLog(): string {
   return JSON.stringify({ header, log: ds.log });
 }
 
-export function clearDemoLog() {
+function clearDemoLog() {
   ds.log = [];
   ds.tick = 0;
 }

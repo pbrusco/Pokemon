@@ -1,7 +1,7 @@
 import { Tile, Position, MapID, Direction } from '../../types';
 import { buildRenderLayers, RenderLayers } from '../tileset/autotiler';
 
-export interface Warp {
+interface Warp {
   x: number;
   y: number;
   targetMap: MapID;
@@ -9,7 +9,7 @@ export interface Warp {
   targetDir?: Direction;
 }
 
-export interface ParsedMap {
+interface ParsedMap {
   tiles: Tile[][];
   warps: Warp[];
   /** Rendering layers – tile IDs resolved by the autotiler */
