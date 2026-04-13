@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { soundManager } from './lib/sounds';
 import { BattleState } from './lib/battleEngine';
+import { battle, B_CHOOSING } from './types/gamePhase';
 import { DemoModeButton } from './components/DemoModeButton';
 import { GodModeButton } from './components/GodModeButton';
 import './lib/demoMode'; 
@@ -20,7 +21,6 @@ import { MobileControls } from './components/MobileControls';
 import { SideMenu } from './components/SideMenu';
 import { GameModals } from './components/GameModals';
 import { ScreenEffects } from './components/ScreenEffects';
-import { EXPLORING } from './types/gamePhase';
 
 export default function App() {
   const store = useGameStore();
@@ -71,6 +71,22 @@ export default function App() {
     setBattleShake,
   });
 
+  // Restore battle state from persisted store on mount
+  useEffect(() => {
+    const s = useGameStore.getState();
+    if (s.activeBattle && (s.phase.type === 'BATTLE' || s.phase.type === 'BATTLE_TRANSITION')) {
+      battleStateRef.current = s.activeBattle;
+      setEnemyPokemon(s.activeBattle.enemyPokemon);
+      setIsTrainerBattle(s.activeBattle.isTrainerBattle);
+      setBattleLog(s.activeBattle.log);
+      // If refreshed during transition, jump straight to battle
+      if (s.phase.type === 'BATTLE_TRANSITION') {
+        s.setPhase(battle(B_CHOOSING));
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const { handleMove, initBattle } = useMovementEngine({
     battleStateRef,
     setOverworldShake,
@@ -96,7 +112,6 @@ export default function App() {
         store.removeInventoryItem('POTION');
         store.setDialogue('¡Usaste una POCIÓN! Tus POKÉMON recuperaron salud.');
       }
-      store.setPhase(EXPLORING);
       return;
     }
     if (itemId === 'POKEBALL') {

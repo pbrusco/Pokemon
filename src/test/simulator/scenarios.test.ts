@@ -63,6 +63,35 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
   });
 });
 
+// ─── Scenario 1b: Oak's Lab is locked before meeting Oak ────────────────────
+
+describe('Scenario 1b: Oak\'s Lab locked at START', () => {
+  it('blocks entry to Oak\'s Lab and shows locked message', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'PALLET_TOWN',
+      // Stand one tile above the lab door at (10, 14)
+      playerPos: { x: 10, y: 15 },
+      direction: 'up',
+      playerTeam: [],
+      storyStep: 'START',
+    });
+
+    // Try to walk onto the lab door tile (10, 14) — should be blocked by lab_locked object
+    sim.move('up');
+    sim.tick(500);
+
+    // Player should NOT have moved (still at y=15)
+    expect(sim.pos).toEqual({ x: 10, y: 15 });
+    expect(sim.map).toBe('PALLET_TOWN');
+
+    // Interact with the blocking sign
+    sim.interact();
+
+    expect(sim.dialogue).toBeTruthy();
+    expect(sim.dialogueContains('cerrado')).toBe(true);
+  });
+});
+
 // ─── Scenario 2: Pick starter Pokémon in Oak's Lab ─────────────────────────
 
 describe('Scenario 2: Pick starter in Oak\'s Lab', () => {
@@ -293,9 +322,46 @@ describe('Scenario 9: Deliver parcel to Oak → Pokédex', () => {
   });
 });
 
-// ─── Scenario 10: Pokécenter healing ────────────────────────────────────────
+// ─── Scenario 10: Cannot use Pokéball in trainer battle ─────────────────────
 
-describe('Scenario 10: Pokécenter healing', () => {
+describe('Scenario 10: Pokéball blocked in trainer battle', () => {
+  it('rejects Pokéball, keeps inventory, stays in CHOOSING', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'OAKS_LAB',
+      playerPos: { x: 9, y: 9 },
+      direction: 'up',
+      playerTeam: [],
+      storyStep: 'OAK_STOPPED',
+      inventory: { POTION: 1, POKEBALL: 5 },
+    });
+
+    // Pick starter → rival battle triggers
+    sim.interact();
+    sim.dismissDialogue();
+    sim.tick(2000);
+    sim.skipBattleTransition();
+
+    expect(sim.phase.type).toBe('BATTLE');
+    expect(sim.battleState?.isTrainerBattle).toBe(true);
+
+    // Try to throw a Pokéball
+    sim.battleAction({ type: 'CATCH' });
+    sim.tick(1000);
+
+    // Should show rejection message in battle log
+    expect(sim.battleLog).toContain('No puedes usar eso');
+
+    // Pokéball count should NOT have decreased
+    expect(sim.inventory['POKEBALL']).toBe(5);
+
+    // Should still be in CHOOSING (not ENEMY_ATTACK — no turn lost)
+    expect(sim.battleState?.phase).toBe('CHOOSING');
+  });
+});
+
+// ─── Scenario 11: Pokécenter healing ────────────────────────────────────────
+
+describe('Scenario 11: Pokécenter healing', () => {
   it('heals the team through HEALING → EXPLORING', () => {
     const wounded = woundedStarter();
     sim = new GameSimulator().init({

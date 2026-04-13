@@ -101,6 +101,7 @@ export class GameSimulator {
       dialogue: null,
       isLocked: false,
       showBattleTransition: false,
+      activeBattle: null,
       worldMaps: worldConfig.maps,
       teleports: worldConfig.teleports,
     });

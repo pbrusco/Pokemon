@@ -369,8 +369,9 @@ describe('Catch mechanics', () => {
     );
 
     const result = stepBattle(state, { type: 'CATCH' });
-    expect(['CHOOSING', 'FORCED_SWITCH', 'PLAYER_FAINTED']).toContain(result.state.phase);
-    expect(result.state.inventory['POKEBALL']).toBe(2); // consumed 1
+    expect(result.state.phase).toBe('CHOOSING'); // stays in CHOOSING, no turn lost
+    expect(result.state.inventory['POKEBALL']).toBe(3); // ball NOT consumed
+    expect(getLogs(result.effects).some(l => l.includes('No puedes usar eso'))).toBe(true);
   });
 
   it('cannot catch with no Pokeballs', () => {

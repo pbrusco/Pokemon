@@ -104,6 +104,7 @@ export function useBattleEngine({
       }
       setTimeout(() => {
         store.setInventory(newState.inventory);
+        store.setActiveBattle(null);
         store.setPhase(EXPLORING);
         setEnemyAnim('idle');
         if (store.storyStep === 'PICKED_STARTER') {
@@ -112,6 +113,7 @@ export function useBattleEngine({
         }
       }, sd(2000));
     } else if (newState.outcome === 'player_blackout') {
+      store.setActiveBattle(null);
       store.setPhase(BLACKOUT);
       setTimeout(() => {
         store.setCurrentMap(store.lastHealLocation.map);
@@ -130,6 +132,7 @@ export function useBattleEngine({
       }, sd(2400));
     } else if (newState.outcome === 'fled') {
       store.setInventory(newState.inventory);
+      store.setActiveBattle(null);
       store.setPhase(EXPLORING);
     }
   };
@@ -147,12 +150,22 @@ export function useBattleEngine({
 
     const { state: newState, effects } = stepBattle(battleStateRef.current, action);
     battleStateRef.current = newState;
+    useGameStore.getState().setActiveBattle(newState);
     
     if (action.type !== 'TICK') {
       useGameStore.getState().setInventory(newState.inventory);
     }
 
     if (action.type === 'CATCH') {
+      // If the engine rejected the catch (e.g. trainer battle), just show the log and stay in CHOOSING
+      if (newState.phase === 'CHOOSING') {
+        const delay = playBattleEffects(effects);
+        setTimeout(() => {
+          useGameStore.getState().setPhase(battle(B_CHOOSING));
+        }, delay);
+        return;
+      }
+
       useGameStore.getState().setPhase(battle(B_CATCHING));
       setCatchResult(null);
       setBattleLog('¡Pablo lanzó una POKÉ BALL!');
@@ -166,6 +179,7 @@ export function useBattleEngine({
           useGameStore.getState().updatePokedex(newState.enemyPokemon.id, true);
           useGameStore.getState().setPcStorage(newState.pcStorage);
           useGameStore.getState().setPlayerTeam(newState.playerTeam);
+          useGameStore.getState().setActiveBattle(null);
           useGameStore.getState().setPhase(EXPLORING);
         }, sd(4000));
       } else {

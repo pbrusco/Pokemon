@@ -50,6 +50,7 @@ export function useMovementEngine({
       pcStorage: store.pcStorage,
       hasBoulderBadge: store.badges.includes('BOULDER'),
     });
+    store.setActiveBattle(battleStateRef.current);
     setIsTrainerBattle(isTrainer);
     soundManager.play('BATTLE_START');
     store.setPhase(BATTLE_TRANSITION);
@@ -196,6 +197,7 @@ export function useMovementEngine({
                 pcStorage: freshStore.pcStorage,
                 hasBoulderBadge: freshStore.badges.includes('BOULDER'),
               });
+              freshStore.setActiveBattle(battleStateRef.current);
               freshStore.updatePokedex(trainer.trainerTeam![0].id, false);
               setIsTrainerBattle(true);
               setBattleLog(`¡${trainer.name} te desafía!`);
@@ -237,6 +239,7 @@ export function useMovementEngine({
           pcStorage: freshStore.pcStorage,
           hasBoulderBadge: freshStore.badges.includes('BOULDER'),
         });
+        freshStore.setActiveBattle(battleStateRef.current);
         setIsTrainerBattle(false);
         freshStore.updatePokedex(randomPkmn.id, false);
         setBattleLog(`¡Un ${randomPkmn.name} salvaje apareció!`);

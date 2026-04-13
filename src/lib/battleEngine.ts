@@ -565,20 +565,20 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
     // ── CATCH ────────────────────────────────────────────────────────────────
     case 'CATCH': {
       if (s.phase !== 'CHOOSING') return { state, effects };
+
+      if (s.isTrainerBattle) {
+        const msg = '¡No puedes usar eso en un combate contra un entrenador!';
+        effects.push(log(msg));
+        s = { ...s, log: msg, phase: 'CHOOSING' };
+        return { state: s, effects };
+      }
+
       const pkbQty = s.inventory['POKEBALL'] ?? 0;
       if (pkbQty <= 0) return { state, effects };
 
       const newInv = pkbQty - 1 > 0
         ? { ...s.inventory, POKEBALL: pkbQty - 1 }
         : (() => { const { POKEBALL: _, ...rest } = s.inventory; return rest; })();
-
-      if (s.isTrainerBattle) {
-        const theftLog = '¡El entrenador bloqueó la BALL! ¡No seas ladrón!';
-        effects.push(log(theftLog));
-        s = { ...s, inventory: newInv, log: theftLog, phase: 'ENEMY_ATTACK' };
-        const tickResult = stepBattle(s, { type: 'TICK' });
-        return { state: tickResult.state, effects: [...effects, ...tickResult.effects] };
-      }
 
       const hpPercent = s.enemyPokemon.hp / s.enemyPokemon.maxHp;
       const catchRate = (1 - hpPercent) * 0.7 + 0.1;

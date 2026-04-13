@@ -136,6 +136,7 @@ export const useInteractionEngine = ({
         if (item.id === 'sign_home') store.setDialogue("CASA DE PABLO");
         else if (item.id === 'sign_rival') store.setDialogue("CASA DE AZUL");
         else if (item.id === 'sign_lab') store.setDialogue("LABORATORIO DEL PROF. OAK: Investigando POKÉMON.");
+        else if (item.id === 'lab_locked') store.setDialogue("El laboratorio está cerrado. Parece que el PROF. OAK no está.");
         else if (item.id === 'sign_route1') store.setDialogue("RUTA 1: Hacia CIUDAD VERDE.");
         else if (item.id === 'snes') store.setDialogue("¡Red está jugando a la SNES! ... ¡Vale! ¡Es hora de irse!");
         else if (item.id === 'pc_reds_house') {

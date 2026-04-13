@@ -239,7 +239,7 @@ export function buildNPCDatabase(
   };
 }
 
-export function buildItemDatabase(pickedItemIds: string[]): Record<MapID, Entity[]> {
+export function buildItemDatabase(pickedItemIds: string[], storyStep: string): Record<MapID, Entity[]> {
   const rawItems: Record<MapID, Entity[]> = {
     OAKS_LAB: [
       { id: 'starter_1', type: 'item', position: { x: 9, y: 8 }, direction: 'down', sprite: STARTERS[0].sprite },
@@ -250,6 +250,9 @@ export function buildItemDatabase(pickedItemIds: string[]): Record<MapID, Entity
       { id: 'sign_home', type: 'object', position: { x: 8, y: 10 }, direction: 'down', sprite: '🪧' },
       { id: 'sign_rival', type: 'object', position: { x: 12, y: 10 }, direction: 'down', sprite: '🪧' },
       { id: 'sign_lab', type: 'object', position: { x: 11, y: 14 }, direction: 'down', sprite: '🪧' },
+      ...(storyStep === 'START' ? [
+        { id: 'lab_locked', type: 'object' as const, position: { x: 10, y: 14 }, direction: 'down' as const, sprite: '🚫' },
+      ] : []),
     ],
     PLAYERS_HOUSE_1F: [],
     PLAYERS_HOUSE_2F: [

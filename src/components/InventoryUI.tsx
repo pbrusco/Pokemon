@@ -1,77 +1,91 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
-import { X, Backpack } from 'lucide-react';
 import { ITEMS_DATABASE } from '../constants';
 import { soundManager } from '../lib/sounds';
 import type { InventoryCounts } from '../types';
 
 export const InventoryUI = ({ items, onClose, onUse }: { items: InventoryCounts, onClose: () => void, onUse?: (itemId: string) => void }) => {
   const entries = Object.entries(items).filter(([, qty]) => qty > 0);
-  const inventoryItems = entries.map(([id]) => ITEMS_DATABASE[id]).filter(Boolean);
+  const [cursor, setCursor] = useState(0);
+
+  // The last option is always CERRAR
+  const totalOptions = entries.length + 1;
+
+  const handleSelect = (index: number) => {
+    soundManager.play('SELECT');
+    if (index >= entries.length) {
+      onClose();
+    } else {
+      const [id] = entries[index];
+      if (onUse) onUse(id);
+      else onClose();
+    }
+  };
+
+  const selectedItem = cursor < entries.length ? ITEMS_DATABASE[entries[cursor][0]] : null;
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 50 }}
-      className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4"
     >
-      <div className="w-full max-w-2xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
-        <div className="bg-red-600 p-6 flex justify-between items-center text-white">
-          <div className="flex items-center gap-3">
-            <Backpack size={32} />
-            <h2 className="text-2xl font-black italic uppercase tracking-tighter">Mochila</h2>
+      <div className="flex flex-col gap-2 w-full max-w-sm">
+        {/* Main item list window */}
+        <div className="bg-white border-[4px] border-slate-800 rounded-lg shadow-[6px_6px_0_rgba(0,0,0,0.15)]">
+          {/* Header */}
+          <div className="border-b-2 border-slate-300 px-4 py-2 bg-slate-50 rounded-t">
+            <span className="font-mono font-bold text-slate-800 text-sm tracking-wide uppercase">Bolsa</span>
           </div>
-          <button onClick={() => {
-            soundManager.play('SELECT');
-            onClose();
-          }} className="p-2 hover:bg-white/20 rounded-full transition-colors flex items-center gap-1">
-            <span className="text-[10px] font-mono tracking-widest text-red-200 uppercase">[ESC]</span>
-            <X size={24} />
-          </button>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto p-6">
-          {inventoryItems.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4">
-              <Backpack size={64} strokeWidth={1} />
-              <p className="font-bold uppercase tracking-widest text-sm">Tu mochila está vacía</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {entries.map(([id, qty], i) => {
+
+          {/* Items list */}
+          <div className="max-h-[50vh] overflow-y-auto">
+            {entries.length === 0 ? (
+              <div className="px-4 py-6 text-center">
+                <p className="font-mono text-slate-500 text-sm">Sin objetos</p>
+              </div>
+            ) : (
+              entries.map(([id, qty], i) => {
                 const item = ITEMS_DATABASE[id];
                 if (!item) return null;
                 return (
-                  <motion.div 
-                    key={i}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    onClick={() => {
-                      if (onUse) {
-                        onUse(id);
-                        return;
-                      }
-                      onClose();
-                    }}
-                    className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border-2 border-slate-100 hover:border-red-200 hover:bg-red-50 transition-all group cursor-pointer"
+                  <div
+                    key={id}
+                    onClick={() => { setCursor(i); handleSelect(i); }}
+                    onPointerEnter={() => setCursor(i)}
+                    className={`flex items-center px-4 py-2 cursor-pointer transition-colors ${
+                      cursor === i ? 'bg-slate-100' : ''
+                    }`}
                   >
-                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform">
-                      {item.icon}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-black text-slate-800 uppercase text-sm">{item.name} x{qty}</h3>
-                      <p className="text-xs text-slate-500 leading-tight">{item.description}</p>
-                    </div>
-                  </motion.div>
+                    <span className="w-5 text-slate-800 font-mono text-sm">{cursor === i ? '▶' : ''}</span>
+                    <span className="text-lg mr-2">{item.icon}</span>
+                    <span className="flex-1 font-mono font-bold text-slate-800 text-sm uppercase">{item.name}</span>
+                    <span className="font-mono text-slate-600 text-sm">×{qty}</span>
+                  </div>
                 );
-              })}
+              })
+            )}
+
+            {/* CERRAR option */}
+            <div
+              onClick={() => { setCursor(entries.length); handleSelect(entries.length); }}
+              onPointerEnter={() => setCursor(entries.length)}
+              className={`flex items-center px-4 py-2 cursor-pointer border-t border-slate-200 transition-colors ${
+                cursor === totalOptions - 1 ? 'bg-slate-100' : ''
+              }`}
+            >
+              <span className="w-5 text-slate-800 font-mono text-sm">{cursor === totalOptions - 1 ? '▶' : ''}</span>
+              <span className="font-mono font-bold text-slate-800 text-sm uppercase">Cerrar</span>
             </div>
-          )}
+          </div>
         </div>
-        
-        <div className="bg-slate-50 p-4 border-t border-slate-100 text-center">
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Selecciona un objeto para usarlo</p>
+
+        {/* Description window */}
+        <div className="bg-white border-[4px] border-slate-800 rounded-lg shadow-[6px_6px_0_rgba(0,0,0,0.15)] px-4 py-3 min-h-[3.5rem]">
+          <p className="font-mono text-slate-700 text-xs leading-relaxed">
+            {selectedItem ? selectedItem.description : 'Cierra la mochila.'}
+          </p>
         </div>
       </div>
     </motion.div>

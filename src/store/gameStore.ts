@@ -4,6 +4,7 @@ import { Pokemon, Position, Direction, Entity, NPC, InventoryCounts, MapID, Poke
 import { worldConfig } from '../data/worldConfig';
 import { buildNPCDatabase, buildItemDatabase } from '../data/npcDatabase';
 import { GamePhase, EXPLORING } from '../types/gamePhase';
+import type { BattleState } from '../lib/battleEngine';
 import type { SetStateAction } from 'react';
 
 // Define the shape of all properties that go into JSON
@@ -25,6 +26,7 @@ interface GameSaveState {
   money: number;
   pickedItemIds: string[];
   pokedex: PokedexState;
+  activeBattle: BattleState | null;
 }
 
 const INITIAL_SAVE_STATE: GameSaveState = {
@@ -45,6 +47,7 @@ const INITIAL_SAVE_STATE: GameSaveState = {
   money: 3000,
   pickedItemIds: [],
   pokedex: {},
+  activeBattle: null,
 };
 
 interface GameState extends GameSaveState {
@@ -94,6 +97,7 @@ interface GameState extends GameSaveState {
   
   setMoney: (money: SetStateAction<number>) => void;
   setBadgeBoostGlitchStacks: (stacks: SetStateAction<number>) => void;
+  setActiveBattle: (battle: BattleState | null) => void;
   
   resetGame: () => void;
 }
@@ -122,7 +126,7 @@ export const useGameStore = create<GameState>()(
       },
       getItems: () => {
         const state = get();
-        return buildItemDatabase(state.pickedItemIds);
+        return buildItemDatabase(state.pickedItemIds, state.storyStep);
       },
       
       setPlayerPos: (pos) => set({ playerPos: pos }),
@@ -171,6 +175,7 @@ export const useGameStore = create<GameState>()(
       
       setMoney: (money) => set((state) => ({ money: typeof money === 'function' ? money(state.money) : money })),
       setBadgeBoostGlitchStacks: (stacks) => set((state) => ({ badgeBoostGlitchStacks: typeof stacks === 'function' ? stacks(state.badgeBoostGlitchStacks) : stacks })),
+      setActiveBattle: (battle) => set({ activeBattle: battle }),
       
       resetGame: () => set((state) => ({ ...state, ...INITIAL_SAVE_STATE })),
     }),
@@ -193,6 +198,8 @@ export const useGameStore = create<GameState>()(
         money: state.money,
         pickedItemIds: state.pickedItemIds,
         pokedex: state.pokedex,
+        activeBattle: state.activeBattle,
+        phase: state.phase,
       }),
     }
   )
