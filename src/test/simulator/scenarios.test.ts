@@ -418,3 +418,76 @@ describe('Scenario 11: Pokécenter healing', () => {
     expect(sim.state.lastHealLocation.map).toBe('POKECENTER');
   });
 });
+
+// ─── Scenario 12: No re-battle after winning a trainer fight ────────────────
+
+describe('Scenario 12: No ghost re-battle after winning trainer fight', () => {
+  it('cleanly exits battle and does NOT re-enter with 0 HP enemy', () => {
+    // Start on Route 1 near the youngster trainer at (12, 10) facing left
+    // Player stands at (10, 10) — within trainer's 3-tile left vision
+    sim = new GameSimulator().init({
+      currentMap: 'ROUTE_1',
+      playerPos: { x: 10, y: 10 },
+      direction: 'right',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+    });
+
+    // Step into trainer's vision zone → triggers trainer cutscene
+    sim.move('right'); // now at (11, 10) — within youngster_chano's vision (3 tiles left from (12,10))
+    sim.tick(500);
+
+    // If dialogue appeared, dismiss it
+    if (sim.dialogue) sim.dismissDialogue();
+    sim.tick(2000);
+
+    // Skip BATTLE_TRANSITION
+    sim.skipBattleTransition();
+
+    // Confirm we are in battle
+    expect(sim.phase.type).toBe('BATTLE');
+
+    // Override team to be very strong to guarantee a quick win
+    act(() => {
+      useGameStore.getState().setPlayerTeam([strongStarter()]);
+      if (sim.battleState) {
+        sim.battleState.playerTeam = [strongStarter()];
+      }
+    });
+
+    // Attack until we win (max 20 turns)
+    for (let i = 0; i < 20; i++) {
+      if (sim.phase.type !== 'BATTLE') break;
+      if (sim.battleState?.outcome !== 'ongoing') break;
+      const move = sim.battleState?.playerTeam?.[0]?.moves?.[0];
+      if (move && sim.battleState?.phase === 'CHOOSING') {
+        sim.battleAction({ type: 'ATTACK', move });
+      }
+      sim.tick(5000);
+    }
+
+    // Wait for post-battle resolution (the 2000ms setTimeout in resolveBattleOutcome)
+    sim.tick(10000);
+
+    // ── KEY ASSERTIONS: bug reproduction ──
+
+    // 1. Phase must be EXPLORING, not BATTLE
+    expect(sim.phase.type).toBe('EXPLORING');
+
+    // 2. activeBattle must be null (cleared properly)
+    expect(sim.state.activeBattle).toBeNull();
+
+    // 3. The trainer should be in defeatedTrainers
+    expect(sim.state.defeatedTrainers).toContain('youngster_chano');
+
+    // 4. Verify we don't bounce back into battle after further ticks
+    sim.tick(5000);
+    expect(sim.phase.type).toBe('EXPLORING');
+
+    // 5. The phase history should NOT show a second BATTLE_TRANSITION after EXPLORING
+    const phases = sim.phaseHistory();
+    const exploringIdx = phases.lastIndexOf('EXPLORING');
+    const phasesAfterExploring = phases.slice(exploringIdx + 1);
+    expect(phasesAfterExploring).not.toContain('BATTLE_TRANSITION');
+  });
+});

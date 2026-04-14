@@ -56,6 +56,16 @@ export function useBattleEngine({
     return () => window.removeEventListener('godModeToggled', onGodModeToggled);
   }, [battleStateRef]);
 
+  // Auto-sync: if the store has an activeBattle but battleStateRef is empty,
+  // populate the ref. This happens when a cutscene's processBattle() sets
+  // activeBattle in the store without access to the React mutable ref.
+  const activeBattle = store.activeBattle;
+  useEffect(() => {
+    if (activeBattle && !battleStateRef.current) {
+      battleStateRef.current = activeBattle;
+    }
+  }, [activeBattle, battleStateRef]);
+
   const playBattleEffects = (effects: BattleEffect[]): number => {
     let delay = 0;
     effects.forEach(effect => {
