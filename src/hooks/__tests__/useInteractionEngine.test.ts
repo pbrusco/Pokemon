@@ -389,7 +389,8 @@ describe('Starter selection', () => {
 
     act(() => handleAction());
 
-    expect(getState().playerTeam).toEqual([STARTERS[0]]);
+    expect(getState().playerTeam).toHaveLength(1);
+    expect(getState().playerTeam[0]).toMatchObject(STARTERS[0]);
     expect(getState().storyStep).toBe('PICKED_STARTER');
     expect(getState().dialogue).toBeTruthy();
   });

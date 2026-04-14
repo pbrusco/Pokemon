@@ -111,6 +111,7 @@ function PokeballAnim({ isCatching, catchResult }: { isCatching: boolean; catchR
   return (
     <div
       ref={scope}
+      data-testid="pokeball-anim"
       className="absolute z-[102] pointer-events-none"
       style={{ bottom: '30%', left: '22%' }}
     >

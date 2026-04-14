@@ -7,7 +7,6 @@ import { GamePhase, EXPLORING } from '../types/gamePhase';
 import type { BattleState } from '../lib/battleEngine';
 import type { SetStateAction } from 'react';
 
-// Define the shape of all properties that go into JSON
 interface GameSaveState {
   playerPos: Position;
   direction: Direction;
@@ -29,6 +28,25 @@ interface GameSaveState {
   activeBattle: BattleState | null;
 }
 
+const safeLocalStorage = {
+  getItem: (name: string): string | null => {
+    if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.getItem === 'function') {
+      return window.localStorage.getItem(name);
+    }
+    return null;
+  },
+  setItem: (name: string, value: string): void => {
+    if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.setItem === 'function') {
+      window.localStorage.setItem(name, value);
+    }
+  },
+  removeItem: (name: string): void => {
+    if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.removeItem === 'function') {
+      window.localStorage.removeItem(name);
+    }
+  },
+};
+
 const INITIAL_SAVE_STATE: GameSaveState = {
   playerPos: { x: 10, y: 10 },
   direction: 'down',
@@ -41,7 +59,7 @@ const INITIAL_SAVE_STATE: GameSaveState = {
   defeatedTrainers: [],
   lastHealLocation: { map: 'PALLET_TOWN', pos: { x: 7, y: 11 } },
   
-  inventory: { POTION: 1, POKEBALL: 1 },
+  inventory: { POTION: 5, POKEBALL: 10 },
   playerTeam: [],
   pcStorage: [],
   money: 3000,
@@ -58,6 +76,9 @@ interface GameState extends GameSaveState {
   showMoves: boolean;
   isMuted: boolean;
   dialogue: string | null;
+  dialogueCallback: (() => void) | null;
+  oakCutscenePos: Position | null;
+  oakCutsceneDir: Direction | null;
   isLocked: boolean;
   showBattleTransition: boolean;
   
@@ -80,7 +101,8 @@ interface GameState extends GameSaveState {
   setHasParcel: (v: boolean) => void;
   setBadges: (badges: SetStateAction<string[]>) => void;
   setDefeatedTrainers: (ids: SetStateAction<string[]>) => void;
-  setDialogue: (text: string | null) => void;
+  setDialogue: (text: string | null, onComplete?: () => void) => void;
+  setOakCutscenePos: (pos: Position | null, dir?: Direction | null) => void;
   setIsLocked: (locked: boolean) => void;
   setStoryStep: (step: SetStateAction<GameState['storyStep']>) => void;
   setLastHealLocation: (loc: { map: MapID; pos: Position }) => void;
@@ -99,8 +121,13 @@ interface GameState extends GameSaveState {
   setBadgeBoostGlitchStacks: (stacks: SetStateAction<number>) => void;
   setActiveBattle: (battle: BattleState | null) => void;
   
+  syncTeamStats: (battleTeam: Pokemon[]) => void;
+  reorderTeam: (startIndex: number, endIndex: number) => void;
+
   resetGame: () => void;
 }
+
+const ensureUid = (p: Pokemon) => p.uid ? p : { ...p, uid: Math.random().toString(36).substring(2, 9) };
 
 export const useGameStore = create<GameState>()(
   persist(
@@ -122,7 +149,7 @@ export const useGameStore = create<GameState>()(
       
       getNPCs: () => {
         const state = get();
-        return buildNPCDatabase(state.playerTeam, state.hasParcel, state.hasPokedex, state.badges, state.storyStep);
+        return buildNPCDatabase(state.playerTeam, state.hasParcel, state.hasPokedex, state.badges, state.storyStep, state.oakCutscenePos, state.oakCutsceneDir);
       },
       getItems: () => {
         const state = get();
@@ -142,12 +169,16 @@ export const useGameStore = create<GameState>()(
       setHasParcel: (v) => set({ hasParcel: v }),
       setBadges: (badges) => set((state) => ({ badges: typeof badges === 'function' ? badges(state.badges) : badges })),
       setDefeatedTrainers: (ids) => set((state) => ({ defeatedTrainers: typeof ids === 'function' ? ids(state.defeatedTrainers) : ids })),
-      setDialogue: (text) => set({ dialogue: text }),
+      setDialogue: (text, onComplete) => set({ dialogue: text, dialogueCallback: onComplete || null }),
+      setOakCutscenePos: (pos, dir) => set({ oakCutscenePos: pos, oakCutsceneDir: dir !== undefined ? dir : null }),
       setIsLocked: (locked) => set({ isLocked: locked }),
       setStoryStep: (step) => set((state) => ({ storyStep: typeof step === 'function' ? step(state.storyStep) : step })),
       setLastHealLocation: (loc) => set({ lastHealLocation: loc }),
       setInventory: (inventory) => set((state) => ({ inventory: typeof inventory === 'function' ? inventory(state.inventory) : inventory })),
-      setPlayerTeam: (playerTeam) => set((state) => ({ playerTeam: typeof playerTeam === 'function' ? playerTeam(state.playerTeam) : playerTeam })),
+      setPlayerTeam: (playerTeam) => set((state) => {
+        const next = typeof playerTeam === 'function' ? playerTeam(state.playerTeam) : playerTeam;
+        return { playerTeam: next.map(ensureUid) };
+      }),
       setPcStorage: (pcStorage) => set((state) => ({ pcStorage: typeof pcStorage === 'function' ? pcStorage(state.pcStorage) : pcStorage })),
       setPickedItemIds: (ids) => set((state) => ({ pickedItemIds: typeof ids === 'function' ? ids(state.pickedItemIds) : ids })),
       
@@ -161,7 +192,7 @@ export const useGameStore = create<GameState>()(
         return { inventory: { ...state.inventory, [itemName]: nextQty } };
       }),
       
-      updateTeam: (team) => set({ playerTeam: team }),
+      updateTeam: (team) => set({ playerTeam: team.map(ensureUid) }),
       updatePcStorage: (pc) => set({ pcStorage: pc }),
       updatePokedex: (pokemonId, caught = false) => set((state) => ({
         pokedex: {
@@ -177,11 +208,52 @@ export const useGameStore = create<GameState>()(
       setBadgeBoostGlitchStacks: (stacks) => set((state) => ({ badgeBoostGlitchStacks: typeof stacks === 'function' ? stacks(state.badgeBoostGlitchStacks) : stacks })),
       setActiveBattle: (battle) => set({ activeBattle: battle }),
       
-      resetGame: () => set((state) => ({ ...state, ...INITIAL_SAVE_STATE })),
+      syncTeamStats: (battleTeam) => set((state) => {
+        const safeTeam = state.playerTeam.filter(Boolean).map(ensureUid);
+        const currentOrderUids = safeTeam.map(p => p.uid);
+        const mappedTeam: Pokemon[] = [];
+        
+        for (const uid of currentOrderUids) {
+          const bp = battleTeam.find(p => p.uid === uid) || battleTeam.find(p => p.id === safeTeam.find(s => s.uid === uid)?.id);
+          const sp = safeTeam.find(p => p.uid === uid);
+          if (bp) mappedTeam.push(ensureUid(bp));
+          else if (sp) mappedTeam.push(sp);
+        }
+        
+        for (const bp of battleTeam) {
+          if (!bp) continue;
+          if (!mappedTeam.some(m => m.uid === bp.uid || m.id === bp.id)) {
+            mappedTeam.push(ensureUid(bp));
+          }
+        }
+        
+        return { playerTeam: mappedTeam.length ? mappedTeam : state.playerTeam };
+      }),
+
+      reorderTeam: (startIndex, endIndex) => set((state) => {
+        const result = Array.from(state.playerTeam);
+        const [removed] = result.splice(startIndex, 1);
+        result.splice(endIndex, 0, removed);
+        return { playerTeam: result };
+      }),
+
+      resetGame: () => {
+        if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.removeItem === 'function') {
+          window.localStorage.removeItem('pokemon-firered-save');
+        }
+        set((state) => ({ 
+          ...state, 
+          ...INITIAL_SAVE_STATE, 
+          phase: EXPLORING,
+          dialogue: null,
+          dialogueCallback: null,
+          activeBattle: null 
+        }));
+      },
     }),
     {
       name: 'pokemon-firered-save',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => safeLocalStorage),
       partialize: (state) => ({
         playerPos: state.playerPos,
         direction: state.direction,

@@ -21,12 +21,12 @@ export type BattlePhase =
 /** Top-level game phase */
 export type GamePhase =
   | { type: 'EXPLORING' }
-  | { type: 'MENU' }
-  | { type: 'INVENTORY' }
-  | { type: 'TEAM' }
+  | { type: 'MENU'; returnTo?: GamePhase }
+  | { type: 'INVENTORY'; returnTo?: GamePhase }
+  | { type: 'TEAM'; returnTo?: GamePhase }
   | { type: 'SHOP' }
-  | { type: 'POKEDEX' }
-  | { type: 'PC' }
+  | { type: 'POKEDEX'; returnTo?: GamePhase }
+  | { type: 'PC'; returnTo?: GamePhase }
   | { type: 'EDITOR' }
   | { type: 'BATTLE_TRANSITION' }
   | { type: 'BATTLE'; sub: BattlePhase }

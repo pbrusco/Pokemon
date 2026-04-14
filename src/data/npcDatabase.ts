@@ -6,11 +6,13 @@ export function buildNPCDatabase(
   hasParcel: boolean,
   hasPokedex: boolean,
   badges: string[],
-  storyStep: string = 'START'
+  storyStep: string = 'START',
+  oakCutscenePos: Position | null = null,
+  oakCutsceneDir: Direction | null = null
 ): Record<MapID, NPC[]> {
   return {
     PALLET_TOWN: [
-      ...(playerTeam.length === 0 ? [{ id: 'oak_pallet', name: 'PROF. OAK', type: 'npc' as const, position: { x: 10, y: 4 }, direction: 'down' as const, dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."] }] : []),
+      ...(playerTeam.length === 0 ? [{ id: 'oak_pallet', name: 'PROF. OAK', type: 'npc' as const, position: oakCutscenePos || { x: 10, y: 4 }, direction: oakCutsceneDir || ('down' as const), dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."] }] : []),
       { id: 'fat_man', name: 'SEÑOR GORDO', type: 'npc', position: { x: 16, y: 10 }, direction: 'left', dialogue: ["¡La tecnología es increíble!", "¡Ahora puedes guardar POKÉMON y objetos como datos en el PC!"] }
     ],
     PLAYERS_HOUSE_1F: [

@@ -30,18 +30,18 @@ function makeProps(overrides: Partial<BattleScreenProps> = {}): BattleScreenProp
 describe('BattleScreen Pokéball Integration', () => {
   it('shows Pokéball animation when isCatching is true', () => {
     render(<BattleScreen {...makeProps({ isCatching: true, catchResult: null })} />);
-    expect(screen.getByRole('presentation', { hidden: true })).toBeTruthy();
+    expect(screen.getByTestId('pokeball-anim')).toBeTruthy();
   });
 
   it('shows catch animation result (caught)', async () => {
     render(<BattleScreen {...makeProps({ isCatching: true, catchResult: true })} />);
     // Animation should eventually finish with a visible Pokéball
-    expect(screen.getByRole('presentation', { hidden: true })).toBeTruthy();
+    expect(screen.getByTestId('pokeball-anim')).toBeTruthy();
   });
 
   it('shows catch animation result (escaped)', async () => {
     render(<BattleScreen {...makeProps({ isCatching: true, catchResult: false })} />);
-    expect(screen.getByRole('presentation', { hidden: true })).toBeTruthy();
+    expect(screen.getByTestId('pokeball-anim')).toBeTruthy();
   });
 
   it('updates inventory after catch', () => {

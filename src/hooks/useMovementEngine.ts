@@ -82,10 +82,75 @@ export function useMovementEngine({
 
     // Story Event: Oak stops the player from leaving Pallet Town
     if (currentMap === 'PALLET_TOWN' && nextY === 5 && playerTeam.length === 0) {
-      store.setStoryStep('OAK_STOPPED');
-      store.setCurrentMap('OAKS_LAB');
-      store.setPlayerPos({ x: 10, y: 14 });
-      store.setDialogue("OAK: ¡Espera! ¡Es peligroso salir a la hierba sin un POKÉMON! Ven al laboratorio.");
+      store.setIsMoving(true);
+      store.setDirection('down');
+      store.setOakCutscenePos({ x: playerPos.x, y: playerPos.y + 1 }, 'up');
+      
+      store.setDialogue(
+        "OAK: ¡Espera! ¡Es peligroso salir a la hierba sin un POKÉMON! Ven al laboratorio.",
+        () => {
+          let currentStep = 0;
+          const startX = playerPos.x;
+          // Calculate path to lab entrance (12, 14, but map warp is 10,14 so we just go to the door)
+          const path: {x: number, y: number, dir: Direction}[] = [];
+          
+          let currX = startX;
+          let currY = playerPos.y;
+          // We start pushing path nodes starting from the current node so Oak can take the lead
+          path.push({ x: currX, y: currY, dir: 'down' });
+
+          while (currY < 11) {
+            currY++;
+            path.push({ x: currX, y: currY, dir: 'down' });
+          }
+          while (currX < 12) {
+            currX++;
+            path.push({ x: currX, y: currY, dir: 'right' });
+          }
+          while (currX > 12) {
+            currX--;
+            path.push({ x: currX, y: currY, dir: 'left' });
+          }
+          while (currY <= 14) {
+            currY++;
+            path.push({ x: currX, y: currY, dir: 'down' });
+          }
+
+          const stepWalk = () => {
+            currentStep++;
+            if (currentStep >= path.length) {
+              store.setOakCutscenePos(null, null);
+              store.setStoryStep('OAK_STOPPED');
+              store.setCurrentMap('OAKS_LAB');
+              store.setPlayerPos({ x: 10, y: 14 }); // Warp to lab door interior
+              store.setDirection('up');
+              store.setIsMoving(false);
+              
+              // Second part of the cutscene
+              setTimeout(() => {
+                useGameStore.getState().setDialogue("OAK: ¡Hola Pablo! Por fin llegas.\nToma uno de estos POKÉMON, te ayudará en tu viaje.");
+              }, 500);
+              return;
+            }
+            
+            const playerNode = path[currentStep];
+            const oakNode = currentStep + 1 < path.length ? path[currentStep + 1] : null;
+            
+            store.setDirection(playerNode.dir);
+            store.setPlayerPos({ x: playerNode.x, y: playerNode.y });
+            
+            if (oakNode) {
+               store.setOakCutscenePos({ x: oakNode.x, y: oakNode.y }, playerNode.dir);
+            } else {
+               store.setOakCutscenePos(null, null);
+            }
+            
+            setTimeout(stepWalk, sd(200));
+          };
+          
+          stepWalk();
+        }
+      );
       return;
     }
 

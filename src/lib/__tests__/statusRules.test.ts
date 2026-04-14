@@ -268,14 +268,41 @@ describe('Status exclusivity (no stacking)', () => {
 
 // ─── 1/256 accuracy miss ─────────────────────────────────────────────────────
 
-describe('1/256 accuracy miss (Gen I bug)', () => {
-  it('100% accuracy move misses when roll = 255/256', () => {
-    // doesMoveHit: floor(random * 256) = 255, threshold = floor(100*255/100) = 255
-    // 255 < 255 → false → miss
-    randomSpy.mockReturnValue(255 / 256);
+describe('Accuracy check (roll 1-100, intentional Gen I fix)', () => {
+  it('100% accuracy move hits when roll = 1 (minimum)', () => {
+    // doesMoveHit: r = floor(0 * 100) + 1 = 1, threshold = 100, 1 <= 100 → hits
+    randomSpy.mockReturnValue(0);
 
     const state = makeState();
     const move = makeMove({ accuracy: 100, power: 40 });
+    state.playerTeam[0] = { ...state.playerTeam[0], moves: [move] };
+
+    const result = stepBattle(state, { type: 'ATTACK', move });
+
+    expect(result.state.enemyPokemon.hp).toBeLessThan(state.enemyPokemon.hp);
+  });
+
+  it('100% accuracy move hits when roll = 100 (maximum)', () => {
+    // r = floor(0.999 * 100) + 1 = 100; threshold = 100; 100 <= 100 → hits
+    randomSpy.mockReturnValue(0.999);
+
+    const state = makeState();
+    const move = makeMove({ accuracy: 100, power: 40 });
+    const enemyHpBefore = state.enemyPokemon.hp;
+    state.playerTeam[0] = { ...state.playerTeam[0], moves: [move] };
+
+    const result = stepBattle(state, { type: 'ATTACK', move });
+
+    // 100% accuracy should always hit — no 1/256 glitch in this engine
+    expect(result.state.enemyPokemon.hp).toBeLessThan(enemyHpBefore);
+  });
+
+  it('50% accuracy move misses when roll > 50', () => {
+    // r = floor(0.9 * 100) + 1 = 91; threshold = 50; 91 > 50 → miss
+    randomSpy.mockReturnValue(0.9);
+
+    const state = makeState();
+    const move = makeMove({ accuracy: 50, power: 40 });
     const enemyHpBefore = state.enemyPokemon.hp;
     state.playerTeam[0] = { ...state.playerTeam[0], moves: [move] };
 
@@ -359,11 +386,17 @@ describe('PP deduction and zero-PP guard', () => {
 
 // ─── Catch rate formula ───────────────────────────────────────────────────────
 
-describe('Catch rate formula', () => {
-  it('catch rate at full HP is ~10% (base rate)', () => {
-    // hpPercent=1 → catchRate = (1-1)*0.7 + 0.1 = 0.1
-    // roll=0.09 < 0.1 → caught
-    randomSpy.mockReturnValue(0.09);
+describe('Catch rate formula (Gen I)', () => {
+  // Engine formula: catchV = floor(catchRate * (maxHp*3 - hp*2) / (maxHp*3))
+  // Default catchRate = 45
+  // Caught if r2 < catchV where r2 = floor(random * 256)
+
+  it('catch rate at full HP succeeds with low enough roll', () => {
+    // catchV = floor(45 * (28*3 - 28*2) / (28*3)) = floor(45 * 28/84) = floor(15) = 15
+    // r2 = floor(0.05 * 256) = 12; 12 < 15 → caught
+    randomSpy
+      .mockReturnValueOnce(0.99)  // r1: status pre-check (> 25/256, not caught by status)
+      .mockReturnValue(0.05);    // r2: catch roll
 
     const fullHpEnemy = makePkmn({ hp: 28, maxHp: 28 });
     const state = createBattleState([makePkmn()], fullHpEnemy, { inventory: { POKEBALL: 1 } });
@@ -372,11 +405,12 @@ describe('Catch rate formula', () => {
     expect(result.state.outcome).toBe('caught');
   });
 
-  it('catch rate at full HP fails with roll=0.11', () => {
-    // catchRate ≈ 0.1, roll 0.11 >= 0.1 → fail
+  it('catch rate at full HP fails with roll above catchV', () => {
+    // catchV = 15 (same as above)
+    // r2 = floor(0.11 * 256) = 28; 28 >= 15 → fail
     randomSpy
-      .mockReturnValueOnce(0.11)  // catch roll → fail
-      .mockReturnValue(0.5);      // enemy turn
+      .mockReturnValueOnce(0.99) // r1: no status catch
+      .mockReturnValue(0.11);    // r2: fail + enemy turn RNG
 
     const fullHpEnemy = makePkmn({ hp: 28, maxHp: 28, moves: [makeMove({ power: 5 })] });
     const state = createBattleState([makePkmn()], fullHpEnemy, { inventory: { POKEBALL: 1 } });
@@ -385,10 +419,12 @@ describe('Catch rate formula', () => {
     expect(result.state.outcome).toBe('ongoing');
   });
 
-  it('catch rate at 0 HP is ~80%', () => {
-    // hpPercent=0 → catchRate = 0.7 + 0.1 = 0.8
-    // roll=0.79 < 0.8 → caught
-    randomSpy.mockReturnValue(0.79);
+  it('catch rate at 0 HP gives max catchV', () => {
+    // catchV = floor(45 * (28*3 - 0*2) / (28*3)) = floor(45 * 84/84) = 45
+    // r2 = floor(0.1 * 256) = 25; 25 < 45 → caught
+    randomSpy
+      .mockReturnValueOnce(0.99)  // r1: no status
+      .mockReturnValue(0.1);      // r2: low roll, catches
 
     const zeroHpEnemy = makePkmn({ hp: 0, maxHp: 28 });
     const state = createBattleState([makePkmn()], zeroHpEnemy, { inventory: { POKEBALL: 1 } });
@@ -397,10 +433,12 @@ describe('Catch rate formula', () => {
     expect(result.state.outcome).toBe('caught');
   });
 
-  it('catch rate at 50% HP is ~45%', () => {
-    // hpPercent=0.5 → catchRate = 0.5*0.7 + 0.1 = 0.45
-    // roll=0.44 → caught
-    randomSpy.mockReturnValue(0.44);
+  it('catch rate at 50% HP gives mid-range catchV', () => {
+    // catchV = floor(45 * (28*3 - 14*2) / (28*3)) = floor(45 * 56/84) = floor(30) = 30
+    // r2 = floor(0.1 * 256) = 25; 25 < 30 → caught
+    randomSpy
+      .mockReturnValueOnce(0.99)  // r1: no status
+      .mockReturnValue(0.1);      // r2: low roll
 
     const halfHpEnemy = makePkmn({ hp: 14, maxHp: 28 });
     const state = createBattleState([makePkmn()], halfHpEnemy, { inventory: { POKEBALL: 1 } });

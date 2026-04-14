@@ -44,7 +44,7 @@ afterEach(() => {
 // ─── Scenario 1: Oak stops player from leaving Pallet Town ─────────────────
 
 describe('Scenario 1: Oak stops player at Route 1', () => {
-  it('teleports player immediately to Oak lab when trying to leave without pokémon', () => {
+  it('walks player to Oak lab after dismissing Oak\'s dialogue', () => {
     sim = new GameSimulator().init({
       currentMap: 'PALLET_TOWN',
       playerPos: { x: 10, y: 6 },
@@ -55,9 +55,19 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
     // Move north toward Route 1 (y=5 triggers Oak's stop event)
     sim.move('up');
 
-    // Teleport is immediate — no tick needed
-    expect(sim.map).toBe('OAKS_LAB');
+    // Oak's dialogue should be shown immediately
     expect(sim.dialogueContains('OAK')).toBe(true);
+    expect(sim.map).toBe('PALLET_TOWN'); // still in Pallet until dialogue dismissed
+
+    // Simulate dismissing the dialogue — fires the dialogueCallback
+    const cb = useGameStore.getState().dialogueCallback;
+    if (cb) { cb(); }
+
+    // Advance timers through the full walk path (~20 steps * 200ms = 4000ms)
+    sim.tick(5000);
+
+    // Should now be in Oak's Lab
+    expect(sim.map).toBe('OAKS_LAB');
     expect(sim.storyStep).toBe('OAK_STOPPED');
   });
 
@@ -275,7 +285,8 @@ describe('Scenario 7: Wild encounter on Route 1', () => {
       storyStep: 'EXPLORING',
     });
 
-    // Seed random: first call is for the encounter check (< 0.1 triggers it)
+    // Seed random: Per §4 of formulas.md, R = floor(random*256), encounter fires if R < EncounterRate.
+    // Route 1 EncounterRate = 25. With random=0.05, R = floor(0.05*256) = 12 < 25 → encounter.
     sim.setRandomSequence([0.05, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]);
 
     // Move left onto a grass tile (x=8 should be grass based on the map)

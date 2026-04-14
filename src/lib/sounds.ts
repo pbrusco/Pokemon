@@ -82,7 +82,7 @@ const MELODIES = {
 class SoundManager {
   private currentMusicKey: keyof typeof MELODIES | null = null;
   private isLooping = false;
-  muted: boolean = localStorage.getItem('pokemon_sound_muted') !== 'false'; // muted by default
+  muted: boolean = (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function') ? localStorage.getItem('pokemon_sound_muted') !== 'false' : true; // muted by default
 
   toggleMute(): boolean {
     this.muted = !this.muted;

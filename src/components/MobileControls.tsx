@@ -19,7 +19,9 @@ export const MobileControls = ({ onMove, onAction, setPhase }: MobileControlsPro
           onPointerDown={(e) => {
             e.preventDefault();
             soundManager.play('SELECT');
-            setPhase(prev => prev.type === 'MENU' ? EXPLORING : MENU);
+            setPhase(prev => 
+              prev.type === 'MENU' ? (prev.returnTo || EXPLORING) : { type: 'MENU', returnTo: prev }
+            );
           }}
           className="w-12 h-12 bg-slate-700/80 backdrop-blur-md rounded-full flex items-center justify-center text-white active:bg-slate-500 shadow-lg border-2 border-white/10 text-[10px] font-bold"
         >

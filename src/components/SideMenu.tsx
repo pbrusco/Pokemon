@@ -39,12 +39,11 @@ export const SideMenu = ({
         <div className="space-y-2">
           {[
             { icon: MapIcon, label: 'Pokédex', color: 'bg-red-500', action: () => {
-              if (hasPokedex) { soundManager.play('SELECT'); setPhase(POKEDEX); }
+              if (hasPokedex) { soundManager.play('SELECT'); setPhase({ type: 'POKEDEX', returnTo: phase.type === 'MENU' ? (phase.returnTo || EXPLORING) : EXPLORING }); }
               else setDialogue("Aún no tienes una Pokédex.");
             }},
-            { icon: User, label: 'Pokémon', color: 'bg-emerald-500', action: () => { soundManager.play('SELECT'); setPhase(TEAM); }},
-            { icon: Backpack, label: 'Mochila', color: 'bg-orange-500', action: () => { soundManager.play('SELECT'); setPhase(INVENTORY); }},
-            { icon: Gamepad2, label: 'PC Storage', color: 'bg-blue-500', action: () => { soundManager.play('SELECT'); setPhase(PC); }},
+            { icon: Backpack, label: 'Mochila', color: 'bg-orange-500', action: () => { soundManager.play('SELECT'); setPhase({ type: 'INVENTORY', returnTo: phase.type === 'MENU' ? (phase.returnTo || EXPLORING) : EXPLORING }); }},
+            { icon: Gamepad2, label: 'PC Storage', color: 'bg-blue-500', action: () => { soundManager.play('SELECT'); setPhase({ type: 'PC', returnTo: phase.type === 'MENU' ? (phase.returnTo || EXPLORING) : EXPLORING }); }},
             { icon: X, label: 'Reiniciar', color: 'bg-red-500', action: resetGame },
           ].map((item, i) => (
             <button

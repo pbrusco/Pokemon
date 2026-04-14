@@ -49,6 +49,7 @@ export interface StatBoosts {
 }
 
 export interface Pokemon {
+  uid?: string;
   id: string;
   name: string;
   level: number;

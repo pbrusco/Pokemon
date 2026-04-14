@@ -12,6 +12,7 @@ import { SHOP_PRICES } from '../constants';
 import { PokedexUI } from './PokedexUI';
 import { PCStorageUI } from './PCStorageUI';
 import { MapEditor } from './MapEditor';
+import { useGameStore } from '../store/gameStore';
 import { Dispatch, SetStateAction } from 'react';
 
 interface GameModalsProps {
@@ -116,7 +117,14 @@ export const GameModals = ({
     {/* Dialogue */}
     <AnimatePresence>
       {dialogue && (
-        <DialogueBox text={dialogue} onComplete={() => setDialogue(null)} />
+        <DialogueBox
+          text={dialogue}
+          onComplete={() => {
+            const cb = useGameStore.getState().dialogueCallback;
+            setDialogue(null);
+            if (cb) cb();
+          }}
+        />
       )}
     </AnimatePresence>
 
@@ -173,7 +181,7 @@ export const GameModals = ({
     {/* Pokédex */}
     <AnimatePresence>
       {phase.type === 'POKEDEX' && (
-        <PokedexUI pokedex={pokedex} onClose={() => setPhase(EXPLORING)} />
+        <PokedexUI pokedex={pokedex} onClose={() => setPhase(inBattle ? battle(B_CHOOSING) : EXPLORING)} />
       )}
     </AnimatePresence>
 
@@ -183,7 +191,7 @@ export const GameModals = ({
         <PCStorageUI
           team={playerTeam}
           pc={pcStorage}
-          onClose={() => setPhase(EXPLORING)}
+          onClose={() => setPhase(inBattle ? battle(B_CHOOSING) : EXPLORING)}
           onSwap={handlePCSwap}
         />
       )}

@@ -63,6 +63,8 @@ export const WorldView = ({
 
   const [isDemoActive, setIsDemoActive] = useState(() => (window as typeof window & { __demo?: any }).__demo?.running?.() ?? false);
 
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+
   useEffect(() => {
     const handleDemoChange = (e: any) => setIsDemoActive(e.detail.running && !e.detail.paused);
     window.addEventListener('demoModeChanged', handleDemoChange);
@@ -142,32 +144,57 @@ export const WorldView = ({
 
   return (
     <div className="relative flex-1 w-full overflow-hidden">
-      {/* HP HUD */}
+      {/* Team HUD (Left Panel) with Drag & Drop */}
       <AnimatePresence>
         {playerTeam.length > 0 && !inBattle && (
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="fixed top-24 sm:top-24 left-4 sm:left-8 z-20 bg-white/90 backdrop-blur-md p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-slate-800 shadow-xl w-32 sm:w-48"
+            className="fixed top-24 sm:top-24 left-4 sm:left-8 z-20 bg-white/95 backdrop-blur-md p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 border-slate-800 shadow-xl w-40 sm:w-56 pointer-events-auto flex flex-col gap-2"
           >
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-[8px] sm:text-[10px] font-black text-slate-800 uppercase tracking-tighter">{playerTeam[0].name}</span>
-              <span className="text-[8px] sm:text-[10px] font-mono font-bold text-slate-500">Lv {playerTeam[0].level}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[6px] sm:text-[8px] font-black text-yellow-600">HP</span>
-              <div className="flex-1 h-1.5 sm:h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-300">
-                <motion.div
-                  initial={false}
-                  animate={{ width: `${(playerTeam[0].hp / playerTeam[0].maxHp) * 100}%` }}
-                  className={`h-full ${playerTeam[0].hp > playerTeam[0].maxHp / 2 ? 'bg-emerald-500' : playerTeam[0].hp > playerTeam[0].maxHp / 5 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                />
+            <h3 className="text-[10px] text-slate-400 font-black uppercase tracking-widest px-1">Equipo Pokémon</h3>
+            {playerTeam.map((pkmn, idx) => (
+              <div
+                key={pkmn.uid || pkmn.id + idx}
+                draggable
+                onDragStart={(e) => {
+                  setDraggedIdx(idx);
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (draggedIdx === null || draggedIdx === idx) return;
+                  import('../store/gameStore').then(({ useGameStore }) => {
+                    useGameStore.getState().reorderTeam(draggedIdx, idx);
+                  });
+                  setDraggedIdx(null);
+                }}
+                className={`bg-slate-50 p-2 border ${draggedIdx === idx ? 'border-dashed border-slate-500 opacity-50' : 'border-slate-300'} rounded shadow-sm hover:shadow-md hover:bg-white cursor-grab active:cursor-grabbing transition-colors`}
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[10px] sm:text-xs font-black text-slate-800 uppercase tracking-tighter truncate max-w-[70%]">{pkmn.name}</span>
+                  <span className="text-[9px] sm:text-[10px] font-mono font-bold text-slate-500">Lv{pkmn.level}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[7px] sm:text-[8px] font-black text-yellow-600">HP</span>
+                  <div className="flex-1 h-1.5 sm:h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-300">
+                    <motion.div
+                      initial={false}
+                      animate={{ width: `${(pkmn.hp / pkmn.maxHp) * 100}%` }}
+                      className={`h-full ${pkmn.hp > pkmn.maxHp / 2 ? 'bg-emerald-500' : pkmn.hp > pkmn.maxHp / 5 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                    />
+                  </div>
+                </div>
+                <div className="text-right mt-0.5 sm:mt-1">
+                  <span className="text-[8px] sm:text-[10px] font-mono font-bold text-slate-600">{pkmn.hp}/{pkmn.maxHp}</span>
+                </div>
               </div>
-            </div>
-            <div className="text-right mt-0.5 sm:mt-1">
-              <span className="text-[8px] sm:text-[10px] font-mono font-bold text-slate-600">{playerTeam[0].hp}/{playerTeam[0].maxHp}</span>
-            </div>
+            ))}
           </motion.div>
         )}
       </AnimatePresence>

@@ -26,8 +26,8 @@ export default function App() {
   const store = useGameStore();
 
   const phase = store.phase;
-  const inBattle = phase.type === 'BATTLE';
-  const battlePhase = phase.type === 'BATTLE' ? phase.sub : null;
+  const inBattle = phase.type === 'BATTLE' || ('returnTo' in phase && phase.returnTo?.type === 'BATTLE');
+  const battlePhase = phase.type === 'BATTLE' ? phase.sub : ('returnTo' in phase && phase.returnTo?.type === 'BATTLE' ? phase.returnTo.sub : null);
   const npcs = store.getNPCs();
   const items = store.getItems();
 
@@ -84,6 +84,8 @@ export default function App() {
       if (s.phase.type === 'BATTLE_TRANSITION') {
         s.setPhase(battle(B_CHOOSING));
       }
+    } else if (!s.activeBattle && (s.phase.type === 'BATTLE' || s.phase.type === 'BATTLE_TRANSITION')) {
+      s.setPhase(EXPLORING);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -196,7 +198,7 @@ export default function App() {
         enemyPokemon={enemyPokemon}
         enemyAnim={enemyAnim}
         catchResult={catchResult}
-        playerTeam={store.playerTeam}
+        playerTeam={store.activeBattle ? store.activeBattle.playerTeam : store.playerTeam}
         playerAnim={playerAnim}
         battleLog={battleLog}
         battleLogs={battleLogs}

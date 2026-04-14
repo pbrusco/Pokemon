@@ -191,7 +191,7 @@ export function useBattleEngine({
           setCatchResult(null);
           useGameStore.getState().updatePokedex(newState.enemyPokemon.id, true);
           useGameStore.getState().setPcStorage(newState.pcStorage);
-          useGameStore.getState().setPlayerTeam(newState.playerTeam);
+          useGameStore.getState().syncTeamStats(newState.playerTeam);
           useGameStore.getState().setActiveBattle(null);
           useGameStore.getState().setPhase(EXPLORING);
         }, sd(4000));
@@ -199,7 +199,7 @@ export function useBattleEngine({
         setTimeout(() => setCatchResult(false), sd(2800));
         setTimeout(() => {
           setCatchResult(null);
-          useGameStore.getState().setPlayerTeam(newState.playerTeam);
+          useGameStore.getState().syncTeamStats(newState.playerTeam);
           setEnemyPokemon(newState.enemyPokemon);
           useGameStore.getState().setPhase(mapEnginePhase(newState.phase));
         }, sd(4000));
@@ -217,7 +217,7 @@ export function useBattleEngine({
     }
     setEnemyPokemon(newState.enemyPokemon);
     if (action.type !== 'ATTACK') {
-      useGameStore.getState().setPlayerTeam(newState.playerTeam);
+      useGameStore.getState().syncTeamStats(newState.playerTeam);
     }
 
     const playerDuration = playBattleEffects(playerEffects);
@@ -246,13 +246,13 @@ export function useBattleEngine({
       setTimeout(() => {
         setPlayerAnim('idle');
         setEnemyAnim('idle');
-        useGameStore.getState().setPlayerTeam(newState.playerTeam);
+        useGameStore.getState().syncTeamStats(newState.playerTeam);
         const enemyDuration = playBattleEffects(enemyEffects);
         const enemyDelay = Math.max(enemyDuration + sd(300), sd(800));
         handlePostBattle(newState, enemyDelay);
       }, playerDelay);
     } else {
-      useGameStore.getState().setPlayerTeam(newState.playerTeam);
+      useGameStore.getState().syncTeamStats(newState.playerTeam);
       handlePostBattle(newState, playerDelay);
     }
   }, [battleStateRef]);

@@ -22,7 +22,7 @@ export function useGameLoop() {
   const [, setSpottedTrainerId] = useState<string | null>(null);
   const [, setSpottedTrainerPos] = useState<{ x: number; y: number } | null>(null);
 
-  const { dispatchBattle, enemyPokemon, battleLog, isTrainerBattle, setEnemyPokemon, setIsTrainerBattle, setBattleLog } = useBattleEngine({
+  const { dispatchBattle, enemyPokemon, battleLog, battleLogs, isTrainerBattle, setEnemyPokemon, setIsTrainerBattle, setBattleLog, setBattleLogs } = useBattleEngine({
     battleStateRef,
     setPlayerAnim: noop as (anim: 'idle' | 'attack' | 'hit' | 'faint') => void,
     setEnemyAnim: noop as (anim: 'idle' | 'attack' | 'hit' | 'faint') => void,
@@ -38,6 +38,7 @@ export function useGameLoop() {
     setEnemyPokemon,
     setIsTrainerBattle,
     setBattleLog,
+    setBattleLogs: noop,
   });
 
   const { handleAction } = useInteractionEngine({ initBattle });
