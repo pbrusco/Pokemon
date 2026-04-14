@@ -17,12 +17,7 @@ const noop = () => {};
 export function useGameLoop() {
   const battleStateRef = useRef<BattleState | null>(null);
 
-  // Stubbed visual state — not rendered, but hooks may call these
-  const [, setGrassEffect] = useState<{ x: number; y: number } | null>(null);
-  const [, setSpottedTrainerId] = useState<string | null>(null);
-  const [, setSpottedTrainerPos] = useState<{ x: number; y: number } | null>(null);
-
-  const { dispatchBattle, enemyPokemon, battleLog, battleLogs, isTrainerBattle, setEnemyPokemon, setIsTrainerBattle, setBattleLog, setBattleLogs } = useBattleEngine({
+  const { dispatchBattle } = useBattleEngine({
     battleStateRef,
     setPlayerAnim: noop as (anim: 'idle' | 'attack' | 'hit' | 'faint') => void,
     setEnemyAnim: noop as (anim: 'idle' | 'attack' | 'hit' | 'faint') => void,
@@ -32,13 +27,6 @@ export function useGameLoop() {
   const { handleMove, initBattle } = useMovementEngine({
     battleStateRef,
     setOverworldShake: noop,
-    setGrassEffect,
-    setSpottedTrainerId,
-    setSpottedTrainerPos,
-    setEnemyPokemon,
-    setIsTrainerBattle,
-    setBattleLog,
-    setBattleLogs: noop,
   });
 
   const { handleAction } = useInteractionEngine({ initBattle });
@@ -48,8 +36,5 @@ export function useGameLoop() {
     handleAction,
     dispatchBattle,
     battleStateRef,
-    enemyPokemon,
-    battleLog,
-    isTrainerBattle,
   };
 }

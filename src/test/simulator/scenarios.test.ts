@@ -59,11 +59,10 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
     expect(sim.dialogueContains('OAK')).toBe(true);
     expect(sim.map).toBe('PALLET_TOWN'); // still in Pallet until dialogue dismissed
 
-    // Simulate dismissing the dialogue — fires the dialogueCallback
-    const cb = useGameStore.getState().dialogueCallback;
-    if (cb) { cb(); }
+    // Dismiss dialogue via handleAction — the real user path
+    sim.dismissDialogue();
 
-    // Advance timers through the full walk path (~20 steps * 200ms = 4000ms)
+    // Advance timers through the full walk path
     sim.tick(5000);
 
     // Should now be in Oak's Lab

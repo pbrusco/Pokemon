@@ -26,6 +26,15 @@ interface GameSaveState {
   pickedItemIds: string[];
   pokedex: PokedexState;
   activeBattle: BattleState | null;
+
+  setGrassEffect: (pos: Position | null) => void;
+  setSpottedTrainerId: (id: string | null) => void;
+  setSpottedTrainerPos: (pos: SetStateAction<Position | null>) => void;
+  setEnemyPokemon: (p: Pokemon | null) => void;
+  setIsTrainerBattle: (v: boolean) => void;
+  setBattleLog: (log: string) => void;
+  setBattleLogs: (logs: SetStateAction<any[]>) => void;
+  setCatchResult: (v: boolean | null) => void;
 }
 
 const safeLocalStorage = {
@@ -81,6 +90,16 @@ interface GameState extends GameSaveState {
   oakCutsceneDir: Direction | null;
   isLocked: boolean;
   showBattleTransition: boolean;
+  
+  // New Viz/Battle state moved to store
+  grassEffect: Position | null;
+  spottedTrainerId: string | null;
+  spottedTrainerPos: Position | null;
+  enemyPokemon: Pokemon | null;
+  isTrainerBattle: boolean;
+  battleLog: string;
+  battleLogs: any[];
+  catchResult: boolean | null;
   
   worldMaps: typeof worldConfig.maps;
   teleports: Record<MapID, Entity[]>;
@@ -139,10 +158,22 @@ export const useGameStore = create<GameState>()(
       
       phase: EXPLORING,
       showMoves: false,
-      isMuted: false, // Will sync with exact sound defaults
+      isMuted: false,
       dialogue: null,
+      dialogueCallback: null,
+      oakCutscenePos: null,
+      oakCutsceneDir: null,
       isLocked: false,
       showBattleTransition: false,
+
+      grassEffect: null,
+      spottedTrainerId: null,
+      spottedTrainerPos: null,
+      enemyPokemon: null,
+      isTrainerBattle: false,
+      battleLog: '',
+      battleLogs: [],
+      catchResult: null,
       
       worldMaps: worldConfig.maps,
       teleports: worldConfig.teleports,
@@ -236,6 +267,15 @@ export const useGameStore = create<GameState>()(
         result.splice(endIndex, 0, removed);
         return { playerTeam: result };
       }),
+
+      setGrassEffect: (pos) => set({ grassEffect: pos }),
+      setSpottedTrainerId: (id) => set({ spottedTrainerId: id }),
+      setSpottedTrainerPos: (pos) => set((state) => ({ spottedTrainerPos: typeof pos === 'function' ? pos(state.spottedTrainerPos) : pos })),
+      setEnemyPokemon: (p) => set({ enemyPokemon: p }),
+      setIsTrainerBattle: (v) => set({ isTrainerBattle: v }),
+      setBattleLog: (log) => set({ battleLog: log }),
+      setBattleLogs: (logs) => set((state) => ({ battleLogs: typeof logs === 'function' ? logs(state.battleLogs) : logs })),
+      setCatchResult: (v) => set({ catchResult: v }),
 
       resetGame: () => {
         if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.removeItem === 'function') {

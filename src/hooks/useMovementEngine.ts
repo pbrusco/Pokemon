@@ -1,37 +1,26 @@
-import { useCallback, useRef, useEffect, MutableRefObject, Dispatch, SetStateAction } from 'react';
+import { useCallback, useRef, useEffect, MutableRefObject } from 'react';
 import { Direction, Position, Pokemon } from '../types';
-import { BATTLE_TRANSITION } from '../types/gamePhase';
+import { B_CHOOSING, EXPLORING, BATTLE_TRANSITION } from '../types/gamePhase';
+import { battle } from '../types/gamePhase';
 import { BattleState, createBattleState } from '../lib/battleEngine';
 import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
 import { calcHp } from '../lib/damage';
 import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES } from '../constants';
 import { isGodMode, applyGodMode } from '../lib/godMode';
+import { triggerOakCutscene } from '../lib/oakCutscene';
+import { triggerTrainerCutscene } from '../lib/cutscenes/trainerEncounter';
 import { useGameStore } from '../store/gameStore';
 import { GRID_SIZE } from '../types';
 
 interface UseMovementEngineParams {
   battleStateRef: MutableRefObject<BattleState | null>;
   setOverworldShake: (v: boolean) => void;
-  setGrassEffect: (pos: Position | null) => void;
-  setSpottedTrainerId: (id: string | null) => void;
-  setSpottedTrainerPos: (pos: Position | null | ((prev: Position | null) => Position | null)) => void;
-  setEnemyPokemon: (p: Pokemon | null) => void;
-  setIsTrainerBattle: Dispatch<SetStateAction<boolean>>;
-  setBattleLog: Dispatch<SetStateAction<string>>;
-  setBattleLogs: Dispatch<SetStateAction<any[]>>;
 }
 
 export function useMovementEngine({
   battleStateRef,
   setOverworldShake,
-  setGrassEffect,
-  setSpottedTrainerId,
-  setSpottedTrainerPos,
-  setEnemyPokemon,
-  setIsTrainerBattle,
-  setBattleLog,
-  setBattleLogs,
 }: UseMovementEngineParams) {
   const moveTimeout = useRef<NodeJS.Timeout | null>(null);
   const poisonStepCounter = useRef(0);
@@ -43,20 +32,23 @@ export function useMovementEngine({
   }, []);
 
   const initBattle = useCallback((enemyPkmn: Pokemon, isTrainer: boolean) => {
-    const store = useGameStore.getState();
-    setEnemyPokemon(enemyPkmn);
-    const team = isGodMode() ? applyGodMode(store.playerTeam) : store.playerTeam;
+    const s = useGameStore.getState();
+    s.setEnemyPokemon(enemyPkmn);
+    s.setIsTrainerBattle(isTrainer);
+    
+    const team = isGodMode() ? applyGodMode(s.playerTeam) : s.playerTeam;
     battleStateRef.current = createBattleState(team, enemyPkmn, {
       isTrainerBattle: isTrainer,
-      inventory: store.inventory,
-      pcStorage: store.pcStorage,
-      hasBoulderBadge: store.badges.includes('BOULDER'),
+      inventory: s.inventory,
+      pcStorage: s.pcStorage,
+      hasBoulderBadge: s.badges.includes('BOULDER'),
     });
-    store.setActiveBattle(battleStateRef.current);
-    setIsTrainerBattle(isTrainer);
+    
+    s.setActiveBattle(battleStateRef.current);
     soundManager.play('BATTLE_START');
-    store.setPhase(BATTLE_TRANSITION);
-  }, [battleStateRef, setEnemyPokemon, setIsTrainerBattle]);
+    s.setPhase(B_CHOOSING); // Immediate skip for some reason? No, usually it's BATTLE_TRANSITION
+    s.setPhase(BATTLE_TRANSITION);
+  }, [battleStateRef]);
 
   const handleMove = useCallback((dir: Direction) => {
     const store = useGameStore.getState();
@@ -80,81 +72,14 @@ export function useMovementEngine({
       case 'right': nextX++; break;
     }
 
-    // Story Event: Oak stops the player from leaving Pallet Town
+    // Story Event: Oak stops the player from leaving Pallet Town north without pokemon
     if (currentMap === 'PALLET_TOWN' && nextY === 5 && playerTeam.length === 0) {
-      store.setIsMoving(true);
-      store.setDirection('down');
-      store.setOakCutscenePos({ x: playerPos.x, y: playerPos.y + 1 }, 'up');
-      
-      store.setDialogue(
-        "OAK: ¡Espera! ¡Es peligroso salir a la hierba sin un POKÉMON! Ven al laboratorio.",
-        () => {
-          let currentStep = 0;
-          const startX = playerPos.x;
-          // Calculate path to lab entrance (12, 14, but map warp is 10,14 so we just go to the door)
-          const path: {x: number, y: number, dir: Direction}[] = [];
-          
-          let currX = startX;
-          let currY = playerPos.y;
-          // We start pushing path nodes starting from the current node so Oak can take the lead
-          path.push({ x: currX, y: currY, dir: 'down' });
-
-          while (currY < 11) {
-            currY++;
-            path.push({ x: currX, y: currY, dir: 'down' });
-          }
-          while (currX < 12) {
-            currX++;
-            path.push({ x: currX, y: currY, dir: 'right' });
-          }
-          while (currX > 12) {
-            currX--;
-            path.push({ x: currX, y: currY, dir: 'left' });
-          }
-          while (currY <= 14) {
-            currY++;
-            path.push({ x: currX, y: currY, dir: 'down' });
-          }
-
-          const stepWalk = () => {
-            currentStep++;
-            if (currentStep >= path.length) {
-              store.setOakCutscenePos(null, null);
-              store.setStoryStep('OAK_STOPPED');
-              store.setCurrentMap('OAKS_LAB');
-              store.setPlayerPos({ x: 10, y: 14 }); // Warp to lab door interior
-              store.setDirection('up');
-              store.setIsMoving(false);
-              
-              // Second part of the cutscene
-              setTimeout(() => {
-                useGameStore.getState().setDialogue("OAK: ¡Hola Pablo! Por fin llegas.\nToma uno de estos POKÉMON, te ayudará en tu viaje.");
-              }, 500);
-              return;
-            }
-            
-            const playerNode = path[currentStep];
-            const oakNode = currentStep + 1 < path.length ? path[currentStep + 1] : null;
-            
-            store.setDirection(playerNode.dir);
-            store.setPlayerPos({ x: playerNode.x, y: playerNode.y });
-            
-            if (oakNode) {
-               store.setOakCutscenePos({ x: oakNode.x, y: oakNode.y }, playerNode.dir);
-            } else {
-               store.setOakCutscenePos(null, null);
-            }
-            
-            setTimeout(stepWalk, sd(200));
-          };
-          
-          stepWalk();
-        }
-      );
+      triggerOakCutscene(playerPos);
       return;
     }
 
     const mapData = worldMaps[currentMap];
+    if (!mapData) return;
     const grid = mapData.tiles;
 
     const npcAtNext = npcs[currentMap]?.some(n => n.position.x === nextX && n.position.y === nextY);
@@ -169,7 +94,7 @@ export function useMovementEngine({
     ) {
       const warpOnNext = mapData.warps.find(w => w.x === nextX && w.y === nextY);
       if (warpOnNext && warpOnNext.targetDir && dir !== warpOnNext.targetDir) {
-        return; // Validly rejected warp due to entry angle constraints
+        return; 
       }
       
       store.setIsMoving(true);
@@ -196,8 +121,8 @@ export function useMovementEngine({
 
       // Visual grass rustle
       if (grid[nextY][nextX].type === 'grass') {
-        setGrassEffect({ x: nextX, y: nextY });
-        setTimeout(() => setGrassEffect(null), sd(500));
+        store.setGrassEffect({ x: nextX, y: nextY });
+        setTimeout(() => useGameStore.getState().setGrassEffect(null), sd(500));
       }
 
       if (moveTimeout.current) clearTimeout(moveTimeout.current);
@@ -210,9 +135,10 @@ export function useMovementEngine({
       if (warp) {
         soundManager.play('SELECT');
         setTimeout(() => {
-          useGameStore.getState().setCurrentMap(warp.targetMap);
-          useGameStore.getState().setPlayerPos(warp.targetPos);
-          if (warp.targetDir) useGameStore.getState().setDirection(warp.targetDir);
+          const fs = useGameStore.getState();
+          fs.setCurrentMap(warp.targetMap);
+          fs.setPlayerPos(warp.targetPos);
+          if (warp.targetDir) fs.setDirection(warp.targetDir);
         }, sd(200));
       }
 
@@ -228,52 +154,13 @@ export function useMovementEngine({
           if (trainer.direction === 'right') visionX += i;
 
           if (visionX === nextX && visionY === nextY) {
-            setSpottedTrainerId(trainer.id);
-            setSpottedTrainerPos({ ...trainer.position });
-            soundManager.play('TRAINER_SPOTTED');
-            store.setDialogue(`${trainer.name}: ¡Eh! ¡Te he visto! ¡Vamos a luchar!`);
-            const spottedDistance = i;
-            for (let step = 1; step < spottedDistance; step++) {
-              setTimeout(() => {
-                setSpottedTrainerPos(prev => {
-                  if (!prev) return prev;
-                  const next = { ...prev };
-                  if (trainer.direction === 'up') next.y -= 1;
-                  if (trainer.direction === 'down') next.y += 1;
-                  if (trainer.direction === 'left') next.x -= 1;
-                  if (trainer.direction === 'right') next.x += 1;
-                  return next;
-                });
-              }, sd(step * 220));
-            }
-            setTimeout(() => {
-              setSpottedTrainerId(null);
-              setSpottedTrainerPos(null);
-              soundManager.play('BATTLE_START');
-              setEnemyPokemon(trainer.trainerTeam![0]);
-              const freshStore = useGameStore.getState();
-              const trainerTeam = isGodMode() ? applyGodMode(freshStore.playerTeam) : freshStore.playerTeam;
-              battleStateRef.current = createBattleState(trainerTeam, trainer.trainerTeam![0], {
-                isTrainerBattle: true,
-                enemyTeam: trainer.trainerTeam!,
-                trainerName: trainer.name,
-                inventory: freshStore.inventory,
-                pcStorage: freshStore.pcStorage,
-                hasBoulderBadge: freshStore.badges.includes('BOULDER'),
-              });
-              freshStore.setActiveBattle(battleStateRef.current);
-              freshStore.updatePokedex(trainer.trainerTeam![0].id, false);
-              setIsTrainerBattle(true);
-              setBattleLog(`¡${trainer.name} te desafía!`);
-              setBattleLogs([{ text: `¡${trainer.name} te desafía!`, speaker: 'Sistema', id: -1 }]);
-              freshStore.setPhase(BATTLE_TRANSITION);
-            }, sd(Math.max(1500, spottedDistance * 240)));
+            triggerTrainerCutscene(trainer, { x: nextX, y: nextY });
             break;
           }
         }
       }
 
-      // Wild encounter: Gen I style — roll 0–255 vs per-route encounter rate
+      // Wild encounter roll
       const encounterRate = WILD_ENCOUNTER_RATES[currentMap] ?? 10;
       const encounterRoll = Math.floor(Math.random() * 256);
       if (grid[nextY][nextX].type === 'grass' && encounterRoll < encounterRate && playerTeam.length > 0) {
@@ -286,38 +173,35 @@ export function useMovementEngine({
 
         soundManager.play('BATTLE_START');
         const finalMaxHp = calcHp(randomPkmn.baseStats.hp, finalLevel);
-        const wildBaseStats = {
-          ...randomPkmn.baseStats,
-          attack: Math.floor(randomPkmn.baseStats.attack * 0.85),
-          special: Math.floor(randomPkmn.baseStats.special * 0.85),
-        };
-        const finalPkmn = {
+        const wildPkmn = {
           ...randomPkmn,
-          baseStats: wildBaseStats,
           level: finalLevel,
           hp: finalMaxHp,
           maxHp: finalMaxHp,
+          baseStats: {
+            ...randomPkmn.baseStats,
+            attack: Math.floor(randomPkmn.baseStats.attack * 0.85),
+            special: Math.floor(randomPkmn.baseStats.special * 0.85),
+          }
         };
-        setEnemyPokemon(finalPkmn);
-        const freshStore = useGameStore.getState();
-        const wildTeam = isGodMode() ? applyGodMode(freshStore.playerTeam) : freshStore.playerTeam;
-        battleStateRef.current = createBattleState(wildTeam, finalPkmn, {
-          inventory: freshStore.inventory,
-          pcStorage: freshStore.pcStorage,
-          hasBoulderBadge: freshStore.badges.includes('BOULDER'),
+
+        const fs = useGameStore.getState();
+        fs.setEnemyPokemon(wildPkmn);
+        fs.setIsTrainerBattle(false);
+        const wildTeam = isGodMode() ? applyGodMode(fs.playerTeam) : fs.playerTeam;
+        battleStateRef.current = createBattleState(wildTeam, wildPkmn, {
+          inventory: fs.inventory,
+          pcStorage: fs.pcStorage,
+          hasBoulderBadge: fs.badges.includes('BOULDER'),
         });
-        freshStore.setActiveBattle(battleStateRef.current);
-        setIsTrainerBattle(false);
-        freshStore.updatePokedex(randomPkmn.id, false);
-        setBattleLog(`¡Un ${randomPkmn.name} salvaje apareció!`);
-        setBattleLogs([{ text: `¡Un ${randomPkmn.name} salvaje apareció!`, speaker: 'Sistema', id: -1 }]);
-        freshStore.setPhase(BATTLE_TRANSITION);
+        fs.setActiveBattle(battleStateRef.current);
+        fs.updatePokedex(randomPkmn.id, false);
+        fs.setBattleLog(`¡Un ${randomPkmn.name} salvaje apareció!`);
+        fs.setBattleLogs([{ text: `¡Un ${randomPkmn.name} salvaje apareció!`, speaker: 'Sistema', id: -1 }]);
+        fs.setPhase(BATTLE_TRANSITION);
       }
     }
-  }, [
-    battleStateRef, setOverworldShake, setGrassEffect, setSpottedTrainerId,
-    setSpottedTrainerPos, setEnemyPokemon, setIsTrainerBattle, setBattleLog
-  ]);
+  }, [battleStateRef, setOverworldShake]);
 
   return { handleMove, initBattle };
 }

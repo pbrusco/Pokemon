@@ -258,8 +258,8 @@ export class GameSimulator {
   get hasPokedex(): boolean { return this.state.hasPokedex; }
   get hasParcel(): boolean { return this.state.hasParcel; }
   get money(): number { return this.state.money; }
-  get enemyPokemon() { return this.hookResult.result.current.enemyPokemon; }
-  get battleLog() { return this.hookResult.result.current.battleLog; }
+  get enemyPokemon() { return this.state.enemyPokemon; }
+  get battleLog() { return this.state.battleLog; }
   get battleState() { return this.hookResult.result.current.battleStateRef.current; }
 
   /** Get all logged events of a given type */

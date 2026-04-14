@@ -32,7 +32,7 @@ export default function App() {
   const items = store.getItems();
 
   const windowSize = useWindowSize();
-  const { grassEffect, setGrassEffect, spottedTrainerId, setSpottedTrainerId, spottedTrainerPos, setSpottedTrainerPos, overworldShake, setOverworldShake } = useOverworldVFX();
+  const { overworldShake, setOverworldShake } = useOverworldVFX();
   const { playerAnim, setPlayerAnim, enemyAnim, setEnemyAnim, battleShake, setBattleShake } = useBattleVFX();
 
   const battleStateRef = useRef<BattleState | null>(null);
@@ -64,7 +64,7 @@ export default function App() {
     soundManager.play('SELECT');
   };
 
-  const { dispatchBattle, enemyPokemon, setEnemyPokemon, battleLog, setBattleLog, battleLogs, setBattleLogs, isTrainerBattle, setIsTrainerBattle, catchResult } = useBattleEngine({
+  const { dispatchBattle, catchResult } = useBattleEngine({
     battleStateRef,
     setPlayerAnim,
     setEnemyAnim,
@@ -76,10 +76,10 @@ export default function App() {
     const s = useGameStore.getState();
     if (s.activeBattle && (s.phase.type === 'BATTLE' || s.phase.type === 'BATTLE_TRANSITION')) {
       battleStateRef.current = s.activeBattle;
-      setEnemyPokemon(s.activeBattle.enemyPokemon);
-      setIsTrainerBattle(s.activeBattle.isTrainerBattle);
-      setBattleLog(s.activeBattle.log);
-      setBattleLogs([{ text: s.activeBattle.log, speaker: 'Sistema', id: -1 }]);
+      s.setEnemyPokemon(s.activeBattle.enemyPokemon);
+      s.setIsTrainerBattle(s.activeBattle.isTrainerBattle);
+      s.setBattleLog(s.activeBattle.log);
+      s.setBattleLogs([{ text: s.activeBattle.log, speaker: 'Sistema', id: -1 }]);
       // If refreshed during transition, jump straight to battle
       if (s.phase.type === 'BATTLE_TRANSITION') {
         s.setPhase(battle(B_CHOOSING));
@@ -93,13 +93,6 @@ export default function App() {
   const { handleMove, initBattle } = useMovementEngine({
     battleStateRef,
     setOverworldShake,
-    setGrassEffect,
-    setSpottedTrainerId,
-    setSpottedTrainerPos,
-    setEnemyPokemon,
-    setIsTrainerBattle,
-    setBattleLog,
-    setBattleLogs,
   });
 
   const { handleAction } = useInteractionEngine({
@@ -134,21 +127,21 @@ export default function App() {
     setPhase: store.setPhase,
     handleMove,
     handleAction,
-    isTrainerBattle,
-    gameState: { current: store }, // Patch ref interface
+    isTrainerBattle: store.isTrainerBattle,
+    gameState: { current: store } as any,
     setPlayerTeam: store.updateTeam,
-    setEnemyPokemon,
-    setBattleLog,
-    setBattleLogs,
-    setIsTrainerBattle,
+    setEnemyPokemon: store.setEnemyPokemon,
+    setBattleLog: store.setBattleLog,
+    setBattleLogs: store.setBattleLogs,
+    setIsTrainerBattle: store.setIsTrainerBattle,
   });
 
   useInputHandler({
     handleMove,
     handleAction,
     dispatchBattle,
-    isTrainerBattle,
-    spottedTrainerId,
+    isTrainerBattle: store.isTrainerBattle,
+    spottedTrainerId: store.spottedTrainerId,
   });
 
   return (
@@ -158,18 +151,18 @@ export default function App() {
       <GameHeader isMuted={store.isMuted} onToggleMute={() => store.setIsMuted(soundManager.toggleMute())} />
 
       <WorldView
+        currentMap={store.currentMap}
         playerPos={store.playerPos}
         direction={store.direction}
         isMoving={store.isMoving}
-        currentMap={store.currentMap}
         maps={store.worldMaps}
         npcs={npcs}
         items={items}
-        grassEffect={grassEffect}
+        grassEffect={store.grassEffect}
         overworldShake={overworldShake}
         windowSize={windowSize}
-        spottedTrainerId={spottedTrainerId}
-        spottedTrainerPos={spottedTrainerPos}
+        spottedTrainerId={store.spottedTrainerId}
+        spottedTrainerPos={store.spottedTrainerPos}
         defeatedTrainers={store.defeatedTrainers}
         inBattle={inBattle}
         dialogue={store.dialogue}
@@ -195,15 +188,15 @@ export default function App() {
         inBattle={inBattle}
         currentMap={store.currentMap}
         battleShake={battleShake}
-        enemyPokemon={enemyPokemon}
+        enemyPokemon={store.enemyPokemon}
         enemyAnim={enemyAnim}
-        catchResult={catchResult}
+        catchResult={store.catchResult}
         playerTeam={store.activeBattle ? store.activeBattle.playerTeam : store.playerTeam}
         playerAnim={playerAnim}
-        battleLog={battleLog}
-        battleLogs={battleLogs}
+        battleLog={store.battleLog}
+        battleLogs={store.battleLogs}
         showMoves={store.showMoves}
-        isTrainerBattle={isTrainerBattle}
+        isTrainerBattle={store.isTrainerBattle}
         dialogue={store.dialogue}
         inventory={store.inventory}
         pcStorage={store.pcStorage}

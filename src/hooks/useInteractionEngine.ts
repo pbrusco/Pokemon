@@ -25,7 +25,9 @@ export const useInteractionEngine = ({
     const inBattle = phase.type === 'BATTLE';
     
     if (dialogue) {
+      const cb = store.dialogueCallback;
       store.setDialogue(null);
+      if (cb) cb();
       return;
     }
     if (inBattle) return;
