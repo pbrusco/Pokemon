@@ -246,8 +246,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         if (!wakeUp) {
           effects.push(log(`¡${playerPkmn.name} está profundamente dormido!`));
           s = { ...s, log: `¡${playerPkmn.name} está profundamente dormido!`, phase: 'ENEMY_ATTACK' };
-          const r = stepBattle(s, { type: 'TICK' });
-          return { state: r.state, effects: [...effects, ...r.effects] };
+          return { state: s, effects };
         } else {
           effects.push(log(`¡${playerPkmn.name} se ha despertado!`));
           const wokenTeam = [...s.playerTeam];
@@ -260,8 +259,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       if (playerPkmn.status === 'paralyzed' && Math.random() < 0.25) {
         effects.push(log(`¡${playerPkmn.name} está paralizado! ¡No puede moverse!`));
         s = { ...s, log: `¡${playerPkmn.name} está paralizado! ¡No puede moverse!`, phase: 'ENEMY_ATTACK' };
-        const r = stepBattle(s, { type: 'TICK' });
-        return { state: r.state, effects: [...effects, ...r.effects] };
+        return { state: s, effects };
       }
 
       // Accuracy check (player attacker accuracy stage vs enemy evasion stage)
@@ -269,8 +267,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         const missLog = `¡${playerPkmn.name} usó ${move.name}! ¡Pero falló!`;
         effects.push(log(missLog));
         s = { ...s, log: missLog, phase: 'ENEMY_ATTACK' };
-        const r = stepBattle(s, { type: 'TICK' });
-        return { state: r.state, effects: [...effects, ...r.effects] };
+        return { state: s, effects };
       }
 
       // Status / Stat-change move (no damage)
@@ -286,8 +283,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         }
         effects.push(log(moveLog, playerPkmn.name));
         s = { ...s, log: moveLog, phase: 'ENEMY_ATTACK' };
-        const r = stepBattle(s, { type: 'TICK' });
-        return { state: r.state, effects: [...effects, ...r.effects] };
+        return { state: s, effects };
       }
 
       // Damage move
@@ -385,10 +381,9 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           s = { ...s, playerTeam: cleared.playerTeam, enemyPokemon: cleared.enemyPokemon, badgeBoostGlitchStacks: 0, outcome: 'player_win' };
         }
       } else {
-        // Enemy still alive — enemy turn
+        // Enemy still alive — useBattleEngine will dispatch TICK separately
         s = { ...s, phase: 'ENEMY_ATTACK' };
-        const r = stepBattle(s, { type: 'TICK' });
-        return { state: r.state, effects: [...effects, ...r.effects] };
+        return { state: s, effects };
       }
 
       return { state: s, effects };
@@ -543,8 +538,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       s = { ...s, playerTeam: newTeam, log: switchLog, phase: nextPhase };
 
       if (s.phase === 'ENEMY_ATTACK') {
-        const r = stepBattle(s, { type: 'TICK' });
-        return { state: r.state, effects: [...effects, ...r.effects] };
+        return { state: s, effects }; // useBattleEngine will dispatch TICK
       }
       return { state: s, effects };
     }
@@ -569,8 +563,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         const healLog = `¡Usaste una POCIÓN en ${playerPkmn.name}! Recuperó ${healed} PS.`;
         effects.push(log(healLog));
         s = { ...s, playerTeam: healedTeam, inventory: newInventory, log: healLog, phase: 'ENEMY_ATTACK' };
-        const r = stepBattle(s, { type: 'TICK' });
-        return { state: r.state, effects: [...effects, ...r.effects] };
+        return { state: s, effects }; // useBattleEngine will dispatch TICK
       }
 
       return { state, effects };
@@ -697,13 +690,16 @@ export function createBattleState(
   // Sanitize: filter out null/undefined moves
   const sanitizedTeam = playerTeam.map(p => ({ ...p, moves: p.moves.filter(Boolean) }));
   const enemyTeam = options.enemyTeam ?? [enemyPokemon];
+  // If the lead Pokémon is fainted, start in FORCED_SWITCH so the player
+  // must choose an alive Pokémon before the battle begins.
+  const initialPhase: BattleSubPhase = sanitizedTeam[0].hp <= 0 ? 'FORCED_SWITCH' : 'CHOOSING';
   return {
     playerTeam: sanitizedTeam,
     enemyPokemon,
     enemyTeam,
     currentEnemyIndex: 0,
     trainerName: options.trainerName ?? '',
-    phase: 'CHOOSING',
+    phase: initialPhase,
     isTrainerBattle: options.isTrainerBattle ?? false,
     inventory: options.inventory ?? {},
     pcStorage: options.pcStorage ?? [],

@@ -60,7 +60,8 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
     expect(sim.dialogueContains('OAK')).toBe(true);
     expect(sim.map).toBe('PALLET_TOWN'); // still in Pallet until dialogue dismissed
 
-    // Dismiss dialogue via handleAction — the real user path
+    // Dismiss greeting dialogue, then warning dialogue
+    sim.dismissDialogue();
     sim.dismissDialogue();
 
     // Advance timers through the full walk path

@@ -36,7 +36,11 @@ export function useInputHandler({
         if (battleSubPhase === 'CHOOSING') {
           const inMovesMenu = store.showMoves;
           if (e.key === 'Escape' && inMovesMenu) {
-             store.setShowMoves(false);
+            store.setShowMoves(false);
+            return;
+          }
+          if (e.key === 'Escape' && !inMovesMenu) {
+            store.setPhase({ type: 'MENU', returnTo: store.phase });
             return;
           }
           if (!inMovesMenu) {
@@ -63,9 +67,11 @@ export function useInputHandler({
       }
 
       if (store.dialogue) {
-        const cb = store.dialogueCallback;
-        store.setDialogue(null);
-        if (cb) cb();
+        if (!e.repeat) {
+          const cb = store.dialogueCallback;
+          store.setDialogue(null);
+          if (cb) cb();
+        }
         return;
       }
 
@@ -76,7 +82,7 @@ export function useInputHandler({
         case 'ArrowLeft': dir = 'left'; break;
         case 'ArrowRight': dir = 'right'; break;
         case 'z': case 'Enter': case ' ': handleAction(); break;
-        case 'x': case 'Shift': case 'Escape': store.setPhase(prev => prev.type === 'MENU' ? EXPLORING : MENU); break;
+        case 'x': case 'Shift': case 'Escape': store.setPhase(prev => prev.type === 'MENU' ? (prev.returnTo ?? EXPLORING) : MENU); break;
       }
       if (dir) {
         if (spottedTrainerId) return; // Block movement if a trainer has spotted us

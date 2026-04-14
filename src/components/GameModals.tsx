@@ -1,6 +1,6 @@
 import { AnimatePresence } from 'motion/react';
 import { Pokemon, MapID, InventoryCounts } from '../types';
-import { GamePhase, BattlePhase, EXPLORING, battle, B_CHOOSING } from '../types/gamePhase';
+import { GamePhase, BattlePhase, EXPLORING, battle, B_CHOOSING, B_FORCED_SWITCH } from '../types/gamePhase';
 import { BattleAction } from '../lib/battleEngine';
 import { BattleScreen } from './BattleScreen';
 import { BattleTransition } from './BattleTransition';
@@ -107,7 +107,10 @@ export const GameModals = ({
     {/* Battle Transition */}
     <AnimatePresence>
       {phase.type === 'BATTLE_TRANSITION' && (
-        <BattleTransition onComplete={() => setPhase(battle(B_CHOOSING))} />
+        <BattleTransition onComplete={() => {
+          const ab = useGameStore.getState().activeBattle;
+          setPhase(ab?.phase === 'FORCED_SWITCH' ? battle(B_FORCED_SWITCH) : battle(B_CHOOSING));
+        }} />
       )}
     </AnimatePresence>
 

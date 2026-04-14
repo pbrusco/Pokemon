@@ -281,13 +281,25 @@ export const useGameStore = create<GameState>()(
         if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.removeItem === 'function') {
           window.localStorage.removeItem('pokemon-firered-save');
         }
-        set((state) => ({ 
-          ...state, 
-          ...INITIAL_SAVE_STATE, 
+        set((state) => ({
+          ...state,
+          ...INITIAL_SAVE_STATE,
           phase: EXPLORING,
           dialogue: null,
           dialogueCallback: null,
-          activeBattle: null 
+          activeBattle: null,
+          enemyPokemon: null,
+          isTrainerBattle: false,
+          battleLog: '',
+          battleLogs: [],
+          catchResult: null,
+          showMoves: false,
+          isMoving: false,
+          grassEffect: null,
+          spottedTrainerId: null,
+          spottedTrainerPos: null,
+          oakCutscenePos: null,
+          oakCutsceneDir: null,
         }));
       },
     }),

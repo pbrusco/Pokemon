@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Position, Direction, NPC, Entity, Pokemon, MapID, TILE_SIZE } from '../types';
 import { WILD_POKEMON_DATABASE } from '../constants';
@@ -38,7 +38,7 @@ interface WorldViewProps {
   playerTeam: Pokemon[];
 }
 
-export const WorldView = ({
+export const WorldView = memo(({
   playerPos,
   direction,
   isMoving,
@@ -339,4 +339,4 @@ export const WorldView = ({
       </motion.div>
     </div>
   );
-};
+});

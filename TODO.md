@@ -29,3 +29,9 @@ App.tsx:184-213 passes 25+ props to GameModals despite the Zustand store being a
 - [x] Faint poisoned Pokémon at 0 HP (Gen I: poison can kill outside battle)
 - [x] Show poison damage visual/text feedback on the overworld
 - [x] Clear poison on heal at Pokécenter
+
+## Battle fixes
+- [x] Team order preserved after blackout — `useBattleEngine.ts` now heals `store.playerTeam` (original order) instead of `newState.playerTeam` (battle order)
+- [x] Fainted lead Pokémon can no longer start a battle — `createBattleState` enters `FORCED_SWITCH` phase when `playerTeam[0].hp === 0`
+- [x] Key-repeat no longer auto-dismisses dialogues — `useInputHandler.ts` ignores `e.repeat` events for dialogue dismissal
+- [x] Oak greeting dialogue added before the escort walk

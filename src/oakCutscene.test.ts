@@ -49,8 +49,9 @@ describe('Oak Cutscene', () => {
 
       expect(steps[0].type).toBe('lock');
       expect(steps[1].type).toBe('npc_appear');
-      expect(steps[2].type).toBe('dialogue');
-      expect(steps[3].type).toBe('walk');
+      expect(steps[2].type).toBe('dialogue'); // greeting
+      expect(steps[3].type).toBe('dialogue'); // warning
+      expect(steps[4].type).toBe('walk');
       expect(steps.find(s => s.type === 'warp')).toBeTruthy();
       expect(steps.find(s => s.type === 'unlock')).toBeTruthy();
       expect(steps[steps.length - 1].type).toBe('dialogue');
@@ -197,13 +198,17 @@ describe('Oak Cutscene', () => {
         useInteractionEngine({ initBattle: noop })
       );
 
-      // 1. Walk up → triggers cutscene → lock + npc_appear + dialogue
+      // 1. Walk up → triggers cutscene → lock + npc_appear + greeting dialogue
       act(() => moveResult.current.handleMove('up'));
-      expect(useGameStore.getState().dialogue).toContain('Es peligroso');
+      expect(useGameStore.getState().dialogue).toContain('Hola');
       expect(useGameStore.getState().isMoving).toBe(true);
       expect(isCutsceneRunning()).toBe(true);
 
-      // 2. Dismiss dialogue → walks starts
+      // 2. Dismiss greeting → warning dialogue appears
+      act(() => interactResult.current.handleAction());
+      expect(useGameStore.getState().dialogue).toContain('Es peligroso');
+
+      // 3. Dismiss warning → walk starts
       act(() => interactResult.current.handleAction());
       expect(useGameStore.getState().dialogue).toBeNull();
 

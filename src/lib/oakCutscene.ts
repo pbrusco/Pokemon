@@ -39,7 +39,8 @@ export function buildOakEscortSteps(playerPos: Position): CutsceneStep[] {
   return [
     { type: 'lock' },
     { type: 'npc_appear', npcId: 'oak_escort', position: { x: playerPos.x, y: playerPos.y + 1 }, direction: 'up' as Direction },
-    { type: 'dialogue', text: "OAK: ¡Espera! ¡Es peligroso salir a la hierba sin un POKÉMON! Ven al laboratorio." },
+    { type: 'dialogue', text: "PROF. OAK: ¡Hola! Soy el PROF. OAK. El mundo está lleno de criaturas misteriosas llamadas POKÉMON." },
+    { type: 'dialogue', text: "PROF. OAK: ¡Espera! ¡Es peligroso salir a la hierba sin un POKÉMON! Ven al laboratorio." },
     { type: 'walk', path, npcLeadId: 'oak_escort' },
     { type: 'npc_remove' },
     { type: 'set_story', step: 'OAK_STOPPED' },

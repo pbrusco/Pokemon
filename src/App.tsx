@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { soundManager } from './lib/sounds';
 import { BattleState } from './lib/battleEngine';
-import { battle, B_CHOOSING, EXPLORING } from './types/gamePhase';
+import { battle, B_CHOOSING, B_FORCED_SWITCH, EXPLORING } from './types/gamePhase';
 import { DemoModeButton } from './components/DemoModeButton';
 import { GodModeButton } from './components/GodModeButton';
 import './lib/demoMode'; 
@@ -28,8 +28,17 @@ export default function App() {
   const phase = store.phase;
   const inBattle = phase.type === 'BATTLE' || ('returnTo' in phase && phase.returnTo?.type === 'BATTLE');
   const battlePhase = phase.type === 'BATTLE' ? phase.sub : ('returnTo' in phase && phase.returnTo?.type === 'BATTLE' ? phase.returnTo.sub : null);
-  const npcs = store.getNPCs();
-  const items = store.getItems();
+  // Memoize NPC/item databases — only recompute when the inputs to buildNPCDatabase / buildItemDatabase change
+  const npcs = useMemo(
+    () => store.getNPCs(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [store.playerTeam, store.hasParcel, store.hasPokedex, store.badges, store.storyStep, store.oakCutscenePos, store.oakCutsceneDir]
+  );
+  const items = useMemo(
+    () => store.getItems(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [store.pickedItemIds, store.storyStep]
+  );
 
   const windowSize = useWindowSize();
   const { overworldShake, setOverworldShake } = useOverworldVFX();
@@ -82,7 +91,7 @@ export default function App() {
       s.setBattleLogs([{ text: s.activeBattle.log, speaker: 'Sistema', id: -1 }]);
       // If refreshed during transition, jump straight to battle
       if (s.phase.type === 'BATTLE_TRANSITION') {
-        s.setPhase(battle(B_CHOOSING));
+        s.setPhase(s.activeBattle?.phase === 'FORCED_SWITCH' ? battle(B_FORCED_SWITCH) : battle(B_CHOOSING));
       }
     } else if (!s.activeBattle && (s.phase.type === 'BATTLE' || s.phase.type === 'BATTLE_TRANSITION')) {
       s.setPhase(EXPLORING);

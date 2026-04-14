@@ -73,9 +73,14 @@ describe('Normal attack flow', () => {
 
     // Enemy should have taken damage
     expect(result.state.enemyPokemon.hp).toBeLessThan(state.enemyPokemon.hp);
-    // Should loop back to CHOOSING after enemy turn
-    expect(result.state.phase).toBe('CHOOSING');
+    // Player turn done — engine now hands off to enemy (TICK dispatched separately)
+    expect(result.state.phase).toBe('ENEMY_ATTACK');
     expect(result.state.outcome).toBe('ongoing');
+
+    // After the enemy TICK, phase returns to CHOOSING
+    const tickResult = stepBattle(result.state, { type: 'TICK' });
+    expect(tickResult.state.phase).toBe('CHOOSING');
+    expect(tickResult.state.outcome).toBe('ongoing');
   });
 
   it('deducts PP from the used move', () => {
@@ -556,8 +561,11 @@ describe('Potion use in battle', () => {
     // After enemy turn the HP might decrease again — check the log
     expect(result.state.log).not.toBeUndefined();
     expect(result.state.inventory['POTION']).toBeUndefined(); // consumed
-    // Should be back to CHOOSING
-    expect(['CHOOSING', 'FORCED_SWITCH', 'PLAYER_FAINTED']).toContain(result.state.phase);
+    // Potion use ends the player turn — enemy TICK is dispatched separately
+    expect(result.state.phase).toBe('ENEMY_ATTACK');
+    // After the enemy TICK the phase resolves to CHOOSING / FORCED_SWITCH / PLAYER_FAINTED
+    const tickResult = stepBattle(result.state, { type: 'TICK' });
+    expect(['CHOOSING', 'FORCED_SWITCH', 'PLAYER_FAINTED']).toContain(tickResult.state.phase);
   });
 
   it('cannot use a Potion when inventory is empty', () => {
@@ -615,9 +623,12 @@ describe('Battle text cleanup and formatting', () => {
 
     const result = stepBattle(state, { type: 'ATTACK', move });
 
-    // Phase is returned to CHOOSING, dialogue log must be empty or prompt player
-    expect(result.state.phase).toBe('CHOOSING');
-    expect(result.state.log).toBe(''); // This currently fails since the old attack text lingers
+    // After ATTACK, player turn is done and engine waits for the enemy TICK
+    expect(result.state.phase).toBe('ENEMY_ATTACK');
+    // After the enemy TICK, phase is CHOOSING and log is cleared for player input
+    const tickResult = stepBattle(result.state, { type: 'TICK' });
+    expect(tickResult.state.phase).toBe('CHOOSING');
+    expect(tickResult.state.log).toBe('');
   });
 
   it('formats enemy names gracefully by stripping raw prefixes like RIVAL', () => {
