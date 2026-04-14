@@ -1,7 +1,7 @@
 import { Joystick } from './Joystick';
 import { soundManager } from '../lib/sounds';
 import { Direction } from '../types';
-import { GamePhase, EXPLORING, MENU } from '../types/gamePhase';
+import { GamePhase, EXPLORING } from '../types/gamePhase';
 import { Dispatch, SetStateAction } from 'react';
 
 interface MobileControlsProps {

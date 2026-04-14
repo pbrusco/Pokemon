@@ -1,4 +1,4 @@
-import type { Direction, Position, NPC } from '../types';
+import type { Position, NPC } from '../../types';
 import type { CutsceneStep } from './types';
 import { runCutscene } from './runner';
 

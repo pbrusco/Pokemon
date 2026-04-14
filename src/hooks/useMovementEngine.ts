@@ -1,7 +1,6 @@
 import { useCallback, useRef, useEffect, MutableRefObject } from 'react';
-import { Direction, Position, Pokemon } from '../types';
-import { B_CHOOSING, EXPLORING, BATTLE_TRANSITION } from '../types/gamePhase';
-import { battle } from '../types/gamePhase';
+import { Direction, Pokemon } from '../types';
+import { B_CHOOSING, BATTLE_TRANSITION, battle } from '../types/gamePhase';
 import { BattleState, createBattleState } from '../lib/battleEngine';
 import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
@@ -46,7 +45,7 @@ export function useMovementEngine({
     
     s.setActiveBattle(battleStateRef.current);
     soundManager.play('BATTLE_START');
-    s.setPhase(B_CHOOSING); // Immediate skip for some reason? No, usually it's BATTLE_TRANSITION
+    s.setPhase(battle(B_CHOOSING)); // Immediate skip for some reason? No, usually it's BATTLE_TRANSITION
     s.setPhase(BATTLE_TRANSITION);
   }, [battleStateRef]);
 

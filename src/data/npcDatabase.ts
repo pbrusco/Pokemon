@@ -1,5 +1,5 @@
 import { MOVES, STARTERS, makePokemon } from '../constants';
-import { NPC, Entity, MapID, Direction, Pokemon } from '../types';
+import { NPC, Entity, MapID, Direction, Pokemon, Position } from '../types';
 
 export function buildNPCDatabase(
   playerTeam: Pokemon[],

@@ -6,7 +6,7 @@
  * battleStateRef so all three hooks operate on the same battle state.
  */
 
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useMovementEngine } from '../../hooks/useMovementEngine';
 import { useBattleEngine } from '../../hooks/useBattleEngine';
 import { useInteractionEngine } from '../../hooks/useInteractionEngine';

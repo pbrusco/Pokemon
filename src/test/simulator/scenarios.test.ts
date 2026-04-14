@@ -7,6 +7,7 @@
  */
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
+import { act } from '@testing-library/react';
 import { GameSimulator } from './GameSimulator';
 import { useGameStore } from '../../store/gameStore';
 import { STARTERS, makePokemon, MOVES } from '../../constants';
@@ -187,12 +188,14 @@ describe('Scenario 4: Win rival battle', () => {
     sim.skipBattleTransition();
 
     // Now manually override team to be very strong so we win the battle easily
-    useGameStore.getState().setPlayerTeam([strongStarter()]);
+    act(() => {
+      useGameStore.getState().setPlayerTeam([strongStarter()]);
 
-    // The battle state ref also needs updating
-    if (sim.battleState) {
-      sim.battleState.playerTeam = [strongStarter()];
-    }
+      // The battle state ref also needs updating
+      if (sim.battleState) {
+        sim.battleState.playerTeam = [strongStarter()];
+      }
+    });
 
     // Wait for battle phase to settle
     sim.tick(5000);

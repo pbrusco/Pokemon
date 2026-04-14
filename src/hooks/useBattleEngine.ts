@@ -1,11 +1,10 @@
-import { useCallback, useState, useEffect, useRef, MutableRefObject, Dispatch, SetStateAction } from 'react';
-import { Pokemon } from '../types';
-import { GamePhase, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, B_TRAINER_NEXT_POKEMON, EXPLORING, BLACKOUT, HEALING, BATTLE_TRANSITION } from '../types/gamePhase';
+import { useCallback, useEffect, useRef, MutableRefObject } from 'react';
+import { GamePhase, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, B_TRAINER_NEXT_POKEMON, EXPLORING, BLACKOUT, HEALING } from '../types/gamePhase';
 import { stepBattle, BattleState, BattleAction, BattleEffect } from '../lib/battleEngine';
 import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
-import { applyGodMode, isGodMode } from '../lib/godMode';
+import { applyGodMode } from '../lib/godMode';
 import { useGameStore } from '../store/gameStore';
 
 interface UseBattleEngineParams {

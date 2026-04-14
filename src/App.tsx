@@ -64,7 +64,7 @@ export default function App() {
     soundManager.play('SELECT');
   };
 
-  const { dispatchBattle, catchResult } = useBattleEngine({
+  const { dispatchBattle } = useBattleEngine({
     battleStateRef,
     setPlayerAnim,
     setEnemyAnim,
@@ -132,7 +132,6 @@ export default function App() {
     setPlayerTeam: store.updateTeam,
     setEnemyPokemon: store.setEnemyPokemon,
     setBattleLog: store.setBattleLog,
-    setBattleLogs: store.setBattleLogs,
     setIsTrainerBattle: store.setIsTrainerBattle,
   });
 

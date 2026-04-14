@@ -1,5 +1,9 @@
 # CLAUDE.md — Agent Guide for My Pokemon
 
+## Paths
+/opt/homebrew/bin/npm
+/opt/homebrew/bin/node
+
 ## Vision
 
 This is a faithful recreation of Pokémon Red / Fire Red (Gen I) built with modern web tech (React 19, TypeScript, Vite, Zustand). The goal is to reproduce the original gameplay feel — turn-based battles, tile movement, Kanto story — not to clone the visuals pixel-for-pixel. Mechanics (damage formula, type chart, stat calc, status effects) follow Gen I rules. All in-game text is in Spanish. Scope is limited to Gen I: 151 Pokémon, Kanto region, condensed storyline from Pallet Town through Pewter City.

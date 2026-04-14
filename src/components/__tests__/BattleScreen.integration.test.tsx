@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
-import { BattleScreen, BattleScreenProps } from '../BattleScreen';
-import { sd } from '../../lib/gameSpeed';
+import { render, screen, act } from '@testing-library/react';
+import { BattleScreen } from '../BattleScreen';
+
+type BattleScreenProps = React.ComponentProps<typeof BattleScreen>;
 
 function makeProps(overrides: Partial<BattleScreenProps> = {}): BattleScreenProps {
   return {

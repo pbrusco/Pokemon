@@ -191,10 +191,7 @@ describe('Oak Cutscene', () => {
       const noop = vi.fn();
 
       const { result: moveResult } = renderHook(() => useMovementEngine({
-        battleStateRef, setOverworldShake: noop, setGrassEffect: noop,
-        setSpottedTrainerId: noop, setSpottedTrainerPos: noop,
-        setEnemyPokemon: noop, setIsTrainerBattle: noop,
-        setBattleLog: noop, setBattleLogs: noop,
+        battleStateRef, setOverworldShake: noop,
       }));
       const { result: interactResult } = renderHook(() =>
         useInteractionEngine({ initBattle: noop })

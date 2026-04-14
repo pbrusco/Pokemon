@@ -26,15 +26,6 @@ interface GameSaveState {
   pickedItemIds: string[];
   pokedex: PokedexState;
   activeBattle: BattleState | null;
-
-  setGrassEffect: (pos: Position | null) => void;
-  setSpottedTrainerId: (id: string | null) => void;
-  setSpottedTrainerPos: (pos: SetStateAction<Position | null>) => void;
-  setEnemyPokemon: (p: Pokemon | null) => void;
-  setIsTrainerBattle: (v: boolean) => void;
-  setBattleLog: (log: string) => void;
-  setBattleLogs: (logs: SetStateAction<any[]>) => void;
-  setCatchResult: (v: boolean | null) => void;
 }
 
 const safeLocalStorage = {
@@ -78,6 +69,15 @@ const INITIAL_SAVE_STATE: GameSaveState = {
 };
 
 interface GameState extends GameSaveState {
+  setGrassEffect: (pos: Position | null) => void;
+  setSpottedTrainerId: (id: string | null) => void;
+  setSpottedTrainerPos: (pos: SetStateAction<Position | null>) => void;
+  setEnemyPokemon: (p: Pokemon | null) => void;
+  setIsTrainerBattle: (v: boolean) => void;
+  setBattleLog: (log: string) => void;
+  setBattleLogs: (logs: SetStateAction<any[]>) => void;
+  setCatchResult: (v: boolean | null) => void;
+
   isMoving: boolean;
   badgeBoostGlitchStacks: number;
   
