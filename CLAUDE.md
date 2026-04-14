@@ -106,6 +106,7 @@ it('my scenario', () => {
 ```
 
 **Simulator gotchas:**
+- **Input handling:** The `GameSimulator` bypasses `useInputHandler.ts` by invoking engine hooks (`sim.interact()`, `sim.move()`) directly. If you modify global input-interception logic (like closing dialogues or locking keys via KeyboardEvents), you **must** also test it manually in the browser or create a DOM test simulating real `KeyboardEvent`s, as `renderHook` integration tests will miss global listener bugs.
 - `BATTLE_TRANSITION → BATTLE(CHOOSING)` requires a DOM animation callback. Call `sim.skipBattleTransition()` to advance past it in headless mode.
 - `sim.setRandomSequence([0.05, ...])` to control encounter/crit/status RNG.
 - `sim.phaseHistory()` returns all phase transitions as strings for easy assertion.

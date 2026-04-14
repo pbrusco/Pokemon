@@ -9,6 +9,7 @@ export const NPCComponent = ({ npc, isSpotted }: { npc: NPC, key?: string, isSpo
         x: npc.position.x * TILE_SIZE,
         y: npc.position.y * TILE_SIZE,
       }}
+      transition={{ type: "tween", duration: 0.11, ease: "linear" }}
       style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 20 + npc.position.y }}
     >
       <div className="relative">

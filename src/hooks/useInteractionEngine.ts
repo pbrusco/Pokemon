@@ -21,7 +21,7 @@ export const useInteractionEngine = ({
     soundManager.play('SELECT');
     
     const store = useGameStore.getState();
-    const { dialogue, phase, playerPos, direction, currentMap, hasParcel, hasPokedex, badges, inventory, playerTeam, pickedItemIds, worldMaps } = store;
+    const { dialogue, phase, playerPos, direction, currentMap, hasParcel, hasPokedex, badges, inventory, playerTeam, pickedItemIds, worldMaps, isMoving, isLocked } = store;
     const inBattle = phase.type === 'BATTLE';
     
     if (dialogue) {
@@ -30,7 +30,7 @@ export const useInteractionEngine = ({
       if (cb) cb();
       return;
     }
-    if (inBattle) return;
+    if (inBattle || isMoving || isLocked) return;
 
     let targetX = playerPos.x;
     let targetY = playerPos.y;

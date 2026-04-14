@@ -12,7 +12,7 @@ export const PlayerSprite = ({ position, direction, isMoving }: { position: Posi
         y: position.y * TILE_SIZE,
       }}
       transition={{ type: "tween", duration: 0.11, ease: "linear" }}
-      style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 30 + position.y }}
+      style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 20 + position.y }}
     >
       <div className="relative">
         {/* Floating Indicator */}

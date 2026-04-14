@@ -63,7 +63,9 @@ export function useInputHandler({
       }
 
       if (store.dialogue) {
-         store.setDialogue(null);
+        const cb = store.dialogueCallback;
+        store.setDialogue(null);
+        if (cb) cb();
         return;
       }
 
