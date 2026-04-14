@@ -6,21 +6,26 @@ This guide is for developers and AI agents extending the game with new Pokemon, 
 
 ## Adding a New Move
 
-Edit `src/constants.ts`, inside the `MOVES` object:
+Edit `src/constants.ts`, inside the `MOVES` object, using the `move()` helper (it sets `pp = maxPp` automatically):
 
 ```typescript
-MOVE_NAME: {
-  name: 'NOMBRE EN ESPAÑOL',   // displayed in battle UI
-  type: 'fire',                // elemental type
-  power: 60,                   // base power (0 for status-only)
-  accuracy: 100,               // 0–100
-  // optional:
-  statusEffect: 'burn',        // 'paralyzed' | 'sleep' | 'poison' | 'burn' | 'frozen'
-  statusChance: 10             // percent chance (0–100)
-}
+MOVE_NAME: move(
+  'NOMBRE EN ESPAÑOL',  // displayed in battle UI
+  'fire',               // elemental type
+  60,                   // base power (0 for status-only)
+  100,                  // accuracy 0–100
+  15,                   // maxPp
+  {
+    // optional fields:
+    statusEffect: 'burn',   // 'paralyzed' | 'sleep' | 'poison' | 'burn' | 'frozen'
+    statusChance: 10,       // percent chance (0–100)
+    statChange: { target: 'enemy', stat: 'attack', stages: -1 },
+    highCrit: true,
+  }
+)
 ```
 
-Then import and use `MOVES.MOVE_NAME` wherever Pokemon moves are defined.
+Then import and use `MOVES.MOVE_NAME` wherever Pokémon moves are defined.
 
 **Naming convention:** All move names in the codebase are in Spanish. Use the official Spanish localization names.
 
@@ -263,7 +268,14 @@ Add a corresponding return teleport in the destination map.
    setTimeout(() => setPhase(EXPLORING), 1000);
    ```
 
-3. **Read deferred state from `gameState.current`, not from React closures.** Any code that runs inside a `setTimeout` callback must read game state from the `gameState` ref (passed from App.tsx), not from hook parameters. Hook parameters are captured at the time the hook runs and will be stale inside delayed callbacks.
+3. **Read deferred state from `useGameStore.getState()`, not from React closures.** Any code that runs inside a `setTimeout` callback must call `useGameStore.getState()` to get fresh state — never capture hook parameters or store references in closures, as they will be stale:
+   ```typescript
+   // CORRECT
+   setTimeout(() => {
+     const fs = useGameStore.getState();
+     fs.setPhase(EXPLORING);
+   }, 1000);
+   ```
 
 4. **All in-game text must be in Spanish.** Battle logs, dialogues, UI labels, move names.
 

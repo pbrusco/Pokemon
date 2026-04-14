@@ -2,17 +2,45 @@
 
 ## Battle System
 
-Battle logic lives entirely in `src/App.tsx` — in the `handleAttack()` and `handleEnemyTurn()` functions. There is no separate battle engine module.
+Battle logic is split across two files:
+
+- **`src/lib/battleEngine.ts`** — pure state machine. `stepBattle(state, action)` takes a `BattleState` and a `BattleAction` and returns `{ state: BattleState, effects: BattleEffect[] }`. No React, no timers.
+- **`src/hooks/useBattleEngine.ts`** — React side. `dispatchBattle(action)` calls `stepBattle`, drains the returned effects (animations, sounds, logs), and transitions `GamePhase` accordingly.
 
 ### Turn Order
 
 1. Player selects a move (phase `CHOOSING`).
-2. `handleAttack(move)` executes the player's move (`PLAYER_ATTACK` phase).
-3. After animations, `handleEnemyTurn()` runs the enemy's move (`ENEMY_ATTACK` phase).
-4. Results are evaluated: faint, level up, catch, etc.
+2. `dispatchBattle({ type: 'ATTACK', move })` → `stepBattle` executes the player's move (`PLAYER_ATTACK`), then chains into `ENEMY_ATTACK` via a recursive `TICK`.
+3. Animations and logs are replayed by `playBattleEffects()` in `useBattleEngine.ts`.
+4. Results are evaluated: faint, level-up, catch, flee, etc.
 5. Returns to `CHOOSING` or exits battle.
 
-The enemy always picks a move at random from its move list.
+### Enemy AI
+
+`selectTrainerMove(attacker, defender)` in `battleEngine.ts`:
+- Scores all damaging moves by `power × typeEffectiveness`.
+- 70% chance: uses the highest-scored move.
+- 30% chance: picks randomly among damaging moves.
+- Falls back to a random move if no damaging moves exist.
+
+---
+
+## PP Tracking
+
+Each move has `pp` (current) and `maxPp` (max) fields on the `Move` type.
+
+- **Deduction:** PP is decremented when a move is used (`battleEngine.ts`, ATTACK case).
+- **Zero-PP moves:** Selecting a move with `pp === 0` is blocked by the engine (returns no state change).
+- **UI:** The battle move selector shows `PP current/max` and greys out moves at 0 PP.
+- **Restore:** `fullHeal()` in `healUtils.ts` restores `pp = maxPp` for all moves. Called on Pokécenter heal and blackout recovery.
+
+### Struggle
+
+When all moves have `pp === 0`, the move selector shows a **Forcejeo** button instead.
+
+- Typeless (rendered as Normal), 50 base power, always hits.
+- After dealing damage, the user takes `floor(damage / 4)` recoil (minimum 1).
+- Defined as `STRUGGLE_MOVE` in `constants.ts`.
 
 ---
 
@@ -70,8 +98,8 @@ calculateDamage(attacker: Pokemon, defender: Pokemon, move: Move): DamageResult
 interface DamageResult {
   damage: number
   isCritical: boolean
-  effectiveness: number           // the raw multiplier (0.5, 1, 2, etc.)
-  effectivenessLabel: string      // '¡Es muy eficaz!' | 'No es muy eficaz...' | etc.
+  effectiveness: number               // raw multiplier (0, 0.5, 1, 2, 4)
+  effectivenessLabel: string | null   // 'super_effective' | 'not_very_effective' | 'no_effect' | null
 }
 ```
 
@@ -93,29 +121,45 @@ getTypeEffectiveness(moveType: string, defenderTypes: string[]): number
 
 ## Catch Rate
 
-Calculated in `App.tsx` when a Pokeball is thrown:
+Implemented in `battleEngine.ts` (CATCH action). Gen I two-step formula:
 
-```typescript
-catchRate = 1 - (enemy.hp / enemy.maxHp) * 0.8   // ~20% minimum, 100% at 0 HP
-caught = Math.random() < catchRate
+**Step 1 — Status pre-check (R1 0–255):**
+- Sleep or Frozen: caught if `R1 < 25`
+- Paralyzed, Burned, or Poisoned: caught if `R1 < 12`
+
+**Step 2 — CatchV (only if Step 1 failed):**
+```
+catchV = floor(speciesCatchRate × (maxHp × 3 − hp × 2) / (maxHp × 3))
+caught  = floor(random(0–255)) < catchV
 ```
 
-A three-shake animation plays before the result is revealed. On success, the Pokemon is added to the party (if space) or PC.
+`speciesCatchRate` comes from `Pokemon.catchRate` (defaults to 45 if absent).
 
 ---
 
 ## Status Effects
 
-Status effects are stored on `Pokemon.status` and are applied by moves with `statusEffect` and `statusChance` fields.
+Status is stored on `Pokemon.status`. Applied by moves with `statusEffect` and `statusChance` fields.
 
-| Status | Applied by | Battle effect |
-|--------|-----------|---------------|
-| `paralyzed` | Thundershock, Thunder Wave | Speed halved in stat calc |
-| `sleep` | Sleep Powder | Cannot act each turn |
-| `poison` | Poison Powder | Lose HP at end of each turn |
-| `burn` | Ember | Lose HP + Attack halved |
-| `frozen` | Blizzard, Ice Beam | Cannot act |
-| `none` | — | Default, no effect |
+| Status | In-battle effect | Overworld effect |
+|--------|-----------------|-----------------|
+| `paralyzed` | 25% chance to skip turn; Speed halved in stat calc | — |
+| `sleep` | Cannot act (70% chance to stay asleep each turn); wakes randomly | — |
+| `poison` | Lose HP at end of each turn | Lose 1 HP every 4 steps |
+| `burn` | Lose HP at end of each turn; Attack halved | — |
+| `frozen` | Cannot act | — |
+| `none` | Default, no effect | — |
+
+---
+
+## Overworld Poison
+
+When the lead Pokémon has `status === 'poison'`:
+- Takes 1 HP damage every 4 steps (implemented in `useMovementEngine.ts`).
+- A screen shake plays on each damage tick.
+- If the lead Pokémon's HP reaches 0, it faints.
+- If all Pokémon faint from overworld poison, a **blackout** triggers (same flow as in-battle blackout).
+- Poison is cleared by `fullHeal()` at any Pokécenter.
 
 ---
 
@@ -123,16 +167,19 @@ Status effects are stored on `Pokemon.status` and are applied by moves with `sta
 
 ### EXP Gain
 
-After winning a battle, the active Pokemon gains EXP equal to `enemy.level * 10` (simplified formula).
+After winning a battle:
+```
+expGain = floor(enemy.level × 25 × (isTrainerBattle ? 1.5 : 1))
+```
 
-`expToNextLevel` starts at `level * level` and is recalculated after each level-up.
+`expToNextLevel` is calculated from the Pokémon's `growthRate` using `expForLevel()` in `constants.ts`.
 
 ### Level Up
 
 When `exp >= expToNextLevel`:
-1. Level increments.
+1. Level increments; excess EXP carries over.
 2. Stats are recalculated using `calcStat` / `calcHp`.
-3. Any moves in `movesToLearn` for the new level are added to the move list (up to 4 moves).
+3. Any moves in `movesToLearn` for the new level are added (up to 4; oldest is replaced if full).
 4. `LEVEL_UP` battle phase triggers the level-up display.
 
 ### Evolution
@@ -141,71 +188,61 @@ Triggered when `level >= evolutionLevel` after a level-up:
 
 1. Phase transitions to `EVOLVING`.
 2. `baseStats`, `maxHp`, `hp`, `name`, and `sprite` are updated from the `EVOLUTIONS` table in `constants.ts`.
-3. A LEVEL_UP sound plays and a message displays (e.g., "¡BULBASAUR está evolucionando en IVYSAUR!").
 
-**Important:** Evolution requires updating `baseStats` and recalculating `maxHp`. Partial updates cause HP inconsistencies. The pattern in `App.tsx` updates all fields atomically.
+**Important:** Evolution recomputes `maxHp` from the new `baseStats` — never copy HP values from the pre-evolution form.
 
 ---
 
 ## Movement System
 
-Implemented in `src/hooks/usePlayerMovement.ts`.
+Implemented in `src/hooks/useMovementEngine.ts`. Input is handled by `src/hooks/useInputHandler.ts`.
 
-### Self-Triggering Loop
+### Input Loop
 
 ```
-keydown → keysRef.add(key)
-       → handleMove()
-            → sets isMoving = true
-            → animates tile movement (100ms)
+keydown → useInputHandler dispatches direction
+       → handleMove(dir) called
+            → collision checks
+            → setIsMoving(true), setPlayerPos(nextPos)
             → after 110ms: setIsMoving(false)
-
-useEffect([isMoving]) → if (!isMoving && keysRef has key)
-                      → handleMove() again
 ```
 
-This produces continuous movement while a key is held, without polling.
+`useInputHandler` re-triggers movement while a key is held.
 
 ### Collision Resolution
 
 In order:
-1. Check map boundaries (0–19 on each axis).
+1. Check map boundaries (0 to GRID_SIZE−1 on each axis).
 2. Check tile walkability (`tile.walkable === false`).
 3. Check NPC/object collision.
 4. If any fail → face the direction but do not move.
-5. If all pass → update player position in store.
+5. If all pass → update player position.
 
-### Teleports
+### Warps
 
-When the target tile contains a teleport entity:
-- Wait 150ms for the tile step animation.
-- Set `currentMap` to `entity.targetMap`.
-- Set `playerPos` to `entity.targetPos`.
-- Play a transition sound.
+When the target tile has a matching entry in `mapData.warps`:
+- `setCurrentMap`, `setPlayerPos`, optionally `setDirection` are applied after 200ms.
+- A `SELECT` sound plays.
 
 ### Trainer Vision
 
-When the player moves, all trainer NPCs in the current map check their vision cone:
-- Trainers scan up to 3 tiles ahead in their facing direction.
-- If the player is in that range, the trainer initiates dialogue → battle sequence.
-- Defeated trainers (in `defeatedTrainers` store) are skipped.
+On each move, all undefeated trainer NPCs on the current map scan up to 3 tiles in their facing direction. If the player enters that range, a trainer cutscene triggers.
 
 ---
 
 ## Blackout
 
-When all Pokemon in the party have HP ≤ 0:
+When all Pokémon have HP 0 (in battle or overworld poison):
 1. Phase transitions to `BLACKOUT`.
-2. A fade-to-black animation plays with the message "¡Te has quedado sin POKÉMON!".
-3. After 3 seconds, the player is teleported to `lastHealLocation.pos` on `lastHealLocation.map`.
-4. Each team Pokemon is restored to `floor(maxHp / 2)` HP.
-5. Phase returns to `EXPLORING`.
+2. After 1.2 s, player is teleported to `lastHealLocation.map` / `lastHealLocation.pos`.
+3. After 2.4 s, phase transitions to `HEALING`; `fullHeal()` is applied to the whole team (full HP, status cleared, PP restored).
+4. After 4 s, phase returns to `EXPLORING` with a dialogue message.
 
 ---
 
 ## Sound System
 
-`src/lib/sounds.ts` exports a singleton `SoundManager`.
+`src/lib/sounds.ts` exports a singleton `soundManager`.
 
 ### SFX Keys
 
@@ -219,14 +256,12 @@ When all Pokemon in the party have HP ≤ 0:
 | `LEVEL_UP` | Level-up sequence |
 
 ```typescript
-SoundManager.play('HIT');
-SoundManager.playMusic('BATTLE');
-SoundManager.stopMusic();
+soundManager.play('HIT');
 ```
 
 ### Music Auto-Switching
 
-In `App.tsx`, a `useEffect` watches `phase.type` and `currentMap`:
+A `useEffect` in App.tsx watches `phase.type` and `currentMap`:
 - `BATTLE` → plays `BATTLE` track
-- `pokecenter` map → plays `POKECENTER` track
+- Pokécenter map → plays `POKECENTER` track
 - `EXPLORING` (any other map) → plays `OVERWORLD` track

@@ -317,6 +317,15 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
 
       s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: newEnemyHP } };
 
+      // Struggle recoil
+      if (move.name === 'Forcejeo') {
+        const recoil = Math.max(1, Math.floor(damage / 4));
+        const recoilTeam = [...s.playerTeam];
+        recoilTeam[0] = { ...recoilTeam[0], hp: Math.max(0, recoilTeam[0].hp - recoil) };
+        s = { ...s, playerTeam: recoilTeam };
+        effects.push(log(`¡${playerPkmn.name} recibió daño por el rebote!`));
+      }
+
       // Apply status effect on hit
       if (move.statusEffect && Math.random() * 100 < (move.statusChance || 100)) {
         s = { ...s, enemyPokemon: { ...s.enemyPokemon, status: move.statusEffect } };

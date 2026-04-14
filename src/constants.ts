@@ -498,6 +498,12 @@ export const EVOLUTIONS: Record<string, Partial<Pokemon>> = {
   blastoise: { name: 'BLASTOISE', sprite: getSprite(9), baseStats: BASE_STATS.blastoise },
 };
 
+/** Used automatically when all moves have 0 PP. Typeless, 50 power, 1/4 recoil. */
+export const STRUGGLE_MOVE: Move = {
+  name: 'Forcejeo', type: 'normal', power: 50, accuracy: 100,
+  pp: Infinity, maxPp: Infinity, sfxType: 'noise',
+};
+
 /** Gen I encounter rate per map (0–255). Roll 0–255; if roll < rate, battle starts. */
 export const WILD_ENCOUNTER_RATES: Record<string, number> = {
   ROUTE_1: 25,

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useAnimate } from 'motion/react';
 import { Pokemon, Move } from '../types';
 import { soundManager } from '../lib/sounds';
+import { STRUGGLE_MOVE } from '../constants';
 import { sd, sdur } from '../lib/gameSpeed';
 
 interface BattleScreenProps {
@@ -391,7 +392,20 @@ export function BattleScreen({
             /* Branch B: Moves submenu */
             <div className="flex flex-col h-full gap-1">
               <div className="grid grid-cols-2 flex-1 gap-2 text-[#2f2f2f] font-bold text-sm sm:text-lg items-center tracking-tight uppercase">
-                {playerPkmn?.moves.map((move, i) => {
+                {playerPkmn?.moves.every(m => m.pp <= 0) ? (
+                  <button
+                    className="col-span-2 text-left px-2 py-1 rounded-sm border border-transparent hover:border-[#4f6e69] hover:bg-[#edf4ef]"
+                    onClick={() => { soundManager.play('SELECT'); handleAttack(STRUGGLE_MOVE); }}
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      <span className="text-red-500">▶</span>
+                      {STRUGGLE_MOVE.name}
+                    </span>
+                    <span className="block text-[10px] text-slate-500 normal-case font-normal">
+                      Sin PP — usa Forcejeo [1]
+                    </span>
+                  </button>
+                ) : playerPkmn?.moves.map((move, i) => {
                   const noPP = move.pp <= 0;
                   return (
                     <button

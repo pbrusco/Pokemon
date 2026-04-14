@@ -20,13 +20,13 @@
 
 ## Story Progression
 
-The game follows the original Kanto storyline, but condensed:
+The game follows the original Kanto storyline, condensed:
 
 1. **Pallet Town** — Start at home. Professor Oak stops you before you leave town.
-2. **Oak's Lab** — Choose your starter Pokemon (Bulbasaur, Charmander, or Squirtle). Battle your rival.
-3. **Route 1 → Viridian City** — First wild encounters and trainer battles. Deliver Oak's Parcel from the Pokemart to receive your Pokedex.
-4. **Viridian Forest** — Explore the forest for bug-type Pokemon.
-5. **Pewter City** — Reach the first Gym. Battle Brock for your first Badge.
+2. **Oak's Lab** — Choose your starter Pokémon (Bulbasaur, Charmander, or Squirtle). Battle your rival.
+3. **Route 1 → Viridian City** — First wild encounters and trainer battles. Deliver Oak's Parcel from the Pokémart to receive your Pokédex.
+4. **Viridian Forest** — Explore the forest for Bug-type Pokémon.
+5. **Pewter City** — Reach the first Gym. Battle Brock for the Boulder Badge.
 6. **Route 3** — Continue east toward Mount Moon.
 
 ### Story Flags
@@ -48,24 +48,24 @@ Progress is tracked via the `storyStep` field:
 
 ### Movement
 
-- Movement is tile-based: each step moves the player one full tile (64×64 px).
-- Pressing a direction first turns the player, then moves them.
+- Movement is tile-based: each step moves the player one full tile.
 - You cannot walk into walls, trees, water, or NPCs.
-- Stepping onto a **door** or **teleport tile** transitions to another map.
+- Stepping onto a **warp tile** transitions to another map.
 
 ### Encounters
 
-- Walking through **tall grass** tiles on encounter-enabled maps triggers wild Pokemon battles.
-- Encounter rates and Pokemon tables are defined per map in `constants.ts`.
+- Walking through **tall grass** tiles on encounter-enabled maps triggers wild Pokémon battles.
+- Encounter rates and Pokémon tables are defined per map in `constants.ts`.
 
 ### Healing
 
-- Talk to the nurse at any **Pokemon Center** to fully heal your team (HP restored, status cured).
-- The last Pokemon Center you visited becomes your **respawn point** if you black out.
+- Talk to the nurse at any **Pokémon Center** to fully heal your team (HP, status, and PP all restored).
+- The last Pokémon Center you visited becomes your **respawn point** if you black out.
 
 ### Blackout
 
-- If all your Pokemon faint in battle, you black out and are teleported to your last heal location with your team restored to minimal HP.
+- If all your Pokémon faint (in battle or from overworld poison), you black out.
+- You are teleported to your last heal location with your team fully restored.
 
 ---
 
@@ -74,10 +74,10 @@ Progress is tracked via the `storyStep` field:
 | Menu | Description |
 |------|-------------|
 | **Mochila** (Bag) | View and use items |
-| **Equipo** (Team) | View your Pokemon party, check stats |
-| **Pokédex** | Browse all 151 Pokemon (seen / caught) |
-| **PC** | Swap Pokemon between your party and PC box storage |
-| **Tienda** | Opens nearby shop (only available in Pokemart) |
+| **Equipo** (Team) | View your Pokémon party, check stats |
+| **Pokédex** | Browse all 151 Pokémon (seen / caught) |
+| **PC** | Swap Pokémon between your party and PC box storage |
+| **Tienda** | Opens nearby shop (only available in Pokémart) |
 
 ---
 
@@ -87,9 +87,9 @@ See [game-mechanics.md](./game-mechanics.md) for full technical details.
 
 ### Battle Turn Flow
 
-1. **Choose action** — Pick a move, open your bag, or swap Pokemon.
+1. **Choose action** — Pick a move, open your bag, or swap Pokémon.
 2. **Player attacks** — Your selected move executes.
-3. **Enemy attacks** — The enemy picks a random move.
+3. **Enemy attacks** — The enemy picks a move (AI prefers effective moves).
 4. Repeat until one side faints.
 
 ### Actions
@@ -97,26 +97,30 @@ See [game-mechanics.md](./game-mechanics.md) for full technical details.
 | Action | Effect |
 |--------|--------|
 | Use a move | Deal damage or apply status effects |
-| **Mochila** (Bag) | Use a Potion (heals 20 HP) or throw a Pokeball |
-| **Equipo** (Team) | Swap to a different Pokemon (uses your turn) |
-| **Huir** (Run) | Attempt to flee wild battles (always succeeds; not available vs trainers) |
+| **Mochila** (Bag) | Use a Potion (heals HP) or throw a Pokéball |
+| **Equipo** (Team) | Swap to a different Pokémon (uses your turn) |
+| **Huir** (Run) | Flee wild battles (always succeeds; not available vs trainers) |
 
-### Catching Pokemon
+### PP and Struggle
+
+Each move has limited PP. When a move runs out of PP, it is greyed out and cannot be selected. When **all** moves reach 0 PP, the move menu is replaced by a single **Forcejeo** (Struggle) button — a 50-power attack that also deals 1/4 recoil damage to the user.
+
+### Catching Pokémon
 
 - Only works in wild battles.
-- Throw a **Pokeball** from your bag.
-- Catch rate is based on the wild Pokemon's remaining HP — lower HP = higher chance.
-- Caught Pokemon are added to your party (if < 6) or PC box.
+- Throw a **Pokéball** from your bag.
+- Catch rate uses the Gen I formula: based on the species' base catch rate, the wild Pokémon's remaining HP, and its status condition (sleep/frozen are best).
+- Caught Pokémon are added to your party (if < 6) or PC box.
 
 ### Status Effects
 
-| Status | Effect |
-|--------|--------|
-| Paralyzed | Speed halved |
-| Sleep | Cannot act |
-| Poison | Lose HP each turn |
-| Burn | Lose HP each turn + Attack halved |
-| Frozen | Cannot act |
+| Status | In-battle effect | Overworld effect |
+|--------|----------------|-----------------|
+| Paralyzed | 25% chance to skip turn; Speed halved | — |
+| Sleep | Cannot act (wakes randomly) | — |
+| Poison | Lose HP each turn | Lose 1 HP every 4 steps; can faint |
+| Burn | Lose HP each turn + Attack halved | — |
+| Frozen | Cannot act | — |
 
 ---
 
@@ -124,21 +128,21 @@ See [game-mechanics.md](./game-mechanics.md) for full technical details.
 
 | Item | Type | Effect |
 |------|------|--------|
-| Potion | Medicine | Restores 20 HP to one Pokemon |
-| Pokeball | Capture | Throw in wild battles to catch Pokemon |
-| Oak's Parcel | Key Item | Deliver to Professor Oak in Pallet Town |
+| Poción | Medicine | Restores HP to one Pokémon |
+| Pokéball | Capture | Throw in wild battles to catch Pokémon |
+| Paquete de Oak | Key Item | Deliver to Professor Oak in Pallet Town |
 
 ---
 
-## Pokemon Management
+## Pokémon Management
 
-- Your **party** holds up to 6 Pokemon.
-- Extra Pokemon are stored in the **PC** (unlimited boxes).
+- Your **party** holds up to 6 Pokémon.
+- Extra Pokémon are stored in the **PC** (unlimited boxes).
 - Open the **Equipo** menu to check HP, status, moves, and level.
-- Access **PC** from the menu to swap party members with box Pokemon.
+- Access **PC** from the menu to swap party members with box Pokémon.
 
 ### Leveling Up
 
-- Pokemon gain EXP after winning battles.
+- Pokémon gain EXP after winning battles (more EXP from trainer battles).
 - When enough EXP is accumulated, they level up — stats increase and new moves may be learned.
-- At certain levels, Pokemon **evolve** into stronger forms with updated stats and appearance.
+- At certain levels, Pokémon **evolve** into stronger forms with updated stats and appearance.

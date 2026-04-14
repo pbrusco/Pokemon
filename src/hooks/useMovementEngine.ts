@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect, MutableRefObject } from 'react';
 import { Direction, Pokemon } from '../types';
-import { B_CHOOSING, BATTLE_TRANSITION, battle } from '../types/gamePhase';
+import { B_CHOOSING, BATTLE_TRANSITION, battle, BLACKOUT, HEALING, EXPLORING } from '../types/gamePhase';
+import { fullHeal } from '../lib/healUtils';
 import { BattleState, createBattleState } from '../lib/battleEngine';
 import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
@@ -101,18 +102,37 @@ export function useMovementEngine({
 
       // Poison overworld damage
       const leadPokemon = playerTeam[0];
-      if (leadPokemon?.status === 'poison' && leadPokemon.hp > 1) {
+      if (leadPokemon?.status === 'poison' && leadPokemon.hp > 0) {
         poisonStepCounter.current += 1;
         if (poisonStepCounter.current >= 4) {
           poisonStepCounter.current = 0;
-          store.setPlayerTeam((prev: Pokemon[]) => {
-            if (prev.length === 0) return prev;
-            const updated = [...prev];
-            updated[0] = { ...updated[0], hp: Math.max(1, updated[0].hp - 1) };
-            return updated;
-          });
+          const newTeam = [...playerTeam];
+          newTeam[0] = { ...newTeam[0], hp: Math.max(0, newTeam[0].hp - 1) };
+          store.setPlayerTeam(newTeam);
+          store.setBattleLog(`¡${leadPokemon.name} recibió daño por veneno!`);
           setOverworldShake(true);
           setTimeout(() => setOverworldShake(false), sd(220));
+
+          if (newTeam[0].hp === 0 && newTeam.every(p => p.hp === 0)) {
+            store.setPhase(BLACKOUT);
+            setTimeout(() => {
+              const fs = useGameStore.getState();
+              fs.setCurrentMap(fs.lastHealLocation.map);
+              fs.setPlayerPos(fs.lastHealLocation.pos);
+            }, sd(1200));
+            setTimeout(() => {
+              const fs = useGameStore.getState();
+              fs.setPhase(HEALING);
+              setTimeout(() => {
+                useGameStore.getState().setPlayerTeam(newTeam.map(fullHeal));
+                soundManager.play('SELECT');
+              }, sd(800));
+              setTimeout(() => {
+                useGameStore.getState().setPhase(EXPLORING);
+                useGameStore.getState().setDialogue('¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.');
+              }, sd(1600));
+            }, sd(2400));
+          }
         }
       } else {
         poisonStepCounter.current = 0;

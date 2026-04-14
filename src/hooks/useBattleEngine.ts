@@ -109,7 +109,7 @@ export function useBattleEngine({
     
     if (newState.outcome === 'player_win') {
       if (newState.isTrainerBattle) {
-        const trainer = npcs[s.currentMap]?.find(n => n.isTrainer && n.trainerTeam?.some(p => p.id === newState.enemyPokemon.id));
+        const trainer = npcs[s.currentMap]?.find(n => n.id === newState.trainerName);
         if (trainer) {
           const moneyReward = newState.enemyPokemon.level * 20;
           s.setDefeatedTrainers(prev => [...prev, trainer.id]);
