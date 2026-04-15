@@ -121,37 +121,80 @@ export function useBattleEngine({
         }
       }
       setTimeout(() => {
-        s.setInventory(newState.inventory);
-        s.setActiveBattle(null);
-        s.setPhase(EXPLORING);
+        const fs = useGameStore.getState();
+        fs.setInventory(newState.inventory);
+        fs.setActiveBattle(null);
+        fs.setPhase(EXPLORING);
         setEnemyAnim('idle');
-        if (s.storyStep === 'PICKED_STARTER') {
-          s.setStoryStep('RIVAL_BATTLE');
-          s.setDialogue('AZUL: ¡Maldición! ¡He perdido! Pero no volverá a pasar.');
+        if (fs.storyStep === 'PICKED_STARTER') {
+          fs.setStoryStep('RIVAL_BATTLE');
+          fs.setDialogue('AZUL: ¡Maldición! ¡He perdido! Pero no volverá a pasar.');
         }
       }, sd(2000));
     } else if (newState.outcome === 'player_blackout') {
       s.setActiveBattle(null);
       s.setPhase(BLACKOUT);
+      const healLocation = s.lastHealLocation;
       setTimeout(() => {
-        s.setCurrentMap(s.lastHealLocation.map);
-        s.setPlayerPos(s.lastHealLocation.pos);
+        const fs = useGameStore.getState();
+        fs.setCurrentMap(healLocation.map);
+        fs.setPlayerPos(healLocation.pos);
       }, sd(1200));
+      setTimeout(() => useGameStore.getState().setPhase(HEALING), sd(2400));
       setTimeout(() => {
-        s.setPhase(HEALING);
-        setTimeout(() => {
-          useGameStore.getState().setPlayerTeam(t => t.map(fullHeal));
-          soundManager.play('SELECT');
-        }, sd(800));
-        setTimeout(() => {
-          s.setPhase(EXPLORING);
-          s.setDialogue('¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.');
-        }, sd(1600));
-      }, sd(2400));
+        useGameStore.getState().setPlayerTeam(t => t.map(fullHeal));
+        soundManager.play('SELECT');
+      }, sd(2400) + sd(800));
+      setTimeout(() => {
+        const fs = useGameStore.getState();
+        fs.setPhase(EXPLORING);
+        fs.setDialogue('¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.');
+      }, sd(2400) + sd(1600));
     } else if (newState.outcome === 'fled') {
       s.setInventory(newState.inventory);
       s.setActiveBattle(null);
       s.setPhase(EXPLORING);
+    }
+  };
+
+  /** Handle catch-specific animation flow (separate from normal attack flow). */
+  const handleCatchAction = (newState: BattleState, effects: BattleEffect[]) => {
+    const s = useGameStore.getState();
+    s.setActiveBattle(newState);
+    s.setEnemyPokemon(newState.enemyPokemon);
+
+    // Catch failed in a trainer battle — return to CHOOSING
+    if (newState.outcome === 'ongoing' && newState.phase === 'CHOOSING') {
+      const d = playBattleEffects(effects);
+      setTimeout(() => useGameStore.getState().setPhase(battle(B_CHOOSING)), d);
+      return;
+    }
+
+    s.setPhase(battle(B_CATCHING));
+    s.setCatchResult(null);
+    s.setBattleLog('¡Pablo lanzó una POKÉ BALL!');
+    soundManager.play('SELECT');
+
+    if (newState.outcome === 'caught') {
+      setTimeout(() => useGameStore.getState().setCatchResult(true), sd(2800));
+      setTimeout(() => {
+        const fs = useGameStore.getState();
+        fs.setCatchResult(null);
+        fs.updatePokedex(newState.enemyPokemon.id, true);
+        fs.setPcStorage(newState.pcStorage);
+        fs.syncTeamStats(newState.playerTeam);
+        fs.setActiveBattle(null);
+        fs.setPhase(EXPLORING);
+      }, sd(4000));
+    } else {
+      setTimeout(() => useGameStore.getState().setCatchResult(false), sd(2800));
+      setTimeout(() => {
+        const fs = useGameStore.getState();
+        fs.setCatchResult(null);
+        fs.syncTeamStats(newState.playerTeam);
+        fs.setEnemyPokemon(newState.enemyPokemon);
+        fs.setPhase(mapEnginePhase(newState.phase));
+      }, sd(4000));
     }
   };
 
@@ -171,62 +214,21 @@ export function useBattleEngine({
     battleStateRef.current = newState;
 
     const s = useGameStore.getState();
-    // Non-visual state — safe to set immediately
     s.setIsTrainerBattle(newState.isTrainerBattle);
     if (action.type !== 'TICK') {
       s.setInventory(newState.inventory);
     }
 
-    // CATCH has its own animation flow; update HP displays immediately since
-    // the catch animation doesn't depend on incremental HP bar transitions.
     if (action.type === 'CATCH') {
-      s.setActiveBattle(newState);
-      s.setEnemyPokemon(newState.enemyPokemon);
-
-      if (newState.outcome === 'ongoing' && newState.phase === 'CHOOSING') {
-        const d = playBattleEffects(effects);
-        setTimeout(() => useGameStore.getState().setPhase(battle(B_CHOOSING)), d);
-        return;
-      }
-
-      s.setPhase(battle(B_CATCHING));
-      s.setCatchResult(null);
-      s.setBattleLog('¡Pablo lanzó una POKÉ BALL!');
-      soundManager.play('SELECT');
-
-      if (newState.outcome === 'caught') {
-        setTimeout(() => useGameStore.getState().setCatchResult(true), sd(2800));
-        setTimeout(() => {
-          const fs = useGameStore.getState();
-          fs.setCatchResult(null);
-          fs.updatePokedex(newState.enemyPokemon.id, true);
-          fs.setPcStorage(newState.pcStorage);
-          fs.syncTeamStats(newState.playerTeam);
-          fs.setActiveBattle(null);
-          fs.setPhase(EXPLORING);
-        }, sd(4000));
-      } else {
-        setTimeout(() => useGameStore.getState().setCatchResult(false), sd(2800));
-        setTimeout(() => {
-          const fs = useGameStore.getState();
-          fs.setCatchResult(null);
-          fs.syncTeamStats(newState.playerTeam);
-          fs.setEnemyPokemon(newState.enemyPokemon);
-          fs.setPhase(mapEnginePhase(newState.phase));
-        }, sd(4000));
-      }
+      handleCatchAction(newState, effects);
       return;
     }
 
-    // Player's attack animation starts immediately
     if (action.type === 'ATTACK') {
       setPlayerAnim('attack');
       soundManager.play('SELECT');
     }
 
-    // Each action now returns only its own effects (no TICK chaining in engine).
-    // Player turn effects and enemy TICK effects are played in separate calls,
-    // so HP bars update at the correct moment for each attack.
     const aDuration = playBattleEffects(effects);
     const aDelay = Math.max(aDuration + sd(300), sd(800));
 
@@ -234,14 +236,12 @@ export function useBattleEngine({
       setPlayerAnim('idle');
       setEnemyAnim('idle');
 
-      // Update HP bars now that this action's animations have finished
       const fs = useGameStore.getState();
       fs.setActiveBattle(newState);
       fs.setEnemyPokemon(newState.enemyPokemon);
       fs.syncTeamStats(newState.playerTeam);
 
       if (newState.phase === 'ENEMY_ATTACK') {
-        // Player's action is done — hand off to the enemy with an explicit turn indicator
         fs.setPhase(mapEnginePhase('ENEMY_ATTACK'));
         fs.setBattleLog('¡Turno del enemigo!');
         setTimeout(() => dispatchBattleRef.current?.({ type: 'TICK' }), sd(600));

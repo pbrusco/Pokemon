@@ -1,19 +1,19 @@
 # TODO
 
-1. Battle initiation duplicated in 3 places
-Battle creation happens in initBattle (useMovementEngine:33), inline in handleMove (useMovementEngine:187-200), AND in processBattle (runner.ts:198). Each creates a BattleState slightly differently — this is exactly what caused the bug we just fixed (processBattle couldn't set battleStateRef).
+1. ~~Battle initiation duplicated in 3 places~~
+Fixed: unified into `src/lib/launchBattle.ts`. All three sites (initBattle, wild encounter, processBattle) now call `launchBattle()`.
 
-2. handleMove is a 150-line god function
-useMovementEngine.ts:52-202 handles collision, warps, poison damage, grass effects, trainer vision, AND wild encounter creation — all in a single useCallback. Each concern should be its own extracted function.
+2. ~~handleMove is a 150-line god function~~
+Fixed: extracted `checkTrainerVision()`, `tryWildEncounter()`, and `applyOverworldPoison()` from handleMove. Core function is now ~50 lines.
 
 3. ~~resolveBattleOutcome trainer lookup is fragile~~
 Fixed: now uses `newState.trainerName` (the trainer ID) for direct lookup instead of matching by Pokémon species.
 
-4. Nested setTimeout chains in useBattleEngine
-dispatchBattle → playBattleEffects → finalize → resolveBattleOutcome creates 3-4 levels of nested timeouts with mixed closure captures (s at one level, useGameStore.getState() at another). This was the root cause of confusing state bugs.
+4. ~~Nested setTimeout chains in useBattleEngine~~
+Fixed: flattened nested timeouts in `resolveBattleOutcome` (blackout flow uses absolute offsets instead of nesting). Extracted catch flow into `handleCatchAction` helper. All setTimeout callbacks use fresh `useGameStore.getState()`.
 
-5. GameModals receives ~25 props
-App.tsx:184-213 passes 25+ props to GameModals despite the Zustand store being available. Most of these could be read directly from the store inside the component.
+5. ~~GameModals receives ~25 props~~
+Fixed: GameModals now reads store directly via `useGameStore()`. Interface reduced from 28 props to 6 (only local React state + non-store callbacks remain as props).
 
 ## PP tracking in battle
 - [x] Decrement PP when a move is used in `battleEngine.ts`

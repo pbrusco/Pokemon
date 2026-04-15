@@ -130,9 +130,7 @@ function processNext() {
 }
 
 import { soundManager } from '../sounds';
-import { createBattleState } from '../battleEngine';
-import { BATTLE_TRANSITION } from '../../types/gamePhase';
-import { isGodMode, applyGodMode } from '../godMode';
+import { launchBattle } from '../launchBattle';
 
 /** Drive a walk step via setInterval, one tile per tick. */
 function processWalk(step: Extract<CutsceneStep, { type: 'walk' }>) {
@@ -198,27 +196,16 @@ function processNpcWalk(step: Extract<CutsceneStep, { type: 'npc_walk' }>) {
 /** Start a battle. */
 function processBattle(step: Extract<CutsceneStep, { type: 'battle' }>) {
   const s = useGameStore.getState();
-  const enemy = step.enemyPokemon;
-  
   s.setSpottedTrainerId(null);
   s.setSpottedTrainerPos(null);
-  s.setEnemyPokemon(enemy);
-  
-  const trainerTeam = isGodMode() ? applyGodMode(s.playerTeam) : s.playerTeam;
-  const battleState = createBattleState(trainerTeam, enemy, {
-    isTrainerBattle: step.isTrainer,
-    trainerName: step.trainerId, 
-    inventory: s.inventory,
-    pcStorage: s.pcStorage,
-    hasBoulderBadge: s.badges.includes('BOULDER'),
+
+  launchBattle({
+    enemy: step.enemyPokemon,
+    isTrainer: step.isTrainer,
+    trainerName: step.trainerId,
+    battleLog: '¡Batalla iniciada!',
   });
 
-  s.setActiveBattle(battleState);
-  s.setIsTrainerBattle(step.isTrainer);
-  s.updatePokedex(enemy.id, false);
-  s.setBattleLog(`¡Batalla iniciada!`);
-  s.setPhase(BATTLE_TRANSITION);
-  
   // Cutscene ends here as we enter battle
   stopCutscene();
 }

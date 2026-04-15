@@ -1,17 +1,126 @@
 import { useCallback, useRef, useEffect, MutableRefObject } from 'react';
-import { Direction, Pokemon } from '../types';
-import { B_CHOOSING, BATTLE_TRANSITION, battle, BLACKOUT, HEALING, EXPLORING } from '../types/gamePhase';
+import { Direction, NPC, Pokemon } from '../types';
+import { BLACKOUT, HEALING, EXPLORING } from '../types/gamePhase';
 import { fullHeal } from '../lib/healUtils';
-import { BattleState, createBattleState } from '../lib/battleEngine';
+import { BattleState } from '../lib/battleEngine';
 import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
 import { calcHp } from '../lib/damage';
 import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES } from '../constants';
-import { isGodMode, applyGodMode } from '../lib/godMode';
 import { triggerOakCutscene } from '../lib/oakCutscene';
 import { triggerTrainerCutscene } from '../lib/cutscenes/trainerEncounter';
 import { useGameStore } from '../store/gameStore';
-import { GRID_SIZE } from '../types';
+import { GRID_SIZE, MapID } from '../types';
+import { launchBattle } from '../lib/launchBattle';
+
+// ── Extracted helpers (pure or store-writing, no React hooks) ────────────────
+
+/** Check if any undefeated trainer on this map can see the player at (x, y). */
+function checkTrainerVision(
+  npcs: NPC[],
+  defeatedTrainers: string[],
+  x: number,
+  y: number,
+): NPC | undefined {
+  const trainers = npcs.filter(n => n.isTrainer && !defeatedTrainers.includes(n.id));
+  for (const trainer of trainers) {
+    for (let i = 1; i <= 3; i++) {
+      let vx = trainer.position.x;
+      let vy = trainer.position.y;
+      if (trainer.direction === 'up') vy -= i;
+      if (trainer.direction === 'down') vy += i;
+      if (trainer.direction === 'left') vx -= i;
+      if (trainer.direction === 'right') vx += i;
+      if (vx === x && vy === y) return trainer;
+    }
+  }
+  return undefined;
+}
+
+/** Roll for a wild encounter and start battle if triggered. Returns true if a battle started. */
+function tryWildEncounter(
+  tileType: string,
+  currentMap: MapID,
+  playerTeam: Pokemon[],
+): boolean {
+  if (tileType !== 'grass' || playerTeam.length === 0) return false;
+  if (playerTeam.every(p => p.hp === 0)) return false;
+
+  const encounterRate = WILD_ENCOUNTER_RATES[currentMap] ?? 10;
+  if (Math.floor(Math.random() * 256) >= encounterRate) return false;
+
+  const routeWilds = WILD_POKEMON_DATABASE[currentMap] || WILD_POKEMON_DATABASE['ROUTE_1'];
+  const randomPkmn = routeWilds[Math.floor(Math.random() * routeWilds.length)];
+  const levelVariation = Math.floor(Math.random() * 3) - 1;
+  const finalLevel = Math.max(2, randomPkmn.level + levelVariation);
+  const finalMaxHp = calcHp(randomPkmn.baseStats.hp, finalLevel);
+
+  const wildPkmn: Pokemon = {
+    ...randomPkmn,
+    level: finalLevel,
+    hp: finalMaxHp,
+    maxHp: finalMaxHp,
+    baseStats: {
+      ...randomPkmn.baseStats,
+      attack: Math.floor(randomPkmn.baseStats.attack * 0.85),
+      special: Math.floor(randomPkmn.baseStats.special * 0.85),
+    },
+  };
+
+  soundManager.play('BATTLE_START');
+  launchBattle({
+    enemy: wildPkmn,
+    isTrainer: false,
+    battleLog: `¡Un ${randomPkmn.name} salvaje apareció!`,
+  });
+  return true;
+}
+
+/** Apply overworld poison damage every 4 steps. Triggers blackout if all faint. */
+function applyOverworldPoison(
+  playerTeam: Pokemon[],
+  poisonStepCounter: MutableRefObject<number>,
+  setOverworldShake: (v: boolean) => void,
+): void {
+  const lead = playerTeam[0];
+  if (!lead || lead.status !== 'poison' || lead.hp <= 0) {
+    poisonStepCounter.current = 0;
+    return;
+  }
+
+  poisonStepCounter.current += 1;
+  if (poisonStepCounter.current < 4) return;
+  poisonStepCounter.current = 0;
+
+  const newTeam = [...playerTeam];
+  newTeam[0] = { ...newTeam[0], hp: Math.max(0, newTeam[0].hp - 1) };
+
+  const store = useGameStore.getState();
+  store.setPlayerTeam(newTeam);
+  store.setBattleLog(`¡${lead.name} recibió daño por veneno!`);
+  setOverworldShake(true);
+  setTimeout(() => setOverworldShake(false), sd(220));
+
+  if (newTeam[0].hp === 0 && newTeam.every(p => p.hp === 0)) {
+    store.setPhase(BLACKOUT);
+    setTimeout(() => {
+      const fs = useGameStore.getState();
+      fs.setCurrentMap(fs.lastHealLocation.map);
+      fs.setPlayerPos(fs.lastHealLocation.pos);
+    }, sd(1200));
+    setTimeout(() => useGameStore.getState().setPhase(HEALING), sd(2400));
+    setTimeout(() => {
+      useGameStore.getState().setPlayerTeam(newTeam.map(fullHeal));
+      soundManager.play('SELECT');
+    }, sd(2400) + sd(800));
+    setTimeout(() => {
+      useGameStore.getState().setPhase(EXPLORING);
+      useGameStore.getState().setDialogue('¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.');
+    }, sd(2400) + sd(1600));
+  }
+}
+
+// ── Hook ─────────────────────────────────────────────────────────────────────
 
 interface UseMovementEngineParams {
   battleStateRef: MutableRefObject<BattleState | null>;
@@ -32,39 +141,23 @@ export function useMovementEngine({
   }, []);
 
   const initBattle = useCallback((enemyPkmn: Pokemon, isTrainer: boolean) => {
-    const s = useGameStore.getState();
-    s.setEnemyPokemon(enemyPkmn);
-    s.setIsTrainerBattle(isTrainer);
-    
-    const team = isGodMode() ? applyGodMode(s.playerTeam) : s.playerTeam;
-    battleStateRef.current = createBattleState(team, enemyPkmn, {
-      isTrainerBattle: isTrainer,
-      inventory: s.inventory,
-      pcStorage: s.pcStorage,
-      hasBoulderBadge: s.badges.includes('BOULDER'),
-    });
-    
-    s.setActiveBattle(battleStateRef.current);
     soundManager.play('BATTLE_START');
-    s.setPhase(battle(B_CHOOSING)); // Immediate skip for some reason? No, usually it's BATTLE_TRANSITION
-    s.setPhase(BATTLE_TRANSITION);
-  }, [battleStateRef]);
+    launchBattle({ enemy: enemyPkmn, isTrainer });
+  }, []);
 
   const handleMove = useCallback((dir: Direction) => {
     const store = useGameStore.getState();
     const { isMoving, dialogue, phase, playerPos, currentMap, playerTeam, worldMaps, defeatedTrainers } = store;
     const npcs = store.getNPCs();
     const items = store.getItems();
-    const phaseType = phase.type;
-    
+
     const lockedPhases = ['BATTLE', 'BATTLE_TRANSITION', 'HEALING', 'BLACKOUT'];
-    if (isMoving || dialogue || lockedPhases.includes(phaseType)) return;
+    if (isMoving || dialogue || lockedPhases.includes(phase.type)) return;
 
     store.setDirection(dir);
 
     let nextX = playerPos.x;
     let nextY = playerPos.y;
-
     switch (dir) {
       case 'up': nextY--; break;
       case 'down': nextY++; break;
@@ -86,140 +179,54 @@ export function useMovementEngine({
     const objectAtNext = items[currentMap]?.some(i => i.type === 'object' && i.position.x === nextX && i.position.y === nextY);
 
     if (
-      nextX >= 0 && nextX < GRID_SIZE &&
-      nextY >= 0 && nextY < GRID_SIZE &&
-      grid[nextY][nextX].walkable &&
-      !npcAtNext &&
-      !objectAtNext
-    ) {
-      const warpOnNext = mapData.warps.find(w => w.x === nextX && w.y === nextY);
-      if (warpOnNext && warpOnNext.targetDir && dir !== warpOnNext.targetDir) {
-        return; 
-      }
-      
-      store.setIsMoving(true);
-      store.setPlayerPos({ x: nextX, y: nextY });
+      nextX < 0 || nextX >= GRID_SIZE ||
+      nextY < 0 || nextY >= GRID_SIZE ||
+      !grid[nextY][nextX].walkable ||
+      npcAtNext ||
+      objectAtNext
+    ) return;
 
-      // Poison overworld damage
-      const leadPokemon = playerTeam[0];
-      if (leadPokemon?.status === 'poison' && leadPokemon.hp > 0) {
-        poisonStepCounter.current += 1;
-        if (poisonStepCounter.current >= 4) {
-          poisonStepCounter.current = 0;
-          const newTeam = [...playerTeam];
-          newTeam[0] = { ...newTeam[0], hp: Math.max(0, newTeam[0].hp - 1) };
-          store.setPlayerTeam(newTeam);
-          store.setBattleLog(`¡${leadPokemon.name} recibió daño por veneno!`);
-          setOverworldShake(true);
-          setTimeout(() => setOverworldShake(false), sd(220));
+    const warpOnNext = mapData.warps.find(w => w.x === nextX && w.y === nextY);
+    if (warpOnNext && warpOnNext.targetDir && dir !== warpOnNext.targetDir) return;
 
-          if (newTeam[0].hp === 0 && newTeam.every(p => p.hp === 0)) {
-            store.setPhase(BLACKOUT);
-            setTimeout(() => {
-              const fs = useGameStore.getState();
-              fs.setCurrentMap(fs.lastHealLocation.map);
-              fs.setPlayerPos(fs.lastHealLocation.pos);
-            }, sd(1200));
-            setTimeout(() => {
-              const fs = useGameStore.getState();
-              fs.setPhase(HEALING);
-              setTimeout(() => {
-                useGameStore.getState().setPlayerTeam(newTeam.map(fullHeal));
-                soundManager.play('SELECT');
-              }, sd(800));
-              setTimeout(() => {
-                useGameStore.getState().setPhase(EXPLORING);
-                useGameStore.getState().setDialogue('¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.');
-              }, sd(1600));
-            }, sd(2400));
-          }
-        }
-      } else {
-        poisonStepCounter.current = 0;
-      }
+    // ── Movement accepted ──
+    store.setIsMoving(true);
+    store.setPlayerPos({ x: nextX, y: nextY });
 
-      // Visual grass rustle
-      if (grid[nextY][nextX].type === 'grass') {
-        store.setGrassEffect({ x: nextX, y: nextY });
-        setTimeout(() => useGameStore.getState().setGrassEffect(null), sd(500));
-      }
+    applyOverworldPoison(playerTeam, poisonStepCounter, setOverworldShake);
 
-      if (moveTimeout.current) clearTimeout(moveTimeout.current);
-      moveTimeout.current = setTimeout(() => {
-        useGameStore.getState().setIsMoving(false);
-      }, sd(110));
-
-      // Warp check
-      const warp = mapData.warps.find(w => w.x === nextX && w.y === nextY);
-      if (warp) {
-        soundManager.play('SELECT');
-        setTimeout(() => {
-          const fs = useGameStore.getState();
-          fs.setCurrentMap(warp.targetMap);
-          fs.setPlayerPos(warp.targetPos);
-          if (warp.targetDir) fs.setDirection(warp.targetDir);
-        }, sd(200));
-      }
-
-      // Trainer vision check
-      const currentMapTrainers = npcs[currentMap].filter(n => n.isTrainer && !defeatedTrainers.includes(n.id));
-      for (const trainer of currentMapTrainers) {
-        for (let i = 1; i <= 3; i++) {
-          let visionX = trainer.position.x;
-          let visionY = trainer.position.y;
-          if (trainer.direction === 'up') visionY -= i;
-          if (trainer.direction === 'down') visionY += i;
-          if (trainer.direction === 'left') visionX -= i;
-          if (trainer.direction === 'right') visionX += i;
-
-          if (visionX === nextX && visionY === nextY) {
-            triggerTrainerCutscene(trainer, { x: nextX, y: nextY });
-            break;
-          }
-        }
-      }
-
-      // Wild encounter roll
-      const encounterRate = WILD_ENCOUNTER_RATES[currentMap] ?? 10;
-      const encounterRoll = Math.floor(Math.random() * 256);
-      if (grid[nextY][nextX].type === 'grass' && encounterRoll < encounterRate && playerTeam.length > 0) {
-        if (playerTeam.every(p => p.hp === 0)) return;
-
-        const routeWilds = WILD_POKEMON_DATABASE[currentMap] || WILD_POKEMON_DATABASE['ROUTE_1'];
-        const randomPkmn = routeWilds[Math.floor(Math.random() * routeWilds.length)];
-        const levelVariation = Math.floor(Math.random() * 3) - 1;
-        const finalLevel = Math.max(2, randomPkmn.level + levelVariation);
-
-        soundManager.play('BATTLE_START');
-        const finalMaxHp = calcHp(randomPkmn.baseStats.hp, finalLevel);
-        const wildPkmn = {
-          ...randomPkmn,
-          level: finalLevel,
-          hp: finalMaxHp,
-          maxHp: finalMaxHp,
-          baseStats: {
-            ...randomPkmn.baseStats,
-            attack: Math.floor(randomPkmn.baseStats.attack * 0.85),
-            special: Math.floor(randomPkmn.baseStats.special * 0.85),
-          }
-        };
-
-        const fs = useGameStore.getState();
-        fs.setEnemyPokemon(wildPkmn);
-        fs.setIsTrainerBattle(false);
-        const wildTeam = isGodMode() ? applyGodMode(fs.playerTeam) : fs.playerTeam;
-        battleStateRef.current = createBattleState(wildTeam, wildPkmn, {
-          inventory: fs.inventory,
-          pcStorage: fs.pcStorage,
-          hasBoulderBadge: fs.badges.includes('BOULDER'),
-        });
-        fs.setActiveBattle(battleStateRef.current);
-        fs.updatePokedex(randomPkmn.id, false);
-        fs.setBattleLog(`¡Un ${randomPkmn.name} salvaje apareció!`);
-        fs.setBattleLogs([{ text: `¡Un ${randomPkmn.name} salvaje apareció!`, speaker: 'Sistema', id: -1 }]);
-        fs.setPhase(BATTLE_TRANSITION);
-      }
+    // Visual grass rustle
+    if (grid[nextY][nextX].type === 'grass') {
+      store.setGrassEffect({ x: nextX, y: nextY });
+      setTimeout(() => useGameStore.getState().setGrassEffect(null), sd(500));
     }
+
+    // Animation timeout
+    if (moveTimeout.current) clearTimeout(moveTimeout.current);
+    moveTimeout.current = setTimeout(() => {
+      useGameStore.getState().setIsMoving(false);
+    }, sd(110));
+
+    // Warp check
+    const warp = mapData.warps.find(w => w.x === nextX && w.y === nextY);
+    if (warp) {
+      soundManager.play('SELECT');
+      setTimeout(() => {
+        const fs = useGameStore.getState();
+        fs.setCurrentMap(warp.targetMap);
+        fs.setPlayerPos(warp.targetPos);
+        if (warp.targetDir) fs.setDirection(warp.targetDir);
+      }, sd(200));
+    }
+
+    // Trainer vision check
+    const spottedTrainer = checkTrainerVision(npcs[currentMap] || [], defeatedTrainers, nextX, nextY);
+    if (spottedTrainer) {
+      triggerTrainerCutscene(spottedTrainer, { x: nextX, y: nextY });
+    }
+
+    // Wild encounter roll
+    tryWildEncounter(grid[nextY][nextX].type, currentMap, playerTeam);
   }, [battleStateRef, setOverworldShake]);
 
   return { handleMove, initBattle };

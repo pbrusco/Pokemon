@@ -191,31 +191,9 @@ export default function App() {
       />
 
       <GameModals
-        phase={phase}
-        battlePhase={battlePhase}
-        inBattle={inBattle}
-        currentMap={store.currentMap}
         battleShake={battleShake}
-        enemyPokemon={store.enemyPokemon}
         enemyAnim={enemyAnim}
-        catchResult={store.catchResult}
-        playerTeam={store.activeBattle ? store.activeBattle.playerTeam : store.playerTeam}
         playerAnim={playerAnim}
-        battleLog={store.battleLog}
-        battleLogs={store.battleLogs}
-        showMoves={store.showMoves}
-        isTrainerBattle={store.isTrainerBattle}
-        dialogue={store.dialogue}
-        inventory={store.inventory}
-        pcStorage={store.pcStorage}
-        money={store.money}
-        pokedex={store.pokedex}
-        setShowMoves={store.setShowMoves}
-        setPhase={store.setPhase}
-        setDialogue={store.setDialogue}
-        setPlayerTeam={fn => store.setPlayerTeam(fn)}
-        setMoney={store.setMoney}
-        addInventoryItem={store.addInventoryItem}
         handlePCSwap={handlePCSwap}
         handleUseItem={handleUseItem}
         dispatchBattle={dispatchBattle}
