@@ -1,27 +1,35 @@
 import { Pokemon } from '../types';
-import { BATTLE_TRANSITION } from '../types/gamePhase';
 import { createBattleState } from './battleEngine';
+import { isGodMode, applyGodMode } from './godMode';
 import { useGameStore } from '../store/gameStore';
+import { BATTLE_TRANSITION } from '../types/gamePhase';
 
-interface LaunchBattleParams {
+interface LaunchBattleOptions {
   enemy: Pokemon;
   isTrainer: boolean;
   trainerName?: string;
-  enemyTeam?: Pokemon[];
   battleLog?: string;
 }
 
-export function launchBattle({ enemy, isTrainer, trainerName, enemyTeam, battleLog }: LaunchBattleParams): void {
+export function launchBattle(options: LaunchBattleOptions): void {
   const s = useGameStore.getState();
-  const state = createBattleState(s.playerTeam, enemy, {
-    isTrainerBattle: isTrainer,
-    trainerName,
-    enemyTeam,
+  const team = isGodMode() ? applyGodMode(s.playerTeam) : s.playerTeam;
+  const battleState = createBattleState(team, options.enemy, {
+    isTrainerBattle: options.isTrainer,
+    trainerName: options.trainerName,
     inventory: s.inventory,
     pcStorage: s.pcStorage,
     hasBoulderBadge: s.badges.includes('BOULDER'),
   });
-  s.setActiveBattle(state);
-  if (battleLog !== undefined) s.setBattleLog(battleLog);
+
+  s.setEnemyPokemon(options.enemy);
+  s.setIsTrainerBattle(options.isTrainer);
+  s.setActiveBattle(battleState);
+  s.setShowMoves(false);
+  s.updatePokedex(options.enemy.id, false);
+  if (options.battleLog) {
+    s.setBattleLog(options.battleLog);
+    s.setBattleLogs([{ text: options.battleLog, speaker: 'Sistema', id: -1 }]);
+  }
   s.setPhase(BATTLE_TRANSITION);
 }
