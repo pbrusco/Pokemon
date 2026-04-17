@@ -15,7 +15,7 @@ export { stopCutscene as stopOakWalk };
 
 interface PathNode { x: number; y: number; dir: Direction }
 
-/** Build the escort path from player position to the lab door at (12, 13). */
+/** Build the escort path from player position to the lab door at (12, 11). */
 export function buildOakEscortPath(startPos: Position): PathNode[] {
   const path: PathNode[] = [];
   let { x, y } = startPos;
@@ -25,7 +25,6 @@ export function buildOakEscortPath(startPos: Position): PathNode[] {
   while (y < 11) { y++; path.push({ x, y, dir: 'down' }); }
   while (x < 12) { x++; path.push({ x, y, dir: 'right' }); }
   while (x > 12) { x--; path.push({ x, y, dir: 'left' }); }
-  while (y < 13) { y++; path.push({ x, y, dir: 'down' }); }
 
   return path;
 }
@@ -44,7 +43,7 @@ export function buildOakEscortSteps(playerPos: Position): CutsceneStep[] {
     { type: 'walk', path, npcLeadId: 'oak_escort' },
     { type: 'npc_remove' },
     { type: 'set_story', step: 'OAK_STOPPED' },
-    { type: 'warp', map: 'OAKS_LAB' as any, position: { x: 10, y: 14 }, direction: 'up' as Direction },
+    { type: 'warp', map: 'OAKS_LAB' as any, position: { x: 4, y: 10 }, direction: 'up' as Direction },
     { type: 'unlock' },
     { type: 'wait', ms: 500 },
     { type: 'dialogue', text: "OAK: ¡Hola! Por fin llegas.\nToma uno de estos POKÉMON, te ayudará en tu viaje." },
@@ -72,7 +71,7 @@ export function startOakWalk(path: PathNode[]) {
     { type: 'walk', path, npcLeadId: 'oak_escort' },
     { type: 'npc_remove' },
     { type: 'set_story', step: 'OAK_STOPPED' },
-    { type: 'warp', map: 'OAKS_LAB' as any, position: { x: 10, y: 14 }, direction: 'up' as Direction },
+    { type: 'warp', map: 'OAKS_LAB' as any, position: { x: 4, y: 10 }, direction: 'up' as Direction },
     { type: 'unlock' },
     { type: 'wait', ms: 500 },
     { type: 'dialogue', text: "OAK: ¡Hola! Por fin llegas.\nToma uno de estos POKÉMON, te ayudará en tu viaje." },
