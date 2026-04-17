@@ -29,20 +29,27 @@ export function useInputHandler({
       if (inBattle) {
         const battleSubPhase = store.phase.type === 'BATTLE' ? store.phase.sub.type : null;
         if (e.key === 'Escape') {
-          if (battleSubPhase === 'BATTLE_INVENTORY' || battleSubPhase === 'BATTLE_TEAM') {
-             store.setPhase(battle(B_CHOOSING));
+          if (store.dialogue) {
+            if (!e.repeat) {
+              const cb = store.dialogueCallback;
+              store.setDialogue(null);
+              if (cb) cb();
+            }
+            return;
           }
-        }
-        if (battleSubPhase === 'CHOOSING') {
-          const inMovesMenu = store.showMoves;
-          if (e.key === 'Escape' && inMovesMenu) {
+          if (battleSubPhase === 'BATTLE_INVENTORY' || battleSubPhase === 'BATTLE_TEAM') {
+            store.setPhase(battle(B_CHOOSING));
+            return;
+          }
+          if (battleSubPhase === 'CHOOSING' && store.showMoves) {
             store.setShowMoves(false);
             return;
           }
-          if (e.key === 'Escape' && !inMovesMenu) {
-            store.setPhase({ type: 'MENU', returnTo: store.phase });
-            return;
-          }
+          store.setPhase({ type: 'MENU', returnTo: store.phase });
+          return;
+        }
+        if (battleSubPhase === 'CHOOSING') {
+          const inMovesMenu = store.showMoves;
           if (!inMovesMenu) {
             if (e.key === '1') { store.setShowMoves(true); return; }
             if (e.key === '2') { store.setPhase(battle(B_BATTLE_TEAM)); return; }

@@ -37,12 +37,31 @@ export const NPCComponent = ({ npc, isSpotted }: { npc: NPC, key?: string, isSpo
         </AnimatePresence>
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-2 bg-black/20 rounded-full blur-sm" />
         {overworldSprite && !spriteError ? (
-          <img
-            src={overworldSprite}
-            className="w-11 h-11 object-contain pixelated"
-            alt={npc.name}
-            onError={() => setSpriteError(true)}
-          />
+          <>
+            <div
+              className="w-11 h-11 pixelated"
+              style={{
+                backgroundImage: `url('${overworldSprite}')`,
+                backgroundSize: '100% 600%',
+                backgroundRepeat: 'no-repeat',
+                backgroundPositionY:
+                  npc.direction === 'down' ? '0%'
+                  : npc.direction === 'up' ? '40%'
+                  : '80%',
+                transform: npc.direction === 'right' ? 'scaleX(-1)' : 'none',
+                imageRendering: 'pixelated',
+              }}
+              role="img"
+              aria-label={npc.name}
+            />
+            <img
+              src={overworldSprite}
+              alt=""
+              aria-hidden="true"
+              style={{ display: 'none' }}
+              onError={() => setSpriteError(true)}
+            />
+          </>
         ) : (
           <div className="w-11 h-13 bg-white rounded-lg border-[3px] border-[#383838] shadow-md flex flex-col items-center overflow-hidden">
             <div className="w-full h-1/3 bg-[#d8d8d8] border-b-2 border-[#383838]" />
