@@ -95,6 +95,7 @@ export interface NPC extends Entity {
   isRival?: boolean;
   isTrainer?: boolean;
   trainerTeam?: Pokemon[];
+  trainerClass?: string;
 }
 
 export interface Entity {

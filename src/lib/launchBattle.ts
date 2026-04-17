@@ -3,6 +3,7 @@ import { createBattleState } from './battleEngine';
 import { isGodMode, applyGodMode } from './godMode';
 import { useGameStore } from '../store/gameStore';
 import { BATTLE_TRANSITION } from '../types/gamePhase';
+import { TRAINER_BATTLE_SPRITES } from '../data/trainerSprites';
 
 interface LaunchBattleOptions {
   enemy: Pokemon;
@@ -24,6 +25,17 @@ export function launchBattle(options: LaunchBattleOptions): void {
 
   s.setEnemyPokemon(options.enemy);
   s.setIsTrainerBattle(options.isTrainer);
+
+  if (options.isTrainer && options.trainerName) {
+    const allNpcs = s.getNPCs();
+    const trainer = Object.values(allNpcs).flat().find(n => n.id === options.trainerName);
+    s.setTrainerBattleSprite(
+      trainer?.trainerClass ? (TRAINER_BATTLE_SPRITES[trainer.trainerClass] ?? null) : null
+    );
+  } else {
+    s.setTrainerBattleSprite(null);
+  }
+
   s.setActiveBattle(battleState);
   s.setShowMoves(false);
   s.updatePokedex(options.enemy.id, false);

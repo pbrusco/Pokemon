@@ -10,7 +10,7 @@ import { useGameStore } from '../store/gameStore';
 type HealLocation = { map: MapID; pos: Position };
 
 interface UseInteractionEngineParams {
-  initBattle: (enemyPokemon: Pokemon, isTrainer: boolean) => void;
+  initBattle: (enemyPokemon: Pokemon, isTrainer: boolean, trainerName?: string) => void;
 }
 
 export const useInteractionEngine = ({
@@ -45,6 +45,12 @@ export const useInteractionEngine = ({
 
     const npc = npcs[currentMap]?.find(n => n.position.x === targetX && n.position.y === targetY);
     if (npc) {
+      if (npc.isTrainer && npc.trainerTeam?.length && !store.defeatedTrainers.includes(npc.id)) {
+        store.setDialogue(`${npc.name}: ${npc.dialogue[0]}`, () => {
+          initBattle(npc.trainerTeam![0], true, npc.id);
+        });
+        return;
+      }
       if (npc.onInteract === 'heal') {
         if (npc.id === 'mom' && playerTeam.length === 0) {
           store.setDialogue(`MAMÁ: ${npc.dialogue[0]}`);

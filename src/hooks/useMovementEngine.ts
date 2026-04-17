@@ -140,9 +140,9 @@ export function useMovementEngine({
     };
   }, []);
 
-  const initBattle = useCallback((enemyPkmn: Pokemon, isTrainer: boolean) => {
+  const initBattle = useCallback((enemyPkmn: Pokemon, isTrainer: boolean, trainerName?: string) => {
     soundManager.play('BATTLE_START');
-    launchBattle({ enemy: enemyPkmn, isTrainer });
+    launchBattle({ enemy: enemyPkmn, isTrainer, trainerName });
   }, []);
 
   const handleMove = useCallback((dir: Direction) => {

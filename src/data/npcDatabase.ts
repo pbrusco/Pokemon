@@ -12,8 +12,8 @@ export function buildNPCDatabase(
 ): Record<MapID, NPC[]> {
   return {
     PALLET_TOWN: [
-      ...(playerTeam.length === 0 ? [{ id: 'oak_pallet', name: 'PROF. OAK', type: 'npc' as const, position: oakCutscenePos || { x: 10, y: 2 }, direction: oakCutsceneDir || ('down' as const), dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."] }] : []),
-      { id: 'fat_man', name: 'SEÑOR GORDO', type: 'npc', position: { x: 16, y: 10 }, direction: 'left', dialogue: ["¡La tecnología es increíble!", "¡Ahora puedes guardar POKÉMON y objetos como datos en el PC!"] }
+      ...(playerTeam.length === 0 ? [{ id: 'oak_pallet', name: 'PROF. OAK', type: 'npc' as const, position: oakCutscenePos || { x: 10, y: 2 }, direction: oakCutsceneDir || ('down' as const), trainerClass: 'oak', dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."] }] : []),
+      { id: 'fat_man', name: 'SEÑOR GORDO', type: 'npc', position: { x: 16, y: 10 }, direction: 'left', trainerClass: 'fat_man', dialogue: ["¡La tecnología es increíble!", "¡Ahora puedes guardar POKÉMON y objetos como datos en el PC!"] }
     ],
     PLAYERS_HOUSE_1F: [
       {
@@ -21,6 +21,7 @@ export function buildNPCDatabase(
         name: 'MAMÁ',
         type: 'npc',
         onInteract: 'heal',
+        trainerClass: 'mom',
         position: { x: 5, y: 4 },
         direction: 'down',
         dialogue: playerTeam.length === 0
@@ -36,6 +37,7 @@ export function buildNPCDatabase(
         type: 'npc',
         position: { x: 5, y: 4 },
         direction: 'down',
+        trainerClass: 'daisy',
         onInteract: 'give_town_map',
         dialogue: !hasPokedex
           ? ["¡Hola, Pablo! ¡Azul está en el laboratorio del abuelo!"]
@@ -48,6 +50,7 @@ export function buildNPCDatabase(
         name: 'PROF. OAK',
         type: 'npc' as const,
         onInteract: 'oak_parcel_turnin' as const,
+        trainerClass: 'oak',
         position: { x: 4, y: 2 },
         direction: 'down' as const,
         dialogue: hasParcel
@@ -56,7 +59,7 @@ export function buildNPCDatabase(
             ? ["¡La POKÉDEX es un gran invento!", "¡Trata de capturarlos a todos!"]
             : ["¡Hola Pablo! Por fin llegas.", "Toma uno de estos POKÉMON, te ayudará en tu viaje."]
       }] : []),
-      { id: 'rival', name: 'AZUL', type: 'npc', position: { x: 6, y: 3 }, direction: 'left', dialogue: ["¡Abuelo! ¡Yo también quiero un POKÉMON!", "¡Ja! Mi POKÉMON es mucho más fuerte que el tuyo."], isRival: true }
+      { id: 'rival', name: 'AZUL', type: 'npc', position: { x: 6, y: 3 }, direction: 'left', trainerClass: 'rival', dialogue: ["¡Abuelo! ¡Yo también quiero un POKÉMON!", "¡Ja! Mi POKÉMON es mucho más fuerte que el tuyo."], isRival: true }
     ],
     ROUTE_1: [
       {
@@ -65,6 +68,7 @@ export function buildNPCDatabase(
         type: 'npc',
         position: { x: 3, y: 10 },
         direction: 'left',
+        trainerClass: 'youngster',
         dialogue: ["¡Eh! ¡Tú! ¡Mis POKÉMON son de lo mejor!", "¡No me ignores cuando te hablo!"],
         isTrainer: true,
         trainerTeam: [
@@ -78,6 +82,7 @@ export function buildNPCDatabase(
         type: 'npc',
         position: { x: 6, y: 5 },
         direction: 'left',
+        trainerClass: 'bugcatcher',
         dialogue: ["¿Te gustan los POKÉMON bicho?", "¡Son los más guays del mundo!"],
         isTrainer: true,
         trainerTeam: [
@@ -87,10 +92,10 @@ export function buildNPCDatabase(
       }
     ],
     VIRIDIAN_CITY: [
-      { id: 'citizen', name: 'CIUDADANO', type: 'npc', position: { x: 12, y: 20 }, direction: 'down', dialogue: ["¡Bienvenido a Ciudad Verde!", "Aquí puedes curar a tus POKÉMON en el Centro."] }
+      { id: 'citizen', name: 'CIUDADANO', type: 'npc', position: { x: 12, y: 20 }, direction: 'down', trainerClass: 'citizen', dialogue: ["¡Bienvenido a Ciudad Verde!", "Aquí puedes curar a tus POKÉMON en el Centro."] }
     ],
     POKECENTER: [
-      { id: 'joy', name: 'ENFERMERA JOY', type: 'npc', onInteract: 'heal', position: { x: 6, y: 2 }, direction: 'down', dialogue: ["¡Hola! Bienvenida al CENTRO POKÉMON.", "Curaremos a tus POKÉMON hasta que estén a tope."] }
+      { id: 'joy', name: 'ENFERMERA JOY', type: 'npc', onInteract: 'heal', trainerClass: 'nurse', position: { x: 6, y: 2 }, direction: 'down', dialogue: ["¡Hola! Bienvenida al CENTRO POKÉMON.", "Curaremos a tus POKÉMON hasta que estén a tope."] }
     ],
     POKEMART: [
       {
@@ -99,6 +104,7 @@ export function buildNPCDatabase(
         type: 'npc',
         position: { x: 4, y: 2 },
         direction: 'down',
+        trainerClass: 'clerk',
         onInteract: 'shop',
         dialogue: (!hasParcel && !hasPokedex)
           ? ["¡Ah! ¡Tú vienes de PUEBLO PALETA!", "Tengo un paquete para el PROF. OAK. ¿Se lo llevarías?", "¡Gracias! Dile que es de parte de la TIENDA."]
@@ -112,6 +118,7 @@ export function buildNPCDatabase(
         type: 'npc',
         position: { x: 10, y: 10 },
         direction: 'down',
+        trainerClass: 'bugcatcher',
         dialogue: ["¡Mi POKÉMON bicho es el más fuerte!", "¡No podrás pasar de aquí!"],
         isTrainer: true,
         trainerTeam: [
@@ -122,7 +129,7 @@ export function buildNPCDatabase(
       }
     ],
     PEWTER_CITY: [
-      { id: 'pewter_citizen', name: 'CIUDADANO', type: 'npc', position: { x: 18, y: 20 }, direction: 'down', dialogue: ["¡Bienvenido a Ciudad Plateada!", "Brock es el líder del gimnasio local. ¡Es muy duro!"] }
+      { id: 'pewter_citizen', name: 'CIUDADANO', type: 'npc', position: { x: 18, y: 20 }, direction: 'down', trainerClass: 'citizen', dialogue: ["¡Bienvenido a Ciudad Plateada!", "Brock es el líder del gimnasio local. ¡Es muy duro!"] }
     ],
     PEWTER_GYM: [
       {
@@ -131,6 +138,7 @@ export function buildNPCDatabase(
         type: 'npc',
         position: { x: 4, y: 7 },
         direction: 'down',
+        trainerClass: 'hiker',
         dialogue: ["¡Para llegar a BROCK tendrás que vencerme!", "¡Mis POKÉMON son duros!"],
         isTrainer: true,
         trainerTeam: [
@@ -144,6 +152,7 @@ export function buildNPCDatabase(
         type: 'npc',
         position: { x: 4, y: 2 },
         direction: 'down',
+        trainerClass: 'brock',
         dialogue: badges.includes('BOULDER')
           ? ["¡Eres un gran entrenador!", "¡Sigue así!"]
           : ["¡Soy BROCK! ¡El líder de este gimnasio!", "¡Mis POKÉMON son duros como la roca!", "¡Prepárate para perder!"],
@@ -161,6 +170,7 @@ export function buildNPCDatabase(
         type: 'npc',
         position: { x: 5, y: 6 },
         direction: 'right' as Direction,
+        trainerClass: 'bugcatcher',
         dialogue: ["¡Los bichos son los mejores POKÉMON!", "¡Te voy a demostrar que soy el mejor!"],
         isTrainer: true,
         trainerTeam: [
@@ -174,6 +184,7 @@ export function buildNPCDatabase(
         type: 'npc',
         position: { x: 13, y: 11 },
         direction: 'left' as Direction,
+        trainerClass: 'lass',
         dialogue: ["¡Oye tú! ¡No pases por aquí sin luchar!", "¡Mis POKÉMON son adorables Y fuertes!"],
         isTrainer: true,
         trainerTeam: [
@@ -187,6 +198,7 @@ export function buildNPCDatabase(
         type: 'npc',
         position: { x: 8, y: 14 },
         direction: 'down' as Direction,
+        trainerClass: 'youngster',
         dialogue: ["¡Llevo mis pantalones cortos todo el año!", "¡Eso me hace más fuerte!"],
         isTrainer: true,
         trainerTeam: [
@@ -202,6 +214,7 @@ export function buildNPCDatabase(
         type: 'npc',
         position: { x: 6, y: 10 },
         direction: 'down',
+        trainerClass: 'hiker',
         dialogue: ["¡Cuidado! ¡Aquí abundan los ZUBAT!"],
         isTrainer: true,
         trainerTeam: [
@@ -215,6 +228,7 @@ export function buildNPCDatabase(
         type: 'npc',
         position: { x: 12, y: 5 },
         direction: 'left',
+        trainerClass: 'rocket',
         dialogue: ["¡El TEAM ROCKET se hará con todos los fósiles de MT MOON!"],
         isTrainer: true,
         trainerTeam: [
@@ -230,6 +244,7 @@ export function buildNPCDatabase(
         type: 'npc',
         position: { x: 3, y: 12 },
         direction: 'right',
+        trainerClass: 'bugcatcher',
         dialogue: ["¡Atrapé estos bichos en el Bosque Verde!"],
         isTrainer: true,
         trainerTeam: [

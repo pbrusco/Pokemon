@@ -74,6 +74,7 @@ interface GameState extends GameSaveState {
   setSpottedTrainerPos: (pos: SetStateAction<Position | null>) => void;
   setEnemyPokemon: (p: Pokemon | null) => void;
   setIsTrainerBattle: (v: boolean) => void;
+  setTrainerBattleSprite: (url: string | null) => void;
   setBattleLog: (log: string) => void;
   setBattleLogs: (logs: SetStateAction<any[]>) => void;
   setCatchResult: (v: boolean | null) => void;
@@ -97,6 +98,7 @@ interface GameState extends GameSaveState {
   spottedTrainerPos: Position | null;
   enemyPokemon: Pokemon | null;
   isTrainerBattle: boolean;
+  trainerBattleSprite: string | null;
   battleLog: string;
   battleLogs: any[];
   catchResult: boolean | null;
@@ -171,6 +173,7 @@ export const useGameStore = create<GameState>()(
       spottedTrainerPos: null,
       enemyPokemon: null,
       isTrainerBattle: false,
+      trainerBattleSprite: null,
       battleLog: '',
       battleLogs: [],
       catchResult: null,
@@ -273,6 +276,7 @@ export const useGameStore = create<GameState>()(
       setSpottedTrainerPos: (pos) => set((state) => ({ spottedTrainerPos: typeof pos === 'function' ? pos(state.spottedTrainerPos) : pos })),
       setEnemyPokemon: (p) => set({ enemyPokemon: p }),
       setIsTrainerBattle: (v) => set({ isTrainerBattle: v }),
+      setTrainerBattleSprite: (url) => set({ trainerBattleSprite: url }),
       setBattleLog: (log) => set({ battleLog: log }),
       setBattleLogs: (logs) => set((state) => ({ battleLogs: typeof logs === 'function' ? logs(state.battleLogs) : logs })),
       setCatchResult: (v) => set({ catchResult: v }),
@@ -290,6 +294,7 @@ export const useGameStore = create<GameState>()(
           activeBattle: null,
           enemyPokemon: null,
           isTrainerBattle: false,
+          trainerBattleSprite: null,
           battleLog: '',
           battleLogs: [],
           catchResult: null,

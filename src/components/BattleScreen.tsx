@@ -4,6 +4,7 @@ import { Pokemon, Move } from '../types';
 import { soundManager } from '../lib/sounds';
 import { STRUGGLE_MOVE } from '../constants';
 import { sd, sdur } from '../lib/gameSpeed';
+import { useGameStore } from '../store/gameStore';
 
 interface BattleScreenProps {
   currentMap: string;
@@ -143,8 +144,10 @@ export function BattleScreen({
 }: BattleScreenProps) {
 
   const playerPkmn = playerTeam[0];
+  const trainerBattleSprite = useGameStore(s => s.trainerBattleSprite);
   const [hoveredMoveIdx, setHoveredMoveIdx] = useState<number | null>(null);
   const [enemySpriteError, setEnemySpriteError] = useState(false);
+  const [trainerSpriteError, setTrainerSpriteError] = useState(false);
   const [playerSpriteError, setPlayerSpriteError] = useState(false);
 
   useEffect(() => {
@@ -199,6 +202,14 @@ export function BattleScreen({
           <div className="absolute bottom-2 w-full h-8 sm:h-12 bg-white/90 rounded-[100%] border-2 border-slate-200" />
 
           <div className="flex items-end gap-2 relative z-10">
+            {isTrainerBattle && trainerBattleSprite && !trainerSpriteError && (
+              <img
+                src={trainerBattleSprite}
+                className="w-16 h-16 sm:w-24 sm:h-24 mb-4 object-contain pixelated opacity-90 shrink-0"
+                alt="trainer"
+                onError={() => setTrainerSpriteError(true)}
+              />
+            )}
             <motion.div
               className="w-24 h-24 sm:w-40 sm:h-40 relative z-10"
               variants={{
