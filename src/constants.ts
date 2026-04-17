@@ -189,14 +189,53 @@ const CATCH_RATES: Record<string, number> = {
   pidgey: 255,     pidgeotto: 120, pidgeot: 45,
   rattata: 255,    raticate: 127,
   spearow: 255,    fearow: 90,
-  pikachu: 190,    raichu: 75,
-  jigglypuff: 170, wigglytuff: 50,
-  mankey: 190,     primeape: 75,
-  geodude: 255,    graveler: 120,  golem: 45,
-  onix: 45,
-  zubat: 255,      golbat: 90,
+  ekans: 255,      arbok: 90,
+  sandshrew: 255,  sandslash: 127,
   'nidoran-f': 235, nidorina: 120, nidoqueen: 45,
   'nidoran-m': 235, nidorino: 120, nidoking: 45,
+  clefairy: 150,    clefable: 50,
+  vulpix: 190,     ninetales: 75,
+  jigglypuff: 170, wigglytuff: 50,
+  zubat: 255,      golbat: 90,
+  oddish: 255,     gloom: 120,    vileplume: 45,
+  paras: 255,     parasect: 127,
+  venonat: 255,   venomoth: 90,
+  diglett: 255,   dugtrio: 127,
+  meowth: 255,    persian: 127,
+  psyduck: 255,   golduck: 127,
+  mankey: 190,    primeape: 75,
+  growlithe: 75,    arcanine: 75,
+  poliwag: 255,   poliwhirl: 120, poliwrath: 45,
+  Abra: 200,      kadabra: 100,   alakazam: 50,
+  machop: 180,    machoke: 90,    machamp: 45,
+  bellsprout: 255, weepinbell: 120, victreebel: 45,
+  tentacool: 255,  tentacruel: 60,
+  geodude: 255,    graveler: 120, golem: 45,
+  ponyta: 190,    rapidash: 75,
+  slowpoke: 255,   slowbro: 75,
+  magnemite: 255,  magneton: 60,
+  farfetchd: 90,
+  doduo: 255,     dodrio: 90,
+  seel: 255,      dewgong: 75,
+  grimer: 255,    muk: 75,
+  shellder: 255,   cloyster: 60,
+  gastly: 180,    haunter: 90,    gengar: 45,
+  onix: 45,
+  drowzee: 255,   hypno: 75,
+  krabby: 255,   kingler: 60,
+  voltorb: 255,  electrode: 60,
+  exeggcute: 255, exeggutor: 45,
+  cubone: 190,    marowak: 75,
+  hitmonlee: 45,  hitmonchan: 45,
+  lickitung: 75,
+  koffing: 255,  weezing: 60,
+  rhyhorn: 255,  rhydon: 60,
+  chansey: 30,
+  tangela: 75,
+  kangaskhan: 60,
+  horsea: 255,   seadra: 60,
+  goldeen: 255,   seaking: 60,
+staryu: 255,  starmie: 60,
 };
 
 // ─── Gen I growth rates per species ───────────────────────────────────────────
@@ -212,15 +251,73 @@ const GROWTH_RATES: Record<string, Pokemon['growthRate']> = {
   // Common wilds: medium_fast
   pidgey: 'medium_fast',    pidgeotto: 'medium_fast', pidgeot: 'medium_fast',
   rattata: 'medium_fast',   raticate: 'medium_fast',
-  spearow: 'medium_fast',   fearow: 'medium_fast',
-  pikachu: 'medium_fast',   raichu: 'medium_fast',
-  jigglypuff: 'fast',       wigglytuff: 'fast',
-  mankey: 'medium_fast',    primeape: 'medium_fast',
-  geodude: 'medium_slow',   graveler: 'medium_slow',  golem: 'medium_slow',
-  onix: 'medium_fast',
-  zubat: 'medium_fast',     golbat: 'medium_fast',
+  spearow: 'medium_fast',  fearow: 'medium_fast',
+  ekans: 'medium_fast',    arbok: 'medium_fast',
+  sandshrew: 'medium_slow',  sandslash: 'medium_slow',
   'nidoran-f': 'medium_slow', nidorina: 'medium_slow', nidoqueen: 'medium_slow',
   'nidoran-m': 'medium_slow', nidorino: 'medium_slow', nidoking: 'medium_slow',
+  clefairy: 'fast',     clefable: 'fast',
+  vulpix: 'medium_slow', ninetales: 'medium_slow',
+  jigglypuff: 'fast',    wigglytuff: 'fast',
+  zubat: 'medium_fast',  golbat: 'medium_fast',
+  oddish: 'medium_slow', gloom: 'medium_slow', vileplume: 'medium_slow',
+  paras: 'medium_slow',  parasect: 'medium_slow',
+  venonat: 'medium_slow', venomoth: 'medium_slow',
+  diglett: 'medium_slow',  dugtrio: 'medium_slow',
+  meowth: 'medium_fast',  persian: 'medium_fast',
+  psyduck: 'medium_slow', golduck: 'medium_slow',
+  mankey: 'medium_fast', primeape: 'medium_fast',
+  growlithe: 'medium_slow', arcanine: 'medium_slow',
+  poliwag: 'medium_slow', poliwhirl: 'medium_slow', poliwrath: 'medium_slow',
+  abra: 'medium_slow',   kadabra: 'medium_slow', alakazam: 'medium_slow',
+  machop: 'medium_slow', machoke: 'medium_slow', machamp: 'medium_slow',
+  bellsprout: 'medium_slow', weepinbell: 'medium_slow', victreebel: 'medium_slow',
+  tentacool: 'medium_slow', tentacruel: 'medium_slow',
+  geodude: 'medium_slow', graveler: 'medium_slow', golem: 'medium_slow',
+  ponyta: 'medium_slow', rapidash: 'medium_slow',
+  slowpoke: 'medium_slow', slowbro: 'medium_slow',
+  magnemite: 'medium_fast', magneton: 'medium_fast',
+  farfetchd: 'medium_fast',
+  doduo: 'medium_fast', dodrio: 'medium_fast',
+  seel: 'medium_fast', dewgong: 'medium_fast',
+  grimer: 'medium_slow', muk: 'medium_slow',
+  shellder: 'medium_slow', cloyster: 'medium_slow',
+  gastly: 'medium_slow', haunter: 'medium_slow', gengar: 'medium_slow',
+  onix: 'medium_slow',
+  drowzee: 'medium_slow', hypno: 'medium_slow',
+  krabby: 'medium_slow', kingler: 'medium_slow',
+  voltorb: 'medium_fast', electrode: 'medium_fast',
+  exeggcute: 'medium_slow', exeggutor: 'medium_slow',
+  cubone: 'medium_slow', marowak: 'medium_slow',
+  hitmonlee: 'medium_fast', hitmonchan: 'medium_fast',
+  lickitung: 'medium_slow',
+  koffing: 'medium_slow', weezing: 'medium_slow',
+  rhyhorn: 'medium_slow', rhydon: 'medium_slow',
+  chansey: 'fast',
+  tangela: 'medium_slow',
+  kangaskhan: 'medium_fast',
+  horsea: 'medium_slow', seadra: 'medium_slow',
+  goldeen: 'medium_slow', seaking: 'medium_slow',
+  staryu: 'medium_slow', starmie: 'medium_slow',
+  'mr-mime': 'medium_fast',
+  scyther: 'medium_fast',
+  jynx: 'medium_slow',
+  electabuzz: 'medium_slow', magmar: 'medium_slow',
+  pinsir: 'medium_fast',
+  tauros: 'medium_fast',
+  magikarp: 'slow',  gyarados: 'slow',
+  lapras: 'medium_slow',
+  ditto: 'medium_fast',
+  eevee: 'medium_fast',
+  vaporeon: 'medium_fast', jolteon: 'medium_fast', flareon: 'medium_fast',
+  porygon: 'medium_fast',
+  omanyte: 'medium_slow', omastar: 'medium_slow',
+  kabuto: 'medium_slow', kabutops: 'medium_slow',
+  aerodactyl: 'slow',
+  snorlax: 'slow',
+  articuno: 'slow',    zapdos: 'slow',    moltres: 'slow',
+  dratini: 'slow',    dragonair: 'slow',   dragonite: 'slow',
+  mewtwo: 'slow',     mew: 'slow',
 };
 
 /**
@@ -490,12 +587,138 @@ export const POKEMON_LIST: PokemonSummary[] = [
 ];
 
 export const EVOLUTIONS: Record<string, Partial<Pokemon>> = {
+  // Bulbasaur line
   ivysaur: { name: 'IVYSAUR', sprite: getSprite(2), baseStats: BASE_STATS.ivysaur, types: ['grass', 'poison'], evolutionLevel: 32, evolvesTo: 'venusaur' },
   venusaur: { name: 'VENUSAUR', sprite: getSprite(3), baseStats: BASE_STATS.venusaur, types: ['grass', 'poison'] },
+  // Charmander line
   charmeleon: { name: 'CHARMELEON', sprite: getSprite(5), baseStats: BASE_STATS.charmeleon, evolutionLevel: 36, evolvesTo: 'charizard' },
   charizard: { name: 'CHARIZARD', sprite: getSprite(6), baseStats: BASE_STATS.charizard, types: ['fire', 'flying'] },
+  // Squirtle line
   wartortle: { name: 'WARTORTLE', sprite: getSprite(8), baseStats: BASE_STATS.wartortle, evolutionLevel: 36, evolvesTo: 'blastoise' },
   blastoise: { name: 'BLASTOISE', sprite: getSprite(9), baseStats: BASE_STATS.blastoise },
+  // Caterpie line
+  metapod: { name: 'METAPOD', sprite: getSprite(11), baseStats: BASE_STATS.metapod, evolutionLevel: 10, evolvesTo: 'butterfree' },
+  butterfree: { name: 'BUTTERFREE', sprite: getSprite(12), baseStats: BASE_STATS.butterfree, types: ['bug', 'flying'] },
+  // Weedle line
+  kakuna: { name: 'KAKUNA', sprite: getSprite(14), baseStats: BASE_STATS.kakuna, evolutionLevel: 10, evolvesTo: 'beedrill' },
+  beedrill: { name: 'BEEDRILL', sprite: getSprite(15), baseStats: BASE_STATS.beedrill, types: ['bug', 'poison'] },
+  // Pidgey line
+  pidgeotto: { name: 'PIDGEOTTO', sprite: getSprite(17), baseStats: BASE_STATS.pidgeotto, evolutionLevel: 36, evolvesTo: 'pidgeot' },
+  pidgeot: { name: 'PIDGEOT', sprite: getSprite(18), baseStats: BASE_STATS.pidgeot, types: ['normal', 'flying'] },
+  // Rattata line
+  raticate: { name: 'RATICATE', sprite: getSprite(20), baseStats: BASE_STATS.raticate, types: ['normal'] },
+  // Spearow line
+  fearow: { name: 'FEAROW', sprite: getSprite(22), baseStats: BASE_STATS.fearow, types: ['normal', 'flying'] },
+  // Ekans line
+  arbok: { name: 'ARBOK', sprite: getSprite(24), baseStats: BASE_STATS.arbok, types: ['poison'] },
+  // Sandshrew line
+  sandslash: { name: 'SANDSLASH', sprite: getSprite(28), baseStats: BASE_STATS.sandslash, types: ['ground'] },
+  // Nidoran lines
+  nidorina: { name: 'NIDORINA', sprite: getSprite(30), baseStats: BASE_STATS.nidorina, evolutionLevel: 32, evolvesTo: 'nidoqueen' },
+  nidoqueen: { name: 'NIDOQUEEN', sprite: getSprite(31), baseStats: BASE_STATS.nidoqueen, types: ['poison', 'ground'] },
+  nidorino: { name: 'NIDORINO', sprite: getSprite(33), baseStats: BASE_STATS.nidorino, evolutionLevel: 32, evolvesTo: 'nidoking' },
+  nidoking: { name: 'NIDOKING', sprite: getSprite(34), baseStats: BASE_STATS.nidoking, types: ['poison', 'ground'] },
+  // Clefairy line
+  clefable: { name: 'CLEFABLE', sprite: getSprite(36), baseStats: BASE_STATS.clefable, types: ['normal'] },
+  // Vulpix line
+  ninetales: { name: 'NINETALES', sprite: getSprite(38), baseStats: BASE_STATS.ninetales, types: ['fire'] },
+  // Jigglypuff line
+  wigglytuff: { name: 'WIGGLYTUFF', sprite: getSprite(40), baseStats: BASE_STATS.wigglytuff, types: ['normal'] },
+  // Zubat line
+  golbat: { name: 'GOLBAT', sprite: getSprite(42), baseStats: BASE_STATS.golbat, types: ['poison', 'flying'] },
+  // Oddish line
+  gloom: { name: 'GLOOM', sprite: getSprite(44), baseStats: BASE_STATS.gloom, evolutionLevel: 21, evolvesTo: 'vileplume' },
+  vileplume: { name: 'VILEPLUME', sprite: getSprite(45), baseStats: BASE_STATS.vileplume, types: ['grass', 'poison'] },
+  // Paras line
+  parasect: { name: 'PARASECT', sprite: getSprite(47), baseStats: BASE_STATS.parasect, types: ['bug', 'grass'] },
+  // Venonat line
+  venomoth: { name: 'VENOMOTH', sprite: getSprite(49), baseStats: BASE_STATS.venomoth, types: ['bug', 'poison'] },
+  // Diglett line
+  dugtrio: { name: 'DUGTRIO', sprite: getSprite(51), baseStats: BASE_STATS.dugtrio, types: ['ground'] },
+  // Meowth line
+  persian: { name: 'PERSIAN', sprite: getSprite(53), baseStats: BASE_STATS.persian, types: ['normal'] },
+  // Psyduck line
+  golduck: { name: 'GOLDUCK', sprite: getSprite(55), baseStats: BASE_STATS.golduck, types: ['water'] },
+  // Mankey line
+  primeape: { name: 'PRIMEAPE', sprite: getSprite(57), baseStats: BASE_STATS.primeape, types: ['fighting'] },
+  // Growlithe line
+  arcanine: { name: 'ARCANINE', sprite: getSprite(59), baseStats: BASE_STATS.arcanine, types: ['fire'] },
+  // Poliwag line
+  poliwhirl: { name: 'POLIWHIRL', sprite: getSprite(61), baseStats: BASE_STATS.poliwhirl, evolutionLevel: 36, evolvesTo: 'poliwrath' },
+  poliwrath: { name: 'POLIWRATH', sprite: getSprite(62), baseStats: BASE_STATS.poliwrath, types: ['water', 'fighting'] },
+  // Abra line
+  kadabra: { name: 'KADABRA', sprite: getSprite(64), baseStats: BASE_STATS.kadabra, evolutionLevel: 16, evolvesTo: 'alakazam' },
+  alakazam: { name: 'ALAKAZAM', sprite: getSprite(65), baseStats: BASE_STATS.alakazam, types: ['psychic'] },
+  // Machop line
+  machoke: { name: 'MACHOKE', sprite: getSprite(67), baseStats: BASE_STATS.machoke, evolutionLevel: 36, evolvesTo: 'machamp' },
+  machamp: { name: 'MACHAMP', sprite: getSprite(68), baseStats: BASE_STATS.machamp, types: ['fighting'] },
+  // Bellsprout line
+  weepinbell: { name: 'WEEPINBELL', sprite: getSprite(70), baseStats: BASE_STATS.weepinbell, evolutionLevel: 21, evolvesTo: 'victreebel' },
+  victreebel: { name: 'VICTREEBEL', sprite: getSprite(71), baseStats: BASE_STATS.victreebel, types: ['grass', 'poison'] },
+  // Tentacool line
+  tentacruel: { name: 'TENTACRUEL', sprite: getSprite(73), baseStats: BASE_STATS.tentacruel, types: ['water', 'poison'] },
+  // Geodude line
+  graveler: { name: 'GRAVELER', sprite: getSprite(75), baseStats: BASE_STATS.graveler, evolutionLevel: 36, evolvesTo: 'golem' },
+  golem: { name: 'GOLEM', sprite: getSprite(76), baseStats: BASE_STATS.golem, types: ['rock', 'ground'] },
+  // Ponyta line
+  rapidash: { name: 'RAPIDASH', sprite: getSprite(78), baseStats: BASE_STATS.rapidash, types: ['fire'] },
+  // Slowpoke line
+  slowbro: { name: 'SLOWBRO', sprite: getSprite(80), baseStats: BASE_STATS.slowbro, types: ['water', 'psychic'] },
+  // Magnemite line
+  magneton: { name: 'MAGNETON', sprite: getSprite(82), baseStats: BASE_STATS.magneton, types: ['electric', 'steel'] },
+  // Doduo line
+  dodrio: { name: 'DODRIO', sprite: getSprite(85), baseStats: BASE_STATS.dodrio, types: ['normal', 'flying'] },
+  // Seel line
+  dewgong: { name: 'DEWGONG', sprite: getSprite(87), baseStats: BASE_STATS.dewgong, types: ['water', 'ice'] },
+  // Grimer line
+  muk: { name: 'MUK', sprite: getSprite(89), baseStats: BASE_STATS.muk, types: ['poison'] },
+  // Shellder line
+  cloyster: { name: 'CLOYSTER', sprite: getSprite(91), baseStats: BASE_STATS.cloyster, types: ['water', 'ice'] },
+  // Gastly line
+  haunter: { name: 'HAUNTER', sprite: getSprite(93), baseStats: BASE_STATS.haunter, evolutionLevel: 25, evolvesTo: 'gengar' },
+  gengar: { name: 'GENGAR', sprite: getSprite(94), baseStats: BASE_STATS.gengar, types: ['ghost', 'poison'] },
+  // Onix
+  onix: { name: 'ONIX', sprite: getSprite(95), baseStats: BASE_STATS.onix, types: ['rock', 'ground'] },
+  // Drowzee line
+  hypno: { name: 'HYPNO', sprite: getSprite(97), baseStats: BASE_STATS.hypno, types: ['psychic'] },
+  // Krabby line
+  kingler: { name: 'KINGLER', sprite: getSprite(99), baseStats: BASE_STATS.kingler, types: ['water'] },
+  // Voltorb line
+  electrode: { name: 'ELECTRODE', sprite: getSprite(101), baseStats: BASE_STATS.electrode, types: ['electric'] },
+  // Exeggcute line
+  exeggutor: { name: 'EXEGGUTOR', sprite: getSprite(103), baseStats: BASE_STATS.exeggutor, types: ['grass', 'psychic'] },
+  // Cubone line
+  marowak: { name: 'MAROWAK', sprite: getSprite(105), baseStats: BASE_STATS.marowak, types: ['ground'] },
+  // Rhyhorn line
+  rhydon: { name: 'RHYDON', sprite: getSprite(112), baseStats: BASE_STATS.rhydon, types: ['ground', 'rock'] },
+  // Horsea line
+  seadra: { name: 'SEADRA', sprite: getSprite(117), baseStats: BASE_STATS.seadra, types: ['water', 'dragon'] },
+  // Goldeen line
+  seaking: { name: 'SEAKING', sprite: getSprite(119), baseStats: BASE_STATS.seaking, types: ['water'] },
+  // Staryu line
+  starmie: { name: 'STARMIE', sprite: getSprite(121), baseStats: BASE_STATS.starmie, types: ['water', 'psychic'] },
+  // Scyther
+  scyther: { name: 'SCYTHER', sprite: getSprite(123), baseStats: BASE_STATS.scyther, types: ['bug', 'flying'] },
+  // Jynx
+  jynx: { name: 'JYNX', sprite: getSprite(124), baseStats: BASE_STATS.jynx, types: ['ice', 'psychic'] },
+  // Electabuzz line
+  electabuzz: { name: 'ELECTABUZZ', sprite: getSprite(125), baseStats: BASE_STATS.electabuzz, types: ['electric'] },
+  magmar: { name: 'MAGMAR', sprite: getSprite(126), baseStats: BASE_STATS.magmar, types: ['fire'] },
+  // Magikarp line
+  gyarados: { name: 'GYARADOS', sprite: getSprite(130), baseStats: BASE_STATS.gyarados, types: ['water', 'flying'] },
+  // Eevee line
+  vaporeon: { name: 'VAPOREON', sprite: getSprite(134), baseStats: BASE_STATS.vaporeon, types: ['water'] },
+  jolteon: { name: 'JOLTEON', sprite: getSprite(135), baseStats: BASE_STATS.jolteon, types: ['electric'] },
+  flareon: { name: 'FLAREON', sprite: getSprite(136), baseStats: BASE_STATS.flareon, types: ['fire'] },
+  // Porygon
+  porygon: { name: 'PORYGON', sprite: getSprite(137), baseStats: BASE_STATS.porygon, types: ['normal'] },
+  // Omanyte line
+  omastar: { name: 'OMASTAR', sprite: getSprite(139), baseStats: BASE_STATS.omastar, types: ['water', 'rock'] },
+  // Kabuto line
+  kabutops: { name: 'KABUTOPS', sprite: getSprite(141), baseStats: BASE_STATS.kabutops, types: ['water', 'rock'] },
+  // Dratini line
+  dragonair: { name: 'DRAGONAIR', sprite: getSprite(148), baseStats: BASE_STATS.dragonair, evolutionLevel: 55, evolvesTo: 'dragonite' },
+  dragonite: { name: 'DRAGONITE', sprite: getSprite(149), baseStats: BASE_STATS.dragonite, types: ['dragon', 'flying'] },
 };
 
 /** Used automatically when all moves have 0 PP. Typeless, 50 power, 1/4 recoil. */

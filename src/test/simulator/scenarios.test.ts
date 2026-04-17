@@ -48,12 +48,12 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
   it('walks player to Oak lab after dismissing Oak\'s dialogue', () => {
     sim = new GameSimulator().init({
       currentMap: 'PALLET_TOWN',
-      playerPos: { x: 10, y: 6 },
+      playerPos: { x: 10, y: 1 },
       direction: 'up',
       playerTeam: [],
     });
 
-    // Move north toward Route 1 (y=5 triggers Oak's stop event)
+    // Move north toward Route 1 (y=0 triggers Oak's stop event)
     sim.move('up');
 
     // Oak's dialogue should be shown immediately
@@ -75,7 +75,7 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
   it('does not retrigger when player already has a team', () => {
     sim = new GameSimulator().init({
       currentMap: 'PALLET_TOWN',
-      playerPos: { x: 10, y: 6 },
+      playerPos: { x: 10, y: 1 },
       direction: 'up',
       playerTeam: [STARTERS[0]],
       storyStep: 'EXPLORING',
@@ -94,19 +94,19 @@ describe('Scenario 1b: Oak\'s Lab locked at START', () => {
   it('blocks entry to Oak\'s Lab and shows locked message', () => {
     sim = new GameSimulator().init({
       currentMap: 'PALLET_TOWN',
-      // Stand one tile above the lab door at (10, 14)
-      playerPos: { x: 10, y: 15 },
+      // Stand one tile below the lab door at (12, 11)
+      playerPos: { x: 12, y: 12 },
       direction: 'up',
       playerTeam: [],
       storyStep: 'START',
     });
 
-    // Try to walk onto the lab door tile (10, 14) — should be blocked by lab_locked object
+    // Try to walk onto the lab door tile (12, 11) — should be blocked by lab_locked object
     sim.move('up');
     sim.tick(500);
 
-    // Player should NOT have moved (still at y=15)
-    expect(sim.pos).toEqual({ x: 10, y: 15 });
+    // Player should NOT have moved (still at (12, 12))
+    expect(sim.pos).toEqual({ x: 12, y: 12 });
     expect(sim.map).toBe('PALLET_TOWN');
 
     // Interact with the blocking sign
@@ -123,14 +123,14 @@ describe('Scenario 2: Pick starter in Oak\'s Lab', () => {
   it('adds the chosen starter to the team', () => {
     sim = new GameSimulator().init({
       currentMap: 'OAKS_LAB',
-      // Stand one tile south of the first starter at (9, 8)
-      playerPos: { x: 9, y: 9 },
+      // Stand one tile south of the first starter at (3, 5)
+      playerPos: { x: 3, y: 6 },
       direction: 'up',
       playerTeam: [],
       storyStep: 'OAK_STOPPED',
     });
 
-    // Interact with the starter item (facing up toward y=8)
+    // Interact with the starter item (facing up toward y=5)
     sim.interact();
 
     expect(sim.team).toHaveLength(1);
@@ -146,7 +146,7 @@ describe('Scenario 3: Rival battle after starter pick', () => {
   it('transitions to battle after picking a starter', () => {
     sim = new GameSimulator().init({
       currentMap: 'OAKS_LAB',
-      playerPos: { x: 9, y: 9 },
+      playerPos: { x: 3, y: 6 },
       direction: 'up',
       playerTeam: [],
       storyStep: 'OAK_STOPPED',
@@ -174,7 +174,7 @@ describe('Scenario 4: Win rival battle', () => {
     // Start with a strong Pokémon so we win quickly
     sim = new GameSimulator().init({
       currentMap: 'OAKS_LAB',
-      playerPos: { x: 9, y: 9 },
+      playerPos: { x: 3, y: 6 },
       direction: 'up',
       playerTeam: [],
       storyStep: 'OAK_STOPPED',
@@ -228,8 +228,8 @@ describe('Scenario 5: Mom with no Pokémon', () => {
   it('shows dialogue but does NOT trigger healing phase', () => {
     sim = new GameSimulator().init({
       currentMap: 'PLAYERS_HOUSE_1F',
-      // Mom is at (10, 8); stand one tile south
-      playerPos: { x: 10, y: 9 },
+      // Mom is at (5, 4); stand one tile south
+      playerPos: { x: 5, y: 5 },
       direction: 'up',
       playerTeam: [],
     });
@@ -253,7 +253,7 @@ describe('Scenario 6: Mom heals team', () => {
     const wounded = woundedStarter();
     sim = new GameSimulator().init({
       currentMap: 'PLAYERS_HOUSE_1F',
-      playerPos: { x: 10, y: 9 },
+      playerPos: { x: 5, y: 5 },
       direction: 'up',
       playerTeam: [wounded],
     });
@@ -308,8 +308,8 @@ describe('Scenario 8: Pokémart parcel pickup', () => {
   it('gives OAK_PARCEL on first visit', () => {
     sim = new GameSimulator().init({
       currentMap: 'POKEMART',
-      // Shop NPC at (7, 7); stand below
-      playerPos: { x: 7, y: 8 },
+      // Shop NPC at (4, 2); stand below
+      playerPos: { x: 4, y: 3 },
       direction: 'up',
       playerTeam: [STARTERS[0]],
       hasParcel: false,
@@ -331,8 +331,8 @@ describe('Scenario 9: Deliver parcel to Oak → Pokédex', () => {
   it('removes parcel and grants Pokédex', () => {
     sim = new GameSimulator().init({
       currentMap: 'OAKS_LAB',
-      // Oak NPC at (10, 7); stand below
-      playerPos: { x: 10, y: 8 },
+      // Oak NPC at (4, 2); stand below
+      playerPos: { x: 4, y: 3 },
       direction: 'up',
       playerTeam: [STARTERS[0]],
       hasParcel: true,
@@ -356,7 +356,7 @@ describe('Scenario 10: Pokéball blocked in trainer battle', () => {
   it('rejects Pokéball, keeps inventory, stays in CHOOSING', () => {
     sim = new GameSimulator().init({
       currentMap: 'OAKS_LAB',
-      playerPos: { x: 9, y: 9 },
+      playerPos: { x: 3, y: 6 },
       direction: 'up',
       playerTeam: [],
       storyStep: 'OAK_STOPPED',
@@ -394,8 +394,8 @@ describe('Scenario 11: Pokécenter healing', () => {
     const wounded = woundedStarter();
     sim = new GameSimulator().init({
       currentMap: 'POKECENTER',
-      // Nurse Joy at (10, 7); stand below
-      playerPos: { x: 10, y: 8 },
+      // Nurse Joy at (6, 2); stand below
+      playerPos: { x: 6, y: 3 },
       direction: 'up',
       playerTeam: [wounded],
       storyStep: 'EXPLORING',

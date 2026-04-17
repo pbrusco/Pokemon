@@ -48,16 +48,16 @@ const safeLocalStorage = {
 };
 
 const INITIAL_SAVE_STATE: GameSaveState = {
-  playerPos: { x: 10, y: 10 },
+  playerPos: { x: 5, y: 6 },
   direction: 'down',
   currentMap: 'PALLET_TOWN',
-  
+
   hasPokedex: false,
   hasParcel: false,
   badges: [],
   storyStep: 'START',
   defeatedTrainers: [],
-  lastHealLocation: { map: 'PALLET_TOWN', pos: { x: 7, y: 11 } },
+  lastHealLocation: { map: 'PLAYERS_HOUSE_1F', pos: { x: 3, y: 6 } },
   
   inventory: { POTION: 5, POKEBALL: 10 },
   playerTeam: [],
@@ -304,7 +304,7 @@ export const useGameStore = create<GameState>()(
       },
     }),
     {
-      name: 'pokemon-firered-save',
+      name: 'pokemon-firered-save-v2',
       storage: createJSONStorage(() => safeLocalStorage),
       partialize: (state) => ({
         playerPos: state.playerPos,

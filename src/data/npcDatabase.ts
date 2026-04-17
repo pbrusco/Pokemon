@@ -12,7 +12,7 @@ export function buildNPCDatabase(
 ): Record<MapID, NPC[]> {
   return {
     PALLET_TOWN: [
-      ...(playerTeam.length === 0 ? [{ id: 'oak_pallet', name: 'PROF. OAK', type: 'npc' as const, position: oakCutscenePos || { x: 10, y: 4 }, direction: oakCutsceneDir || ('down' as const), dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."] }] : []),
+      ...(playerTeam.length === 0 ? [{ id: 'oak_pallet', name: 'PROF. OAK', type: 'npc' as const, position: oakCutscenePos || { x: 10, y: 2 }, direction: oakCutsceneDir || ('down' as const), dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."] }] : []),
       { id: 'fat_man', name: 'SEÑOR GORDO', type: 'npc', position: { x: 16, y: 10 }, direction: 'left', dialogue: ["¡La tecnología es increíble!", "¡Ahora puedes guardar POKÉMON y objetos como datos en el PC!"] }
     ],
     PLAYERS_HOUSE_1F: [
@@ -21,7 +21,7 @@ export function buildNPCDatabase(
         name: 'MAMÁ',
         type: 'npc',
         onInteract: 'heal',
-        position: { x: 10, y: 8 },
+        position: { x: 5, y: 4 },
         direction: 'down',
         dialogue: playerTeam.length === 0
           ? ["¡Todos los chicos se van de casa algún día. ¡Lo dijeron en la tele!"]
@@ -34,7 +34,7 @@ export function buildNPCDatabase(
         id: 'daisy',
         name: 'MARGARITA',
         type: 'npc',
-        position: { x: 10, y: 8 },
+        position: { x: 5, y: 4 },
         direction: 'down',
         onInteract: 'give_town_map',
         dialogue: !hasPokedex
@@ -48,7 +48,7 @@ export function buildNPCDatabase(
         name: 'PROF. OAK',
         type: 'npc' as const,
         onInteract: 'oak_parcel_turnin' as const,
-        position: { x: 10, y: 7 },
+        position: { x: 4, y: 2 },
         direction: 'down' as const,
         dialogue: hasParcel
           ? ["¡Oh! ¡Es el paquete que pedí!", "¡Gracias! Como recompensa, tomad esto: ¡Una POKÉDEX!", "¡Es un inventario de alta tecnología!"]
@@ -56,7 +56,7 @@ export function buildNPCDatabase(
             ? ["¡La POKÉDEX es un gran invento!", "¡Trata de capturarlos a todos!"]
             : ["¡Hola Pablo! Por fin llegas.", "Toma uno de estos POKÉMON, te ayudará en tu viaje."]
       }] : []),
-      { id: 'rival', name: 'AZUL', type: 'npc', position: { x: 11, y: 7 }, direction: 'left', dialogue: ["¡Abuelo! ¡Yo también quiero un POKÉMON!", "¡Ja! Mi POKÉMON es mucho más fuerte que el tuyo."], isRival: true }
+      { id: 'rival', name: 'AZUL', type: 'npc', position: { x: 6, y: 3 }, direction: 'left', dialogue: ["¡Abuelo! ¡Yo también quiero un POKÉMON!", "¡Ja! Mi POKÉMON es mucho más fuerte que el tuyo."], isRival: true }
     ],
     ROUTE_1: [
       {
@@ -90,14 +90,14 @@ export function buildNPCDatabase(
       { id: 'citizen', name: 'CIUDADANO', type: 'npc', position: { x: 10, y: 12 }, direction: 'down', dialogue: ["¡Bienvenido a Ciudad Verde!", "Aquí puedes curar a tus POKÉMON en el Centro."] }
     ],
     POKECENTER: [
-      { id: 'joy', name: 'ENFERMERA JOY', type: 'npc', onInteract: 'heal', position: { x: 10, y: 7 }, direction: 'down', dialogue: ["¡Hola! Bienvenida al CENTRO POKÉMON.", "Curaremos a tus POKÉMON hasta que estén a tope."] }
+      { id: 'joy', name: 'ENFERMERA JOY', type: 'npc', onInteract: 'heal', position: { x: 6, y: 2 }, direction: 'down', dialogue: ["¡Hola! Bienvenida al CENTRO POKÉMON.", "Curaremos a tus POKÉMON hasta que estén a tope."] }
     ],
     POKEMART: [
       {
         id: 'clerk',
         name: 'DEPENDIENTE',
         type: 'npc',
-        position: { x: 7, y: 7 },
+        position: { x: 4, y: 2 },
         direction: 'down',
         onInteract: 'shop',
         dialogue: (!hasParcel && !hasPokedex)
@@ -129,7 +129,7 @@ export function buildNPCDatabase(
         id: 'gym_trainer',
         name: 'ENTRENADOR GYM',
         type: 'npc',
-        position: { x: 10, y: 11 },
+        position: { x: 4, y: 7 },
         direction: 'down',
         dialogue: ["¡Para llegar a BROCK tendrás que vencerme!", "¡Mis POKÉMON son duros!"],
         isTrainer: true,
@@ -142,7 +142,7 @@ export function buildNPCDatabase(
         id: 'brock',
         name: 'BROCK',
         type: 'npc',
-        position: { x: 10, y: 7 },
+        position: { x: 4, y: 2 },
         direction: 'down',
         dialogue: badges.includes('BOULDER')
           ? ["¡Eres un gran entrenador!", "¡Sigue así!"]
@@ -244,22 +244,22 @@ export function buildNPCDatabase(
 export function buildItemDatabase(pickedItemIds: string[], storyStep: string): Record<MapID, Entity[]> {
   const rawItems: Record<MapID, Entity[]> = {
     OAKS_LAB: [
-      { id: 'starter_1', type: 'item', position: { x: 9, y: 8 }, direction: 'down', sprite: STARTERS[0].sprite },
-      { id: 'starter_2', type: 'item', position: { x: 10, y: 8 }, direction: 'down', sprite: STARTERS[1].sprite },
-      { id: 'starter_3', type: 'item', position: { x: 11, y: 8 }, direction: 'down', sprite: STARTERS[2].sprite },
+      { id: 'starter_1', type: 'item', position: { x: 3, y: 5 }, direction: 'down', sprite: STARTERS[0].sprite },
+      { id: 'starter_2', type: 'item', position: { x: 4, y: 5 }, direction: 'down', sprite: STARTERS[1].sprite },
+      { id: 'starter_3', type: 'item', position: { x: 5, y: 5 }, direction: 'down', sprite: STARTERS[2].sprite },
     ],
     PALLET_TOWN: [
-      { id: 'sign_home', type: 'object', position: { x: 8, y: 10 }, direction: 'down', sprite: '🪧' },
-      { id: 'sign_rival', type: 'object', position: { x: 12, y: 10 }, direction: 'down', sprite: '🪧' },
-      { id: 'sign_lab', type: 'object', position: { x: 11, y: 14 }, direction: 'down', sprite: '🪧' },
+      { id: 'sign_home', type: 'object', position: { x: 3, y: 5 }, direction: 'down', sprite: '🪧' },
+      { id: 'sign_rival', type: 'object', position: { x: 11, y: 5 }, direction: 'down', sprite: '🪧' },
+      { id: 'sign_lab', type: 'object', position: { x: 7, y: 9 }, direction: 'down', sprite: '🪧' },
       ...(storyStep === 'START' ? [
-        { id: 'lab_locked', type: 'object' as const, position: { x: 10, y: 14 }, direction: 'down' as const, sprite: '🚫' },
+        { id: 'lab_locked', type: 'object' as const, position: { x: 12, y: 11 }, direction: 'down' as const, sprite: '🚫' },
       ] : []),
     ],
     PLAYERS_HOUSE_1F: [],
     PLAYERS_HOUSE_2F: [
-      { id: 'snes', type: 'object', position: { x: 5, y: 5 }, direction: 'down', sprite: '🎮' },
-      { id: 'pc_reds_house', type: 'object', position: { x: 15, y: 5 }, direction: 'down', sprite: '💻' },
+      { id: 'snes', type: 'object', position: { x: 2, y: 4 }, direction: 'down', sprite: '🎮' },
+      { id: 'pc_reds_house', type: 'object', position: { x: 5, y: 5 }, direction: 'down', sprite: '💻' },
     ],
     RIVALS_HOUSE: [],
     ROUTE_1: [

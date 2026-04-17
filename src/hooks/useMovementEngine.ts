@@ -10,7 +10,7 @@ import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES } from '../constants';
 import { triggerOakCutscene } from '../lib/oakCutscene';
 import { triggerTrainerCutscene } from '../lib/cutscenes/trainerEncounter';
 import { useGameStore } from '../store/gameStore';
-import { GRID_SIZE, MapID } from '../types';
+import { MapID } from '../types';
 import { launchBattle } from '../lib/launchBattle';
 
 // ── Extracted helpers (pure or store-writing, no React hooks) ────────────────
@@ -166,7 +166,7 @@ export function useMovementEngine({
     }
 
     // Story Event: Oak stops the player from leaving Pallet Town north without pokemon
-    if (currentMap === 'PALLET_TOWN' && nextY === 5 && playerTeam.length === 0) {
+    if (currentMap === 'PALLET_TOWN' && nextY === 0 && playerTeam.length === 0) {
       triggerOakCutscene(playerPos);
       return;
     }
@@ -174,13 +174,15 @@ export function useMovementEngine({
     const mapData = worldMaps[currentMap];
     if (!mapData) return;
     const grid = mapData.tiles;
+    const mapH = grid.length;
+    const mapW = grid[0].length;
 
     const npcAtNext = npcs[currentMap]?.some(n => n.position.x === nextX && n.position.y === nextY);
     const objectAtNext = items[currentMap]?.some(i => i.type === 'object' && i.position.x === nextX && i.position.y === nextY);
 
     if (
-      nextX < 0 || nextX >= GRID_SIZE ||
-      nextY < 0 || nextY >= GRID_SIZE ||
+      nextX < 0 || nextX >= mapW ||
+      nextY < 0 || nextY >= mapH ||
       !grid[nextY][nextX].walkable ||
       npcAtNext ||
       objectAtNext

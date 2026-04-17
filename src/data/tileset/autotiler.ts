@@ -172,6 +172,17 @@ export function buildRenderLayers(grid: Tile[][]): RenderLayers {
           oid = T.CUT_TREE_OBJ;
           break;
 
+        // ── Fence ──────────────────────────────────────────
+        case 'fence':
+          gid = hash(x, y) % 3 === 0 ? T.GRASS_ALT : T.GRASS;
+          oid = T.FENCE;
+          break;
+
+        // ── Flower ─────────────────────────────────────────
+        case 'flower':
+          gid = T.FLOWER;
+          break;
+
         default:
           gid = T.PATH;
           break;

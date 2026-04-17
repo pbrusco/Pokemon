@@ -43,9 +43,10 @@ Imports: `EXPLORING`, `MENU`, `INVENTORY`, `TEAM`, `SHOP`, `POKEDEX`, `PC`, `EDI
 ## Common Pitfalls
 
 **Wrong imports:**
-- `GRID_SIZE`, `TILE_SIZE`, `Position`, `Direction`, `NPC`, `Entity`, `Pokemon`, `MapID` → `src/types.ts`
+- `TILE_SIZE`, `Position`, `Direction`, `NPC`, `Entity`, `Pokemon`, `MapID` → `src/types.ts`
 - `BattleAction`, `BattleState`, `stepBattle`, `createBattleState` → `src/lib/battleEngine.ts`
-- `GRID_SIZE` is NOT in `src/constants.ts`; `BattleAction` is NOT in `src/types/gamePhase.ts`
+- `BattleAction` is NOT in `src/types/gamePhase.ts`
+- Maps have per-file dimensions (no single `GRID_SIZE` constant). Use `grid.length` (height) and `grid[0].length` (width) when iterating a map.
 
 **Side effects in state updaters** (React Strict Mode calls updaters twice):
 ```typescript

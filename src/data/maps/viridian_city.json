@@ -23,8 +23,8 @@
   ],
   "warps": [
     { "x": 10, "y": 19, "targetMap": "ROUTE_1", "targetPos": { "x": 10, "y": 1 }, "targetDir": "down" },
-    { "x": 7, "y": 8, "targetMap": "POKECENTER", "targetPos": { "x": 10, "y": 14 }, "targetDir": "up" },
-    { "x": 14, "y": 8, "targetMap": "POKEMART", "targetPos": { "x": 10, "y": 14 }, "targetDir": "up" },
+    { "x": 7, "y": 8, "targetMap": "POKECENTER", "targetPos": { "x": 6, "y": 7 }, "targetDir": "up" },
+    { "x": 14, "y": 8, "targetMap": "POKEMART", "targetPos": { "x": 3, "y": 7 }, "targetDir": "up" },
     { "x": 10, "y": 0, "targetMap": "VIRIDIAN_FOREST", "targetPos": { "x": 10, "y": 17 }, "targetDir": "up" }
   ]
 }

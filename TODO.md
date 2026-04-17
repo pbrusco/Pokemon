@@ -15,6 +15,14 @@ Fixed: flattened nested timeouts in `resolveBattleOutcome` (blackout flow uses a
 5. ~~GameModals receives ~25 props~~
 Fixed: GameModals now reads store directly via `useGameStore()`. Interface reduced from 28 props to 6 (only local React state + non-store callbacks remain as props).
 
+## Faithful map migration (in progress)
+- [x] Stage 1 — Pallet Town + interiors (Oak's Lab, Red's 1F/2F, Rival's House)
+- [x] Stage 2 — Small interiors (Pokécenter 14×8, Pokémart 10×8, Pewter Gym 10×14)
+- [ ] Stage 3 — Routes: Route 1 (10×36), Route 2 (10×72), Route 3 (~35×18); coordinate warps with adjacent cities
+- [ ] Stage 4 — Cities & dungeons: Viridian City (40×36), Pewter City (40×36), Viridian Forest (34×48), Mt. Moon (multi-floor)
+- [ ] Manual browser playtest of pilot + Stage 2 interiors
+- [ ] Fix 4 pre-existing `statusRules.test.ts` failures
+
 ## PP tracking in battle
 - [x] Decrement PP when a move is used in `battleEngine.ts`
 - [x] Prevent selecting moves with 0 PP

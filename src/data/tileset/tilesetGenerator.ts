@@ -36,6 +36,8 @@ export const T = {
   CUT_TREE_OBJ:    25,
   GRASS_ON_PATH:   26,  // grass base shown under object tiles that sit on grass
   FLOOR_ON_TABLE:  27,  // floor base shown under table
+  FENCE:           28,
+  FLOWER:          29,
 } as const;
 
 /** Source pixels per tile (before scaling) */
@@ -95,6 +97,11 @@ const C = {
   SHELF:       '#6A4A2A',
   MACHINE_BG:  '#A0B0C0',
   MACHINE_DK:  '#7888A0',
+  FENCE:       '#F0E0B0',
+  FENCE_DK:    '#B89068',
+  PETAL_R:     '#F06888',
+  PETAL_LT:    '#F8A8C0',
+  PETAL_Y:     '#F8D850',
   LED_G:       '#50D060',
   LED_R:       '#D05050',
   BOULDER:     '#989898',
@@ -535,6 +542,54 @@ function drawBoulder(ctx: Ctx, ox: number, oy: number) {
   px(ctx, ox+8, oy+8, C.BOULDER_DK);
 }
 
+function drawFence(ctx: Ctx, ox: number, oy: number) {
+  // Grass base
+  fill(ctx, ox, oy, 16, 16, C.GRASS);
+  // Horizontal rails
+  fill(ctx, ox, oy+4, 16, 2, C.FENCE);
+  fill(ctx, ox, oy+10, 16, 2, C.FENCE);
+  // Rail shadows
+  fill(ctx, ox, oy+5, 16, 1, C.FENCE_DK);
+  fill(ctx, ox, oy+11, 16, 1, C.FENCE_DK);
+  // Vertical posts every 4 px
+  for (let i = 0; i < 16; i += 4) {
+    fill(ctx, ox+i, oy+2, 2, 12, C.FENCE);
+    fill(ctx, ox+i, oy+2, 1, 12, C.FENCE_DK);
+  }
+}
+
+function drawFlower(ctx: Ctx, ox: number, oy: number) {
+  // Grass base
+  for (let y = 0; y < 16; y++) {
+    for (let x = 0; x < 16; x++) {
+      const grad = y < 5 ? C.GRASS_LT : y > 12 ? C.GRASS_DK : C.GRASS;
+      px(ctx, ox + x, oy + y, grad);
+    }
+  }
+  // Flower cluster centered
+  const cx = 8, cy = 8;
+  // Pink petals
+  px(ctx, ox+cx-1, oy+cy-2, C.PETAL_R);
+  px(ctx, ox+cx,   oy+cy-2, C.PETAL_LT);
+  px(ctx, ox+cx+1, oy+cy-2, C.PETAL_R);
+  px(ctx, ox+cx-2, oy+cy-1, C.PETAL_R);
+  px(ctx, ox+cx+2, oy+cy-1, C.PETAL_R);
+  px(ctx, ox+cx-2, oy+cy,   C.PETAL_R);
+  px(ctx, ox+cx+2, oy+cy,   C.PETAL_R);
+  px(ctx, ox+cx-1, oy+cy+1, C.PETAL_R);
+  px(ctx, ox+cx,   oy+cy+1, C.PETAL_LT);
+  px(ctx, ox+cx+1, oy+cy+1, C.PETAL_R);
+  // Yellow center
+  px(ctx, ox+cx-1, oy+cy,   C.PETAL_Y);
+  px(ctx, ox+cx,   oy+cy,   C.PETAL_Y);
+  px(ctx, ox+cx+1, oy+cy,   C.PETAL_Y);
+  px(ctx, ox+cx,   oy+cy-1, C.PETAL_Y);
+  // Small companion flower
+  px(ctx, ox+3, oy+13, C.PETAL_R);
+  px(ctx, ox+4, oy+13, C.PETAL_LT);
+  px(ctx, ox+4, oy+12, C.PETAL_Y);
+}
+
 function drawCutTree(ctx: Ctx, ox: number, oy: number) {
   fill(ctx, ox, oy, 16, 16, C.GRASS);
   // Small bush/stump
@@ -580,6 +635,8 @@ const DRAW_MAP: Partial<Record<number, DrawFn>> = {
   [T.CUT_TREE_OBJ]:    drawCutTree,
   [T.GRASS_ON_PATH]:   drawGrass,   // alias
   [T.FLOOR_ON_TABLE]:  drawFloorA,  // alias
+  [T.FENCE]:           drawFence,
+  [T.FLOWER]:          drawFlower,
 };
 
 let _url: string | null = null;

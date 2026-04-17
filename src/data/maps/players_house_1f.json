@@ -1,28 +1,16 @@
 {
   "rows": [
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WWWWWDFFFFFFFFFFWWWW",
-    "WWWWWFFFFFFFFFFFWWWW",
-    "WWWWWFFFFFFFFFFFWWWW",
-    "WWWWWFFFFFFFFFFFWWWW",
-    "WWWWWFFFFFFFFFFFWWWW",
-    "WWWWWFFFFFFFFFFFWWWW",
-    "WWWWWFFFFFFFFFFFWWWW",
-    "WWWWWFFFFFFFFFFFWWWW",
-    "WWWWWFFFFFFFFFFFWWWW",
-    "WWWWWFFFFFCFFFFFWWWW",
-    "WWWWWWWWWWDWWWWWWWWW",
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WWWWWWWWWWWWWWWWWWWW"
+    "WWWWWWWW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WFXXFFFW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WWWDWWWW"
   ],
   "warps": [
-    { "x": 5,  "y": 5,  "targetMap": "PLAYERS_HOUSE_2F", "targetPos": { "x": 5, "y": 13 }, "targetDir": "up" },
-    { "x": 10, "y": 15, "targetMap": "PALLET_TOWN",      "targetPos": { "x": 7, "y": 10 }, "targetDir": "down" }
+    { "x": 6, "y": 1, "targetMap": "PLAYERS_HOUSE_2F", "targetPos": { "x": 6, "y": 2 }, "targetDir": "up" },
+    { "x": 3, "y": 7, "targetMap": "PALLET_TOWN",      "targetPos": { "x": 5, "y": 6 }, "targetDir": "down" }
   ]
 }

@@ -5,7 +5,6 @@ import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
 import { EXPLORING, HEALING, SHOP } from '../types/gamePhase';
-import { GRID_SIZE } from '../types';
 import { useGameStore } from '../store/gameStore';
 
 type HealLocation = { map: MapID; pos: Position };
@@ -54,7 +53,7 @@ export const useInteractionEngine = ({
         const name = npc.name.includes('JOY') ? 'JOY' : 'MAMÁ';
         const healPos: HealLocation = npc.name.includes('JOY')
           ? { map: 'POKECENTER', pos: { x: 10, y: 14 } }
-          : { map: 'PLAYERS_HOUSE_1F', pos: { x: 10, y: 13 } };
+          : { map: 'PLAYERS_HOUSE_1F', pos: { x: 3, y: 6 } };
         store.setLastHealLocation(healPos);
         store.setDialogue(`${name}: ¡Hola! Pareces cansado. Deberías descansar un poco...`);
 
@@ -158,7 +157,7 @@ export const useInteractionEngine = ({
     }
 
     const map = worldMaps[currentMap];
-    if (map && targetX >= 0 && targetX < GRID_SIZE && targetY >= 0 && targetY < GRID_SIZE) {
+    if (map && targetX >= 0 && targetX < map.tiles[0].length && targetY >= 0 && targetY < map.tiles.length) {
       const tile = map.tiles[targetY][targetX];
       if (tile.type === 'tree') {
         store.setDialogue("Es un árbol muy robusto.");
