@@ -10,6 +10,6 @@
     "WWWWWWDWWWWWWW"
   ],
   "warps": [
-    { "x": 6, "y": 7, "targetMap": "VIRIDIAN_CITY", "targetPos": { "x": 7, "y": 9 }, "targetDir": "down" }
+    { "x": 6, "y": 7, "targetMap": "VIRIDIAN_CITY", "targetPos": { "x": 9, "y": 15 }, "targetDir": "down" }
   ]
 }

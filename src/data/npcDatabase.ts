@@ -63,7 +63,7 @@ export function buildNPCDatabase(
         id: 'youngster_chano',
         name: 'JOVEN CHANO',
         type: 'npc',
-        position: { x: 12, y: 10 },
+        position: { x: 3, y: 10 },
         direction: 'left',
         dialogue: ["¡Eh! ¡Tú! ¡Mis POKÉMON son de lo mejor!", "¡No me ignores cuando te hablo!"],
         isTrainer: true,
@@ -76,8 +76,8 @@ export function buildNPCDatabase(
         id: 'bug_catcher',
         name: 'CAZABICHOS',
         type: 'npc',
-        position: { x: 7, y: 5 },
-        direction: 'right',
+        position: { x: 6, y: 5 },
+        direction: 'left',
         dialogue: ["¿Te gustan los POKÉMON bicho?", "¡Son los más guays del mundo!"],
         isTrainer: true,
         trainerTeam: [
@@ -87,7 +87,7 @@ export function buildNPCDatabase(
       }
     ],
     VIRIDIAN_CITY: [
-      { id: 'citizen', name: 'CIUDADANO', type: 'npc', position: { x: 10, y: 12 }, direction: 'down', dialogue: ["¡Bienvenido a Ciudad Verde!", "Aquí puedes curar a tus POKÉMON en el Centro."] }
+      { id: 'citizen', name: 'CIUDADANO', type: 'npc', position: { x: 12, y: 20 }, direction: 'down', dialogue: ["¡Bienvenido a Ciudad Verde!", "Aquí puedes curar a tus POKÉMON en el Centro."] }
     ],
     POKECENTER: [
       { id: 'joy', name: 'ENFERMERA JOY', type: 'npc', onInteract: 'heal', position: { x: 6, y: 2 }, direction: 'down', dialogue: ["¡Hola! Bienvenida al CENTRO POKÉMON.", "Curaremos a tus POKÉMON hasta que estén a tope."] }
@@ -122,7 +122,7 @@ export function buildNPCDatabase(
       }
     ],
     PEWTER_CITY: [
-      { id: 'pewter_citizen', name: 'CIUDADANO', type: 'npc', position: { x: 10, y: 15 }, direction: 'down', dialogue: ["¡Bienvenido a Ciudad Plateada!", "Brock es el líder del gimnasio local. ¡Es muy duro!"] }
+      { id: 'pewter_citizen', name: 'CIUDADANO', type: 'npc', position: { x: 18, y: 20 }, direction: 'down', dialogue: ["¡Bienvenido a Ciudad Plateada!", "Brock es el líder del gimnasio local. ¡Es muy duro!"] }
     ],
     PEWTER_GYM: [
       {
@@ -228,7 +228,7 @@ export function buildNPCDatabase(
         id: 'bug_catcher_rt2',
         name: 'CAZABICHOS TOMY',
         type: 'npc',
-        position: { x: 9, y: 12 },
+        position: { x: 3, y: 12 },
         direction: 'right',
         dialogue: ["¡Atrapé estos bichos en el Bosque Verde!"],
         isTrainer: true,
@@ -263,8 +263,8 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
     ],
     RIVALS_HOUSE: [],
     ROUTE_1: [
-      { id: 'sign_route1', type: 'object', position: { x: 8, y: 15 }, direction: 'down', sprite: '🪧' },
-      { id: 'item_potion_1', type: 'item', position: { x: 12, y: 5 }, direction: 'down', sprite: '🧪' }
+      { id: 'sign_route1', type: 'object', position: { x: 3, y: 15 }, direction: 'down', sprite: '🪧' },
+      { id: 'item_potion_1', type: 'item', position: { x: 7, y: 5 }, direction: 'down', sprite: '🧪' }
     ],
     VIRIDIAN_CITY: [],
     POKECENTER: [],
@@ -274,8 +274,8 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'item_potion_forest', type: 'item', position: { x: 15, y: 15 }, direction: 'down', sprite: '🧪' }
     ],
     PEWTER_CITY: [
-      { id: 'door_locked_1', type: 'object', position: { x: 6, y: 9 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },
-      { id: 'door_locked_2', type: 'object', position: { x: 14, y: 9 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] }
+      { id: 'door_locked_1', type: 'object', position: { x: 5, y: 8 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },
+      { id: 'door_locked_2', type: 'object', position: { x: 19, y: 8 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] }
     ],
     PEWTER_GYM: [],
     ROUTE_3: [],
@@ -283,8 +283,8 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'item_potion_mtmoon', type: 'item', position: { x: 14, y: 14 }, direction: 'down', sprite: '🧪' }
     ],
     ROUTE_2: [
-      { id: 'sign_route2', type: 'object', position: { x: 4, y: 15 }, direction: 'down', sprite: '🪧', dialogue: ['RUTA 2: Al norte a CIUDAD PLATEADA.'] },
-      { id: 'item_potion_rt2', type: 'item', position: { x: 10, y: 5 }, direction: 'down', sprite: '🧪' }
+      { id: 'sign_route2', type: 'object', position: { x: 3, y: 15 }, direction: 'down', sprite: '🪧', dialogue: ['RUTA 2: Al norte a CIUDAD PLATEADA.'] },
+      { id: 'item_potion_rt2', type: 'item', position: { x: 7, y: 5 }, direction: 'down', sprite: '🧪' }
     ],
   };
 

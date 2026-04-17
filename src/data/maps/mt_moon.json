@@ -22,6 +22,6 @@
     "GGGGGGGGGGGGGGGGGGGG"
   ],
   "warps": [
-    { "x": 10, "y": 18, "targetMap": "ROUTE_3", "targetPos": { "x": 10, "y": 1 }, "targetDir": "down" }
+    { "x": 10, "y": 19, "targetMap": "ROUTE_3", "targetPos": { "x": 30, "y": 0 }, "targetDir": "down" }
   ]
 }

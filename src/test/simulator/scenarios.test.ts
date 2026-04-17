@@ -48,12 +48,12 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
   it('walks player to Oak lab after dismissing Oak\'s dialogue', () => {
     sim = new GameSimulator().init({
       currentMap: 'PALLET_TOWN',
-      playerPos: { x: 10, y: 1 },
+      playerPos: { x: 10, y: 6 },
       direction: 'up',
       playerTeam: [],
     });
 
-    // Move north toward Route 1 (y=0 triggers Oak's stop event)
+    // Move north toward Route 1 (y=5 triggers Oak's stop event)
     sim.move('up');
 
     // Oak's dialogue should be shown immediately
@@ -75,7 +75,7 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
   it('does not retrigger when player already has a team', () => {
     sim = new GameSimulator().init({
       currentMap: 'PALLET_TOWN',
-      playerPos: { x: 10, y: 1 },
+      playerPos: { x: 10, y: 6 },
       direction: 'up',
       playerTeam: [STARTERS[0]],
       storyStep: 'EXPLORING',
@@ -424,18 +424,18 @@ describe('Scenario 11: Pokécenter healing', () => {
 
 describe('Scenario 12: No ghost re-battle after winning trainer fight', () => {
   it('cleanly exits battle and does NOT re-enter with 0 HP enemy', () => {
-    // Start on Route 1 near the youngster trainer at (12, 10) facing left
-    // Player stands at (10, 10) — within trainer's 3-tile left vision
+    // Start on Route 1 near the youngster trainer at (3, 10) facing left
+    // Player stands at (1, 10) — within trainer's 3-tile left vision
     sim = new GameSimulator().init({
       currentMap: 'ROUTE_1',
-      playerPos: { x: 10, y: 10 },
+      playerPos: { x: 1, y: 10 },
       direction: 'right',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',
     });
 
     // Step into trainer's vision zone → triggers trainer cutscene
-    sim.move('right'); // now at (11, 10) — within youngster_chano's vision (3 tiles left from (12,10))
+    sim.move('right'); // now at (2, 10) — within youngster_chano's vision (3 tiles left from (3,10))
     sim.tick(500);
 
     // If dialogue appeared, dismiss it

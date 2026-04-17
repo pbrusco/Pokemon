@@ -23,7 +23,7 @@
     { "x": 5,  "y": 5,  "targetMap": "PLAYERS_HOUSE_1F", "targetPos": { "x": 3, "y": 6 }, "targetDir": "up" },
     { "x": 13, "y": 5,  "targetMap": "RIVALS_HOUSE",     "targetPos": { "x": 3, "y": 6 }, "targetDir": "up" },
     { "x": 12, "y": 11, "targetMap": "OAKS_LAB",         "targetPos": { "x": 4, "y": 10 }, "targetDir": "up" },
-    { "x": 9,  "y": 0,  "targetMap": "ROUTE_1",          "targetPos": { "x": 10, "y": 19 }, "targetDir": "up" },
-    { "x": 10, "y": 0,  "targetMap": "ROUTE_1",          "targetPos": { "x": 10, "y": 19 }, "targetDir": "up" }
+    { "x": 9,  "y": 0,  "targetMap": "ROUTE_1",          "targetPos": { "x": 4,  "y": 35 }, "targetDir": "up" },
+    { "x": 10, "y": 0,  "targetMap": "ROUTE_1",          "targetPos": { "x": 4,  "y": 35 }, "targetDir": "up" }
   ]
 }
