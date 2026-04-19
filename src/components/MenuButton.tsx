@@ -1,5 +1,4 @@
 import { Menu, X } from 'lucide-react';
-import { soundManager } from '../lib/sounds';
 import { GamePhase, EXPLORING } from '../types/gamePhase';
 import { Dispatch, SetStateAction } from 'react';
 
@@ -11,7 +10,6 @@ interface MenuButtonProps {
 export const MenuButton = ({ phase, setPhase }: MenuButtonProps) => {
   const inMenu = phase.type === 'MENU';
   const onClick = () => {
-    soundManager.play('SELECT');
     if (inMenu) {
       setPhase(phase.returnTo ?? EXPLORING);
     } else {

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { X, ArrowLeftRight } from 'lucide-react';
-import { soundManager } from '../lib/sounds';
 import { Pokemon } from '../types';
 
 export const PCStorageUI = ({ team, pc, onClose, onSwap }: { team: Pokemon[], pc: Pokemon[], onClose: () => void, onSwap: (teamIdx: number, pcIdx: number) => void }) => {
@@ -22,7 +21,6 @@ export const PCStorageUI = ({ team, pc, onClose, onSwap }: { team: Pokemon[], pc
             <h2 className="text-2xl font-black italic uppercase tracking-tighter">PC de Pablo</h2>
           </div>
           <button onClick={() => {
-            soundManager.play('SELECT');
             onClose();
           }} className="p-2 hover:bg-white/20 rounded-full transition-colors">
             <X size={24} />
@@ -37,7 +35,6 @@ export const PCStorageUI = ({ team, pc, onClose, onSwap }: { team: Pokemon[], pc
                 <button 
                   key={i}
                   onClick={() => {
-                    soundManager.play('SELECT');
                     setSelectedTeamIdx(selectedTeamIdx === i ? null : i);
                   }}
                   className={`p-3 rounded-xl border-2 flex items-center gap-4 transition-all ${selectedTeamIdx === i ? 'bg-blue-50 border-blue-400 shadow-md' : 'bg-slate-50 border-slate-100 hover:border-blue-200'}`}
@@ -62,7 +59,6 @@ export const PCStorageUI = ({ team, pc, onClose, onSwap }: { team: Pokemon[], pc
                   <button 
                     key={i}
                     onClick={() => {
-                      soundManager.play('SELECT');
                       setSelectedPCIdx(selectedPCIdx === i ? null : i);
                     }}
                     className={`flex flex-col items-center p-3 rounded-2xl border-2 transition-all ${selectedPCIdx === i ? 'bg-blue-50 border-blue-400 shadow-md' : 'bg-slate-50 border-slate-100 hover:border-blue-200'}`}
@@ -90,7 +86,6 @@ export const PCStorageUI = ({ team, pc, onClose, onSwap }: { team: Pokemon[], pc
                 onSwap(selectedTeamIdx, selectedPCIdx);
                 setSelectedTeamIdx(null);
                 setSelectedPCIdx(null);
-                soundManager.play('SELECT');
               }
             }}
             className={`px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs transition-all ${selectedTeamIdx !== null && selectedPCIdx !== null ? 'bg-blue-600 text-white shadow-lg hover:scale-105 active:scale-95' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}

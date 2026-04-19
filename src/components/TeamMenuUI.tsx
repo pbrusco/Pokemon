@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Pokemon } from '../types';
-import { soundManager } from '../lib/sounds';
 
 interface TeamMenuUIProps {
   team: Pokemon[];
@@ -29,13 +28,11 @@ export const TeamMenuUI = ({ team, onClose, onSwap, forcedSwitch = false }: Team
   const handleSelect = (index: number) => {
     if (index >= team.length) {
       if (!forcedSwitch) {
-        soundManager.play('SELECT');
         onClose();
       }
       return;
     }
     if (canSelect(team[index], index)) {
-      soundManager.play('SELECT');
       onSwap(index);
     }
   };

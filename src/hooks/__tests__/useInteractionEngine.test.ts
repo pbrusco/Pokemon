@@ -8,12 +8,6 @@ import { STARTERS } from '../../constants';
 import { EXPLORING, SHOP, battle, B_CHOOSING } from '../../types/gamePhase';
 import { worldConfig } from '../../data/worldConfig';
 
-// ─── Mock soundManager ────────────────────────────────────────────────────────
-
-vi.mock('../../lib/sounds', () => ({
-  soundManager: { play: vi.fn(), playMove: vi.fn() },
-}));
-
 // ─── Map / world fixtures ─────────────────────────────────────────────────────
 
 const WALKABLE_TILE: Tile = { type: 'path', walkable: true };
@@ -109,7 +103,6 @@ function setup(overrides: Overrides = {}) {
     isMoving: false,
     badgeBoostGlitchStacks: 0,
     showMoves: false,
-    isMuted: true,
     isLocked: false,
     showBattleTransition: false,
     teleports: worldConfig.teleports,

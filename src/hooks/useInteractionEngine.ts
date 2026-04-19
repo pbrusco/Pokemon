@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import type { Pokemon, MapID, Position } from '../types';
 import { HM_REQUIREMENTS, STARTERS } from '../constants';
-import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
 import { EXPLORING, HEALING, SHOP } from '../types/gamePhase';
@@ -17,7 +16,6 @@ export const useInteractionEngine = ({
   initBattle,
 }: UseInteractionEngineParams) => {
   const handleAction = useCallback(() => {
-    soundManager.play('SELECT');
     
     const store = useGameStore.getState();
     const { dialogue, phase, playerPos, direction, currentMap, hasParcel, hasPokedex, badges, inventory, playerTeam, pickedItemIds, worldMaps, isMoving, isLocked } = store;
@@ -67,7 +65,6 @@ export const useInteractionEngine = ({
           useGameStore.getState().setPhase(HEALING);
           setTimeout(() => {
             useGameStore.getState().setPlayerTeam(prev => prev.map(fullHeal));
-            soundManager.play('SELECT');
           }, sd(800));
           setTimeout(() => {
             useGameStore.getState().setPhase(EXPLORING);
@@ -103,7 +100,6 @@ export const useInteractionEngine = ({
 
       if (npc.questId === 'parcel' && !inventory['OAK_PARCEL']) {
         store.addInventoryItem('OAK_PARCEL');
-        soundManager.play('SELECT');
         store.setDialogue("DEPENDIENTE: ¡Gracias! Por favor, entrégaselo al PROF. OAK.");
       }
       return;
@@ -118,7 +114,6 @@ export const useInteractionEngine = ({
           store.setPlayerTeam([starter]);
           store.setDialogue(`¡Has elegido a ${starter.name}!`);
           store.setStoryStep('PICKED_STARTER');
-          soundManager.play('SELECT');
 
           setTimeout(() => {
             if (useGameStore.getState().playerTeam.length === 0) return;
@@ -139,7 +134,6 @@ export const useInteractionEngine = ({
           store.addInventoryItem('POKEBALL');
           store.setDialogue("¡Has encontrado una POKÉ BALL!");
         }
-        soundManager.play('SELECT');
       } else if (item.type === 'object') {
         if (item.id === 'sign_home') store.setDialogue("CASA DE PABLO");
         else if (item.id === 'sign_rival') store.setDialogue("CASA DE AZUL");
@@ -192,7 +186,6 @@ export const useInteractionEngine = ({
       } else if (tile.type === 'grass' && Math.random() < 0.05) {
         if (!inventory['POTION']) {
           store.addInventoryItem('POTION');
-          soundManager.play('SELECT');
           store.setDialogue("¡Has encontrado una POCIÓN escondida en la hierba!");
         }
       }

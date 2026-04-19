@@ -84,7 +84,6 @@ interface GameState extends GameSaveState {
   
   phase: GamePhase;
   showMoves: boolean;
-  isMuted: boolean;
   dialogue: string | null;
   dialogueCallback: (() => void) | null;
   oakCutscenePos: Position | null;
@@ -116,7 +115,6 @@ interface GameState extends GameSaveState {
   
   setPhase: (phase: SetStateAction<GamePhase>) => void;
   setShowMoves: (show: boolean) => void;
-  setIsMuted: (muted: boolean) => void;
   
   setHasPokedex: (v: boolean) => void;
   setHasParcel: (v: boolean) => void;
@@ -160,7 +158,6 @@ export const useGameStore = create<GameState>()(
       
       phase: EXPLORING,
       showMoves: false,
-      isMuted: false,
       dialogue: null,
       dialogueCallback: null,
       oakCutscenePos: null,
@@ -197,7 +194,6 @@ export const useGameStore = create<GameState>()(
       
       setPhase: (phase) => set((state) => ({ phase: typeof phase === 'function' ? phase(state.phase) : phase })),
       setShowMoves: (show) => set({ showMoves: show }),
-      setIsMuted: (muted) => set({ isMuted: muted }),
       
       setHasPokedex: (v) => set({ hasPokedex: v }),
       setHasParcel: (v) => set({ hasParcel: v }),

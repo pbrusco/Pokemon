@@ -1,5 +1,4 @@
 import { useEffect, useRef, useMemo, useCallback } from 'react';
-import { soundManager } from './lib/sounds';
 import { BattleState, BattleAction } from './lib/battleEngine';
 import { battle, B_CHOOSING, B_FORCED_SWITCH, EXPLORING } from './types/gamePhase';
 import { RecorderButton } from './components/RecorderButton';
@@ -47,22 +46,6 @@ export default function App() {
 
   const battleStateRef = useRef<BattleState | null>(null);
 
-  useEffect(() => {
-    if (inBattle) {
-      soundManager.play('BATTLE_START');
-    }
-  }, [inBattle]);
-
-  useEffect(() => {
-    if (inBattle) {
-      soundManager.playMusic('BATTLE');
-    } else if (store.currentMap === 'POKECENTER') {
-      soundManager.playMusic('POKECENTER');
-    } else {
-      soundManager.playMusic('OVERWORLD');
-    }
-  }, [inBattle, store.currentMap]);
-
   const handlePCSwap = (teamIdx: number, pcIdx: number) => {
     logEvent({ k: 'pcSwap', teamIdx, pcIdx });
     const newTeam = [...store.playerTeam];
@@ -72,7 +55,6 @@ export default function App() {
     newPC[pcIdx] = temp;
     store.updateTeam(newTeam);
     store.updatePcStorage(newPC);
-    soundManager.play('SELECT');
   };
 
   const { dispatchBattle: rawDispatchBattle } = useBattleEngine({
@@ -175,7 +157,7 @@ export default function App() {
     <div className="h-screen bg-slate-900 flex flex-col items-center justify-center overflow-hidden font-sans selection:bg-red-500 selection:text-white">
       <div className="scanline" />
 
-      <GameHeader isMuted={store.isMuted} onToggleMute={() => store.setIsMuted(soundManager.toggleMute())} />
+      <GameHeader />
 
       <WorldView
         currentMap={store.currentMap}

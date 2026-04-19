@@ -3,7 +3,6 @@ import { Direction, NPC, Pokemon } from '../types';
 import { BLACKOUT, HEALING, EXPLORING } from '../types/gamePhase';
 import { fullHeal } from '../lib/healUtils';
 import { BattleState } from '../lib/battleEngine';
-import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
 import { calcHp } from '../lib/damage';
 import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES } from '../constants';
@@ -69,7 +68,6 @@ function tryWildEncounter(
   };
 
   logObservation({ k: 'obs_encounter', map: currentMap, pokemon: randomPkmn.name, level: finalLevel });
-  soundManager.play('BATTLE_START');
   launchBattle({
     enemy: wildPkmn,
     isTrainer: false,
@@ -113,7 +111,6 @@ function applyOverworldPoison(
     setTimeout(() => useGameStore.getState().setPhase(HEALING), sd(2400));
     setTimeout(() => {
       useGameStore.getState().setPlayerTeam(newTeam.map(fullHeal));
-      soundManager.play('SELECT');
     }, sd(2400) + sd(800));
     setTimeout(() => {
       useGameStore.getState().setPhase(EXPLORING);
@@ -143,7 +140,6 @@ export function useMovementEngine({
   }, []);
 
   const initBattle = useCallback((enemyPkmn: Pokemon, isTrainer: boolean, trainerName?: string) => {
-    soundManager.play('BATTLE_START');
     launchBattle({ enemy: enemyPkmn, isTrainer, trainerName });
   }, []);
 
@@ -214,7 +210,6 @@ export function useMovementEngine({
     // Warp check
     const warp = mapData.warps.find(w => w.x === nextX && w.y === nextY);
     if (warp) {
-      soundManager.play('SELECT');
       setTimeout(() => {
         const fs = useGameStore.getState();
         fs.setCurrentMap(warp.targetMap);

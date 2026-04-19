@@ -1,6 +1,5 @@
 import { motion } from 'motion/react';
 import { Map as MapIcon, X } from 'lucide-react';
-import { soundManager } from '../lib/sounds';
 import { POKEMON_LIST } from '../constants';
 
 export const PokedexUI = ({ pokedex, onClose }: { pokedex: Record<string, { seen: boolean, caught: boolean }>, onClose: () => void }) => {
@@ -18,7 +17,6 @@ export const PokedexUI = ({ pokedex, onClose }: { pokedex: Record<string, { seen
             <h2 className="text-2xl font-black italic uppercase tracking-tighter">Pokédex</h2>
           </div>
           <button onClick={() => {
-            soundManager.play('SELECT');
             onClose();
           }} className="p-2 hover:bg-white/20 rounded-full transition-colors">
             <X size={24} />

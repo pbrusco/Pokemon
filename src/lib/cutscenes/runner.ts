@@ -114,8 +114,6 @@ function processNext() {
       break;
 
     case 'sound':
-      // Sound is a side-effect, we proceed immediately
-      soundManager.play(step.soundId as any);
       processNext();
       break;
 
@@ -129,7 +127,6 @@ function processNext() {
   }
 }
 
-import { soundManager } from '../sounds';
 import { launchBattle } from '../launchBattle';
 
 /** Drive a walk step via setInterval, one tile per tick. */

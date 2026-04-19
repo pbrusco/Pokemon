@@ -1,5 +1,4 @@
 import { motion } from 'motion/react';
-import { soundManager } from '../lib/sounds';
 
 export const DialogueBox = ({ text, onComplete }: { text: string, onComplete: () => void }) => {
   return (
@@ -9,7 +8,6 @@ export const DialogueBox = ({ text, onComplete }: { text: string, onComplete: ()
       exit={{ y: 100, opacity: 0 }}
       className="fixed bottom-32 sm:bottom-12 left-1/2 -translate-x-1/2 w-[95%] max-w-3xl bg-black/70 backdrop-blur-2xl border-[1px] border-white/20 rounded-[1.5rem] sm:rounded-3xl p-6 sm:p-8 shadow-2xl z-50 cursor-pointer overflow-hidden ring-1 ring-white/10"
       onClick={() => {
-        soundManager.play('SELECT');
         onComplete();
       }}
     >

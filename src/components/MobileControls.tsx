@@ -1,5 +1,4 @@
 import { Joystick } from './Joystick';
-import { soundManager } from '../lib/sounds';
 import { Direction } from '../types';
 import { GamePhase, EXPLORING } from '../types/gamePhase';
 import { Dispatch, SetStateAction } from 'react';
@@ -18,7 +17,6 @@ export const MobileControls = ({ onMove, onAction, setPhase }: MobileControlsPro
         <button
           onPointerDown={(e) => {
             e.preventDefault();
-            soundManager.play('SELECT');
             setPhase(prev => 
               prev.type === 'MENU' ? (prev.returnTo || EXPLORING) : { type: 'MENU', returnTo: prev }
             );

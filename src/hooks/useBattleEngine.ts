@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, MutableRefObject } from 'react';
 import { GamePhase, battle, B_CHOOSING, B_PLAYER_ATTACK, B_ENEMY_ATTACK, B_PLAYER_FAINTED, B_FORCED_SWITCH, B_ENEMY_FAINTED, B_CATCHING, B_LEVEL_UP, B_EVOLVING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, B_TRAINER_NEXT_POKEMON, EXPLORING, BLACKOUT, HEALING } from '../types/gamePhase';
 import { stepBattle, BattleState, BattleAction, BattleEffect } from '../lib/battleEngine';
-import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
 import { useGameStore } from '../store/gameStore';
@@ -75,7 +74,6 @@ export function useBattleEngine({
           delay += sd(500);
           break;
         case 'sound':
-          soundManager.play(effect.payload as Parameters<typeof soundManager.play>[0]);
           break;
         case 'player_anim':
           setTimeout(() => setPlayerAnim(effect.payload as 'idle' | 'attack' | 'hit' | 'faint'), d);
@@ -136,7 +134,6 @@ export function useBattleEngine({
       setTimeout(() => useGameStore.getState().setPhase(HEALING), sd(2400));
       setTimeout(() => {
         useGameStore.getState().setPlayerTeam(t => t.map(fullHeal));
-        soundManager.play('SELECT');
       }, sd(2400) + sd(800));
       setTimeout(() => {
         const fs = useGameStore.getState();
@@ -173,7 +170,6 @@ export function useBattleEngine({
     s.setPhase(battle(B_CATCHING));
     s.setCatchResult(null);
     s.setBattleLog('¡Pablo lanzó una POKÉ BALL!');
-    soundManager.play('SELECT');
 
     logObservation({ k: 'obs_catch', result: newState.outcome === 'caught' ? 'caught' : 'escaped' });
     if (newState.outcome === 'caught') {
@@ -245,7 +241,6 @@ export function useBattleEngine({
 
     if (action.type === 'ATTACK') {
       setPlayerAnim('attack');
-      soundManager.play('SELECT');
     }
 
     // Push HP changes to the store up-front so the HP bar animates down

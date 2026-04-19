@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { ITEMS_DATABASE } from '../constants';
-import { soundManager } from '../lib/sounds';
 import type { InventoryCounts } from '../types';
 
 export const InventoryUI = ({ items, onClose, onUse }: { items: InventoryCounts, onClose: () => void, onUse?: (itemId: string) => void }) => {
@@ -12,7 +11,6 @@ export const InventoryUI = ({ items, onClose, onUse }: { items: InventoryCounts,
   const totalOptions = entries.length + 1;
 
   const handleSelect = (index: number) => {
-    soundManager.play('SELECT');
     if (index >= entries.length) {
       onClose();
     } else {

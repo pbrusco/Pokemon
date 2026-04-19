@@ -1,7 +1,6 @@
 import { motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { ITEMS_DATABASE, SHOP_PRICES } from '../constants';
-import { soundManager } from '../lib/sounds';
 
 export const ShopUI = ({ onBuy, onClose, money }: { onBuy: (itemId: string) => void, onClose: () => void, money: number }) => {
   const shopItems = ['POTION', 'POKEBALL'];
@@ -32,7 +31,6 @@ export const ShopUI = ({ onBuy, onClose, money }: { onBuy: (itemId: string) => v
                 onClick={() => {
                   if (!canAfford) return;
                   onBuy(id);
-                  soundManager.play('SELECT');
                 }}
                 disabled={!canAfford}
                 className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group ${canAfford ? 'bg-slate-50 border-slate-100 hover:border-blue-200 hover:bg-blue-50 cursor-pointer' : 'bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed'}`}

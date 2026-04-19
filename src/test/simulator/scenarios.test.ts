@@ -6,17 +6,11 @@
  * and seeded Math.random.
  */
 
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { act } from '@testing-library/react';
 import { GameSimulator } from './GameSimulator';
 import { useGameStore } from '../../store/gameStore';
 import { STARTERS, makePokemon, MOVES } from '../../constants';
-
-// ─── Mock sound manager (no audio in tests) ────────────────────────────────
-
-vi.mock('../../lib/sounds', () => ({
-  soundManager: { play: vi.fn(), playMove: vi.fn(), playMusic: vi.fn(), stop: vi.fn() },
-}));
 
 // ─── Helper: a wounded starter for healing tests ────────────────────────────
 

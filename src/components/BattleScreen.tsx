@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useAnimate } from 'motion/react';
 import { Pokemon, Move } from '../types';
-import { soundManager } from '../lib/sounds';
 import { STRUGGLE_MOVE } from '../constants';
 import { sd, sdur } from '../lib/gameSpeed';
 import { useGameStore } from '../store/gameStore';
@@ -389,7 +388,7 @@ export function BattleScreen({
                       ? 'opacity-35 cursor-not-allowed border-transparent'
                       : 'border-transparent hover:border-[#4f6e69] hover:bg-[#edf4ef]'
                   }`}
-                  onClick={() => { if (!entry.disabled) { soundManager.play('SELECT'); entry.action(); } }}
+                  onClick={() => { if (!entry.disabled) { entry.action(); } }}
                 >
                   <span className="inline-flex items-center gap-1">
                     {!entry.disabled && <span className="text-red-500">▶</span>}
@@ -406,7 +405,7 @@ export function BattleScreen({
                 {playerPkmn?.moves.every(m => m.pp <= 0) ? (
                   <button
                     className="col-span-2 text-left px-2 py-1 rounded-sm border border-transparent hover:border-[#4f6e69] hover:bg-[#edf4ef]"
-                    onClick={() => { soundManager.play('SELECT'); handleAttack(STRUGGLE_MOVE); }}
+                    onClick={() => { handleAttack(STRUGGLE_MOVE); }}
                   >
                     <span className="inline-flex items-center gap-1">
                       <span className="text-red-500">▶</span>
@@ -427,7 +426,7 @@ export function BattleScreen({
                           ? 'opacity-35 cursor-not-allowed border-transparent'
                           : 'border-transparent hover:border-[#4f6e69] hover:bg-[#edf4ef]'
                       }`}
-                      onClick={() => { if (!noPP) { soundManager.play('SELECT'); handleAttack(move); } }}
+                      onClick={() => { if (!noPP) { handleAttack(move); } }}
                       onMouseEnter={() => setHoveredMoveIdx(i)}
                       onMouseLeave={() => setHoveredMoveIdx(null)}
                     >
@@ -449,7 +448,7 @@ export function BattleScreen({
               </div>
               <button
                 className="text-left px-2 py-1 text-[11px] text-slate-500 font-bold hover:text-slate-700 hover:bg-[#edf4ef] rounded-sm border border-transparent hover:border-[#4f6e69] uppercase tracking-tight"
-                onClick={() => { soundManager.play('SELECT'); setShowMoves(false); }}
+                onClick={() => { setShowMoves(false); }}
               >
                 ← VOLVER <span className="font-normal normal-case">[ESC]</span>
               </button>

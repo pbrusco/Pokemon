@@ -97,7 +97,6 @@ export class GameSimulator {
       badgeBoostGlitchStacks: 0,
       phase: EXPLORING,
       showMoves: false,
-      isMuted: true,
       dialogue: null,
       isLocked: false,
       showBattleTransition: false,
