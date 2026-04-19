@@ -17,7 +17,7 @@ import {
   ZERO_BOOSTS,
   getTypeEffectiveness,
 } from './damage';
-import { EVOLUTIONS, expForLevel } from '../constants';
+import { EVOLUTIONS, expForLevel, baseExpFor } from '../constants';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -71,6 +71,11 @@ export interface BattleState {
   /** Gen I badge-boost glitch stacks (each stat-change while BOULDER badge held adds one) */
   badgeBoostGlitchStacks: number;
   hasBoulderBadge: boolean;
+  /**
+   * Uids of player Pokémon that have participated in the current enemy fight.
+   * Used to split EXP in the Gen I formula. Reset when a new enemy Pokémon appears.
+   */
+  participantUids: string[];
 }
 
 export type BattleAction =
@@ -331,8 +336,17 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       s = { ...s, log: attackLog };
 
       if (newEnemyHP === 0) {
-        // Enemy fainted — compute EXP
-        const expGain = Math.floor(s.enemyPokemon.level * 25 * (s.isTrainerBattle ? 1.5 : 1));
+        // Enemy fainted — compute EXP using the Gen I formula:
+        //   expGain = floor(baseExp × enemyLevel × trainerMult / (7 × participants))
+        // where `participants` is the number of non-fainted player Pokémon
+        // that entered this battle against the current enemy.
+        const trainerMult = s.isTrainerBattle ? 1.5 : 1;
+        const baseExp = s.enemyPokemon.baseExp ?? baseExpFor(s.enemyPokemon.id);
+        const livingParticipants = s.participantUids
+          .filter(uid => s.playerTeam.some(p => p.uid === uid && p.hp > 0))
+          .length;
+        const denom = Math.max(1, livingParticipants);
+        const expGain = Math.max(1, Math.floor((trainerMult * baseExp * s.enemyPokemon.level) / (7 * denom)));
         const { pkmn: leveledPkmn, didLevelUp, learnedMove, willEvolve, evolvedPkmn } = computeExpAndLevelUp(playerPkmn, expGain);
 
         const faintLog = `¡${s.enemyPokemon.name} se debilitó!`;
@@ -374,7 +388,10 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           const nextLog = `¡${trainerLabel} saca a ${nextEnemy.name}!`;
           effects.push(log(nextLog));
           const cleared = clearBoosts(s.playerTeam, s.enemyPokemon);
-          s = { ...s, playerTeam: cleared.playerTeam, currentEnemyIndex: nextEnemyIdx, badgeBoostGlitchStacks: 0, log: nextLog, phase: 'TRAINER_NEXT_POKEMON' };
+          // Reset participant tracking for the next enemy Pokémon — only the
+          // currently active player participates until the player switches.
+          const freshParticipants = cleared.playerTeam[0].hp > 0 ? [cleared.playerTeam[0].uid!] : [];
+          s = { ...s, playerTeam: cleared.playerTeam, currentEnemyIndex: nextEnemyIdx, badgeBoostGlitchStacks: 0, log: nextLog, phase: 'TRAINER_NEXT_POKEMON', participantUids: freshParticipants };
         } else {
           // Final cleanup: outcome = player_win
           const cleared = clearBoosts(s.playerTeam, s.enemyPokemon);
@@ -535,7 +552,11 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       effects.push(log(switchLog));
 
       const nextPhase: BattleSubPhase = s.phase === 'FORCED_SWITCH' ? 'CHOOSING' : 'ENEMY_ATTACK';
-      s = { ...s, playerTeam: newTeam, log: switchLog, phase: nextPhase };
+      const activeUid = newTeam[0].uid!;
+      const nextParticipants = s.participantUids.includes(activeUid)
+        ? s.participantUids
+        : [...s.participantUids, activeUid];
+      s = { ...s, playerTeam: newTeam, log: switchLog, phase: nextPhase, participantUids: nextParticipants };
 
       if (s.phase === 'ENEMY_ATTACK') {
         return { state: s, effects }; // useBattleEngine will dispatch TICK
@@ -687,8 +708,16 @@ export function createBattleState(
   } = {},
 ): BattleState {
   if (playerTeam.length === 0) throw new Error('createBattleState: playerTeam must not be empty');
-  // Sanitize: filter out null/undefined moves
-  const sanitizedTeam = playerTeam.map(p => ({ ...p, moves: p.moves.filter(Boolean) }));
+  // Sanitize: filter out null/undefined moves, assign a stable uid if missing
+  // (needed for participant tracking across switches).
+  // Uids only need to be unique within this battle's playerTeam (≤6 members),
+  // and stable across swaps — so an index-based scheme is sufficient and keeps
+  // battle creation deterministic (no Math.random consumption for tests).
+  const sanitizedTeam = playerTeam.map((p, i) => ({
+    ...p,
+    moves: p.moves.filter(Boolean),
+    uid: p.uid ?? `team-${i}`,
+  }));
   const enemyTeam = options.enemyTeam ?? [enemyPokemon];
   // If the lead Pokémon is fainted, start in FORCED_SWITCH so the player
   // must choose an alive Pokémon before the battle begins.
@@ -707,5 +736,6 @@ export function createBattleState(
     outcome: 'ongoing',
     badgeBoostGlitchStacks: 0,
     hasBoulderBadge: options.hasBoulderBadge ?? false,
+    participantUids: sanitizedTeam[0].hp > 0 ? [sanitizedTeam[0].uid!] : [],
   };
 }

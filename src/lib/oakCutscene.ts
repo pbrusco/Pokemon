@@ -7,9 +7,7 @@
 
 import type { Direction, Position } from '../types';
 import type { CutsceneStep } from './cutscenes/types';
-import { runCutscene, stopCutscene } from './cutscenes/runner';
-
-export { stopCutscene as stopOakWalk };
+import { runCutscene } from './cutscenes/runner';
 
 // ── Path builder (pure function) ──────────────────────────────────────────────
 

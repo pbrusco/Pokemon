@@ -69,6 +69,8 @@ export interface Pokemon {
   movesToLearn?: { level: number, move: Move }[];
   catchRate?: number;
   growthRate?: 'fast' | 'medium_fast' | 'medium_slow' | 'slow';
+  /** Gen I species-specific EXP yield when defeated (Bulbapedia values). */
+  baseExp?: number;
 }
 
 export interface PokemonSummary {

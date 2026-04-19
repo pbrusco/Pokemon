@@ -227,8 +227,26 @@ export function cancelReplay(): void {
   restorePRNG();
 }
 
+/* ---------- Crash auto-save ----------
+ * In DEV, if an unhandled error or rejection fires while a session is being
+ * recorded, persist the log to disk as `crash-<ts>.json` so every bug can be
+ * replayed as a test. Reads `src/test/simulator/GameSimulator.loadLogAsScenario`
+ * to turn the saved log back into a failing scenario.
+ */
+function installCrashAutoSave() {
+  const save = (tag: string) => {
+    if (!current) return;
+    const name = `crash-${tag}-${Date.now()}`;
+    // fire-and-forget; don't block the error
+    saveLogToDisk(name).catch(() => {});
+  };
+  window.addEventListener('error', () => save('error'));
+  window.addEventListener('unhandledrejection', () => save('rejection'));
+}
+
 /* ---------- window bridge ---------- */
 if (typeof window !== 'undefined' && (import.meta as any).env?.DEV) {
+  installCrashAutoSave();
   (window as any).__log = {
     start: startRecord,
     stop: stopRecord,

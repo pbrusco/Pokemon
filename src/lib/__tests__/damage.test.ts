@@ -349,6 +349,59 @@ describe('calculateDamage', () => {
     expect(result.isCritical).toBe(true);
   });
 
+  it('crit damage uses raw stats (not level-doubled) — Gen I', () => {
+    // L40 Charmander Scratch crit on L40 Rattata, max random roll.
+    // Gen I expected damage:
+    //   A = floor(52*2*40/100)+5 = 46    D = floor(35*2*40/100)+5 = 33
+    //   (2*40*2/5 + 2) = 34
+    //   base = floor(floor(34*40*46/33)/50 + 2) = 39
+    //   stab=1, type=1, random=255/255 → final = 39
+    const attacker = makePkmn({
+      level: 40,
+      baseStats: { hp: 39, attack: 52, defense: 43, special: 50, speed: 512 },
+    });
+    const defender = makePkmn({
+      level: 40,
+      type: 'normal',
+      baseStats: { hp: 30, attack: 56, defense: 35, special: 25, speed: 72 },
+    });
+    const scratch = { name: 'ARAÑAZO', type: 'normal', power: 40, accuracy: 100, pp: 35, maxPp: 35 };
+
+    // First Math.random call: crit roll. Speed 512 → critChance = min(1, 1) = 0.996 → always crit.
+    // Second Math.random call: damage random factor. 0.999 → max roll (255).
+    randomSpy.mockReturnValueOnce(0); // crit
+    randomSpy.mockReturnValueOnce(0.999); // max random
+
+    const result = calculateDamage(attacker, defender, scratch);
+    expect(result.isCritical).toBe(true);
+    expect(result.damage).toBe(39);
+  });
+
+  it('crit damage is roughly 2× non-crit damage (Gen I), not 4×', () => {
+    // Same L40 scenario; crit should be ~1.5–2× non-crit, never 4×.
+    const attacker = makePkmn({
+      level: 40,
+      baseStats: { hp: 39, attack: 52, defense: 43, special: 50, speed: 512 },
+    });
+    const defender = makePkmn({
+      level: 40,
+      type: 'normal',
+      baseStats: { hp: 30, attack: 56, defense: 35, special: 25, speed: 72 },
+    });
+    const scratch = { name: 'ARAÑAZO', type: 'normal', power: 40, accuracy: 100, pp: 35, maxPp: 35 };
+
+    randomSpy.mockReturnValueOnce(0).mockReturnValueOnce(0.999);
+    const crit = calculateDamage(attacker, defender, scratch).damage;
+
+    // Reset and trigger no-crit: speed 1 → ~0 crit chance; 0.999 doesn't roll under it
+    const slowAttacker = makePkmn({ ...attacker, baseStats: { ...attacker.baseStats, speed: 1 } });
+    randomSpy.mockReturnValueOnce(0.999).mockReturnValueOnce(0.999);
+    const noCrit = calculateDamage(slowAttacker, defender, scratch).damage;
+
+    expect(crit / noCrit).toBeGreaterThanOrEqual(1.5);
+    expect(crit / noCrit).toBeLessThan(2.2);
+  });
+
   it('not very effective is labeled correctly', () => {
     const normalAttacker = makePkmn({ type: 'normal' });
     const rockDefender = makePkmn({ type: 'rock', baseStats: { hp: 40, attack: 80, defense: 100, special: 30, speed: 20 } });

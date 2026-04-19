@@ -105,7 +105,6 @@ function setup(overrides: Overrides = {}) {
     showMoves: false,
     isLocked: false,
     showBattleTransition: false,
-    teleports: worldConfig.teleports,
     lastHealLocation: { map: 'PALLET_TOWN' as MapID, pos: { x: 7, y: 11 } },
     pcStorage: [],
     pokedex: {},

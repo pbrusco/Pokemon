@@ -159,7 +159,7 @@ export function buildNPCDatabase(
         id: 'bug_catcher_forest',
         name: 'CAZABICHOS RICKY',
         type: 'npc',
-        position: { x: 10, y: 10 },
+        position: { x: 9, y: 10 },
         direction: 'down',
         trainerClass: 'bugcatcher',
         dialogue: ["¡Mi POKÉMON bicho es el más fuerte!", "¡No podrás pasar de aquí!"],

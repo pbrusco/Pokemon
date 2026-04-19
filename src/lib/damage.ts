@@ -37,7 +37,11 @@ export function getStageMultiplier(stage: number): number {
   return STAT_STAGE_MULTIPLIERS[clamped] ?? 1;
 }
 
-/** Compute effective stat from base stat and level (simplified Gen I, no IVs/EVs) */
+/**
+ * Compute effective stat from base stat and level (simplified Gen I, no IVs/EVs).
+ * Individual Values (DVs) and Stat Experience are intentionally omitted — see
+ * DESIGN.md "Simplifications" for the scope decision.
+ */
 export function calcStat(base: number, level: number): number {
   // Simplified: Stat = floor((Base * 2 * Level) / 100) + 5
   return Math.floor((base * 2 * level) / 100) + 5;
@@ -136,17 +140,20 @@ export function calculateDamage(
   const aBoosts = attacker.statBoosts ?? ZERO_BOOSTS;
   const dBoosts = defender.statBoosts ?? ZERO_BOOSTS;
 
-  // Crits ignore negative attack stages and positive defense stages (Gen I)
+  // Crits ignore negative attack stages and positive defense stages (Gen I).
+  // The level-doubling for crits applies only to the `(2L*crit/5 + 2)` term in
+  // the main damage formula below (via `critical = 2`), NOT to the raw stat
+  // calculations — those use the attacker's actual level.
   if (physical) {
     const atkStage = isCritical ? Math.max(0, aBoosts.attack) : aBoosts.attack;
     const defStage = isCritical ? Math.min(0, dBoosts.defense) : dBoosts.defense;
-    attackStat = calcStatWithBoost(attacker.baseStats.attack, isCritical ? level * 2 : level, atkStage);
-    defenseStat = calcStatWithBoost(defender.baseStats.defense, isCritical ? level * 2 : level, defStage);
+    attackStat = calcStatWithBoost(attacker.baseStats.attack, level, atkStage);
+    defenseStat = calcStatWithBoost(defender.baseStats.defense, level, defStage);
   } else {
     const spaStage = isCritical ? Math.max(0, aBoosts.special) : aBoosts.special;
     const spdStage = isCritical ? Math.min(0, dBoosts.special) : dBoosts.special;
-    attackStat = calcStatWithBoost(attacker.baseStats.special, isCritical ? level * 2 : level, spaStage);
-    defenseStat = calcStatWithBoost(defender.baseStats.special, isCritical ? level * 2 : level, spdStage);
+    attackStat = calcStatWithBoost(attacker.baseStats.special, level, spaStage);
+    defenseStat = calcStatWithBoost(defender.baseStats.special, level, spdStage);
   }
 
   // Gen I: if either A or D exceeds 255, both are divided by 4 and floored

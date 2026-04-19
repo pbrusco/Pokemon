@@ -38,12 +38,7 @@ export type GamePhase =
 // ---------------------------------------------------------------------------
 
 export const EXPLORING: GamePhase = { type: 'EXPLORING' };
-export const MENU: GamePhase = { type: 'MENU' };
-export const INVENTORY: GamePhase = { type: 'INVENTORY' };
-export const TEAM: GamePhase = { type: 'TEAM' };
 export const SHOP: GamePhase = { type: 'SHOP' };
-export const POKEDEX: GamePhase = { type: 'POKEDEX' };
-export const PC: GamePhase = { type: 'PC' };
 export const EDITOR: GamePhase = { type: 'EDITOR' };
 export const BATTLE_TRANSITION: GamePhase = { type: 'BATTLE_TRANSITION' };
 export const BLACKOUT: GamePhase = { type: 'BLACKOUT' };

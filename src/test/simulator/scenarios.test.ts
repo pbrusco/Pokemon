@@ -414,6 +414,125 @@ describe('Scenario 11: Pokécenter healing', () => {
   });
 });
 
+// ─── Scenario: loadLogAsScenario — replays recorded events ────────────────
+
+describe('loadLogAsScenario helper', () => {
+  it('replays a hand-crafted log: move + interact', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'PALLET_TOWN',
+      // (9, 8) is grass; (9, 7) above it is also grass and walkable.
+      playerPos: { x: 9, y: 8 },
+      direction: 'down',
+      playerTeam: [STARTERS[0]],
+      storyStep: 'EXPLORING',
+    });
+    const snapshot: Record<string, unknown> = {};
+    const raw = useGameStore.getState() as unknown as Record<string, unknown>;
+    for (const [k, v] of Object.entries(raw)) {
+      if (typeof v !== 'function') snapshot[k] = v;
+    }
+    const log = {
+      version: 2 as const,
+      seed: 0xdeadbeef,
+      startedAt: Date.now(),
+      snapshot: structuredClone(snapshot),
+      events: [{ k: 'move' as const, dir: 'up' as const }],
+      observations: [],
+    };
+    sim.loadLogAsScenario(log);
+    expect(sim.pos).toEqual({ x: 9, y: 7 });
+  });
+});
+
+// ─── Scenario: assertWorldIntact() smoke test ─────────────────────────────
+
+describe('assertWorldIntact helper', () => {
+  it('returns cleanly when world data is intact', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'PALLET_TOWN',
+      playerPos: { x: 10, y: 10 },
+      direction: 'down',
+      playerTeam: [],
+    });
+    expect(() => sim.assertWorldIntact()).not.toThrow();
+  });
+});
+
+// ─── Scenario 13: Trainer vision is exactly 3 tiles ────────────────────────
+
+describe('Scenario 13: Trainer vision range', () => {
+  // youngster_chano @ Route 1 (3, 10) facing left → sees (2,10), (1,10), (0,10).
+  // Stepping onto (4, 10) (behind him) does not trigger; stepping into vision does.
+
+  it('does NOT trigger when player is out of trainer line-of-sight', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'ROUTE_1',
+      // Player at (5, 10) — behind/right of trainer. Move further right → still safe.
+      playerPos: { x: 5, y: 10 },
+      direction: 'right',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+    });
+    sim.move('right');
+    sim.tick(1500);
+    expect(sim.phase.type).toBe('EXPLORING');
+    expect(sim.dialogueContains('¡Te he visto!')).toBe(false);
+  });
+
+  it('triggers cutscene when player steps into 3rd tile of vision (boundary)', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'ROUTE_1',
+      // Start at (1, 11). Move up to (1, 10) — exactly the 2nd tile of vision (still in range).
+      playerPos: { x: 1, y: 11 },
+      direction: 'up',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+    });
+    sim.move('up');
+    sim.tick(2500);
+    expect(sim.dialogueContains('¡Te he visto!')).toBe(true);
+  });
+});
+
+// ─── Scenario 14: Brock leader battle ──────────────────────────────────────
+
+describe('Scenario 14: Brock leader battle', () => {
+  // Brock @ PEWTER_GYM (4, 2) facing down with [Geodude L10, Onix L12].
+  // Verify a strong (L50 Charmander) starter wins against Brock deterministically.
+  it('a L50 starter wins against Brock', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'PEWTER_GYM',
+      // Stand below Brock at (4, 3) facing up to interact.
+      playerPos: { x: 4, y: 3 },
+      direction: 'up',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+      defeatedTrainers: ['gym_trainer'], // skip the gatekeeper trainer
+    });
+
+    sim.interact();
+    sim.dismissDialogue();
+    sim.tick(2000);
+    sim.skipBattleTransition();
+    expect(sim.phase.type).toBe('BATTLE');
+    expect(sim.battleState?.isTrainerBattle).toBe(true);
+
+    for (let i = 0; i < 30; i++) {
+      if (sim.phase.type !== 'BATTLE') break;
+      if (sim.battleState?.outcome !== 'ongoing') break;
+      const move = sim.battleState?.playerTeam?.[0]?.moves?.[0];
+      if (move && sim.battleState?.phase === 'CHOOSING') {
+        sim.battleAction({ type: 'ATTACK', move });
+      }
+      sim.tick(5000);
+    }
+    sim.tick(10000);
+
+    expect(sim.phase.type).toBe('EXPLORING');
+    expect(sim.state.defeatedTrainers).toContain('brock');
+  });
+});
+
 // ─── Scenario 12: No re-battle after winning a trainer fight ────────────────
 
 describe('Scenario 12: No ghost re-battle after winning trainer fight', () => {

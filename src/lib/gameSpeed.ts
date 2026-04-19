@@ -4,9 +4,6 @@
 
 let _speed = 1;
 
-/** Current game speed multiplier (1 = normal) */
-export function getGameSpeed(): number { return _speed; }
-
 /** Set game speed multiplier (clamped to >= 0.1) */
 export function setGameSpeed(s: number) { _speed = Math.max(0.1, s); }
 

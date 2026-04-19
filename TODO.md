@@ -38,7 +38,6 @@ Fixed: GameModals now reads store directly via `useGameStore()`. Interface reduc
   - Gyms: Cerulean, Vermilion, Celadon, Fuchsia, Saffron, Cinnabar, Viridian
   - Interiors: Bill's House, Daycare, SS Anne (multi-floor), Celadon Dept Store (6F), Game Corner, Rocket Hideout (4F), Copycat's House, Pokémon Fan Club, Dojo, Cinnabar Lab, Safari Warden
 - [ ] Manual browser playtest of pilot + Stage 2 interiors
-- [ ] Fix 4 pre-existing `statusRules.test.ts` failures
 
 ## PP tracking in battle
 - [x] Decrement PP when a move is used in `battleEngine.ts`

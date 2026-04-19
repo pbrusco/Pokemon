@@ -428,6 +428,150 @@ describe('Flee mechanics', () => {
   });
 });
 
+// ─── EXP formula (Gen I) ─────────────────────────────────────────────────────
+
+describe('EXP formula — Gen I species-weighted', () => {
+  function makeOneShotState(enemy: Pokemon): BattleState {
+    // Player has 999 attack base so one Tackle guaranteed faints the enemy.
+    const player = makePkmn({
+      baseStats: { hp: 39, attack: 999, defense: 43, special: 50, speed: 65 },
+      moves: [makeMove({ power: 100 })],
+    });
+    // Enemy with 1 HP guarantees a one-shot.
+    const enemy1hp = { ...enemy, hp: 1, maxHp: enemy.maxHp || 50 };
+    return createBattleState([player], enemy1hp);
+  }
+
+  function getExpLog(effects: ReturnType<typeof getLogs> extends string[] ? any[] : never): string | undefined {
+    return getLogs(effects).find(l => l.includes('ganó') && l.includes('EXP'));
+  }
+
+  it('species baseExp differentiates rewards — Magikarp (20) << Dragonair (144)', () => {
+    // No crit, always hit
+    randomSpy.mockReturnValue(0.5);
+
+    // Magikarp: baseExp 20, L10 → floor(20*10/7) = 28
+    const magikarp = makePkmn({ id: 'magikarp', name: 'MAGIKARP', baseExp: 20, level: 10 });
+    const stateM = makeOneShotState(magikarp);
+    const move = stateM.playerTeam[0].moves[0];
+    const resM = stepBattle(stateM, { type: 'ATTACK', move });
+    const expM = getExpLog(resM.effects);
+    expect(expM).toMatch(/28 puntos/);
+
+    // Dragonair: baseExp 144, L10 → floor(144*10/7) = 205
+    const dragonair = makePkmn({ id: 'dragonair', name: 'DRAGONAIR', baseExp: 144, level: 10 });
+    const stateD = makeOneShotState(dragonair);
+    const resD = stepBattle(stateD, { type: 'ATTACK', move });
+    const expD = getExpLog(resD.effects);
+    expect(expD).toMatch(/205 puntos/);
+  });
+
+  it('trainer battle applies 1.5× multiplier', () => {
+    randomSpy.mockReturnValue(0.5);
+
+    // Rattata: baseExp 57, L5
+    // Wild:    floor(57*5/7)         = floor(40.71) = 40
+    // Trainer: floor(1.5*57*5/7)     = floor(61.07) = 61
+    const enemy = makePkmn({ id: 'rattata', name: 'RATTATA', baseExp: 57, level: 5, hp: 1 });
+    const player = makePkmn({
+      baseStats: { hp: 39, attack: 999, defense: 43, special: 50, speed: 65 },
+      moves: [makeMove({ power: 100 })],
+    });
+    const trainerState = createBattleState([player], enemy, { isTrainerBattle: true });
+    const move = trainerState.playerTeam[0].moves[0];
+    const resT = stepBattle(trainerState, { type: 'ATTACK', move });
+    expect(getExpLog(resT.effects)).toMatch(/61 puntos/);
+
+    const wildState = createBattleState([player], { ...enemy, hp: 1 });
+    const resW = stepBattle(wildState, { type: 'ATTACK', move });
+    expect(getExpLog(resW.effects)).toMatch(/40 puntos/);
+  });
+
+  it('participants split EXP — 2 participants → half EXP each', () => {
+    randomSpy.mockReturnValue(0.5);
+
+    // Dragonair: baseExp 144, L10 — solo yield = 205, split(2) = floor(144*10/(7*2)) = 102
+    const enemy = makePkmn({ id: 'dragonair', name: 'DRAGONAIR', baseExp: 144, level: 10, hp: 1 });
+    const lead = makePkmn({
+      baseStats: { hp: 39, attack: 999, defense: 43, special: 50, speed: 65 },
+      moves: [makeMove({ power: 100 })],
+    });
+    const bench = makePkmn({ name: 'BENCH', baseStats: { hp: 39, attack: 10, defense: 43, special: 50, speed: 65 } });
+    const state = createBattleState([lead, bench], enemy);
+    // Simulate prior switch-in of bench by marking both team uids as participants.
+    const stateTwoParticipants = {
+      ...state,
+      participantUids: [state.playerTeam[0].uid!, state.playerTeam[1].uid!],
+    };
+    const move = stateTwoParticipants.playerTeam[0].moves[0];
+    const result = stepBattle(stateTwoParticipants, { type: 'ATTACK', move });
+    expect(getExpLog(result.effects)).toMatch(/102 puntos/);
+  });
+
+  it('fainted participants do not count in the split', () => {
+    // Same setup but bench is fainted → denom=1, full yield.
+    randomSpy.mockReturnValue(0.5);
+
+    const enemy = makePkmn({ id: 'dragonair', name: 'DRAGONAIR', baseExp: 144, level: 10, hp: 1 });
+    const lead = makePkmn({
+      baseStats: { hp: 39, attack: 999, defense: 43, special: 50, speed: 65 },
+      moves: [makeMove({ power: 100 })],
+    });
+    const bench = makePkmn({ name: 'BENCH', hp: 0, baseStats: { hp: 39, attack: 10, defense: 43, special: 50, speed: 65 } });
+    const state = createBattleState([lead, bench], enemy);
+    const stateWithFaintedBenchParticipant = {
+      ...state,
+      participantUids: [state.playerTeam[0].uid!, state.playerTeam[1].uid!],
+    };
+    const move = stateWithFaintedBenchParticipant.playerTeam[0].moves[0];
+    const result = stepBattle(stateWithFaintedBenchParticipant, { type: 'ATTACK', move });
+    expect(getExpLog(result.effects)).toMatch(/205 puntos/);
+  });
+
+  it('participant count resets when trainer sends next Pokémon', () => {
+    randomSpy.mockReturnValue(0.5);
+
+    const enemy1 = makePkmn({ id: 'rattata', name: 'RATTATA', baseExp: 57, level: 5, hp: 1 });
+    const enemy2 = makePkmn({ id: 'rattata', name: 'RATTATA2', baseExp: 57, level: 5, hp: 1 });
+    const lead = makePkmn({
+      baseStats: { hp: 99, attack: 999, defense: 43, special: 50, speed: 65 },
+      moves: [makeMove({ power: 100 })],
+    });
+    const bench = makePkmn({
+      name: 'BENCH',
+      hp: 99, maxHp: 99,
+      baseStats: { hp: 99, attack: 10, defense: 43, special: 50, speed: 65 },
+    });
+    const state = createBattleState([lead, bench], enemy1, {
+      isTrainerBattle: true,
+      enemyTeam: [enemy1, enemy2],
+    });
+    const stateTwoParticipants = {
+      ...state,
+      participantUids: [state.playerTeam[0].uid!, state.playerTeam[1].uid!],
+    };
+
+    const move = stateTwoParticipants.playerTeam[0].moves[0];
+    const res1 = stepBattle(stateTwoParticipants, { type: 'ATTACK', move });
+    expect(res1.state.phase).toBe('TRAINER_NEXT_POKEMON');
+    expect(res1.state.participantUids.length).toBe(1);
+    expect(res1.state.participantUids[0]).toBe(stateTwoParticipants.playerTeam[0].uid);
+  });
+
+  it('SWITCH adds the new active Pokémon to participantUids', () => {
+    randomSpy.mockReturnValue(0.5);
+
+    const lead = makePkmn({ name: 'LEAD' });
+    const bench = makePkmn({ name: 'BENCH' });
+    const enemy = makePkmn({ name: 'ENEMY' });
+    const state = createBattleState([lead, bench], enemy);
+    expect(state.participantUids).toEqual([state.playerTeam[0].uid]);
+
+    const after = stepBattle(state, { type: 'SWITCH', index: 1 });
+    expect(after.state.participantUids.length).toBe(2);
+  });
+});
+
 // ─── Scenario 8: Status effects ──────────────────────────────────────────────
 
 describe('Status effects', () => {

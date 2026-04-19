@@ -10,7 +10,8 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",

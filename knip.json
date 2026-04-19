@@ -1,0 +1,11 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/lib/eventLog.ts!",
+    "src/test/**/*.test.ts",
+    "src/**/__tests__/**/*.{ts,tsx}"
+  ],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignoreBinaries": ["knip"],
+  "ignoreDependencies": ["tailwindcss"]
+}

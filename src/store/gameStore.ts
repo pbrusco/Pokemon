@@ -103,8 +103,7 @@ interface GameState extends GameSaveState {
   catchResult: boolean | null;
   
   worldMaps: typeof worldConfig.maps;
-  teleports: Record<MapID, Entity[]>;
-  
+
   getNPCs: () => Record<MapID, NPC[]>;
   getItems: () => Record<MapID, Entity[]>;
   
@@ -176,8 +175,7 @@ export const useGameStore = create<GameState>()(
       catchResult: null,
       
       worldMaps: worldConfig.maps,
-      teleports: worldConfig.teleports,
-      
+
       getNPCs: () => {
         const state = get();
         return buildNPCDatabase(state.playerTeam, state.hasParcel, state.hasPokedex, state.badges, state.storyStep, state.oakCutscenePos, state.oakCutsceneDir);

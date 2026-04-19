@@ -31,8 +31,6 @@ function mapEnginePhase(p: string): GamePhase {
   }
 }
 
-export type BattleMessage = { text: string; speaker: string; id: number };
-
 export function useBattleEngine({
   battleStateRef,
   setPlayerAnim,

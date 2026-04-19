@@ -23,9 +23,11 @@ import { setGameSpeed } from '../../lib/gameSpeed';
 import { EXPLORING } from '../../types/gamePhase';
 import { battle, B_CHOOSING } from '../../types/gamePhase';
 import { worldConfig } from '../../data/worldConfig';
+import { validateWorld } from '../../lib/worldValidator';
 import type { Direction, Position, MapID, Pokemon, InventoryCounts } from '../../types';
 import type { GamePhase } from '../../types/gamePhase';
 import type { BattleAction } from '../../lib/battleEngine';
+import type { RecLog } from '../../lib/eventLog';
 
 // ─── Event log ──────────────────────────────────────────────────────────────
 
@@ -102,7 +104,6 @@ export class GameSimulator {
       showBattleTransition: false,
       activeBattle: null,
       worldMaps: worldConfig.maps,
-      teleports: worldConfig.teleports,
     });
 
     // Subscribe to store changes for the event log
@@ -226,6 +227,50 @@ export class GameSimulator {
     return this;
   }
 
+  // ── Log replay ───────────────────────────────────────────────────────────
+
+  /**
+   * Install a seeded mulberry32 PRNG as Math.random. Used by loadLogAsScenario
+   * so logs recorded in-game replay deterministically in tests.
+   */
+  seedPrng(seed: number): this {
+    let state = seed | 0;
+    Math.random = () => {
+      state = (state + 0x6d2b79f5) | 0;
+      let t = state;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    return this;
+  }
+
+  /**
+   * Replay a recorded event log through the simulator. Restores the snapshot,
+   * seeds the PRNG, and dispatches each event with a tick in between.
+   *
+   * Only supports `move`, `action`, and `battle` event types — `item` and
+   * `pcSwap` require hooks not wired into the headless useGameLoop.
+   */
+  loadLogAsScenario(log: RecLog, opts: { tickBetween?: number } = {}): this {
+    const tickMs = opts.tickBetween ?? 200;
+    act(() => {
+      useGameStore.setState(structuredClone(log.snapshot) as never);
+    });
+    this.seedPrng(log.seed);
+    this.tick(100);
+    for (const e of log.events) {
+      switch (e.k) {
+        case 'move': this.move(e.dir); break;
+        case 'action': this.interact(); break;
+        case 'battle': this.battleAction(e.action); break;
+        // item/pcSwap intentionally skipped (not in useGameLoop surface)
+      }
+      this.tick(tickMs);
+    }
+    return this;
+  }
+
   // ── Random control ───────────────────────────────────────────────────────
 
   /** Queue specific random values. Values are consumed in order. */
@@ -271,6 +316,18 @@ export class GameSimulator {
     return this.log
       .filter(e => e.type === 'dialogue')
       .some(e => (e.value as string).includes(substring));
+  }
+
+  /**
+   * Throws if any world integrity issue is present (warps, NPCs, items, encounters).
+   * Safe to call after warps or state transitions to catch drift mid-scenario.
+   */
+  assertWorldIntact(): this {
+    const issues = validateWorld();
+    if (issues.length > 0) {
+      throw new Error(`World integrity failed:\n${issues.map(i => `  [${i.category}] ${i.message}`).join('\n')}`);
+    }
+    return this;
   }
 
   /** Get all phase transitions as an array of phase type strings */

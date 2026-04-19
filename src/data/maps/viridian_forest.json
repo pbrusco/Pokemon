@@ -39,6 +39,6 @@
   ],
   "warps": [
     { "x": 11, "y": 0,  "targetMap": "PEWTER_CITY",   "targetPos": { "x": 15, "y": 26 }, "targetDir": "up" },
-    { "x": 11, "y": 35, "targetMap": "VIRIDIAN_CITY", "targetPos": { "x": 15, "y": 0  }, "targetDir": "down" }
+    { "x": 11, "y": 35, "targetMap": "ROUTE_2",       "targetPos": { "x": 4,  "y": 0  }, "targetDir": "down" }
   ]
 }
