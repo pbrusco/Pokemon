@@ -4,7 +4,6 @@ import { stepBattle, BattleState, BattleAction, BattleEffect } from '../lib/batt
 import { soundManager } from '../lib/sounds';
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
-import { applyGodMode } from '../lib/godMode';
 import { useGameStore } from '../store/gameStore';
 import { logObservation } from '../lib/eventLog';
 
@@ -43,19 +42,6 @@ export function useBattleEngine({
 }: UseBattleEngineParams) {
   const store = useGameStore();
   const nextLogId = useRef(0);
-
-  useEffect(() => {
-    const onGodModeToggled = (e: Event) => {
-      const active = (e as CustomEvent).detail;
-      if (active && battleStateRef.current) {
-        const newTeam = applyGodMode(battleStateRef.current.playerTeam);
-        battleStateRef.current = { ...battleStateRef.current, playerTeam: newTeam };
-        useGameStore.getState().setPlayerTeam(newTeam);
-      }
-    };
-    window.addEventListener('godModeToggled', onGodModeToggled);
-    return () => window.removeEventListener('godModeToggled', onGodModeToggled);
-  }, [battleStateRef]);
 
   // Auto-sync: keep battleStateRef in step with the store's activeBattle.
   // Triggered when a cutscene's processBattle() sets activeBattle without

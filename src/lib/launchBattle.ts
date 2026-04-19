@@ -1,6 +1,5 @@
 import { Pokemon } from '../types';
 import { createBattleState } from './battleEngine';
-import { isGodMode, applyGodMode } from './godMode';
 import { useGameStore } from '../store/gameStore';
 import { BATTLE_TRANSITION } from '../types/gamePhase';
 import { TRAINER_BATTLE_SPRITES } from '../data/trainerSprites';
@@ -14,8 +13,7 @@ interface LaunchBattleOptions {
 
 export function launchBattle(options: LaunchBattleOptions): void {
   const s = useGameStore.getState();
-  const team = isGodMode() ? applyGodMode(s.playerTeam) : s.playerTeam;
-  const battleState = createBattleState(team, options.enemy, {
+  const battleState = createBattleState(s.playerTeam, options.enemy, {
     isTrainerBattle: options.isTrainer,
     trainerName: options.trainerName,
     inventory: s.inventory,

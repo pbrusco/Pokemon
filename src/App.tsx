@@ -2,10 +2,7 @@ import { useEffect, useRef, useMemo, useCallback } from 'react';
 import { soundManager } from './lib/sounds';
 import { BattleState, BattleAction } from './lib/battleEngine';
 import { battle, B_CHOOSING, B_FORCED_SWITCH, EXPLORING } from './types/gamePhase';
-import { DemoModeButton } from './components/DemoModeButton';
-import { GodModeButton } from './components/GodModeButton';
 import { RecorderButton } from './components/RecorderButton';
-import './lib/demoMode';
 import { logEvent, withoutLogging } from './lib/eventLog';
 import { Direction } from './types';
 import { useInteractionEngine } from './hooks/useInteractionEngine';
@@ -225,12 +222,6 @@ export default function App() {
 
       <ScreenEffects phaseType={phase.type} battlePhase={battlePhase} />
 
-      {import.meta.env.DEV && (
-        <div className="fixed bottom-4 left-4 z-[200]">
-          <GodModeButton />
-        </div>
-      )}
-      {import.meta.env.DEV && <DemoModeButton />}
       {import.meta.env.DEV && <RecorderButton />}
     </div>
   );

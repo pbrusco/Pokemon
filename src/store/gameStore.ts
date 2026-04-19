@@ -334,7 +334,7 @@ export const useGameStore = create<GameState>()(
   )
 );
 
-// Expose store for dev tools / demoMode testing
+// Expose store for dev tools
 if (import.meta.env.DEV) {
   (window as any).__gameStore = useGameStore;
 }

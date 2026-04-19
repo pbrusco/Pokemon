@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from 'react';
+import { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Position, Direction, NPC, Entity, Pokemon, MapID, TILE_SIZE } from '../types';
 import { WILD_POKEMON_DATABASE } from '../constants';
@@ -61,15 +61,7 @@ export const WorldView = memo(({
   const { layers } = mapData;
   const mapHasEncounters = currentMap in WILD_POKEMON_DATABASE;
 
-  const [isDemoActive, setIsDemoActive] = useState(() => (window as typeof window & { __demo?: any }).__demo?.running?.() ?? false);
-
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
-
-  useEffect(() => {
-    const handleDemoChange = (e: any) => setIsDemoActive(e.detail.running && !e.detail.paused);
-    window.addEventListener('demoModeChanged', handleDemoChange);
-    return () => window.removeEventListener('demoModeChanged', handleDemoChange);
-  }, []);
 
   // ── Visible-tile culling ──────────────────────────────────────
   const cullRadius = 24;
@@ -319,7 +311,7 @@ export const WorldView = memo(({
 
           {/* Interaction indicator */}
           <AnimatePresence>
-            {isInteractable && !isDemoActive && (
+            {isInteractable && (
               <motion.div
                 key="interact-indicator"
                 initial={{ opacity: 0, y: 10, scale: 0.5 }}
