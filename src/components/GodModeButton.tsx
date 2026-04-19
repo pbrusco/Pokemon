@@ -12,6 +12,7 @@ export function GodModeButton() {
 
   return (
     <button
+      onMouseDown={(e) => e.preventDefault()}
       onClick={toggle}
       className={`px-3 py-1.5 rounded-xl font-bold text-xs shadow-lg transition-all ${
         active ? 'bg-yellow-400 hover:bg-yellow-300 text-black' : 'bg-slate-700 hover:bg-slate-600 text-white'

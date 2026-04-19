@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Direction } from '../types';
-import { battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING, MENU, EDITOR } from '../types/gamePhase';
+import { battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING, EDITOR } from '../types/gamePhase';
 import { BattleAction } from '../lib/battleEngine';
 import { useGameStore } from '../store/gameStore';
 
@@ -29,14 +29,6 @@ export function useInputHandler({
       if (inBattle) {
         const battleSubPhase = store.phase.type === 'BATTLE' ? store.phase.sub.type : null;
         if (e.key === 'Escape') {
-          if (store.dialogue) {
-            if (!e.repeat) {
-              const cb = store.dialogueCallback;
-              store.setDialogue(null);
-              if (cb) cb();
-            }
-            return;
-          }
           if (battleSubPhase === 'BATTLE_INVENTORY' || battleSubPhase === 'BATTLE_TEAM') {
             store.setPhase(battle(B_CHOOSING));
             return;
@@ -45,8 +37,6 @@ export function useInputHandler({
             store.setShowMoves(false);
             return;
           }
-          store.setPhase({ type: 'MENU', returnTo: store.phase });
-          return;
         }
         if (battleSubPhase === 'CHOOSING') {
           const inMovesMenu = store.showMoves;
@@ -89,7 +79,7 @@ export function useInputHandler({
         case 'ArrowLeft': dir = 'left'; break;
         case 'ArrowRight': dir = 'right'; break;
         case 'z': case 'Enter': case ' ': handleAction(); break;
-        case 'x': case 'Shift': case 'Escape': store.setPhase(prev => prev.type === 'MENU' ? (prev.returnTo ?? EXPLORING) : MENU); break;
+        case 'Escape': if (store.phase.type === 'MENU') store.setPhase(store.phase.returnTo ?? EXPLORING); break;
       }
       if (dir) {
         if (spottedTrainerId) return; // Block movement if a trainer has spotted us

@@ -33,7 +33,7 @@ export const SideMenu = ({
         initial={{ x: 300, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: 300, opacity: 0 }}
-        className="fixed right-2 sm:right-8 top-1/2 -translate-y-1/2 w-56 sm:w-64 bg-white/95 backdrop-blur-xl border-4 border-slate-800 rounded-3xl p-3 sm:p-4 shadow-2xl z-40 max-h-[90vh] overflow-y-auto"
+        className="fixed right-2 sm:right-8 top-1/2 -translate-y-1/2 w-56 sm:w-64 bg-white/95 backdrop-blur-xl border-4 border-slate-800 rounded-3xl p-3 sm:p-4 shadow-2xl z-[140] max-h-[90vh] overflow-y-auto"
       >
         <h2 className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold mb-4 px-2">Menú Principal</h2>
         <div className="space-y-2">

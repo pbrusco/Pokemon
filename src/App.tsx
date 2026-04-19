@@ -1,10 +1,13 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useCallback } from 'react';
 import { soundManager } from './lib/sounds';
-import { BattleState } from './lib/battleEngine';
+import { BattleState, BattleAction } from './lib/battleEngine';
 import { battle, B_CHOOSING, B_FORCED_SWITCH, EXPLORING } from './types/gamePhase';
 import { DemoModeButton } from './components/DemoModeButton';
 import { GodModeButton } from './components/GodModeButton';
-import './lib/demoMode'; 
+import { RecorderButton } from './components/RecorderButton';
+import './lib/demoMode';
+import { logEvent, withoutLogging } from './lib/eventLog';
+import { Direction } from './types';
 import { useInteractionEngine } from './hooks/useInteractionEngine';
 import { useWindowSize } from './hooks/useWindowSize';
 import { useBattleVFX } from './hooks/useBattleVFX';
@@ -19,6 +22,7 @@ import { GameHeader } from './components/GameHeader';
 import { WorldView } from './components/WorldView';
 import { MobileControls } from './components/MobileControls';
 import { SideMenu } from './components/SideMenu';
+import { MenuButton } from './components/MenuButton';
 import { GameModals } from './components/GameModals';
 import { ScreenEffects } from './components/ScreenEffects';
 
@@ -63,6 +67,7 @@ export default function App() {
   }, [inBattle, store.currentMap]);
 
   const handlePCSwap = (teamIdx: number, pcIdx: number) => {
+    logEvent({ k: 'pcSwap', teamIdx, pcIdx });
     const newTeam = [...store.playerTeam];
     const newPC = [...store.pcStorage];
     const temp = newTeam[teamIdx];
@@ -73,12 +78,16 @@ export default function App() {
     soundManager.play('SELECT');
   };
 
-  const { dispatchBattle } = useBattleEngine({
+  const { dispatchBattle: rawDispatchBattle } = useBattleEngine({
     battleStateRef,
     setPlayerAnim,
     setEnemyAnim,
     setBattleShake,
   });
+  const dispatchBattle = useCallback((action: BattleAction) => {
+    if (action.type !== 'TICK') logEvent({ k: 'battle', action });
+    rawDispatchBattle(action);
+  }, [rawDispatchBattle]);
 
   // Restore battle state from persisted store on mount
   useEffect(() => {
@@ -99,33 +108,44 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { handleMove, initBattle } = useMovementEngine({
+  const { handleMove: rawHandleMove, initBattle } = useMovementEngine({
     battleStateRef,
     setOverworldShake,
   });
+  const handleMove = useCallback((dir: Direction) => {
+    logEvent({ k: 'move', dir });
+    rawHandleMove(dir);
+  }, [rawHandleMove]);
 
-  const { handleAction } = useInteractionEngine({
+  const { handleAction: rawHandleAction } = useInteractionEngine({
     initBattle,
   });
+  const handleAction = useCallback(() => {
+    logEvent({ k: 'action' });
+    rawHandleAction();
+  }, [rawHandleAction]);
 
   const handleUseItem = (itemId: string) => {
-    const hasItem = (store.inventory[itemId] ?? 0) > 0;
-    if (!hasItem) return;
-    if (!inBattle) {
-      if (itemId === 'POTION') {
-        const healedTeam = store.playerTeam.map(applyPotion);
-        store.updateTeam(healedTeam);
-        store.removeInventoryItem('POTION');
-        store.setDialogue('¡Usaste una POCIÓN! Tus POKÉMON recuperaron salud.');
+    logEvent({ k: 'item', itemId });
+    withoutLogging(() => {
+      const hasItem = (store.inventory[itemId] ?? 0) > 0;
+      if (!hasItem) return;
+      if (!inBattle) {
+        if (itemId === 'POTION') {
+          const healedTeam = store.playerTeam.map(applyPotion);
+          store.updateTeam(healedTeam);
+          store.removeInventoryItem('POTION');
+          store.setDialogue('¡Usaste una POCIÓN! Tus POKÉMON recuperaron salud.');
+        }
+        store.setPhase(EXPLORING);
+        return;
       }
-      store.setPhase(EXPLORING);
-      return;
-    }
-    if (itemId === 'POKEBALL') {
-      dispatchBattle({ type: 'CATCH' });
-    } else {
-      dispatchBattle({ type: 'USE_ITEM', itemId });
-    }
+      if (itemId === 'POKEBALL') {
+        dispatchBattle({ type: 'CATCH' });
+      } else {
+        dispatchBattle({ type: 'USE_ITEM', itemId });
+      }
+    });
   };
 
   useDebugAPI({
@@ -136,6 +156,8 @@ export default function App() {
     setPhase: store.setPhase,
     handleMove,
     handleAction,
+    handleUseItem,
+    handlePCSwap,
     isTrainerBattle: store.isTrainerBattle,
     gameState: { current: store } as any,
     setPlayerTeam: store.updateTeam,
@@ -179,6 +201,8 @@ export default function App() {
 
       <MobileControls onMove={handleMove} onAction={handleAction} setPhase={store.setPhase} />
 
+      <MenuButton phase={phase} setPhase={store.setPhase} />
+
       <SideMenu
         phase={phase}
         playerTeam={store.playerTeam}
@@ -207,6 +231,7 @@ export default function App() {
         </div>
       )}
       {import.meta.env.DEV && <DemoModeButton />}
+      {import.meta.env.DEV && <RecorderButton />}
     </div>
   );
 }

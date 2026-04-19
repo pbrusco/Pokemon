@@ -6,6 +6,7 @@ import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
 import { applyGodMode } from '../lib/godMode';
 import { useGameStore } from '../store/gameStore';
+import { logObservation } from '../lib/eventLog';
 
 interface UseBattleEngineParams {
   battleStateRef: MutableRefObject<BattleState | null>;
@@ -56,13 +57,16 @@ export function useBattleEngine({
     return () => window.removeEventListener('godModeToggled', onGodModeToggled);
   }, [battleStateRef]);
 
-  // Auto-sync: if the store has an activeBattle but battleStateRef is empty,
-  // populate the ref. This happens when a cutscene's processBattle() sets
-  // activeBattle in the store without access to the React mutable ref.
+  // Auto-sync: keep battleStateRef in step with the store's activeBattle.
+  // Triggered when a cutscene's processBattle() sets activeBattle without
+  // the React ref, and when a new battle starts after an old one finished
+  // (stale finished state in the ref would block dispatchBattle).
   const activeBattle = store.activeBattle;
   useEffect(() => {
-    if (activeBattle && !battleStateRef.current) {
+    if (activeBattle && battleStateRef.current !== activeBattle) {
       battleStateRef.current = activeBattle;
+    } else if (!activeBattle) {
+      battleStateRef.current = null;
     }
   }, [activeBattle, battleStateRef]);
 
@@ -107,6 +111,9 @@ export function useBattleEngine({
     const s = useGameStore.getState();
     const npcs = s.getNPCs();
 
+    if (newState.outcome !== 'ongoing') {
+      logObservation({ k: 'obs_battle_outcome', outcome: newState.outcome });
+    }
     if (newState.outcome === 'player_win') {
       if (newState.isTrainerBattle) {
         const trainer = npcs[s.currentMap]?.find(n => n.id === newState.trainerName);
@@ -163,10 +170,17 @@ export function useBattleEngine({
     s.setActiveBattle(newState);
     s.setEnemyPokemon(newState.enemyPokemon);
 
-    // Catch failed in a trainer battle — return to CHOOSING
+    // Catch failed and the fight continues (wild: enemy attacked back; trainer: can't catch).
     if (newState.outcome === 'ongoing' && newState.phase === 'CHOOSING') {
+      logObservation({ k: 'obs_catch', result: newState.isTrainerBattle ? 'failed_in_trainer' : 'escaped' });
       const d = playBattleEffects(effects);
-      setTimeout(() => useGameStore.getState().setPhase(battle(B_CHOOSING)), d);
+      setTimeout(() => {
+        setPlayerAnim('idle');
+        setEnemyAnim('idle');
+        const fs = useGameStore.getState();
+        fs.syncTeamStats(newState.playerTeam);
+        fs.setPhase(battle(B_CHOOSING));
+      }, d);
       return;
     }
 
@@ -175,6 +189,7 @@ export function useBattleEngine({
     s.setBattleLog('¡Pablo lanzó una POKÉ BALL!');
     soundManager.play('SELECT');
 
+    logObservation({ k: 'obs_catch', result: newState.outcome === 'caught' ? 'caught' : 'escaped' });
     if (newState.outcome === 'caught') {
       setTimeout(() => useGameStore.getState().setCatchResult(true), sd(2800));
       setTimeout(() => {
@@ -210,8 +225,26 @@ export function useBattleEngine({
     const validPhase = ph === 'CHOOSING' || (ph === 'FORCED_SWITCH' && action.type === 'SWITCH');
     if (!validPhase && action.type !== 'TICK') return;
 
+    const prevPhase = battleStateRef.current.phase;
     const { state: newState, effects } = stepBattle(battleStateRef.current, action);
     battleStateRef.current = newState;
+
+    if (action.type !== 'TICK') {
+      const activePlayer = newState.playerTeam[0];
+      logObservation({
+        k: 'obs_battle_step',
+        action,
+        prevPhase,
+        newPhase: newState.phase,
+        enemyName: newState.enemyPokemon.name,
+        enemyHp: newState.enemyPokemon.hp,
+        enemyHpMax: newState.enemyPokemon.maxHp,
+        playerName: activePlayer?.name ?? '',
+        playerHp: activePlayer?.hp ?? 0,
+        playerHpMax: activePlayer?.maxHp ?? 0,
+        logs: effects.filter(e => e.type === 'log').map(e => String(e.payload)),
+      });
+    }
 
     const s = useGameStore.getState();
     s.setIsTrainerBattle(newState.isTrainerBattle);
@@ -228,6 +261,12 @@ export function useBattleEngine({
       setPlayerAnim('attack');
       soundManager.play('SELECT');
     }
+
+    // Push HP changes to the store up-front so the HP bar animates down
+    // BEFORE the faint sprite animation (which plays via playBattleEffects
+    // a few hundred ms later).
+    s.setEnemyPokemon(newState.enemyPokemon);
+    s.syncTeamStats(newState.playerTeam);
 
     const aDuration = playBattleEffects(effects);
     const aDelay = Math.max(aDuration + sd(300), sd(800));

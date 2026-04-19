@@ -113,6 +113,49 @@ export function buildNPCDatabase(
     ],
     VIRIDIAN_FOREST: [
       {
+        id: 'lass_forest',
+        name: 'CHICA LILA',
+        type: 'npc',
+        position: { x: 8, y: 25 },
+        direction: 'right' as Direction,
+        trainerClass: 'lass',
+        dialogue: ["¡Mis NIDORAN son preciosos!", "¡Pero también muerden!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('nidoran-f', 'NIDORAN♀', 6, 'poison', [MOVES.TACKLE, MOVES.GROWL], 235, { types: ['poison'] }),
+          makePokemon('nidoran-f', 'NIDORAN♀', 6, 'poison', [MOVES.TACKLE, MOVES.GROWL], 235, { types: ['poison'] })
+        ]
+      },
+      {
+        id: 'bug_catcher_forest_2',
+        name: 'CAZABICHOS DOUG',
+        type: 'npc',
+        position: { x: 14, y: 12 },
+        direction: 'left' as Direction,
+        trainerClass: 'bugcatcher',
+        dialogue: ["¡Mis CATERPIE son los más obedientes!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('caterpie', 'CATERPIE', 7, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 255),
+          makePokemon('caterpie', 'CATERPIE', 7, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 255)
+        ]
+      },
+      {
+        id: 'bug_catcher_forest_3',
+        name: 'CAZABICHOS SAMI',
+        type: 'npc',
+        position: { x: 18, y: 8 },
+        direction: 'down',
+        trainerClass: 'bugcatcher',
+        dialogue: ["¡Tengo un ejército de bichos!", "¡Prepárate!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('metapod', 'METAPOD', 6, 'bug', [MOVES.HARDEN, MOVES.TACKLE], 120),
+          makePokemon('caterpie', 'CATERPIE', 6, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 255),
+          makePokemon('metapod', 'METAPOD', 6, 'bug', [MOVES.HARDEN, MOVES.TACKLE], 120)
+        ]
+      },
+      {
         id: 'bug_catcher_forest',
         name: 'CAZABICHOS RICKY',
         type: 'npc',
@@ -122,9 +165,8 @@ export function buildNPCDatabase(
         dialogue: ["¡Mi POKÉMON bicho es el más fuerte!", "¡No podrás pasar de aquí!"],
         isTrainer: true,
         trainerTeam: [
-          makePokemon('caterpie', 'CATERPIE', 5, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10),
-          makePokemon('metapod', 'METAPOD', 6, 'bug', [MOVES.HARDEN, MOVES.TACKLE], 11),
-          makePokemon('weedle', 'WEEDLE', 5, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 13, { types: ['bug', 'poison'] })
+          makePokemon('caterpie', 'CATERPIE', 9, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 255),
+          makePokemon('metapod', 'METAPOD', 9, 'bug', [MOVES.HARDEN, MOVES.TACKLE], 120)
         ]
       }
     ],
@@ -142,8 +184,8 @@ export function buildNPCDatabase(
         dialogue: ["¡Para llegar a BROCK tendrás que vencerme!", "¡Mis POKÉMON son duros!"],
         isTrainer: true,
         trainerTeam: [
-          makePokemon('geodude', 'GEODUDE', 9, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }),
-          makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] })
+          makePokemon('diglett', 'DIGLETT', 9, 'ground', [MOVES.SCRATCH, MOVES.GROWL], 255, { types: ['ground'] }),
+          makePokemon('sandshrew', 'SANDSHREW', 9, 'ground', [MOVES.SCRATCH, MOVES.GROWL], 255, { types: ['ground'] })
         ]
       },
       {
@@ -158,15 +200,15 @@ export function buildNPCDatabase(
           : ["¡Soy BROCK! ¡El líder de este gimnasio!", "¡Mis POKÉMON son duros como la roca!", "¡Prepárate para perder!"],
         isTrainer: true,
         trainerTeam: [
-          makePokemon('geodude', 'GEODUDE', 12, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }),
-          makePokemon('onix', 'ONIX', 14, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 95, { types: ['rock', 'ground'] })
+          makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }),
+          makePokemon('onix', 'ONIX', 12, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 95, { types: ['rock', 'ground'] })
         ]
       }
     ],
     ROUTE_3: [
       {
         id: 'bug_catcher_rt3',
-        name: 'CAZABICHOS LUIS',
+        name: 'CAZABICHOS RICK',
         type: 'npc',
         position: { x: 5, y: 6 },
         direction: 'right' as Direction,
@@ -174,27 +216,27 @@ export function buildNPCDatabase(
         dialogue: ["¡Los bichos son los mejores POKÉMON!", "¡Te voy a demostrar que soy el mejor!"],
         isTrainer: true,
         trainerTeam: [
-          makePokemon('caterpie', 'CATERPIE', 9, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10),
-          makePokemon('weedle', 'WEEDLE', 9, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 13, { types: ['bug', 'poison'] })
+          makePokemon('weedle', 'WEEDLE', 10, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 13, { types: ['bug', 'poison'] }),
+          makePokemon('caterpie', 'CATERPIE', 10, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10)
         ]
       },
       {
         id: 'lass_rt3',
-        name: 'CHICA ELENA',
+        name: 'CHICA JANICE',
         type: 'npc',
         position: { x: 13, y: 11 },
         direction: 'left' as Direction,
         trainerClass: 'lass',
-        dialogue: ["¡Oye tú! ¡No pases por aquí sin luchar!", "¡Mis POKÉMON son adorables Y fuertes!"],
+        dialogue: ["¡Oye tú! ¡No pases por aquí sin luchar!", "¡Mis PIDGEY son adorables Y fuertes!"],
         isTrainer: true,
         trainerTeam: [
-          makePokemon('jigglypuff', 'JIGGLYPUFF', 11, 'normal', [MOVES.TACKLE, MOVES.GROWL], 39),
+          makePokemon('pidgey', 'PIDGEY', 11, 'flying', [MOVES.TACKLE, MOVES.GUST], 16, { types: ['normal', 'flying'] }),
           makePokemon('pidgey', 'PIDGEY', 11, 'flying', [MOVES.TACKLE, MOVES.GUST], 16, { types: ['normal', 'flying'] })
         ]
       },
       {
         id: 'youngster_rt3',
-        name: 'CHICO ROBERTO',
+        name: 'CHICO BEN',
         type: 'npc',
         position: { x: 8, y: 14 },
         direction: 'down' as Direction,
@@ -202,8 +244,21 @@ export function buildNPCDatabase(
         dialogue: ["¡Llevo mis pantalones cortos todo el año!", "¡Eso me hace más fuerte!"],
         isTrainer: true,
         trainerTeam: [
-          makePokemon('rattata', 'RATTATA', 11, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19),
-          makePokemon('mankey', 'MANKEY', 12, 'fighting', [MOVES.SCRATCH, MOVES.TACKLE], 56)
+          makePokemon('rattata', 'RATTATA', 10, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19),
+          makePokemon('ekans', 'EKANS', 10, 'poison', [MOVES.TACKLE, MOVES.GROWL], 23, { types: ['poison'] })
+        ]
+      },
+      {
+        id: 'lass_rt3_2',
+        name: 'CHICA HALEY',
+        type: 'npc',
+        position: { x: 16, y: 7 },
+        direction: 'down' as Direction,
+        trainerClass: 'lass',
+        dialogue: ["¡Las flores son mis favoritas!", "¡Prepárate!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('oddish', 'ODDISH', 14, 'grass', [MOVES.POUND, MOVES.SLEEP_POWDER], 43, { types: ['grass', 'poison'] })
         ]
       }
     ],
@@ -215,11 +270,12 @@ export function buildNPCDatabase(
         position: { x: 6, y: 10 },
         direction: 'down',
         trainerClass: 'hiker',
-        dialogue: ["¡Cuidado! ¡Aquí abundan los ZUBAT!"],
+        dialogue: ["¡Las rocas son mis amigas!", "¡Te aplastaré!"],
         isTrainer: true,
         trainerTeam: [
-          makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE], 74, { types: ['rock', 'ground'] }),
-          makePokemon('zubat', 'ZUBAT', 10, 'poison', [MOVES.TACKLE], 41, { types: ['poison', 'flying'] })
+          makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }),
+          makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }),
+          makePokemon('onix', 'ONIX', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 95, { types: ['rock', 'ground'] })
         ]
       },
       {
@@ -234,6 +290,35 @@ export function buildNPCDatabase(
         trainerTeam: [
           makePokemon('rattata', 'RATTATA', 11, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19),
           makePokemon('zubat', 'ZUBAT', 11, 'poison', [MOVES.TACKLE], 41, { types: ['poison', 'flying'] })
+        ]
+      },
+      {
+        id: 'supernerd_mtmoon',
+        name: 'SABIONDO MIGUEL',
+        type: 'npc',
+        position: { x: 8, y: 15 },
+        direction: 'left',
+        trainerClass: 'supernerd',
+        dialogue: ["¡Yo domino los fósiles y la ciencia!", "¡Mis POKÉMON son experimentos!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('grimer', 'GRIMER', 11, 'poison', [MOVES.POUND, MOVES.POISON_POWDER], 88, { types: ['poison'] }),
+          makePokemon('voltorb', 'VOLTORB', 11, 'electric', [MOVES.TACKLE, MOVES.THUNDERSHOCK], 100, { types: ['electric'] }),
+          makePokemon('koffing', 'KOFFING', 11, 'poison', [MOVES.TACKLE, MOVES.POISON_POWDER], 109, { types: ['poison'] })
+        ]
+      },
+      {
+        id: 'lass_mtmoon',
+        name: 'CHICA IRIS',
+        type: 'npc',
+        position: { x: 15, y: 10 },
+        direction: 'down',
+        trainerClass: 'lass',
+        dialogue: ["¡Las plantas son preciosas!", "¡Pero también pican!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('oddish', 'ODDISH', 14, 'grass', [MOVES.POUND, MOVES.SLEEP_POWDER], 43, { types: ['grass', 'poison'] }),
+          makePokemon('bellsprout', 'BELLSPROUT', 14, 'grass', [MOVES.VINE_WHIP, MOVES.GROWL], 69, { types: ['grass', 'poison'] })
         ]
       }
     ],

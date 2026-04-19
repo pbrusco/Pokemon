@@ -4,6 +4,7 @@ import { GamePhase, battle, B_CHOOSING, EXPLORING } from '../types/gamePhase';
 import { BattleAction, BattleState, createBattleState } from '../lib/battleEngine';
 import { MOVES, makePokemon } from '../constants';
 import { isGodMode, toggleGodMode } from '../lib/godMode';
+import { useGameStore } from '../store/gameStore';
 
 interface GameStateRef {
   playerTeam: Pokemon[];
@@ -20,6 +21,8 @@ interface UseDebugAPIParams {
   setPhase: Dispatch<SetStateAction<GamePhase>>;
   handleMove: (dir: any) => void;
   handleAction: () => void;
+  handleUseItem: (itemId: string) => void;
+  handlePCSwap: (teamIdx: number, pcIdx: number) => void;
   isTrainerBattle: boolean;
   gameState: MutableRefObject<GameStateRef>;
   setPlayerTeam: (team: Pokemon[]) => void;
@@ -36,6 +39,8 @@ export function useDebugAPI({
   setPhase,
   handleMove,
   handleAction,
+  handleUseItem,
+  handlePCSwap,
   isTrainerBattle,
   gameState,
   setPlayerTeam,
@@ -49,10 +54,16 @@ export function useDebugAPI({
         dispatchBattle,
         battleStateRef,
         getPhase: () => phase,
-        dismissDialogue: () => setDialogue(null),
+        dismissDialogue: () => {
+          const cb = useGameStore.getState().dialogueCallback;
+          setDialogue(null);
+          if (cb) cb();
+        },
         setPhase,
         handleMove,
         handleAction,
+        handleUseItem,
+        handlePCSwap,
         isTrainerBattle,
         phases: { EXPLORING, battle, B_CHOOSING },
         isGodMode,

@@ -12,6 +12,7 @@ import { triggerTrainerCutscene } from '../lib/cutscenes/trainerEncounter';
 import { useGameStore } from '../store/gameStore';
 import { MapID } from '../types';
 import { launchBattle } from '../lib/launchBattle';
+import { logObservation } from '../lib/eventLog';
 
 // ── Extracted helpers (pure or store-writing, no React hooks) ────────────────
 
@@ -46,10 +47,10 @@ function tryWildEncounter(
   if (tileType !== 'grass' || playerTeam.length === 0) return false;
   if (playerTeam.every(p => p.hp === 0)) return false;
 
-  const encounterRate = WILD_ENCOUNTER_RATES[currentMap] ?? 10;
+  const routeWilds = WILD_POKEMON_DATABASE[currentMap];
+  const encounterRate = WILD_ENCOUNTER_RATES[currentMap];
+  if (!routeWilds || encounterRate === undefined) return false;
   if (Math.floor(Math.random() * 256) >= encounterRate) return false;
-
-  const routeWilds = WILD_POKEMON_DATABASE[currentMap] || WILD_POKEMON_DATABASE['ROUTE_1'];
   const randomPkmn = routeWilds[Math.floor(Math.random() * routeWilds.length)];
   const levelVariation = Math.floor(Math.random() * 3) - 1;
   const finalLevel = Math.max(2, randomPkmn.level + levelVariation);
@@ -67,6 +68,7 @@ function tryWildEncounter(
     },
   };
 
+  logObservation({ k: 'obs_encounter', map: currentMap, pokemon: randomPkmn.name, level: finalLevel });
   soundManager.play('BATTLE_START');
   launchBattle({
     enemy: wildPkmn,
@@ -224,6 +226,7 @@ export function useMovementEngine({
     // Trainer vision check
     const spottedTrainer = checkTrainerVision(npcs[currentMap] || [], defeatedTrainers, nextX, nextY);
     if (spottedTrainer) {
+      logObservation({ k: 'obs_trainer_spotted', trainerId: spottedTrainer.id });
       triggerTrainerCutscene(spottedTrainer, { x: nextX, y: nextY });
     }
 

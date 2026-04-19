@@ -51,7 +51,7 @@ export function DemoModeButton() {
           <span className={`w-1.5 h-1.5 rounded-full ${paused ? 'bg-yellow-400' : 'bg-red-500 animate-pulse'}`} />
           {paused ? 'PAUSA' : 'DEMO'} {logCount}ev
 
-          <button onClick={togglePause}
+          <button onMouseDown={(e) => e.preventDefault()} onClick={togglePause}
             className="px-1.5 py-0.5 bg-white/20 rounded hover:bg-white/30">
             {paused ? '▶' : '⏸'}
           </button>
@@ -59,19 +59,20 @@ export function DemoModeButton() {
           {/* Speed controls */}
           {[['1x', 1], ['2x', 2], ['5x', 5], ['10x', 10], ['20x', 20]].map(([label, speed]) => (
             <button key={label as string}
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => changeSpeed(speed as number)}
               className={`px-1.5 py-0.5 rounded text-[9px] ${currentSpeed === speed ? 'bg-white/40 font-bold' : 'bg-white/15 hover:bg-white/25'}`}>
               {label as string}
             </button>
           ))}
 
-          <button onClick={download}
+          <button onMouseDown={(e) => e.preventDefault()} onClick={download}
             className="px-1.5 py-0.5 bg-white/20 rounded hover:bg-white/30">
             DL
           </button>
         </div>
       )}
-      <button onClick={toggle}
+      <button onMouseDown={(e) => e.preventDefault()} onClick={toggle}
         className={`px-3 py-1.5 rounded-xl font-bold text-xs shadow-lg transition-all ${
           running ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'
         }`}>
