@@ -54,7 +54,7 @@ export function buildOakEscortSteps(playerPos: Position): CutsceneStep[] {
 
 import { useGameStore } from '../store/gameStore';
 
-/** Trigger the Oak escort cutscene. Called when the player walks north at y=5 without Pokémon. */
+/** Trigger the Oak escort cutscene. Called when the player tries to leave Pallet Town north without a Pokémon. */
 export function triggerOakCutscene(playerPos: Position) {
   // Face the player toward Oak before the cutscene starts
   useGameStore.getState().setDirection('down');
@@ -63,18 +63,4 @@ export function triggerOakCutscene(playerPos: Position) {
   runCutscene(steps);
 }
 
-// ── Re-export for backward compat with existing startOakWalk tests ────────────
 
-export function startOakWalk(path: PathNode[]) {
-  // The old API: just run the walk portion via the DSL runner
-  const steps: CutsceneStep[] = [
-    { type: 'walk', path, npcLeadId: 'oak_escort' },
-    { type: 'npc_remove' },
-    { type: 'set_story', step: 'OAK_STOPPED' },
-    { type: 'warp', map: 'OAKS_LAB' as any, position: { x: 4, y: 10 }, direction: 'up' as Direction },
-    { type: 'unlock' },
-    { type: 'wait', ms: 500 },
-    { type: 'dialogue', text: "OAK: ¡Hola! Por fin llegas.\nToma uno de estos POKÉMON, te ayudará en tu viaje." },
-  ];
-  runCutscene(steps);
-}

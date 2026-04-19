@@ -168,7 +168,7 @@ export function useMovementEngine({
     }
 
     // Story Event: Oak stops the player from leaving Pallet Town north without pokemon
-    if (currentMap === 'PALLET_TOWN' && nextY === 5 && playerTeam.length === 0) {
+    if (currentMap === 'PALLET_TOWN' && nextY < 0 && playerTeam.length === 0) {
       triggerOakCutscene(playerPos);
       return;
     }

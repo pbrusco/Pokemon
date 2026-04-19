@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useMovementEngine } from './hooks/useMovementEngine';
 import { useInteractionEngine } from './hooks/useInteractionEngine';
 import { useGameStore } from './store/gameStore';
-import { buildOakEscortPath, buildOakEscortSteps, stopOakWalk } from './lib/oakCutscene';
+import { buildOakEscortPath, buildOakEscortSteps } from './lib/oakCutscene';
 import { runCutscene, stopCutscene, isCutsceneRunning } from './lib/cutscenes/runner';
 import { MutableRefObject } from 'react';
 import { BattleState } from './lib/battleEngine';
@@ -15,7 +15,6 @@ describe('Oak Cutscene', () => {
   });
 
   afterEach(() => {
-    stopOakWalk();
     stopCutscene();
     vi.useRealTimers();
   });
@@ -24,9 +23,9 @@ describe('Oak Cutscene', () => {
 
   describe('buildOakEscortPath', () => {
     it('builds a path from player position to the lab door at (12, 11)', () => {
-      const path = buildOakEscortPath({ x: 10, y: 6 });
+      const path = buildOakEscortPath({ x: 3, y: 6 });
 
-      expect(path[0]).toEqual({ x: 10, y: 6, dir: 'down' });
+      expect(path[0]).toEqual({ x: 3, y: 6, dir: 'down' });
 
       const last = path[path.length - 1];
       expect(last.x).toBe(12);
@@ -135,57 +134,12 @@ describe('Oak Cutscene', () => {
     });
   });
 
-  // ── Unit: startOakWalk (backward compat) ────────────────────────────────
-
-  describe('startOakWalk', () => {
-    it('advances player position each interval tick', async () => {
-      useGameStore.getState().setIsMoving(true);
-      const { startOakWalk } = await import('./lib/oakCutscene');
-      const path = buildOakEscortPath({ x: 10, y: 6 });
-
-      startOakWalk(path);
-
-      await vi.advanceTimersByTimeAsync(200);
-      expect(useGameStore.getState().playerPos).toEqual({ x: path[1].x, y: path[1].y });
-
-      await vi.advanceTimersByTimeAsync(200);
-      expect(useGameStore.getState().playerPos).toEqual({ x: path[2].x, y: path[2].y });
-    });
-
-    it('warps to OAKS_LAB when walk completes', async () => {
-      useGameStore.getState().setIsMoving(true);
-      const { startOakWalk } = await import('./lib/oakCutscene');
-      const path = buildOakEscortPath({ x: 10, y: 6 });
-
-      startOakWalk(path);
-
-      await vi.advanceTimersByTimeAsync(path.length * 200 + 600);
-
-      expect(useGameStore.getState().currentMap).toBe('OAKS_LAB');
-      expect(useGameStore.getState().storyStep).toBe('OAK_STOPPED');
-      expect(useGameStore.getState().isMoving).toBe(false);
-    });
-
-    it('shows lab dialogue after warp + 500ms', async () => {
-      useGameStore.getState().setIsMoving(true);
-      const { startOakWalk } = await import('./lib/oakCutscene');
-      const path = buildOakEscortPath({ x: 10, y: 6 });
-
-      startOakWalk(path);
-
-      // Walk completes, then wait:500ms, then dialogue step fires
-      await vi.advanceTimersByTimeAsync(path.length * 200 + 600);
-
-      expect(useGameStore.getState().dialogue).toContain('Por fin llegas');
-    });
-  });
-
   // ── Integration: full flow via handleMove + handleAction ────────────────
 
   describe('Full cutscene flow (headless)', () => {
     it('triggers dialogue → dismiss → walk → warp → lab dialogue', async () => {
       useGameStore.getState().setCurrentMap('PALLET_TOWN');
-      useGameStore.getState().setPlayerPos({ x: 10, y: 6 });
+      useGameStore.getState().setPlayerPos({ x: 10, y: 0 });
       useGameStore.getState().setPlayerTeam([]);
 
       const battleStateRef: MutableRefObject<BattleState | null> = { current: null };
@@ -214,7 +168,7 @@ describe('Oak Cutscene', () => {
 
       // 3. Walk to lab
       await vi.advanceTimersByTimeAsync(200);
-      expect(useGameStore.getState().playerPos.y).toBeGreaterThan(6);
+      expect(useGameStore.getState().playerPos.y).toBeGreaterThan(0);
 
       // 4. Complete walk + warp + wait + lab dialogue
       await vi.advanceTimersByTimeAsync(5000);

@@ -48,12 +48,12 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
   it('walks player to Oak lab after dismissing Oak\'s dialogue', () => {
     sim = new GameSimulator().init({
       currentMap: 'PALLET_TOWN',
-      playerPos: { x: 10, y: 6 },
+      playerPos: { x: 10, y: 0 },
       direction: 'up',
       playerTeam: [],
     });
 
-    // Move north toward Route 1 (y=5 triggers Oak's stop event)
+    // Move north off the map (triggers Oak's stop event)
     sim.move('up');
 
     // Oak's dialogue should be shown immediately
