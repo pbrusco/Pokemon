@@ -92,7 +92,7 @@ export function buildNPCDatabase(
       }
     ],
     VIRIDIAN_CITY: [
-      { id: 'citizen', name: 'CIUDADANO', type: 'npc', position: { x: 17, y: 25 }, direction: 'down', trainerClass: 'citizen', dialogue: ["¡Bienvenido a Ciudad Verde!", "Aquí puedes curar a tus POKÉMON en el Centro."] }
+      { id: 'citizen', name: 'CIUDADANO', type: 'npc', position: { x: 8, y: 23 }, direction: 'down', trainerClass: 'citizen', dialogue: ["¡Bienvenido a CIUDAD VERDE!", "El GIMNASIO del octavo LÍDER está aquí...", "pero permanece cerrado casi siempre."] }
     ],
     POKECENTER: [
       { id: 'joy', name: 'ENFERMERA JOY', type: 'npc', onInteract: 'heal', trainerClass: 'nurse', position: { x: 6, y: 2 }, direction: 'down', dialogue: ["¡Hola! Bienvenida al CENTRO POKÉMON.", "Curaremos a tus POKÉMON hasta que estén a tope."] }
@@ -472,7 +472,9 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'sign_route1', type: 'object', position: { x: 3, y: 15 }, direction: 'down', sprite: '🪧' },
       { id: 'item_potion_1', type: 'item', position: { x: 7, y: 5 }, direction: 'down', sprite: '🧪' }
     ],
-    VIRIDIAN_CITY: [],
+    VIRIDIAN_CITY: [
+      { id: 'viridian_gym_locked', type: 'object', position: { x: 28, y: 28 }, direction: 'up', sprite: '🚪', dialogue: ['El GIMNASIO de CIUDAD VERDE está cerrado.', 'El LÍDER ha salido.'] }
+    ],
     POKECENTER: [],
     POKEMART: [],
     VIRIDIAN_FOREST: [
