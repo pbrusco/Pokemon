@@ -826,6 +826,7 @@ export const WILD_ENCOUNTER_RATES: Record<string, number> = {
   MT_MOON: 10,
   MT_MOON_B1F: 10,
   MT_MOON_B2F: 10,
+  ROUTE_4: 20,
 };
 
 export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {
@@ -867,6 +868,12 @@ export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {
     makePokemon('geodude', 'GEODUDE', 11, 'rock', [MOVES.TACKLE], 74, { types: ['rock', 'ground'] }),
     makePokemon('paras', 'PARAS', 11, 'bug', [MOVES.SCRATCH], 59, { types: ['bug', 'grass'] }),
     makePokemon('clefairy', 'CLEFAIRY', 10, 'normal', [MOVES.POUND, MOVES.GROWL], 68),
+  ],
+  ROUTE_4: [
+    makePokemon('spearow', 'SPEAROW', 10, 'flying', [MOVES.PECK, MOVES.GROWL], 21, { types: ['normal', 'flying'] }),
+    makePokemon('rattata', 'RATTATA', 10, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19),
+    makePokemon('sandshrew', 'SANDSHREW', 11, 'ground', [MOVES.SCRATCH, MOVES.TACKLE], 60),
+    makePokemon('ekans', 'EKANS', 10, 'poison', [MOVES.TACKLE, MOVES.GROWL], 62),
   ],
 };
 

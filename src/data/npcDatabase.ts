@@ -326,6 +326,54 @@ export function buildNPCDatabase(
         ]
       }
     ],
+    ROUTE_4: [],
+    CERULEAN_CITY: [
+      { id: 'cerulean_citizen', name: 'CIUDADANA', type: 'npc', position: { x: 20, y: 25 }, direction: 'down', trainerClass: 'citizen', dialogue: ["¡Bienvenido a Ciudad Celeste!", "¡La líder del gimnasio, MISTY, adora los POKÉMON de agua!"] }
+    ],
+    CERULEAN_GYM: [
+      {
+        id: 'swimmer_cerulean_1',
+        name: 'NADADORA DIANA',
+        type: 'npc',
+        position: { x: 4, y: 8 },
+        direction: 'down',
+        trainerClass: 'swimmer',
+        dialogue: ["¡El agua es mi elemento!", "¡Mis POKÉMON nadan más rápido que tú!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('goldeen', 'GOLDEEN', 16, 'water', [MOVES.TACKLE, MOVES.WATER_GUN], 111, { types: ['water'] })
+        ]
+      },
+      {
+        id: 'jr_trainer_cerulean',
+        name: 'CHICO LUIS',
+        type: 'npc',
+        position: { x: 6, y: 5 },
+        direction: 'left',
+        trainerClass: 'jr_trainer',
+        dialogue: ["¡Mis POKÉMON son fuertes!", "¡No me subestimes!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('horsea', 'HORSEA', 17, 'water', [MOVES.TACKLE, MOVES.WATER_GUN], 59, { types: ['water'] })
+        ]
+      },
+      {
+        id: 'misty',
+        name: 'MISTY',
+        type: 'npc',
+        position: { x: 4, y: 2 },
+        direction: 'down',
+        trainerClass: 'misty',
+        dialogue: badges.includes('CASCADE')
+          ? ["¡Sigues mejorando como entrenador!", "¡Los POKÉMON de agua son los mejores!"]
+          : ["¡Soy MISTY, la líder del GIMNASIO!", "¡Mi especialidad son los POKÉMON de tipo AGUA!", "¡Prepárate para mojarte!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('staryu', 'STARYU', 18, 'water', [MOVES.TACKLE, MOVES.WATER_GUN, MOVES.HARDEN], 106, { types: ['water'] }),
+          makePokemon('starmie', 'STARMIE', 21, 'water', [MOVES.TACKLE, MOVES.WATER_GUN, MOVES.HARDEN], 207, { types: ['water', 'psychic'] })
+        ]
+      }
+    ],
     ROUTE_2: [
       {
         id: 'bug_catcher_rt2',
@@ -396,6 +444,12 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'sign_route2', type: 'object', position: { x: 3, y: 15 }, direction: 'down', sprite: '🪧', dialogue: ['RUTA 2: Al norte a CIUDAD PLATEADA.'] },
       { id: 'item_potion_rt2', type: 'item', position: { x: 7, y: 5 }, direction: 'down', sprite: '🧪' }
     ],
+    ROUTE_4: [],
+    CERULEAN_CITY: [
+      { id: 'door_locked_cerulean_pc', type: 'object', position: { x: 19, y: 17 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },
+      { id: 'door_locked_cerulean_mart', type: 'object', position: { x: 32, y: 17 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] }
+    ],
+    CERULEAN_GYM: [],
   };
 
   return Object.fromEntries(

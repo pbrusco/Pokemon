@@ -41,6 +41,9 @@ const EMPTY_MAPS: Record<MapID, { tiles: Tile[][] }> = {
   MT_MOON_B1F: { tiles: makeGrid() },
   MT_MOON_B2F: { tiles: makeGrid() },
   ROUTE_2: { tiles: makeGrid() },
+  ROUTE_4: { tiles: makeGrid() },
+  CERULEAN_CITY: { tiles: makeGrid() },
+  CERULEAN_GYM: { tiles: makeGrid() },
 };
 
 function makeNPC(overrides: Partial<NPC> = {}): NPC {
@@ -66,7 +69,7 @@ function makeItem(overrides: Partial<Entity> = {}): Entity {
   };
 }
 
-const ALL_MAP_IDS = ['PALLET_TOWN','PLAYERS_HOUSE_1F','PLAYERS_HOUSE_2F','RIVALS_HOUSE','OAKS_LAB','ROUTE_1','VIRIDIAN_CITY','POKECENTER','POKEMART','VIRIDIAN_FOREST','PEWTER_CITY','PEWTER_GYM','ROUTE_3','MT_MOON','MT_MOON_B1F','MT_MOON_B2F','ROUTE_2'];
+const ALL_MAP_IDS = ['PALLET_TOWN','PLAYERS_HOUSE_1F','PLAYERS_HOUSE_2F','RIVALS_HOUSE','OAKS_LAB','ROUTE_1','VIRIDIAN_CITY','POKECENTER','POKEMART','VIRIDIAN_FOREST','PEWTER_CITY','PEWTER_GYM','ROUTE_3','MT_MOON','MT_MOON_B1F','MT_MOON_B2F','ROUTE_2','ROUTE_4','CERULEAN_CITY','CERULEAN_GYM'];
 
 const EMPTY_NPCS: Record<MapID, NPC[]> = Object.fromEntries(
   ALL_MAP_IDS.map(k => [k, []])

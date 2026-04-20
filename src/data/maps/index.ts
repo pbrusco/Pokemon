@@ -17,6 +17,9 @@ import mt_moon_b2f      from './mt_moon_b2f.json';
 import pewter_city      from './pewter_city.json';
 import pewter_gym       from './pewter_gym.json';
 import route_3          from './route_3.json';
+import route_4          from './route_4.json';
+import cerulean_city    from './cerulean_city.json';
+import cerulean_gym     from './cerulean_gym.json';
 
 export const MAP_PALLET_TOWN      = parseTileMap(pallet_town);
 export const MAP_PLAYERS_HOUSE_1F = parseTileMap(players_house_1f);
@@ -35,6 +38,9 @@ export const MAP_MT_MOON_B2F      = parseTileMap(mt_moon_b2f);
 export const MAP_PEWTER_CITY      = parseTileMap(pewter_city);
 export const MAP_PEWTER_GYM       = parseTileMap(pewter_gym);
 export const MAP_ROUTE_3          = parseTileMap(route_3);
+export const MAP_ROUTE_4          = parseTileMap(route_4);
+export const MAP_CERULEAN_CITY    = parseTileMap(cerulean_city);
+export const MAP_CERULEAN_GYM     = parseTileMap(cerulean_gym);
 
 export const worldMaps = {
   PALLET_TOWN:      MAP_PALLET_TOWN,
@@ -54,4 +60,7 @@ export const worldMaps = {
   PEWTER_CITY:      MAP_PEWTER_CITY,
   PEWTER_GYM:       MAP_PEWTER_GYM,
   ROUTE_3:          MAP_ROUTE_3,
+  ROUTE_4:          MAP_ROUTE_4,
+  CERULEAN_CITY:    MAP_CERULEAN_CITY,
+  CERULEAN_GYM:     MAP_CERULEAN_GYM,
 };
