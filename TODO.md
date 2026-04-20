@@ -28,6 +28,10 @@ Fixed: GameModals now reads store directly via `useGameStore()`. Interface reduc
 - [ ] Stage 6 — Grab all missing Kanto locations:
   - [x] 6a. Route 4 + Cerulean City (40×36) + Cerulean Gym (Misty)
   - [x] 6b. Route 5 + Saffron City (stub) + Route 6 + Vermilion City (40×36) + Vermilion Gym (Surge). SS Anne deferred.
+- [ ] Stage 7 — Faithfulness pass on existing maps (ledges, barriers, items, signs)
+  - [x] 7-infra. Ledge tile (L, <, >), movement-engine jump, tileset sprites
+  - [x] 7a. Pallet Town — fix Oak's Lab roof bug, add fences, realign signs
+  - [x] 7b. Route 1 — add south-facing ledges
   - Dungeons/multi-floor: Rock Tunnel (1F, B1F), Pokémon Tower (7F), Seafoam Islands (4F), Victory Road (3F), Cerulean Cave (3F), Silph Co. (11F), Power Plant, Pokémon Mansion (4F), Safari Zone (4 areas + warden), Indigo Plateau lobby + 5 Elite Four rooms
   - Routes: 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 (+ gates: Saffron 5/6/7/8, Route 2 gate, 11/12/15/16 gates)
   - Cities/towns: Cerulean, Vermilion, Lavender, Celadon, Fuchsia, Saffron, Cinnabar Island, Indigo Plateau

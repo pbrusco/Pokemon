@@ -10,6 +10,6 @@
     "WWWDWWWW"
   ],
   "warps": [
-    { "x": 3, "y": 7, "targetMap": "PALLET_TOWN", "targetPos": { "x": 13, "y": 6 }, "targetDir": "down" }
+    { "x": 3, "y": 7, "targetMap": "PALLET_TOWN", "targetPos": { "x": 14, "y": 6 }, "targetDir": "down" }
   ]
 }

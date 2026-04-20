@@ -38,13 +38,16 @@ export const T = {
   FLOOR_ON_TABLE:  27,  // floor base shown under table
   FENCE:           28,
   FLOWER:          29,
+  LEDGE_DOWN:      30,
+  LEDGE_LEFT:      31,
+  LEDGE_RIGHT:     32,
 } as const;
 
 /** Source pixels per tile (before scaling) */
 const TILE_PX = 16;
 /** How many tile columns in the generated spritesheet */
 export const TILESET_COLS = 8;
-const TILESET_ROWS = 4; // 8×4 = 32 slots
+const TILESET_ROWS = 5; // 8×5 = 40 slots
 
 // ── Palette ───────────────────────────────────────────────────────
 const C = {
@@ -590,6 +593,39 @@ function drawFlower(ctx: Ctx, ox: number, oy: number) {
   px(ctx, ox+4, oy+12, C.PETAL_Y);
 }
 
+function drawLedgeDown(ctx: Ctx, ox: number, oy: number) {
+  // Grass base
+  drawGrass(ctx, ox, oy);
+  // Stone edge across the bottom
+  fill(ctx, ox, oy+10, 16, 6, C.PATH_DK);
+  fill(ctx, ox, oy+10, 16, 1, C.BLACK);
+  fill(ctx, ox, oy+15, 16, 1, C.BLACK);
+  // Highlight groove pattern
+  for (let i = 0; i < 16; i += 4) {
+    fill(ctx, ox+i, oy+12, 3, 1, C.PATH_LT);
+  }
+}
+
+function drawLedgeLeft(ctx: Ctx, ox: number, oy: number) {
+  drawGrass(ctx, ox, oy);
+  fill(ctx, ox, oy, 6, 16, C.PATH_DK);
+  fill(ctx, ox, oy, 1, 16, C.BLACK);
+  fill(ctx, ox+5, oy, 1, 16, C.BLACK);
+  for (let i = 0; i < 16; i += 4) {
+    fill(ctx, ox+2, oy+i, 1, 3, C.PATH_LT);
+  }
+}
+
+function drawLedgeRight(ctx: Ctx, ox: number, oy: number) {
+  drawGrass(ctx, ox, oy);
+  fill(ctx, ox+10, oy, 6, 16, C.PATH_DK);
+  fill(ctx, ox+10, oy, 1, 16, C.BLACK);
+  fill(ctx, ox+15, oy, 1, 16, C.BLACK);
+  for (let i = 0; i < 16; i += 4) {
+    fill(ctx, ox+13, oy+i, 1, 3, C.PATH_LT);
+  }
+}
+
 function drawCutTree(ctx: Ctx, ox: number, oy: number) {
   fill(ctx, ox, oy, 16, 16, C.GRASS);
   // Small bush/stump
@@ -637,6 +673,9 @@ const DRAW_MAP: Partial<Record<number, DrawFn>> = {
   [T.FLOOR_ON_TABLE]:  drawFloorA,  // alias
   [T.FENCE]:           drawFence,
   [T.FLOWER]:          drawFlower,
+  [T.LEDGE_DOWN]:      drawLedgeDown,
+  [T.LEDGE_LEFT]:      drawLedgeLeft,
+  [T.LEDGE_RIGHT]:     drawLedgeRight,
 };
 
 let _url: string | null = null;

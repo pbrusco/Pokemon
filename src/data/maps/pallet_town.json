@@ -1,29 +1,29 @@
 {
   "rows": [
     "TTTTTTTTTGGTTTTTTTTT",
+    "TGGGGGGGGPPGGGGGGGGT",
+    "TGGGWWWWGPPGWWWWGGGT",
+    "TGGGWWWWGPPGWWWWGGGT",
+    "TGGGWWWWGPPGWWWWGGGT",
+    "TGGSWDWWGPPGSWDWWGGT",
+    "TGG*GGGGGPPGGGGGG*GT",
+    "T++++++++PP++++++++T",
     "TGGGGGGGGGGGGGGGGGGT",
-    "TGGGWWWWGGGGWWWWGGGT",
-    "TGGGWWWWGGGGWWWWGGGT",
-    "TGGGWWWWGGGGWWWWGGGT",
-    "TGGSWDWWGGGSWDWWGGGT",
-    "TGG*GGGGGGGGGGGG*GGT",
     "TGGGGGGGGGGGGGGGGGGT",
-    "TGGGGGGGGGRRRRRGGGGT",
-    "TGGGGGGSGGWWWWWGGGGT",
     "TGGGGGGGGGWWWWWGGGGT",
+    "TGGGGGGGGGWWWWWGGGGT",
+    "TGGGGGGSGGWWWWWGGGGT",
     "TGGGGGGGGGWWDWWGGGGT",
-    "TGGGGGGGGGGGGGGGGGGT",
-    "TGGGG*GGGGGGGSGGGGGT",
+    "TGGG*GGGGGGGGSGGGGGT",
     "TGG*GGGGGGGGGGGG*GGT",
-    "TGGGGGGGGGGGGGGGGGGT",
     "T~~~~~~~~~~~~~~~~~~T",
     "TTTTTTTTTTTTTTTTTTTT"
   ],
   "warps": [
     { "x": 5,  "y": 5,  "targetMap": "PLAYERS_HOUSE_1F", "targetPos": { "x": 3, "y": 6 }, "targetDir": "up" },
-    { "x": 13, "y": 5,  "targetMap": "RIVALS_HOUSE",     "targetPos": { "x": 3, "y": 6 }, "targetDir": "up" },
-    { "x": 12, "y": 11, "targetMap": "OAKS_LAB",         "targetPos": { "x": 4, "y": 10 }, "targetDir": "up" },
-    { "x": 9,  "y": 0,  "targetMap": "ROUTE_1",          "targetPos": { "x": 4,  "y": 35 }, "targetDir": "up" },
-    { "x": 10, "y": 0,  "targetMap": "ROUTE_1",          "targetPos": { "x": 4,  "y": 35 }, "targetDir": "up" }
+    { "x": 14, "y": 5,  "targetMap": "RIVALS_HOUSE",     "targetPos": { "x": 3, "y": 6 }, "targetDir": "up" },
+    { "x": 12, "y": 13, "targetMap": "OAKS_LAB",         "targetPos": { "x": 4, "y": 11 }, "targetDir": "up" },
+    { "x": 9,  "y": 0,  "targetMap": "ROUTE_1",          "targetPos": { "x": 4, "y": 35 }, "targetDir": "up" },
+    { "x": 10, "y": 0,  "targetMap": "ROUTE_1",          "targetPos": { "x": 4, "y": 35 }, "targetDir": "up" }
   ]
 }

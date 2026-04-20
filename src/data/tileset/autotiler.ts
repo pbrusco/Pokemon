@@ -183,6 +183,17 @@ export function buildRenderLayers(grid: Tile[][]): RenderLayers {
           gid = T.FLOWER;
           break;
 
+        // ── Ledges (one-way jump-over barriers) ────────────
+        case 'ledge_down':
+          gid = T.LEDGE_DOWN;
+          break;
+        case 'ledge_left':
+          gid = T.LEDGE_LEFT;
+          break;
+        case 'ledge_right':
+          gid = T.LEDGE_RIGHT;
+          break;
+
         default:
           gid = T.PATH;
           break;

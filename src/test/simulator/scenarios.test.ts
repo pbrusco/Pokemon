@@ -88,19 +88,19 @@ describe('Scenario 1b: Oak\'s Lab locked at START', () => {
   it('blocks entry to Oak\'s Lab and shows locked message', () => {
     sim = new GameSimulator().init({
       currentMap: 'PALLET_TOWN',
-      // Stand one tile below the lab door at (12, 11)
-      playerPos: { x: 12, y: 12 },
+      // Stand one tile below the lab door at (12, 13)
+      playerPos: { x: 12, y: 14 },
       direction: 'up',
       playerTeam: [],
       storyStep: 'START',
     });
 
-    // Try to walk onto the lab door tile (12, 11) — should be blocked by lab_locked object
+    // Try to walk onto the lab door tile (12, 13) — should be blocked by lab_locked object
     sim.move('up');
     sim.tick(500);
 
-    // Player should NOT have moved (still at (12, 12))
-    expect(sim.pos).toEqual({ x: 12, y: 12 });
+    // Player should NOT have moved (still at (12, 14))
+    expect(sim.pos).toEqual({ x: 12, y: 14 });
     expect(sim.map).toBe('PALLET_TOWN');
 
     // Interact with the blocking sign

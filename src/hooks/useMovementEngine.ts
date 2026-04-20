@@ -175,12 +175,39 @@ export function useMovementEngine({
     const mapH = grid.length;
     const mapW = grid[0].length;
 
-    const npcAtNext = npcs[currentMap]?.some(n => n.position.x === nextX && n.position.y === nextY);
-    const objectAtNext = items[currentMap]?.some(i => i.type === 'object' && i.position.x === nextX && i.position.y === nextY);
+    const inBounds = (x: number, y: number) => x >= 0 && x < mapW && y >= 0 && y < mapH;
+
+    // Ledge jump: only passable if moving in the ledge's direction; land 2 tiles ahead.
+    let isLedgeJump = false;
+    if (inBounds(nextX, nextY)) {
+      const t = grid[nextY][nextX].type;
+      const ledgeMatch =
+        (t === 'ledge_down'  && dir === 'down')  ||
+        (t === 'ledge_left'  && dir === 'left')  ||
+        (t === 'ledge_right' && dir === 'right');
+      if (ledgeMatch) {
+        const landX = dir === 'left' ? nextX - 1 : dir === 'right' ? nextX + 1 : nextX;
+        const landY = dir === 'down' ? nextY + 1 : nextY;
+        if (
+          inBounds(landX, landY) &&
+          grid[landY][landX].walkable &&
+          !npcs[currentMap]?.some(n => n.position.x === landX && n.position.y === landY) &&
+          !items[currentMap]?.some(i => i.type === 'object' && i.position.x === landX && i.position.y === landY)
+        ) {
+          isLedgeJump = true;
+          nextX = landX;
+          nextY = landY;
+        } else {
+          return;
+        }
+      }
+    }
+
+    const npcAtNext = !isLedgeJump && npcs[currentMap]?.some(n => n.position.x === nextX && n.position.y === nextY);
+    const objectAtNext = !isLedgeJump && items[currentMap]?.some(i => i.type === 'object' && i.position.x === nextX && i.position.y === nextY);
 
     if (
-      nextX < 0 || nextX >= mapW ||
-      nextY < 0 || nextY >= mapH ||
+      !inBounds(nextX, nextY) ||
       !grid[nextY][nextX].walkable ||
       npcAtNext ||
       objectAtNext
@@ -201,11 +228,11 @@ export function useMovementEngine({
       setTimeout(() => useGameStore.getState().setGrassEffect(null), sd(500));
     }
 
-    // Animation timeout
+    // Animation timeout (ledge jumps take longer)
     if (moveTimeout.current) clearTimeout(moveTimeout.current);
     moveTimeout.current = setTimeout(() => {
       useGameStore.getState().setIsMoving(false);
-    }, sd(110));
+    }, sd(isLedgeJump ? 260 : 110));
 
     // Warp check
     const warp = mapData.warps.find(w => w.x === nextX && w.y === nextY);

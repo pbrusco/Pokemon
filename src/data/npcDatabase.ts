@@ -454,11 +454,12 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'starter_3', type: 'item', position: { x: 5, y: 5 }, direction: 'down', sprite: STARTERS[2].sprite },
     ],
     PALLET_TOWN: [
-      { id: 'sign_home', type: 'object', position: { x: 3, y: 5 }, direction: 'down', sprite: '🪧' },
-      { id: 'sign_rival', type: 'object', position: { x: 11, y: 5 }, direction: 'down', sprite: '🪧' },
-      { id: 'sign_lab', type: 'object', position: { x: 7, y: 9 }, direction: 'down', sprite: '🪧' },
+      { id: 'sign_home', type: 'object', position: { x: 3, y: 5 }, direction: 'down', sprite: '🪧', dialogue: ['CASA DE RED'] },
+      { id: 'sign_rival', type: 'object', position: { x: 12, y: 5 }, direction: 'down', sprite: '🪧', dialogue: ['CASA DE AZUL'] },
+      { id: 'sign_lab', type: 'object', position: { x: 7, y: 12 }, direction: 'down', sprite: '🪧', dialogue: ['LAB. POKÉMON DEL PROF. OAK'] },
+      { id: 'sign_town', type: 'object', position: { x: 13, y: 14 }, direction: 'down', sprite: '🪧', dialogue: ['PUEBLO PALETA', 'Un lugar de sombra y tonos puros.'] },
       ...(storyStep === 'START' ? [
-        { id: 'lab_locked', type: 'object' as const, position: { x: 12, y: 11 }, direction: 'down' as const, sprite: '🚫' },
+        { id: 'lab_locked', type: 'object' as const, position: { x: 12, y: 13 }, direction: 'down' as const, sprite: '🚫' },
       ] : []),
     ],
     PLAYERS_HOUSE_1F: [],
