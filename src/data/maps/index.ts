@@ -25,6 +25,11 @@ import route_6          from './route_6.json';
 import saffron_city     from './saffron_city.json';
 import vermilion_city   from './vermilion_city.json';
 import vermilion_gym    from './vermilion_gym.json';
+import route_9          from './route_9.json';
+import route_10         from './route_10.json';
+import rock_tunnel_1f   from './rock_tunnel_1f.json';
+import lavender_town    from './lavender_town.json';
+import pokemon_tower_1f from './pokemon_tower_1f.json';
 
 export const MAP_PALLET_TOWN      = parseTileMap(pallet_town);
 export const MAP_PLAYERS_HOUSE_1F = parseTileMap(players_house_1f);
@@ -51,6 +56,11 @@ export const MAP_ROUTE_6          = parseTileMap(route_6);
 export const MAP_SAFFRON_CITY     = parseTileMap(saffron_city);
 export const MAP_VERMILION_CITY   = parseTileMap(vermilion_city);
 export const MAP_VERMILION_GYM    = parseTileMap(vermilion_gym);
+export const MAP_ROUTE_9          = parseTileMap(route_9);
+export const MAP_ROUTE_10         = parseTileMap(route_10);
+export const MAP_ROCK_TUNNEL_1F   = parseTileMap(rock_tunnel_1f);
+export const MAP_LAVENDER_TOWN    = parseTileMap(lavender_town);
+export const MAP_POKEMON_TOWER_1F = parseTileMap(pokemon_tower_1f);
 
 export const worldMaps = {
   PALLET_TOWN:      MAP_PALLET_TOWN,
@@ -78,4 +88,9 @@ export const worldMaps = {
   SAFFRON_CITY:     MAP_SAFFRON_CITY,
   VERMILION_CITY:   MAP_VERMILION_CITY,
   VERMILION_GYM:    MAP_VERMILION_GYM,
+  ROUTE_9:          MAP_ROUTE_9,
+  ROUTE_10:         MAP_ROUTE_10,
+  ROCK_TUNNEL_1F:   MAP_ROCK_TUNNEL_1F,
+  LAVENDER_TOWN:    MAP_LAVENDER_TOWN,
+  POKEMON_TOWER_1F: MAP_POKEMON_TOWER_1F,
 };

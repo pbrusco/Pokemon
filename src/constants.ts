@@ -829,6 +829,9 @@ export const WILD_ENCOUNTER_RATES: Record<string, number> = {
   ROUTE_4: 20,
   ROUTE_5: 20,
   ROUTE_6: 20,
+  ROUTE_9: 25,
+  ROUTE_10: 20,
+  ROCK_TUNNEL_1F: 15,
 };
 
 export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {
@@ -888,6 +891,24 @@ export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {
     makePokemon('oddish', 'ODDISH', 14, 'grass', [MOVES.POUND, MOVES.SLEEP_POWDER], 43, { types: ['grass', 'poison'] }),
     makePokemon('mankey', 'MANKEY', 14, 'fighting', [MOVES.SCRATCH, MOVES.TACKLE], 56),
     makePokemon('meowth', 'MEOWTH', 14, 'normal', [MOVES.SCRATCH, MOVES.GROWL], 69),
+  ],
+  ROUTE_9: [
+    makePokemon('rattata', 'RATTATA', 16, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19),
+    makePokemon('spearow', 'SPEAROW', 14, 'flying', [MOVES.PECK, MOVES.GROWL], 21, { types: ['normal', 'flying'] }),
+    makePokemon('ekans', 'EKANS', 15, 'poison', [MOVES.TACKLE, MOVES.GROWL], 62),
+    makePokemon('sandshrew', 'SANDSHREW', 15, 'ground', [MOVES.SCRATCH, MOVES.TACKLE], 60),
+  ],
+  ROUTE_10: [
+    makePokemon('rattata', 'RATTATA', 17, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19),
+    makePokemon('spearow', 'SPEAROW', 16, 'flying', [MOVES.PECK, MOVES.GROWL], 21, { types: ['normal', 'flying'] }),
+    makePokemon('voltorb', 'VOLTORB', 17, 'electric', [MOVES.TACKLE, MOVES.THUNDERSHOCK], 100, { types: ['electric'] }),
+    makePokemon('ekans', 'EKANS', 17, 'poison', [MOVES.TACKLE, MOVES.GROWL], 62),
+  ],
+  ROCK_TUNNEL_1F: [
+    makePokemon('zubat', 'ZUBAT', 15, 'poison', [MOVES.TACKLE], 41, { types: ['poison', 'flying'] }),
+    makePokemon('geodude', 'GEODUDE', 16, 'rock', [MOVES.TACKLE], 74, { types: ['rock', 'ground'] }),
+    makePokemon('machop', 'MACHOP', 15, 'fighting', [MOVES.SCRATCH, MOVES.TACKLE], 61),
+    makePokemon('onix', 'ONIX', 17, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 95, { types: ['rock', 'ground'] }),
   ],
 };
 

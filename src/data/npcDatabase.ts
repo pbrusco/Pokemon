@@ -445,6 +445,13 @@ export function buildNPCDatabase(
         ]
       }
     ],
+    ROUTE_9: [],
+    ROUTE_10: [],
+    ROCK_TUNNEL_1F: [],
+    LAVENDER_TOWN: [
+      { id: 'lavender_citizen', name: 'CIUDADANA', type: 'npc', position: { x: 14, y: 10 }, direction: 'down', trainerClass: 'citizen', dialogue: ["¡Bienvenido a PUEBLO LAVANDA!", "La TORRE POKÉMON está llena de fantasmas..."] }
+    ],
+    POKEMON_TOWER_1F: [],
   };
 }
 
@@ -524,6 +531,16 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'door_locked_vermilion_mart', type: 'object', position: { x: 32, y: 17 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] }
     ],
     VERMILION_GYM: [],
+    ROUTE_9: [],
+    ROUTE_10: [],
+    ROCK_TUNNEL_1F: [],
+    LAVENDER_TOWN: [
+      { id: 'lavender_pc_locked', type: 'object', position: { x: 4, y: 7 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },
+      { id: 'lavender_mart_locked', type: 'object', position: { x: 13, y: 7 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },
+      { id: 'sign_tower', type: 'object', position: { x: 7, y: 13 }, direction: 'down', sprite: '🪧', dialogue: ['TORRE POKÉMON', 'Aquí descansan los POKÉMON fallecidos.'] },
+      { id: 'sign_lavender', type: 'object', position: { x: 3, y: 15 }, direction: 'down', sprite: '🪧', dialogue: ['PUEBLO LAVANDA', 'El pueblo noble y púrpura.'] }
+    ],
+    POKEMON_TOWER_1F: [],
   };
 
   return Object.fromEntries(
