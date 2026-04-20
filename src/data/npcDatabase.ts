@@ -374,7 +374,9 @@ export function buildNPCDatabase(
         ]
       }
     ],
-    ROUTE_5: [],
+    ROUTE_5: [
+      { id: 'saffron_guard_n', name: 'GUARDIA', type: 'npc', position: { x: 4, y: 15 }, direction: 'up', trainerClass: 'citizen', dialogue: ["¡No puedes pasar! ¡Tengo mucha sed!", "Dicen que en CIUDAD CELESTE venden TÉ..."] }
+    ],
     ROUTE_6: [],
     SAFFRON_CITY: [
       { id: 'saffron_citizen', name: 'CIUDADANO', type: 'npc', position: { x: 20, y: 18 }, direction: 'down', trainerClass: 'citizen', dialogue: ["¡Bienvenido a CIUDAD AZAFRÁN!", "Esta ciudad aún está en construcción..."] }
@@ -483,7 +485,11 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
     ],
     PEWTER_CITY: [
       { id: 'door_locked_1', type: 'object', position: { x: 10, y: 13 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },
-      { id: 'door_locked_2', type: 'object', position: { x: 24, y: 13 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] }
+      { id: 'door_locked_2', type: 'object', position: { x: 24, y: 13 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },
+      { id: 'museum_locked', type: 'object', position: { x: 6, y: 9 }, direction: 'up', sprite: '🚪', dialogue: ['MUSEO DE CIENCIAS DE PLATEADA', 'Cerrado por hoy.'] },
+      { id: 'sign_museum', type: 'object', position: { x: 3, y: 9 }, direction: 'down', sprite: '🪧', dialogue: ['MUSEO DE CIENCIAS DE PLATEADA'] },
+      { id: 'sign_gym', type: 'object', position: { x: 13, y: 19 }, direction: 'down', sprite: '🪧', dialogue: ['GIMNASIO POKÉMON DE PLATEADA', 'LÍDER: BROCK', 'El Pilar de Roca.'] },
+      { id: 'sign_city', type: 'object', position: { x: 19, y: 34 }, direction: 'down', sprite: '🪧', dialogue: ['CIUDAD PLATEADA', 'Una ciudad de piedra gris.'] }
     ],
     PEWTER_GYM: [],
     ROUTE_3: [],
@@ -503,7 +509,11 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
     ROUTE_4: [],
     CERULEAN_CITY: [
       { id: 'door_locked_cerulean_pc', type: 'object', position: { x: 19, y: 17 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },
-      { id: 'door_locked_cerulean_mart', type: 'object', position: { x: 32, y: 17 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] }
+      { id: 'door_locked_cerulean_mart', type: 'object', position: { x: 32, y: 17 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },
+      { id: 'bike_shop_locked', type: 'object', position: { x: 28, y: 11 }, direction: 'up', sprite: '🚪', dialogue: ['TIENDA DE BICICLETAS', 'Sin una TARJETA de oferta, no hay nada que hacer.'] },
+      { id: 'sign_bike_shop', type: 'object', position: { x: 25, y: 11 }, direction: 'down', sprite: '🪧', dialogue: ['TIENDA DE BICICLETAS DE CIUDAD CELESTE'] },
+      { id: 'sign_bill_route', type: 'object', position: { x: 37, y: 5 }, direction: 'down', sprite: '🪧', dialogue: ['HACIA RUTA 24 y CABAÑA DE BILL', '(Próximamente.)'] },
+      { id: 'sign_city_cerulean', type: 'object', position: { x: 19, y: 34 }, direction: 'down', sprite: '🪧', dialogue: ['CIUDAD CELESTE', 'Una ciudad misteriosa y azul.'] }
     ],
     CERULEAN_GYM: [],
     ROUTE_5: [],

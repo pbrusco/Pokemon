@@ -36,10 +36,10 @@ Fixed: GameModals now reads store directly via `useGameStore()`. Interface reduc
   - [x] 7d. Route 2 — add south-facing ledges
   - [x] 7e. Route 3 — add south-facing ledges
   - [x] 7f. Route 4 — add south-facing ledges
-  - [ ] 7g. Viridian Forest — maze layout with trees (faithfulness)
-  - [ ] 7h. Pewter City — museum stub, signs
-  - [ ] 7i. Mt Moon — maze layout with boulders (faithfulness)
-  - [ ] 7j. Cerulean City — Bike Shop, Bill's House, Saffron gate (closed)
+  - [x] 7g. Viridian Forest — maze layout with trees (faithfulness)
+  - [x] 7h. Pewter City — museum stub, signs
+  - [x] 7i. Mt Moon — extra boulders 1F/B1F/B2F
+  - [x] 7j. Cerulean City — Bike Shop, Bill's route sign, Saffron gate (Route 5) guard
   - Dungeons/multi-floor: Rock Tunnel (1F, B1F), Pokémon Tower (7F), Seafoam Islands (4F), Victory Road (3F), Cerulean Cave (3F), Silph Co. (11F), Power Plant, Pokémon Mansion (4F), Safari Zone (4 areas + warden), Indigo Plateau lobby + 5 Elite Four rooms
   - Routes: 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 (+ gates: Saffron 5/6/7/8, Route 2 gate, 11/12/15/16 gates)
   - Cities/towns: Cerulean, Vermilion, Lavender, Celadon, Fuchsia, Saffron, Cinnabar Island, Indigo Plateau
