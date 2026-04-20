@@ -92,7 +92,7 @@ export function buildNPCDatabase(
       }
     ],
     VIRIDIAN_CITY: [
-      { id: 'citizen', name: 'CIUDADANO', type: 'npc', position: { x: 12, y: 20 }, direction: 'down', trainerClass: 'citizen', dialogue: ["¡Bienvenido a Ciudad Verde!", "Aquí puedes curar a tus POKÉMON en el Centro."] }
+      { id: 'citizen', name: 'CIUDADANO', type: 'npc', position: { x: 17, y: 25 }, direction: 'down', trainerClass: 'citizen', dialogue: ["¡Bienvenido a Ciudad Verde!", "Aquí puedes curar a tus POKÉMON en el Centro."] }
     ],
     POKECENTER: [
       { id: 'joy', name: 'ENFERMERA JOY', type: 'npc', onInteract: 'heal', trainerClass: 'nurse', position: { x: 6, y: 2 }, direction: 'down', dialogue: ["¡Hola! Bienvenida al CENTRO POKÉMON.", "Curaremos a tus POKÉMON hasta que estén a tope."] }
@@ -116,7 +116,7 @@ export function buildNPCDatabase(
         id: 'lass_forest',
         name: 'CHICA LILA',
         type: 'npc',
-        position: { x: 8, y: 25 },
+        position: { x: 13, y: 31 },
         direction: 'right' as Direction,
         trainerClass: 'lass',
         dialogue: ["¡Mis NIDORAN son preciosos!", "¡Pero también muerden!"],
@@ -130,7 +130,7 @@ export function buildNPCDatabase(
         id: 'bug_catcher_forest_2',
         name: 'CAZABICHOS DOUG',
         type: 'npc',
-        position: { x: 14, y: 12 },
+        position: { x: 19, y: 18 },
         direction: 'left' as Direction,
         trainerClass: 'bugcatcher',
         dialogue: ["¡Mis CATERPIE son los más obedientes!"],
@@ -144,7 +144,7 @@ export function buildNPCDatabase(
         id: 'bug_catcher_forest_3',
         name: 'CAZABICHOS SAMI',
         type: 'npc',
-        position: { x: 18, y: 8 },
+        position: { x: 23, y: 14 },
         direction: 'down',
         trainerClass: 'bugcatcher',
         dialogue: ["¡Tengo un ejército de bichos!", "¡Prepárate!"],
@@ -159,7 +159,7 @@ export function buildNPCDatabase(
         id: 'bug_catcher_forest',
         name: 'CAZABICHOS RICKY',
         type: 'npc',
-        position: { x: 9, y: 10 },
+        position: { x: 14, y: 16 },
         direction: 'down',
         trainerClass: 'bugcatcher',
         dialogue: ["¡Mi POKÉMON bicho es el más fuerte!", "¡No podrás pasar de aquí!"],
@@ -171,7 +171,7 @@ export function buildNPCDatabase(
       }
     ],
     PEWTER_CITY: [
-      { id: 'pewter_citizen', name: 'CIUDADANO', type: 'npc', position: { x: 18, y: 20 }, direction: 'down', trainerClass: 'citizen', dialogue: ["¡Bienvenido a Ciudad Plateada!", "Brock es el líder del gimnasio local. ¡Es muy duro!"] }
+      { id: 'pewter_citizen', name: 'CIUDADANO', type: 'npc', position: { x: 23, y: 25 }, direction: 'down', trainerClass: 'citizen', dialogue: ["¡Bienvenido a Ciudad Plateada!", "Brock es el líder del gimnasio local. ¡Es muy duro!"] }
     ],
     PEWTER_GYM: [
       {
@@ -291,7 +291,9 @@ export function buildNPCDatabase(
           makePokemon('rattata', 'RATTATA', 11, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19),
           makePokemon('zubat', 'ZUBAT', 11, 'poison', [MOVES.TACKLE], 41, { types: ['poison', 'flying'] })
         ]
-      },
+      }
+    ],
+    MT_MOON_B1F: [
       {
         id: 'supernerd_mtmoon',
         name: 'SABIONDO MIGUEL',
@@ -306,7 +308,9 @@ export function buildNPCDatabase(
           makePokemon('voltorb', 'VOLTORB', 11, 'electric', [MOVES.TACKLE, MOVES.THUNDERSHOCK], 100, { types: ['electric'] }),
           makePokemon('koffing', 'KOFFING', 11, 'poison', [MOVES.TACKLE, MOVES.POISON_POWDER], 109, { types: ['poison'] })
         ]
-      },
+      }
+    ],
+    MT_MOON_B2F: [
       {
         id: 'lass_mtmoon',
         name: 'CHICA IRIS',
@@ -370,17 +374,23 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
     POKECENTER: [],
     POKEMART: [],
     VIRIDIAN_FOREST: [
-      { id: 'item_pokeball_1', type: 'item', position: { x: 5, y: 5 }, direction: 'down', sprite: '🔴' },
-      { id: 'item_potion_forest', type: 'item', position: { x: 15, y: 15 }, direction: 'down', sprite: '🧪' }
+      { id: 'item_pokeball_1', type: 'item', position: { x: 10, y: 11 }, direction: 'down', sprite: '🔴' },
+      { id: 'item_potion_forest', type: 'item', position: { x: 20, y: 21 }, direction: 'down', sprite: '🧪' }
     ],
     PEWTER_CITY: [
-      { id: 'door_locked_1', type: 'object', position: { x: 5, y: 8 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },
-      { id: 'door_locked_2', type: 'object', position: { x: 19, y: 8 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] }
+      { id: 'door_locked_1', type: 'object', position: { x: 10, y: 13 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },
+      { id: 'door_locked_2', type: 'object', position: { x: 24, y: 13 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] }
     ],
     PEWTER_GYM: [],
     ROUTE_3: [],
     MT_MOON: [
       { id: 'item_potion_mtmoon', type: 'item', position: { x: 14, y: 14 }, direction: 'down', sprite: '🧪' }
+    ],
+    MT_MOON_B1F: [
+      { id: 'item_potion_mtmoon_b1f', type: 'item', position: { x: 14, y: 14 }, direction: 'down', sprite: '🧪' }
+    ],
+    MT_MOON_B2F: [
+      { id: 'item_moonstone_mtmoon', type: 'item', position: { x: 10, y: 10 }, direction: 'down', sprite: '🌙' }
     ],
     ROUTE_2: [
       { id: 'sign_route2', type: 'object', position: { x: 3, y: 15 }, direction: 'down', sprite: '🪧', dialogue: ['RUTA 2: Al norte a CIUDAD PLATEADA.'] },

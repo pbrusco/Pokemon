@@ -12,6 +12,8 @@ import pokecenter       from './pokecenter.json';
 import pokemart         from './pokemart.json';
 import viridian_forest  from './viridian_forest.json';
 import mt_moon          from './mt_moon.json';
+import mt_moon_b1f      from './mt_moon_b1f.json';
+import mt_moon_b2f      from './mt_moon_b2f.json';
 import pewter_city      from './pewter_city.json';
 import pewter_gym       from './pewter_gym.json';
 import route_3          from './route_3.json';
@@ -28,6 +30,8 @@ export const MAP_POKECENTER       = parseTileMap(pokecenter);
 export const MAP_POKEMART         = parseTileMap(pokemart);
 export const MAP_VIRIDIAN_FOREST  = parseTileMap(viridian_forest);
 export const MAP_MT_MOON          = parseTileMap(mt_moon);
+export const MAP_MT_MOON_B1F      = parseTileMap(mt_moon_b1f);
+export const MAP_MT_MOON_B2F      = parseTileMap(mt_moon_b2f);
 export const MAP_PEWTER_CITY      = parseTileMap(pewter_city);
 export const MAP_PEWTER_GYM       = parseTileMap(pewter_gym);
 export const MAP_ROUTE_3          = parseTileMap(route_3);
@@ -45,6 +49,8 @@ export const worldMaps = {
   POKEMART:         MAP_POKEMART,
   VIRIDIAN_FOREST:  MAP_VIRIDIAN_FOREST,
   MT_MOON:          MAP_MT_MOON,
+  MT_MOON_B1F:      MAP_MT_MOON_B1F,
+  MT_MOON_B2F:      MAP_MT_MOON_B2F,
   PEWTER_CITY:      MAP_PEWTER_CITY,
   PEWTER_GYM:       MAP_PEWTER_GYM,
   ROUTE_3:          MAP_ROUTE_3,

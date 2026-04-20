@@ -20,17 +20,11 @@ Fixed: GameModals now reads store directly via `useGameStore()`. Interface reduc
 - [x] Stage 2 — Small interiors (Pokécenter 14×8, Pokémart 10×8, Pewter Gym 10×14)
 - [x] Stage 3 — Routes: Route 1 (10×36), Route 2 (10×40), Route 3 (40×18); warps coordinated with adjacent cities
 - [x] Stage 4 — Cities & dungeons: Viridian City (30×27), Pewter City (30×27), Viridian Forest (24×36), Mt. Moon (warps updated)
-- [ ] Stage 5 — Expand existing maps to full pret dimensions
-  - [ ] 5a. Viridian City → 40×36 (update ROUTE_1, VIRIDIAN_FOREST, POKECENTER, POKEMART warp targets; shift NPCs/items)
-  - [ ] 5b. Pewter City → 40×36 (update VIRIDIAN_FOREST, PEWTER_GYM, ROUTE_3 warp targets; shift NPCs/items)
-  - [ ] 5c. Viridian Forest → 34×48 (update VIRIDIAN_CITY + PEWTER_CITY warp targets; reposition bug_catcher_forest + items)
-  - [ ] 5d. Mt. Moon → split into 1F / B1F / B2F
-    - Add `MT_MOON_B1F`, `MT_MOON_B2F` to `MapID` in `src/types.ts`
-    - Register new maps in `worldConfig` / tileParser / worldMaps loader
-    - Add stair warps between floors (1F↔B1F, B1F↔B2F)
-    - Update `buildNPCDatabase` + `buildItemDatabase` for new floor IDs
-    - Extend `WILD_POKEMON_DATABASE` + `WILD_ENCOUNTER_RATES` for new floors
-    - Verify persistence (`pokemon-firered-save-v2`) handles the new MapIDs
+- [x] Stage 5 — Expand existing maps to full pret dimensions
+  - [x] 5a. Viridian City → 40×36
+  - [x] 5b. Pewter City → 40×36
+  - [x] 5c. Viridian Forest → 34×48
+  - [x] 5d. Mt. Moon → split into 1F / B1F / B2F
 - [ ] Stage 6 — Grab all missing Kanto locations:
   - Dungeons/multi-floor: Rock Tunnel (1F, B1F), Pokémon Tower (7F), Seafoam Islands (4F), Victory Road (3F), Cerulean Cave (3F), Silph Co. (11F), Power Plant, Pokémon Mansion (4F), Safari Zone (4 areas + warden), Indigo Plateau lobby + 5 Elite Four rooms
   - Routes: 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 (+ gates: Saffron 5/6/7/8, Route 2 gate, 11/12/15/16 gates)

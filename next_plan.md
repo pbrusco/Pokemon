@@ -47,7 +47,12 @@
   - [x] Integration test proves `loadLogAsScenario` with a hand-crafted log (snapshot + `move` event) reproduces the post-move position deterministically.
   - **Verification**: tsc clean, 174/174 tests (+1 new), knip clean
   - **Note**: eventLog.ts still has 2 DOM-global usages on the decoupling allowlist (`window.__log` bridge, `document.createElement('a')` in `downloadLog`). These are DEV-only features and legitimately need DOM — leaving them allowlisted. Full separation into `src/lib/eventLog.ts` (pure) + `src/lib/eventLogBridge.ts` (DOM) is a future refactor, not blocking.
-- [ ] **Phase 5** — Resume content expansion (only after gates above are green)
+- [x] **Phase 5** — Resume content expansion ✅
+  - [x] 5a. Viridian City 30×27 → 40×36. Pad-and-shift (+5,+5); border trees; exit corridors at col 20 (N row 0, S row 35). Updated warps: ROUTE_1 (4,0) target, ROUTE_2 (4,39) target, POKECENTER (6,7) target, POKEMART (3,7) target; shifted citizen NPC to (17,25).
+  - [x] 5b. Pewter City 30×27 → 40×36. Pad-and-shift (+5,+5); S exit at (20,35) to VIRIDIAN_FOREST, gym door at (16,19), E exit at (39,19) to ROUTE_3. Updated PEWTER_GYM target, ROUTE_3 W target, VIRIDIAN_FOREST N target; shifted pewter_citizen + 2 locked-door items.
+  - [x] 5c. Viridian Forest 24×36 → 34×48. Pad (+5,+6); N exit at (16,0), S exit at (16,47). Updated PEWTER_CITY S target, ROUTE_2 N target; shifted 4 trainer NPCs + 2 items; preserved original tree obstacles.
+  - [x] 5d. Mt. Moon split into MT_MOON (1F) / MT_MOON_B1F / MT_MOON_B2F. Added `MT_MOON_B1F`/`MT_MOON_B2F` via worldMaps (MapID auto-derived). Stair warps: 1F↔B1F @ (5,4), B1F↔B2F @ (15,15). Distributed 4 Mt. Moon trainers across floors; added potion to B1F, moonstone to B2F. Added `WILD_ENCOUNTER_RATES` (rate 10 each) + `WILD_POKEMON_DATABASE` entries for all three floors (Zubat/Geodude/Paras/Clefairy, levels 8–11).
+  - **Verification**: tsc clean, 174/174 tests, knip clean, validator passes.
 
 ---
 

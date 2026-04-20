@@ -38,7 +38,7 @@
     "TTTTGTTTTT"
   ],
   "warps": [
-    { "x": 4, "y": 0,  "targetMap": "VIRIDIAN_CITY", "targetPos": { "x": 15, "y": 26 }, "targetDir": "up" },
+    { "x": 4, "y": 0,  "targetMap": "VIRIDIAN_CITY", "targetPos": { "x": 20, "y": 35 }, "targetDir": "up" },
     { "x": 4, "y": 35, "targetMap": "PALLET_TOWN",   "targetPos": { "x": 9,  "y": 0  }, "targetDir": "down" }
   ]
 }

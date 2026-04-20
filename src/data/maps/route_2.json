@@ -42,7 +42,7 @@
     "TTTTGTTTTT"
   ],
   "warps": [
-    { "x": 4, "y": 0,  "targetMap": "VIRIDIAN_FOREST", "targetPos": { "x": 11, "y": 35 }, "targetDir": "up" },
-    { "x": 4, "y": 39, "targetMap": "VIRIDIAN_CITY",   "targetPos": { "x": 15, "y": 0  }, "targetDir": "down" }
+    { "x": 4, "y": 0,  "targetMap": "VIRIDIAN_FOREST", "targetPos": { "x": 16, "y": 47 }, "targetDir": "up" },
+    { "x": 4, "y": 39, "targetMap": "VIRIDIAN_CITY",   "targetPos": { "x": 20, "y": 0  }, "targetDir": "down" }
   ]
 }

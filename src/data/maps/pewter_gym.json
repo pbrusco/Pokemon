@@ -16,6 +16,6 @@
     "WWWDWWWWWW"
   ],
   "warps": [
-    { "x": 3, "y": 13, "targetMap": "PEWTER_CITY", "targetPos": { "x": 11, "y": 15 }, "targetDir": "down" }
+    { "x": 3, "y": 13, "targetMap": "PEWTER_CITY", "targetPos": { "x": 16, "y": 20 }, "targetDir": "down" }
   ]
 }

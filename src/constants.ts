@@ -823,6 +823,9 @@ export const WILD_ENCOUNTER_RATES: Record<string, number> = {
   ROUTE_1: 25,
   VIRIDIAN_FOREST: 30,
   ROUTE_3: 25,
+  MT_MOON: 10,
+  MT_MOON_B1F: 10,
+  MT_MOON_B2F: 10,
 };
 
 export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {
@@ -847,6 +850,23 @@ export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {
     makePokemon('mankey', 'MANKEY', 10, 'fighting', [MOVES.SCRATCH, MOVES.TACKLE], 56),
     makePokemon('nidoran-m', 'NIDORAN♂', 9, 'poison', [MOVES.TACKLE, MOVES.GROWL], 32, { types: ['poison'] }),
     makePokemon('nidoran-f', 'NIDORAN♀', 9, 'poison', [MOVES.TACKLE, MOVES.GROWL], 29, { types: ['poison'] }),
+  ],
+  MT_MOON: [
+    makePokemon('zubat', 'ZUBAT', 8, 'poison', [MOVES.TACKLE], 41, { types: ['poison', 'flying'] }),
+    makePokemon('geodude', 'GEODUDE', 8, 'rock', [MOVES.TACKLE], 74, { types: ['rock', 'ground'] }),
+    makePokemon('paras', 'PARAS', 9, 'bug', [MOVES.SCRATCH], 59, { types: ['bug', 'grass'] }),
+    makePokemon('clefairy', 'CLEFAIRY', 8, 'normal', [MOVES.POUND, MOVES.GROWL], 68),
+  ],
+  MT_MOON_B1F: [
+    makePokemon('zubat', 'ZUBAT', 9, 'poison', [MOVES.TACKLE], 41, { types: ['poison', 'flying'] }),
+    makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE], 74, { types: ['rock', 'ground'] }),
+    makePokemon('paras', 'PARAS', 10, 'bug', [MOVES.SCRATCH], 59, { types: ['bug', 'grass'] }),
+  ],
+  MT_MOON_B2F: [
+    makePokemon('zubat', 'ZUBAT', 10, 'poison', [MOVES.TACKLE], 41, { types: ['poison', 'flying'] }),
+    makePokemon('geodude', 'GEODUDE', 11, 'rock', [MOVES.TACKLE], 74, { types: ['rock', 'ground'] }),
+    makePokemon('paras', 'PARAS', 11, 'bug', [MOVES.SCRATCH], 59, { types: ['bug', 'grass'] }),
+    makePokemon('clefairy', 'CLEFAIRY', 10, 'normal', [MOVES.POUND, MOVES.GROWL], 68),
   ],
 };
 

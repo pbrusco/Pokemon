@@ -7,10 +7,10 @@
     "GPPGGGGGGGGGGGGGGPPG",
     "GPPGGGGGGGGGGGGGGPPG",
     "GPPGGGGGGGGGGGGGGPPG",
-    "GPPGGGGGGGGBGGGGGPPG",
-    "GPPGGGGGGGGGGGGGGPPG",
-    "GPPGGGGGGGGGGGGGGPPG",
     "GPPGGGGBGGGGGGGGGPPG",
+    "GPPGGGGGGGGGGGGGGPPG",
+    "GPPGGGGGGGGGGGGGGPPG",
+    "GPPGGGGGGGGGGGGGGPPG",
     "GPPGGGGGGGGGGGGGGPPG",
     "GPPGGGGGGGGGGGGGGPPG",
     "GPPGGGGGGGGGGGGGGPPG",
@@ -22,7 +22,6 @@
     "GGGGGGGGGGGGGGGGGGGG"
   ],
   "warps": [
-    { "x": 10, "y": 19, "targetMap": "ROUTE_3",      "targetPos": { "x": 30, "y": 0 }, "targetDir": "down" },
-    { "x": 5,  "y": 4,  "targetMap": "MT_MOON_B1F",  "targetPos": { "x": 5,  "y": 4 }, "targetDir": "down" }
+    { "x": 15, "y": 15, "targetMap": "MT_MOON_B1F", "targetPos": { "x": 15, "y": 15 }, "targetDir": "up" }
   ]
 }
