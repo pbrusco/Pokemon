@@ -13,6 +13,12 @@ export const TRAINER_BATTLE_SPRITES: Record<string, string> = {
   oak:        `${T}prof.oak.png`,
   rival:      `${T}rival1.png`,
   scientist:  `${T}scientist.png`,
+  surge:      `${T}ltsurge.png`,
+  rocker:     `${T}rocker.png`,
+  gentleman:  `${T}gentleman.png`,
+  sailor:     `${T}sailor.png`,
+  swimmer:    `${T}swimmer.png`,
+  jr_trainer: `${T}jr.trainer_m.png`,
 };
 
 /** Small overworld sprite shown on the map. */

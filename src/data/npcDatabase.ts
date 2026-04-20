@@ -374,6 +374,59 @@ export function buildNPCDatabase(
         ]
       }
     ],
+    ROUTE_5: [],
+    ROUTE_6: [],
+    SAFFRON_CITY: [
+      { id: 'saffron_citizen', name: 'CIUDADANO', type: 'npc', position: { x: 20, y: 18 }, direction: 'down', trainerClass: 'citizen', dialogue: ["¡Bienvenido a CIUDAD AZAFRÁN!", "Esta ciudad aún está en construcción..."] }
+    ],
+    VERMILION_CITY: [
+      { id: 'vermilion_citizen', name: 'MARINO', type: 'npc', position: { x: 20, y: 25 }, direction: 'down', trainerClass: 'sailor', dialogue: ["¡El S.S. ANNE llegará pronto a CIUDAD CARMÍN!", "¡El líder del gimnasio, TENIENTE SURGE, es un veterano!"] }
+    ],
+    VERMILION_GYM: [
+      {
+        id: 'rocker_vermilion_1',
+        name: 'ROCKERO HORACIO',
+        type: 'npc',
+        position: { x: 4, y: 8 },
+        direction: 'down',
+        trainerClass: 'rocker',
+        dialogue: ["¡La electricidad mueve el rock!", "¡Te voy a sacudir!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('voltorb', 'VOLTORB', 20, 'electric', [MOVES.TACKLE, MOVES.THUNDERSHOCK], 103)
+        ]
+      },
+      {
+        id: 'gentleman_vermilion',
+        name: 'CABALLERO RAUL',
+        type: 'npc',
+        position: { x: 6, y: 5 },
+        direction: 'left',
+        trainerClass: 'gentleman',
+        dialogue: ["¡Mis POKÉMON tienen chispa!", "¡Siente el trueno!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('pikachu', 'PIKACHU', 21, 'electric', [MOVES.THUNDERSHOCK, MOVES.GROWL], 82)
+        ]
+      },
+      {
+        id: 'surge',
+        name: 'TTE. SURGE',
+        type: 'npc',
+        position: { x: 4, y: 2 },
+        direction: 'down',
+        trainerClass: 'surge',
+        dialogue: badges.includes('THUNDER')
+          ? ["¡Tienes potencial, novato!", "¡Sigue entrenando con esa MEDALLA TRUENO!"]
+          : ["¡EH! ¡Soy el TENIENTE SURGE!", "¡Mis POKÉMON eléctricos te van a electrocutar!", "¡Prepárate para el dolor!"],
+        isTrainer: true,
+        trainerTeam: [
+          makePokemon('voltorb', 'VOLTORB', 21, 'electric', [MOVES.TACKLE, MOVES.THUNDERSHOCK], 103),
+          makePokemon('pikachu', 'PIKACHU', 18, 'electric', [MOVES.THUNDERSHOCK, MOVES.GROWL], 82),
+          makePokemon('raichu', 'RAICHU', 24, 'electric', [MOVES.THUNDERSHOCK, MOVES.GROWL], 122)
+        ]
+      }
+    ],
     ROUTE_2: [
       {
         id: 'bug_catcher_rt2',
@@ -450,6 +503,14 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'door_locked_cerulean_mart', type: 'object', position: { x: 32, y: 17 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] }
     ],
     CERULEAN_GYM: [],
+    ROUTE_5: [],
+    ROUTE_6: [],
+    SAFFRON_CITY: [],
+    VERMILION_CITY: [
+      { id: 'door_locked_vermilion_pc', type: 'object', position: { x: 19, y: 17 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },
+      { id: 'door_locked_vermilion_mart', type: 'object', position: { x: 32, y: 17 }, direction: 'up', sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] }
+    ],
+    VERMILION_GYM: [],
   };
 
   return Object.fromEntries(

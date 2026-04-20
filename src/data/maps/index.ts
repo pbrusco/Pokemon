@@ -20,6 +20,11 @@ import route_3          from './route_3.json';
 import route_4          from './route_4.json';
 import cerulean_city    from './cerulean_city.json';
 import cerulean_gym     from './cerulean_gym.json';
+import route_5          from './route_5.json';
+import route_6          from './route_6.json';
+import saffron_city     from './saffron_city.json';
+import vermilion_city   from './vermilion_city.json';
+import vermilion_gym    from './vermilion_gym.json';
 
 export const MAP_PALLET_TOWN      = parseTileMap(pallet_town);
 export const MAP_PLAYERS_HOUSE_1F = parseTileMap(players_house_1f);
@@ -41,6 +46,11 @@ export const MAP_ROUTE_3          = parseTileMap(route_3);
 export const MAP_ROUTE_4          = parseTileMap(route_4);
 export const MAP_CERULEAN_CITY    = parseTileMap(cerulean_city);
 export const MAP_CERULEAN_GYM     = parseTileMap(cerulean_gym);
+export const MAP_ROUTE_5          = parseTileMap(route_5);
+export const MAP_ROUTE_6          = parseTileMap(route_6);
+export const MAP_SAFFRON_CITY     = parseTileMap(saffron_city);
+export const MAP_VERMILION_CITY   = parseTileMap(vermilion_city);
+export const MAP_VERMILION_GYM    = parseTileMap(vermilion_gym);
 
 export const worldMaps = {
   PALLET_TOWN:      MAP_PALLET_TOWN,
@@ -63,4 +73,9 @@ export const worldMaps = {
   ROUTE_4:          MAP_ROUTE_4,
   CERULEAN_CITY:    MAP_CERULEAN_CITY,
   CERULEAN_GYM:     MAP_CERULEAN_GYM,
+  ROUTE_5:          MAP_ROUTE_5,
+  ROUTE_6:          MAP_ROUTE_6,
+  SAFFRON_CITY:     MAP_SAFFRON_CITY,
+  VERMILION_CITY:   MAP_VERMILION_CITY,
+  VERMILION_GYM:    MAP_VERMILION_GYM,
 };

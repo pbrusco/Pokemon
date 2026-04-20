@@ -827,6 +827,8 @@ export const WILD_ENCOUNTER_RATES: Record<string, number> = {
   MT_MOON_B1F: 10,
   MT_MOON_B2F: 10,
   ROUTE_4: 20,
+  ROUTE_5: 20,
+  ROUTE_6: 20,
 };
 
 export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {
@@ -874,6 +876,18 @@ export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {
     makePokemon('rattata', 'RATTATA', 10, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19),
     makePokemon('sandshrew', 'SANDSHREW', 11, 'ground', [MOVES.SCRATCH, MOVES.TACKLE], 60),
     makePokemon('ekans', 'EKANS', 10, 'poison', [MOVES.TACKLE, MOVES.GROWL], 62),
+  ],
+  ROUTE_5: [
+    makePokemon('pidgey', 'PIDGEY', 13, 'flying', [MOVES.TACKLE, MOVES.GUST], 16, { types: ['normal', 'flying'] }),
+    makePokemon('oddish', 'ODDISH', 13, 'grass', [MOVES.POUND, MOVES.SLEEP_POWDER], 43, { types: ['grass', 'poison'] }),
+    makePokemon('mankey', 'MANKEY', 13, 'fighting', [MOVES.SCRATCH, MOVES.TACKLE], 56),
+    makePokemon('meowth', 'MEOWTH', 13, 'normal', [MOVES.SCRATCH, MOVES.GROWL], 69),
+  ],
+  ROUTE_6: [
+    makePokemon('pidgey', 'PIDGEY', 14, 'flying', [MOVES.TACKLE, MOVES.GUST], 16, { types: ['normal', 'flying'] }),
+    makePokemon('oddish', 'ODDISH', 14, 'grass', [MOVES.POUND, MOVES.SLEEP_POWDER], 43, { types: ['grass', 'poison'] }),
+    makePokemon('mankey', 'MANKEY', 14, 'fighting', [MOVES.SCRATCH, MOVES.TACKLE], 56),
+    makePokemon('meowth', 'MEOWTH', 14, 'normal', [MOVES.SCRATCH, MOVES.GROWL], 69),
   ],
 };
 

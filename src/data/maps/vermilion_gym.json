@@ -1,0 +1,21 @@
+{
+  "rows": [
+    "WWWWWWWWWW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WWWWWDWWWW"
+  ],
+  "warps": [
+    { "x": 5, "y": 13, "targetMap": "VERMILION_CITY", "targetPos": { "x": 6, "y": 18 }, "targetDir": "down" }
+  ]
+}
