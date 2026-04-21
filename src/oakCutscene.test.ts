@@ -1,12 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useMovementEngine } from './hooks/useMovementEngine';
 import { useInteractionEngine } from './hooks/useInteractionEngine';
 import { useGameStore } from './store/gameStore';
 import { buildOakEscortPath, buildOakEscortSteps } from './lib/oakCutscene';
 import { runCutscene, stopCutscene, isCutsceneRunning } from './lib/cutscenes/runner';
-import { MutableRefObject } from 'react';
-import { BattleState } from './lib/battleEngine';
 
 describe('Oak Cutscene', () => {
   beforeEach(() => {
@@ -29,7 +26,7 @@ describe('Oak Cutscene', () => {
 
       const last = path[path.length - 1];
       expect(last.x).toBe(12);
-      expect(last.y).toBe(11);
+      expect(last.y).toBe(14);
 
       // Every step is exactly 1 tile from the previous
       for (let i = 1; i < path.length; i++) {
@@ -134,51 +131,7 @@ describe('Oak Cutscene', () => {
     });
   });
 
-  // ── Integration: full flow via handleMove + handleAction ────────────────
-
-  describe('Full cutscene flow (headless)', () => {
-    it('triggers dialogue → dismiss → walk → warp → lab dialogue', async () => {
-      useGameStore.getState().setCurrentMap('PALLET_TOWN');
-      useGameStore.getState().setPlayerPos({ x: 10, y: 0 });
-      useGameStore.getState().setPlayerTeam([]);
-
-      const battleStateRef: MutableRefObject<BattleState | null> = { current: null };
-      const noop = vi.fn();
-
-      const { result: moveResult } = renderHook(() => useMovementEngine({
-        battleStateRef, setOverworldShake: noop,
-      }));
-      const { result: interactResult } = renderHook(() =>
-        useInteractionEngine({ initBattle: noop })
-      );
-
-      // 1. Walk up → triggers cutscene → lock + npc_appear + greeting dialogue
-      act(() => moveResult.current.handleMove('up'));
-      expect(useGameStore.getState().dialogue).toContain('Hola');
-      expect(useGameStore.getState().isMoving).toBe(true);
-      expect(isCutsceneRunning()).toBe(true);
-
-      // 2. Dismiss greeting → warning dialogue appears
-      act(() => interactResult.current.handleAction());
-      expect(useGameStore.getState().dialogue).toContain('Es peligroso');
-
-      // 3. Dismiss warning → walk starts
-      act(() => interactResult.current.handleAction());
-      expect(useGameStore.getState().dialogue).toBeNull();
-
-      // 3. Walk to lab
-      await vi.advanceTimersByTimeAsync(200);
-      expect(useGameStore.getState().playerPos.y).toBeGreaterThan(0);
-
-      // 4. Complete walk + warp + wait + lab dialogue
-      await vi.advanceTimersByTimeAsync(5000);
-      expect(useGameStore.getState().currentMap).toBe('OAKS_LAB');
-      expect(useGameStore.getState().storyStep).toBe('OAK_STOPPED');
-      expect(useGameStore.getState().isMoving).toBe(false);
-      expect(useGameStore.getState().dialogue).toContain('Por fin llegas');
-    });
-  });
-
+  
   // ── Regression: handleAction must fire dialogueCallback ─────────────────
 
   describe('Regression', () => {

@@ -19,8 +19,8 @@ export function buildOakEscortPath(startPos: Position): PathNode[] {
   let { x, y } = startPos;
 
   path.push({ x, y, dir: 'down' });
-
-  while (y < 11) { y++; path.push({ x, y, dir: 'down' }); }
+  while (x > 9) { x--; path.push({ x, y, dir: 'left' }); }
+  while (y < 14) { y++; path.push({ x, y, dir: 'down' }); }
   while (x < 12) { x++; path.push({ x, y, dir: 'right' }); }
   while (x > 12) { x--; path.push({ x, y, dir: 'left' }); }
 
