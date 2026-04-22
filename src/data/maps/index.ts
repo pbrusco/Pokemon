@@ -1,5 +1,6 @@
 import { parseTileMap } from './tileParser';
 
+import kanto_overworld  from './kanto_overworld.json';
 import pallet_town      from './pallet_town.json';
 import players_house_1f from './players_house_1f.json';
 import players_house_2f from './players_house_2f.json';
@@ -31,66 +32,57 @@ import rock_tunnel_1f   from './rock_tunnel_1f.json';
 import lavender_town    from './lavender_town.json';
 import pokemon_tower_1f from './pokemon_tower_1f.json';
 
-export const MAP_PALLET_TOWN      = parseTileMap(pallet_town);
+export const MAP_KANTO_OVERWORLD  = parseTileMap(kanto_overworld);
+
 export const MAP_PLAYERS_HOUSE_1F = parseTileMap(players_house_1f);
 export const MAP_PLAYERS_HOUSE_2F = parseTileMap(players_house_2f);
 export const MAP_RIVALS_HOUSE     = parseTileMap(rivals_house);
 export const MAP_OAKS_LAB         = parseTileMap(oaks_lab);
-export const MAP_ROUTE_1          = parseTileMap(route_1);
-export const MAP_ROUTE_2          = parseTileMap(route_2);
-export const MAP_VIRIDIAN_CITY    = parseTileMap(viridian_city);
 export const MAP_POKECENTER       = parseTileMap(pokecenter);
 export const MAP_POKEMART         = parseTileMap(pokemart);
-export const MAP_VIRIDIAN_FOREST  = parseTileMap(viridian_forest);
 export const MAP_MT_MOON          = parseTileMap(mt_moon);
 export const MAP_MT_MOON_B1F      = parseTileMap(mt_moon_b1f);
 export const MAP_MT_MOON_B2F      = parseTileMap(mt_moon_b2f);
-export const MAP_PEWTER_CITY      = parseTileMap(pewter_city);
 export const MAP_PEWTER_GYM       = parseTileMap(pewter_gym);
+export const MAP_CERULEAN_GYM     = parseTileMap(cerulean_gym);
+export const MAP_VERMILION_GYM    = parseTileMap(vermilion_gym);
+export const MAP_ROCK_TUNNEL_1F   = parseTileMap(rock_tunnel_1f);
+export const MAP_POKEMON_TOWER_1F = parseTileMap(pokemon_tower_1f);
+
+// Legacy per-map exports kept for reference (not used in worldMaps)
+export const MAP_PALLET_TOWN      = parseTileMap(pallet_town);
+export const MAP_ROUTE_1          = parseTileMap(route_1);
+export const MAP_ROUTE_2          = parseTileMap(route_2);
+export const MAP_VIRIDIAN_CITY    = parseTileMap(viridian_city);
+export const MAP_VIRIDIAN_FOREST  = parseTileMap(viridian_forest);
+export const MAP_PEWTER_CITY      = parseTileMap(pewter_city);
 export const MAP_ROUTE_3          = parseTileMap(route_3);
 export const MAP_ROUTE_4          = parseTileMap(route_4);
 export const MAP_CERULEAN_CITY    = parseTileMap(cerulean_city);
-export const MAP_CERULEAN_GYM     = parseTileMap(cerulean_gym);
 export const MAP_ROUTE_5          = parseTileMap(route_5);
 export const MAP_ROUTE_6          = parseTileMap(route_6);
 export const MAP_SAFFRON_CITY     = parseTileMap(saffron_city);
 export const MAP_VERMILION_CITY   = parseTileMap(vermilion_city);
-export const MAP_VERMILION_GYM    = parseTileMap(vermilion_gym);
 export const MAP_ROUTE_9          = parseTileMap(route_9);
 export const MAP_ROUTE_10         = parseTileMap(route_10);
-export const MAP_ROCK_TUNNEL_1F   = parseTileMap(rock_tunnel_1f);
 export const MAP_LAVENDER_TOWN    = parseTileMap(lavender_town);
-export const MAP_POKEMON_TOWER_1F = parseTileMap(pokemon_tower_1f);
 
 export const worldMaps = {
-  PALLET_TOWN:      MAP_PALLET_TOWN,
+  // ── Single unified outdoor map ──
+  KANTO_OVERWORLD:  MAP_KANTO_OVERWORLD,
+  // ── Indoor maps ──
   PLAYERS_HOUSE_1F: MAP_PLAYERS_HOUSE_1F,
   PLAYERS_HOUSE_2F: MAP_PLAYERS_HOUSE_2F,
   RIVALS_HOUSE:     MAP_RIVALS_HOUSE,
   OAKS_LAB:         MAP_OAKS_LAB,
-  ROUTE_1:          MAP_ROUTE_1,
-  ROUTE_2:          MAP_ROUTE_2,
-  VIRIDIAN_CITY:    MAP_VIRIDIAN_CITY,
   POKECENTER:       MAP_POKECENTER,
   POKEMART:         MAP_POKEMART,
-  VIRIDIAN_FOREST:  MAP_VIRIDIAN_FOREST,
   MT_MOON:          MAP_MT_MOON,
   MT_MOON_B1F:      MAP_MT_MOON_B1F,
   MT_MOON_B2F:      MAP_MT_MOON_B2F,
-  PEWTER_CITY:      MAP_PEWTER_CITY,
   PEWTER_GYM:       MAP_PEWTER_GYM,
-  ROUTE_3:          MAP_ROUTE_3,
-  ROUTE_4:          MAP_ROUTE_4,
-  CERULEAN_CITY:    MAP_CERULEAN_CITY,
   CERULEAN_GYM:     MAP_CERULEAN_GYM,
-  ROUTE_5:          MAP_ROUTE_5,
-  ROUTE_6:          MAP_ROUTE_6,
-  SAFFRON_CITY:     MAP_SAFFRON_CITY,
-  VERMILION_CITY:   MAP_VERMILION_CITY,
   VERMILION_GYM:    MAP_VERMILION_GYM,
-  ROUTE_9:          MAP_ROUTE_9,
-  ROUTE_10:         MAP_ROUTE_10,
   ROCK_TUNNEL_1F:   MAP_ROCK_TUNNEL_1F,
-  LAVENDER_TOWN:    MAP_LAVENDER_TOWN,
   POKEMON_TOWER_1F: MAP_POKEMON_TOWER_1F,
 };

@@ -20,7 +20,25 @@
     "TTTTGTTTTT"
   ],
   "warps": [
-    { "x": 4, "y": 0,  "targetMap": "SAFFRON_CITY",  "targetPos": { "x": 20, "y": 34 }, "targetDir": "up" },
-    { "x": 4, "y": 17, "targetMap": "VERMILION_CITY", "targetPos": { "x": 20, "y": 1  }, "targetDir": "down" }
+    {
+      "x": 4,
+      "y": 0,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 128,
+        "y": 85
+      },
+      "targetDir": "up"
+    },
+    {
+      "x": 4,
+      "y": 17,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 128,
+        "y": 103
+      },
+      "targetDir": "down"
+    }
   ]
 }

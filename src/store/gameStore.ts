@@ -48,9 +48,10 @@ const safeLocalStorage = {
 };
 
 const INITIAL_SAVE_STATE: GameSaveState = {
-  playerPos: { x: 5, y: 6 },
+  // Pallet Town in world coords: offset (11, 198), player starts at local (5,6)
+  playerPos: { x: 16, y: 204 },
   direction: 'down',
-  currentMap: 'PALLET_TOWN',
+  currentMap: 'KANTO_OVERWORLD',
 
   hasPokedex: false,
   hasParcel: false,
@@ -303,7 +304,7 @@ export const useGameStore = create<GameState>()(
       },
     }),
     {
-      name: 'pokemon-firered-save-v2',
+      name: 'pokemon-firered-save-v3',
       storage: createJSONStorage(() => safeLocalStorage),
       partialize: (state) => ({
         playerPos: state.playerPos,

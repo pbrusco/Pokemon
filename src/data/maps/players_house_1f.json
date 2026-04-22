@@ -10,7 +10,25 @@
     "WWWDWWWW"
   ],
   "warps": [
-    { "x": 6, "y": 1, "targetMap": "PLAYERS_HOUSE_2F", "targetPos": { "x": 6, "y": 2 }, "targetDir": "up" },
-    { "x": 3, "y": 7, "targetMap": "PALLET_TOWN",      "targetPos": { "x": 5, "y": 6 }, "targetDir": "down" }
+    {
+      "x": 6,
+      "y": 1,
+      "targetMap": "PLAYERS_HOUSE_2F",
+      "targetPos": {
+        "x": 6,
+        "y": 2
+      },
+      "targetDir": "up"
+    },
+    {
+      "x": 3,
+      "y": 7,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 16,
+        "y": 204
+      },
+      "targetDir": "down"
+    }
   ]
 }

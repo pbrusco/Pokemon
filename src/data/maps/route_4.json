@@ -12,7 +12,25 @@
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
   ],
   "warps": [
-    { "x": 0,  "y": 4, "targetMap": "MT_MOON",       "targetPos": { "x": 19, "y": 10 }, "targetDir": "left" },
-    { "x": 39, "y": 4, "targetMap": "CERULEAN_CITY", "targetPos": { "x": 0,  "y": 18 }, "targetDir": "right" }
+    {
+      "x": 0,
+      "y": 4,
+      "targetMap": "MT_MOON",
+      "targetPos": {
+        "x": 19,
+        "y": 10
+      },
+      "targetDir": "left"
+    },
+    {
+      "x": 39,
+      "y": 4,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 108,
+        "y": 18
+      },
+      "targetDir": "right"
+    }
   ]
 }

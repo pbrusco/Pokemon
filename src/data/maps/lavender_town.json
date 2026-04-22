@@ -20,7 +20,25 @@
     "TTTTTTTTTTTTTTTTTTTT"
   ],
   "warps": [
-    { "x": 10, "y": 0,  "targetMap": "ROUTE_10",         "targetPos": { "x": 4, "y": 22 }, "targetDir": "up" },
-    { "x": 9,  "y": 13, "targetMap": "POKEMON_TOWER_1F", "targetPos": { "x": 10, "y": 16 }, "targetDir": "up" }
+    {
+      "x": 10,
+      "y": 0,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 166,
+        "y": 29
+      },
+      "targetDir": "up"
+    },
+    {
+      "x": 9,
+      "y": 13,
+      "targetMap": "POKEMON_TOWER_1F",
+      "targetPos": {
+        "x": 10,
+        "y": 16
+      },
+      "targetDir": "up"
+    }
   ]
 }

@@ -20,10 +20,55 @@
     "TTTTTTTTTTTTTTTTTTTT"
   ],
   "warps": [
-    { "x": 5,  "y": 5,  "targetMap": "PLAYERS_HOUSE_1F", "targetPos": { "x": 3, "y": 6 }, "targetDir": "up" },
-    { "x": 14, "y": 5,  "targetMap": "RIVALS_HOUSE",     "targetPos": { "x": 3, "y": 6 }, "targetDir": "up" },
-    { "x": 12, "y": 13, "targetMap": "OAKS_LAB",         "targetPos": { "x": 4, "y": 11 }, "targetDir": "up" },
-    { "x": 9,  "y": 0,  "targetMap": "ROUTE_1",          "targetPos": { "x": 4, "y": 35 }, "targetDir": "up" },
-    { "x": 10, "y": 0,  "targetMap": "ROUTE_1",          "targetPos": { "x": 4, "y": 35 }, "targetDir": "up" }
+    {
+      "x": 5,
+      "y": 5,
+      "targetMap": "PLAYERS_HOUSE_1F",
+      "targetPos": {
+        "x": 3,
+        "y": 6
+      },
+      "targetDir": "up"
+    },
+    {
+      "x": 14,
+      "y": 5,
+      "targetMap": "RIVALS_HOUSE",
+      "targetPos": {
+        "x": 3,
+        "y": 6
+      },
+      "targetDir": "up"
+    },
+    {
+      "x": 12,
+      "y": 13,
+      "targetMap": "OAKS_LAB",
+      "targetPos": {
+        "x": 4,
+        "y": 11
+      },
+      "targetDir": "up"
+    },
+    {
+      "x": 9,
+      "y": 0,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 20,
+        "y": 198
+      },
+      "targetDir": "up"
+    },
+    {
+      "x": 10,
+      "y": 0,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 20,
+        "y": 198
+      },
+      "targetDir": "up"
+    }
   ]
 }

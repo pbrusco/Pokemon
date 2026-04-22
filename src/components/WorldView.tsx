@@ -57,6 +57,7 @@ export const WorldView = memo(({
   playerTeam,
 }: WorldViewProps) => {
   const mapData = maps[currentMap];
+  if (!mapData) return null;
   const grid = mapData.tiles;
   const { layers } = mapData;
   const mapHasEncounters = currentMap in WILD_POKEMON_DATABASE;

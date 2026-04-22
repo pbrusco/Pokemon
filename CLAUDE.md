@@ -1,8 +1,14 @@
 # CLAUDE.md — Agent Guide for My Pokemon
 
-## Paths
-/opt/homebrew/bin/npm
+## Hints
+Node and npm may not be available directly, but I do have access to them:
+❯ which node
 /opt/homebrew/bin/node
+❯ which npm
+/opt/homebrew/bin/npm
+
+Maybe use:
+export PATH="/opt/homebrew/bin:$PATH" && cd /Users/pbrusco/projects/poke && npm run ...
 
 ## Vision
 

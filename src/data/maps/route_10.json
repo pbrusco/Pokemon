@@ -26,9 +26,45 @@
     "TTTTGTTTTT"
   ],
   "warps": [
-    { "x": 4, "y": 0,  "targetMap": "ROUTE_9",         "targetPos": { "x": 19, "y": 4 }, "targetDir": "up" },
-    { "x": 4, "y": 12, "targetMap": "ROCK_TUNNEL_1F",  "targetPos": { "x": 4,  "y": 3 }, "targetDir": "down" },
-    { "x": 4, "y": 14, "targetMap": "ROCK_TUNNEL_1F",  "targetPos": { "x": 15, "y": 14 }, "targetDir": "up" },
-    { "x": 4, "y": 23, "targetMap": "LAVENDER_TOWN",   "targetPos": { "x": 10, "y": 0 }, "targetDir": "down" }
+    {
+      "x": 4,
+      "y": 0,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 166,
+        "y": 7
+      },
+      "targetDir": "up"
+    },
+    {
+      "x": 4,
+      "y": 12,
+      "targetMap": "ROCK_TUNNEL_1F",
+      "targetPos": {
+        "x": 4,
+        "y": 3
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 4,
+      "y": 14,
+      "targetMap": "ROCK_TUNNEL_1F",
+      "targetPos": {
+        "x": 15,
+        "y": 14
+      },
+      "targetDir": "up"
+    },
+    {
+      "x": 4,
+      "y": 23,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 166,
+        "y": 30
+      },
+      "targetDir": "down"
+    }
   ]
 }

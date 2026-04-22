@@ -20,6 +20,15 @@
     "WWWWWWWWWWWWWWWWWWWW"
   ],
   "warps": [
-    { "x": 10, "y": 16, "targetMap": "LAVENDER_TOWN", "targetPos": { "x": 9, "y": 14 }, "targetDir": "down" }
+    {
+      "x": 10,
+      "y": 16,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 165,
+        "y": 44
+      },
+      "targetDir": "down"
+    }
   ]
 }

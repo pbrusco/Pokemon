@@ -14,6 +14,15 @@
     "WWWWDWWWWW"
   ],
   "warps": [
-    { "x": 4, "y": 11, "targetMap": "PALLET_TOWN", "targetPos": { "x": 12, "y": 14 }, "targetDir": "down" }
+    {
+      "x": 4,
+      "y": 11,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 23,
+        "y": 212
+      },
+      "targetDir": "down"
+    }
   ]
 }

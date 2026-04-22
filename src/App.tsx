@@ -176,6 +176,7 @@ export default function App() {
         inBattle={inBattle}
         dialogue={store.dialogue}
         playerTeam={store.playerTeam}
+
       />
 
       <MobileControls onMove={handleMove} onAction={handleAction} setPhase={store.setPhase} />

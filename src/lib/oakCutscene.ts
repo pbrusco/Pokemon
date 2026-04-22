@@ -13,16 +13,19 @@ import { runCutscene } from './cutscenes/runner';
 
 interface PathNode { x: number; y: number; dir: Direction }
 
-/** Build the escort path from player position to the lab door at (12, 11). */
+/** Build the Oak escort path from player position to the lab door at world coords. */
 export function buildOakEscortPath(startPos: Position): PathNode[] {
   const path: PathNode[] = [];
   let { x, y } = startPos;
+  // Lab door is at Pallet Town local (12, 13) → world (11+12, 198+13) = (23, 211)
+  const labWorldX = 23;
+  const labWorldY = 211;
 
   path.push({ x, y, dir: 'down' });
-  while (x > 9) { x--; path.push({ x, y, dir: 'left' }); }
-  while (y < 14) { y++; path.push({ x, y, dir: 'down' }); }
-  while (x < 12) { x++; path.push({ x, y, dir: 'right' }); }
-  while (x > 12) { x--; path.push({ x, y, dir: 'left' }); }
+  while (x > labWorldX - 3) { x--; path.push({ x, y, dir: 'left' }); }
+  while (y < labWorldY)      { y++; path.push({ x, y, dir: 'down' }); }
+  while (x < labWorldX)     { x++; path.push({ x, y, dir: 'right' }); }
+  while (x > labWorldX)     { x--; path.push({ x, y, dir: 'left' }); }
 
   return path;
 }

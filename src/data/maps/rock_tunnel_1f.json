@@ -20,7 +20,25 @@
     "GGGGGGGGGGGGGGGGGGGG"
   ],
   "warps": [
-    { "x": 4,  "y": 3,  "targetMap": "ROUTE_10", "targetPos": { "x": 4, "y": 12 }, "targetDir": "up" },
-    { "x": 15, "y": 14, "targetMap": "ROUTE_10", "targetPos": { "x": 4, "y": 14 }, "targetDir": "down" }
+    {
+      "x": 4,
+      "y": 3,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 166,
+        "y": 19
+      },
+      "targetDir": "up"
+    },
+    {
+      "x": 15,
+      "y": 14,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 166,
+        "y": 21
+      },
+      "targetDir": "down"
+    }
   ]
 }

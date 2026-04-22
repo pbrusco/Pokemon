@@ -19,14 +19,14 @@ describe('Oak Cutscene', () => {
   // ── Unit: path builder ──────────────────────────────────────────────────
 
   describe('buildOakEscortPath', () => {
-    it('builds a path from player position to the lab door at (12, 11)', () => {
-      const path = buildOakEscortPath({ x: 3, y: 6 });
+    it('builds a path from player position to the lab door at world coords', () => {
+      const path = buildOakEscortPath({ x: 16, y: 204 });
 
-      expect(path[0]).toEqual({ x: 3, y: 6, dir: 'down' });
+      expect(path[0]).toEqual({ x: 16, y: 204, dir: 'down' });
 
       const last = path[path.length - 1];
-      expect(last.x).toBe(12);
-      expect(last.y).toBe(14);
+      expect(last.x).toBe(23);
+      expect(last.y).toBe(211);
 
       // Every step is exactly 1 tile from the previous
       for (let i = 1; i < path.length; i++) {
@@ -131,7 +131,7 @@ describe('Oak Cutscene', () => {
     });
   });
 
-  
+
   // ── Regression: handleAction must fire dialogueCallback ─────────────────
 
   describe('Regression', () => {

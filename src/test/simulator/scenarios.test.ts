@@ -41,8 +41,8 @@ afterEach(() => {
 describe('Scenario 1: Oak stops player at Route 1', () => {
   it('walks player to Oak lab after dismissing Oak\'s dialogue', () => {
     sim = new GameSimulator().init({
-      currentMap: 'PALLET_TOWN',
-      playerPos: { x: 10, y: 1 },
+      currentMap: 'KANTO_OVERWORLD',
+      playerPos: { x: 21, y: 198 },
       direction: 'up',
       playerTeam: [],
     });
@@ -52,7 +52,7 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
 
     // Oak's dialogue should be shown immediately
     expect(sim.dialogueContains('OAK')).toBe(true);
-    expect(sim.map).toBe('PALLET_TOWN'); // still in Pallet until dialogue dismissed
+    expect(sim.map).toBe('KANTO_OVERWORLD'); // still in overworld until dialogue dismissed
 
     // Dismiss greeting dialogue, then warning dialogue
     sim.dismissDialogue();
@@ -68,8 +68,8 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
 
   it('does not retrigger when player already has a team', () => {
     sim = new GameSimulator().init({
-      currentMap: 'PALLET_TOWN',
-      playerPos: { x: 10, y: 6 },
+      currentMap: 'KANTO_OVERWORLD',
+      playerPos: { x: 21, y: 198 },
       direction: 'up',
       playerTeam: [STARTERS[0]],
       storyStep: 'EXPLORING',
@@ -78,7 +78,7 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
     sim.move('up');
 
     // Player should NOT be sent to Oak's Lab
-    expect(sim.map).toBe('PALLET_TOWN');
+    expect(sim.map).toBe('KANTO_OVERWORLD');
   });
 });
 
@@ -87,21 +87,21 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
 describe('Scenario 1b: Oak\'s Lab locked at START', () => {
   it('blocks entry to Oak\'s Lab and shows locked message', () => {
     sim = new GameSimulator().init({
-      currentMap: 'PALLET_TOWN',
-      // Stand one tile below the lab door at (12, 13)
-      playerPos: { x: 12, y: 14 },
+      currentMap: 'KANTO_OVERWORLD',
+      // Stand one tile below the lab door at world (23, 211) -> (23, 212)
+      playerPos: { x: 23, y: 212 },
       direction: 'up',
       playerTeam: [],
       storyStep: 'START',
     });
 
-    // Try to walk onto the lab door tile (12, 13) — should be blocked by lab_locked object
+    // Try to walk onto the lab door tile (23, 211) — should be blocked by lab_locked object
     sim.move('up');
     sim.tick(500);
 
-    // Player should NOT have moved (still at (12, 14))
-    expect(sim.pos).toEqual({ x: 12, y: 14 });
-    expect(sim.map).toBe('PALLET_TOWN');
+    // Player should NOT have moved (still at (23, 212))
+    expect(sim.pos).toEqual({ x: 23, y: 212 });
+    expect(sim.map).toBe('KANTO_OVERWORLD');
 
     // Interact with the blocking sign
     sim.interact();
@@ -274,9 +274,9 @@ describe('Scenario 7: Wild encounter on Route 1', () => {
   it('triggers battle when stepping on grass with low random', () => {
     const starter = { ...STARTERS[1] }; // Charmander
     sim = new GameSimulator().init({
-      currentMap: 'ROUTE_1',
-      // Position on path next to grass. Grass tiles are at x=5..8 and x=12..15
-      playerPos: { x: 9, y: 10 },
+      currentMap: 'KANTO_OVERWORLD',
+      // Position on path next to grass. Route 1 local (9, 10) = world (16+9, 163+10) = (25, 173)
+      playerPos: { x: 25, y: 173 },
       direction: 'left',
       playerTeam: [starter],
       storyStep: 'EXPLORING',
@@ -419,9 +419,9 @@ describe('Scenario 11: Pokécenter healing', () => {
 describe('loadLogAsScenario helper', () => {
   it('replays a hand-crafted log: move + interact', () => {
     sim = new GameSimulator().init({
-      currentMap: 'PALLET_TOWN',
-      // (9, 8) is grass; (9, 7) above it is also grass and walkable.
-      playerPos: { x: 9, y: 8 },
+      currentMap: 'KANTO_OVERWORLD',
+      // local (9,8) in Pallet Town -> world (20, 206)
+      playerPos: { x: 20, y: 206 },
       direction: 'down',
       playerTeam: [STARTERS[0]],
       storyStep: 'EXPLORING',
@@ -440,7 +440,7 @@ describe('loadLogAsScenario helper', () => {
       observations: [],
     };
     sim.loadLogAsScenario(log);
-    expect(sim.pos).toEqual({ x: 9, y: 7 });
+    expect(sim.pos).toEqual({ x: 20, y: 205 });
   });
 });
 
@@ -449,8 +449,8 @@ describe('loadLogAsScenario helper', () => {
 describe('assertWorldIntact helper', () => {
   it('returns cleanly when world data is intact', () => {
     sim = new GameSimulator().init({
-      currentMap: 'PALLET_TOWN',
-      playerPos: { x: 10, y: 10 },
+      currentMap: 'KANTO_OVERWORLD',
+      playerPos: { x: 21, y: 208 },
       direction: 'down',
       playerTeam: [],
     });
@@ -466,9 +466,9 @@ describe('Scenario 13: Trainer vision range', () => {
 
   it('does NOT trigger when player is out of trainer line-of-sight', () => {
     sim = new GameSimulator().init({
-      currentMap: 'ROUTE_1',
-      // Player at (5, 10) — behind/right of trainer. Move further right → still safe.
-      playerPos: { x: 5, y: 10 },
+      currentMap: 'KANTO_OVERWORLD',
+      // Player at world (21, 173) — behind/right of trainer. Move further right → still safe.
+      playerPos: { x: 21, y: 173 },
       direction: 'right',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',
@@ -481,9 +481,9 @@ describe('Scenario 13: Trainer vision range', () => {
 
   it('triggers cutscene when player steps into 3rd tile of vision (boundary)', () => {
     sim = new GameSimulator().init({
-      currentMap: 'ROUTE_1',
-      // Start at (1, 11). Move up to (1, 10) — exactly the 2nd tile of vision (still in range).
-      playerPos: { x: 1, y: 11 },
+      currentMap: 'KANTO_OVERWORLD',
+      // Start at (17, 174). Move up to (17, 173) — exactly the 2nd tile of vision (still in range).
+      playerPos: { x: 17, y: 174 },
       direction: 'up',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',
@@ -537,18 +537,18 @@ describe('Scenario 14: Brock leader battle', () => {
 
 describe('Scenario 12: No ghost re-battle after winning trainer fight', () => {
   it('cleanly exits battle and does NOT re-enter with 0 HP enemy', () => {
-    // Start on Route 1 near the youngster trainer at (3, 10) facing left
-    // Player stands at (1, 10) — within trainer's 3-tile left vision
+    // Start on Route 1 near the youngster trainer at (19, 173) facing left
+    // Player stands at (17, 173) — within trainer's 3-tile left vision
     sim = new GameSimulator().init({
-      currentMap: 'ROUTE_1',
-      playerPos: { x: 1, y: 10 },
+      currentMap: 'KANTO_OVERWORLD',
+      playerPos: { x: 17, y: 173 },
       direction: 'right',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',
     });
 
     // Step into trainer's vision zone → triggers trainer cutscene
-    sim.move('right'); // now at (2, 10) — within youngster_chano's vision (3 tiles left from (3,10))
+    sim.move('right'); // now at (18, 173) — within youngster_chano's vision (3 tiles left from (19,173))
     sim.tick(500);
 
     // If dialogue appeared, dismiss it

@@ -12,7 +12,25 @@
     "TTTTTTTTTTTTTTTTTTTT"
   ],
   "warps": [
-    { "x": 0,  "y": 4, "targetMap": "CERULEAN_CITY", "targetPos": { "x": 39, "y": 7 }, "targetDir": "left" },
-    { "x": 19, "y": 4, "targetMap": "ROUTE_10",      "targetPos": { "x": 4,  "y": 0 }, "targetDir": "right" }
+    {
+      "x": 0,
+      "y": 4,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 147,
+        "y": 7
+      },
+      "targetDir": "left"
+    },
+    {
+      "x": 19,
+      "y": 4,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 166,
+        "y": 7
+      },
+      "targetDir": "right"
+    }
   ]
 }

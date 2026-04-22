@@ -78,9 +78,9 @@ export class GameSimulator {
 
     // Reset the Zustand store to a clean initial state
     useGameStore.setState({
-      playerPos: overrides.playerPos ?? { x: 10, y: 10 },
+      playerPos: overrides.playerPos ?? { x: 16, y: 204 },
       direction: overrides.direction ?? 'down',
-      currentMap: overrides.currentMap ?? 'PALLET_TOWN',
+      currentMap: overrides.currentMap ?? 'KANTO_OVERWORLD',
       playerTeam: overrides.playerTeam ?? [],
       hasPokedex: overrides.hasPokedex ?? false,
       hasParcel: overrides.hasParcel ?? false,
@@ -92,7 +92,7 @@ export class GameSimulator {
       money: overrides.money ?? 3000,
       pcStorage: [],
       pokedex: {},
-      lastHealLocation: { map: 'PALLET_TOWN' as MapID, pos: { x: 7, y: 11 } },
+      lastHealLocation: { map: 'PLAYERS_HOUSE_1F' as MapID, pos: { x: 3, y: 6 } },
 
       // Runtime state
       isMoving: false,

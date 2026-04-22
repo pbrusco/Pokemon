@@ -10,6 +10,15 @@
     "WWWWWWDWWWWWWW"
   ],
   "warps": [
-    { "x": 6, "y": 7, "targetMap": "VIRIDIAN_CITY", "targetPos": { "x": 14, "y": 20 }, "targetDir": "down" }
+    {
+      "x": 6,
+      "y": 7,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 14,
+        "y": 148
+      },
+      "targetDir": "down"
+    }
   ]
 }

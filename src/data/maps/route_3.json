@@ -20,7 +20,25 @@
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
   ],
   "warps": [
-    { "x": 0,  "y": 8, "targetMap": "PEWTER_CITY", "targetPos": { "x": 39, "y": 19 }, "targetDir": "left"  },
-    { "x": 30, "y": 0, "targetMap": "MT_MOON",     "targetPos": { "x": 10, "y": 19 }, "targetDir": "up" }
+    {
+      "x": 0,
+      "y": 8,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 39,
+        "y": 26
+      },
+      "targetDir": "left"
+    },
+    {
+      "x": 30,
+      "y": 0,
+      "targetMap": "MT_MOON",
+      "targetPos": {
+        "x": 10,
+        "y": 19
+      },
+      "targetDir": "up"
+    }
   ]
 }

@@ -38,8 +38,35 @@
     "TTTTTTTTTTTTTTTTTTTTGTTTTTTTTTTTTTTTTTTT"
   ],
   "warps": [
-    { "x": 20, "y": 35, "targetMap": "VIRIDIAN_FOREST", "targetPos": { "x": 16, "y": 0  }, "targetDir": "down" },
-    { "x": 16, "y": 19, "targetMap": "PEWTER_GYM",      "targetPos": { "x": 3,  "y": 13 }, "targetDir": "up" },
-    { "x": 39, "y": 19, "targetMap": "ROUTE_3",         "targetPos": { "x": 0,  "y": 8  }, "targetDir": "right" }
+    {
+      "x": 20,
+      "y": 35,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 20,
+        "y": 42
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 16,
+      "y": 19,
+      "targetMap": "PEWTER_GYM",
+      "targetPos": {
+        "x": 3,
+        "y": 13
+      },
+      "targetDir": "up"
+    },
+    {
+      "x": 39,
+      "y": 19,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 39,
+        "y": 26
+      },
+      "targetDir": "right"
+    }
   ]
 }

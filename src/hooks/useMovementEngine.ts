@@ -1,17 +1,20 @@
 import { useCallback, useRef, useEffect, MutableRefObject } from 'react';
-import { Direction, NPC, Pokemon } from '../types';
+import { Direction, NPC, Pokemon, Position } from '../types';
 import { BLACKOUT, HEALING, EXPLORING } from '../types/gamePhase';
 import { fullHeal } from '../lib/healUtils';
 import { BattleState } from '../lib/battleEngine';
 import { sd } from '../lib/gameSpeed';
 import { calcHp } from '../lib/damage';
-import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES } from '../constants';
+import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES, getKantoRegion } from '../constants';
 import { triggerOakCutscene } from '../lib/oakCutscene';
 import { triggerTrainerCutscene } from '../lib/cutscenes/trainerEncounter';
 import { useGameStore } from '../store/gameStore';
 import { MapID } from '../types';
 import { launchBattle } from '../lib/launchBattle';
 import { logObservation } from '../lib/eventLog';
+
+// Pallet Town exit coords in the unified KANTO_OVERWORLD
+const PALLET_NORTH_EXIT_Y = 198; // Row 198 is Pallet's top row in world coords
 
 // ── Extracted helpers (pure or store-writing, no React hooks) ────────────────
 
@@ -41,13 +44,19 @@ function checkTrainerVision(
 function tryWildEncounter(
   tileType: string,
   currentMap: MapID,
+  playerPos: Position,
   playerTeam: Pokemon[],
 ): boolean {
   if (tileType !== 'grass' || playerTeam.length === 0) return false;
   if (playerTeam.every(p => p.hp === 0)) return false;
 
-  const routeWilds = WILD_POKEMON_DATABASE[currentMap];
-  const encounterRate = WILD_ENCOUNTER_RATES[currentMap];
+  // On the unified overworld, look up the zone from the player's absolute coordinates
+  const zone = currentMap === 'KANTO_OVERWORLD'
+    ? getKantoRegion(playerPos.x, playerPos.y)
+    : (currentMap as string);
+
+  const routeWilds = WILD_POKEMON_DATABASE[zone];
+  const encounterRate = WILD_ENCOUNTER_RATES[zone] ?? WILD_ENCOUNTER_RATES[currentMap];
   if (!routeWilds || encounterRate === undefined) return false;
   if (Math.floor(Math.random() * 256) >= encounterRate) return false;
   const randomPkmn = routeWilds[Math.floor(Math.random() * routeWilds.length)];
@@ -164,7 +173,11 @@ export function useMovementEngine({
     }
 
     // Story Event: Oak stops the player from leaving Pallet Town north without pokemon
-    if (currentMap === 'PALLET_TOWN' && nextY === 0 && playerTeam.length === 0) {
+    // In KANTO_OVERWORLD, Pallet Town's northern border is at world y = PALLET_NORTH_EXIT_Y
+    const isLeavingPalletNorth =
+      currentMap === 'KANTO_OVERWORLD' && nextY === PALLET_NORTH_EXIT_Y - 1 &&
+      nextX >= 11 && nextX < 31 && playerTeam.length === 0;
+    if (isLeavingPalletNorth) {
       triggerOakCutscene(playerPos);
       return;
     }
@@ -213,8 +226,9 @@ export function useMovementEngine({
       objectAtNext
     ) return;
 
-    const warpOnNext = mapData.warps.find(w => w.x === nextX && w.y === nextY);
-    if (warpOnNext && warpOnNext.targetDir && dir !== warpOnNext.targetDir) return;
+    // Warp at the destination tile (used for both the direction guard and seamless scroll)
+    const warp = mapData.warps.find(w => w.x === nextX && w.y === nextY);
+    if (warp && warp.targetDir && dir !== warp.targetDir) return;
 
     // ── Movement accepted ──
     store.setIsMoving(true);
@@ -228,22 +242,19 @@ export function useMovementEngine({
       setTimeout(() => useGameStore.getState().setGrassEffect(null), sd(500));
     }
 
-    // Animation timeout (ledge jumps take longer)
+    // Seamless scroll: warps now commit immediately — the unified overworld means
+    // most boundary crossings are just tile-scrolls within the same map.
+    // Remaining warps (indoor entrances) still teleport.
     if (moveTimeout.current) clearTimeout(moveTimeout.current);
     moveTimeout.current = setTimeout(() => {
-      useGameStore.getState().setIsMoving(false);
-    }, sd(isLedgeJump ? 260 : 110));
-
-    // Warp check
-    const warp = mapData.warps.find(w => w.x === nextX && w.y === nextY);
-    if (warp) {
-      setTimeout(() => {
-        const fs = useGameStore.getState();
+      const fs = useGameStore.getState();
+      fs.setIsMoving(false);
+      if (warp) {
         fs.setCurrentMap(warp.targetMap);
         fs.setPlayerPos(warp.targetPos);
         if (warp.targetDir) fs.setDirection(warp.targetDir);
-      }, sd(200));
-    }
+      }
+    }, sd(isLedgeJump ? 260 : 110));
 
     // Trainer vision check
     const spottedTrainer = checkTrainerVision(npcs[currentMap] || [], defeatedTrainers, nextX, nextY);
@@ -253,7 +264,7 @@ export function useMovementEngine({
     }
 
     // Wild encounter roll
-    tryWildEncounter(grid[nextY][nextX].type, currentMap, playerTeam);
+    tryWildEncounter(grid[nextY][nextX].type, currentMap, { x: nextX, y: nextY }, playerTeam);
   }, [battleStateRef, setOverworldShake]);
 
   return { handleMove, initBattle };

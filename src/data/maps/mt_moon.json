@@ -22,8 +22,35 @@
     "GGGGGGGGGGGGGGGGGGGG"
   ],
   "warps": [
-    { "x": 10, "y": 19, "targetMap": "ROUTE_3",      "targetPos": { "x": 30, "y": 0 }, "targetDir": "down" },
-    { "x": 5,  "y": 4,  "targetMap": "MT_MOON_B1F",  "targetPos": { "x": 5,  "y": 4 }, "targetDir": "down" },
-    { "x": 19, "y": 10, "targetMap": "ROUTE_4",      "targetPos": { "x": 0,  "y": 4 }, "targetDir": "right" }
+    {
+      "x": 10,
+      "y": 19,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 69,
+        "y": 18
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "targetMap": "MT_MOON_B1F",
+      "targetPos": {
+        "x": 5,
+        "y": 4
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 19,
+      "y": 10,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 69,
+        "y": 18
+      },
+      "targetDir": "right"
+    }
   ]
 }

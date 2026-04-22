@@ -38,7 +38,25 @@
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
   ],
   "warps": [
-    { "x": 20, "y": 0, "targetMap": "ROUTE_6",         "targetPos": { "x": 4, "y": 16 }, "targetDir": "up" },
-    { "x": 6,  "y": 17, "targetMap": "VERMILION_GYM",  "targetPos": { "x": 5, "y": 13 }, "targetDir": "up" }
+    {
+      "x": 20,
+      "y": 0,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 128,
+        "y": 102
+      },
+      "targetDir": "up"
+    },
+    {
+      "x": 6,
+      "y": 17,
+      "targetMap": "VERMILION_GYM",
+      "targetPos": {
+        "x": 5,
+        "y": 13
+      },
+      "targetDir": "up"
+    }
   ]
 }

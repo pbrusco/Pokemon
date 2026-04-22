@@ -24,7 +24,7 @@ function makeGrid(overrides: Partial<Record<string, Tile>> = {}): Tile[][] {
 }
 
 const EMPTY_MAPS: Record<MapID, { tiles: Tile[][] }> = {
-  PALLET_TOWN: { tiles: makeGrid() },
+  KANTO_OVERWORLD: { tiles: makeGrid() },
   PLAYERS_HOUSE_1F: { tiles: makeGrid() },
   PLAYERS_HOUSE_2F: { tiles: makeGrid() },
   RIVALS_HOUSE: { tiles: makeGrid() },
@@ -79,7 +79,7 @@ function makeItem(overrides: Partial<Entity> = {}): Entity {
   };
 }
 
-const ALL_MAP_IDS = ['PALLET_TOWN','PLAYERS_HOUSE_1F','PLAYERS_HOUSE_2F','RIVALS_HOUSE','OAKS_LAB','ROUTE_1','VIRIDIAN_CITY','POKECENTER','POKEMART','VIRIDIAN_FOREST','PEWTER_CITY','PEWTER_GYM','ROUTE_3','MT_MOON','MT_MOON_B1F','MT_MOON_B2F','ROUTE_2','ROUTE_4','CERULEAN_CITY','CERULEAN_GYM','ROUTE_5','ROUTE_6','SAFFRON_CITY','VERMILION_CITY','VERMILION_GYM','ROUTE_9','ROUTE_10','ROCK_TUNNEL_1F','LAVENDER_TOWN','POKEMON_TOWER_1F'];
+const ALL_MAP_IDS = ['KANTO_OVERWORLD','PLAYERS_HOUSE_1F','PLAYERS_HOUSE_2F','RIVALS_HOUSE','OAKS_LAB','ROUTE_1','VIRIDIAN_CITY','POKECENTER','POKEMART','VIRIDIAN_FOREST','PEWTER_CITY','PEWTER_GYM','ROUTE_3','MT_MOON','MT_MOON_B1F','MT_MOON_B2F','ROUTE_2','ROUTE_4','CERULEAN_CITY','CERULEAN_GYM','ROUTE_5','ROUTE_6','SAFFRON_CITY','VERMILION_CITY','VERMILION_GYM','ROUTE_9','ROUTE_10','ROCK_TUNNEL_1F','LAVENDER_TOWN','POKEMON_TOWER_1F'];
 
 const EMPTY_NPCS: Record<MapID, NPC[]> = Object.fromEntries(
   ALL_MAP_IDS.map(k => [k, []])
@@ -120,7 +120,7 @@ function setup(overrides: Overrides = {}) {
     showMoves: false,
     isLocked: false,
     showBattleTransition: false,
-    lastHealLocation: { map: 'PALLET_TOWN' as MapID, pos: { x: 7, y: 11 } },
+    lastHealLocation: { map: 'KANTO_OVERWORLD' as MapID, pos: { x: 7, y: 11 } },
     pcStorage: [],
     pokedex: {},
     money: 3000,
@@ -128,7 +128,7 @@ function setup(overrides: Overrides = {}) {
     storyStep: 'START',
 
     // Overrideable state
-    currentMap: (overrides.currentMap ?? 'PALLET_TOWN') as MapID,
+    currentMap: (overrides.currentMap ?? 'KANTO_OVERWORLD') as MapID,
     playerPos: overrides.playerPos ?? { x: 5, y: 5 },
     direction: overrides.direction ?? 'up',
     dialogue: overrides.dialogue ?? null,
@@ -168,7 +168,7 @@ describe('Dismiss dialogue', () => {
     const healNpc = makeNPC({ onInteract: 'heal', name: 'NURSE JOY' });
     const { handleAction, getState } = setup({
       dialogue: 'Some text',
-      npcs: { ...EMPTY_NPCS, PALLET_TOWN: [healNpc] },
+      npcs: { ...EMPTY_NPCS, KANTO_OVERWORLD: [healNpc] },
     });
     act(() => handleAction());
     // Dialogue was cleared (dismiss), but no phase change happened
@@ -330,7 +330,7 @@ describe('Generic NPC dialogue', () => {
   it('sets dialogue from NPC.dialogue[0]', () => {
     const npc = makeNPC({ dialogue: ['¡Hola mundo!'] });
     const { handleAction, getState } = setup({
-      npcs: { ...EMPTY_NPCS, PALLET_TOWN: [npc] },
+      npcs: { ...EMPTY_NPCS, KANTO_OVERWORLD: [npc] },
     });
 
     act(() => handleAction());
@@ -346,7 +346,7 @@ describe('Item pickup — potion', () => {
       position: { x: 5, y: 4 },
     };
     const { handleAction, getState } = setup({
-      items: { ...EMPTY_ITEMS, PALLET_TOWN: [potionItem] },
+      items: { ...EMPTY_ITEMS, KANTO_OVERWORLD: [potionItem] },
     });
 
     act(() => handleAction());
@@ -365,7 +365,7 @@ describe('Item pickup — pokeball', () => {
       position: { x: 5, y: 4 },
     };
     const { handleAction, getState } = setup({
-      items: { ...EMPTY_ITEMS, PALLET_TOWN: [ballItem] },
+      items: { ...EMPTY_ITEMS, KANTO_OVERWORLD: [ballItem] },
     });
 
     act(() => handleAction());
@@ -460,7 +460,7 @@ describe('Sign / object interactions', () => {
       sprite: '🪧',
     };
     const { handleAction, getState } = setup({
-      items: { ...EMPTY_ITEMS, PALLET_TOWN: [sign] },
+      items: { ...EMPTY_ITEMS, KANTO_OVERWORLD: [sign] },
     });
 
     act(() => handleAction());
@@ -474,7 +474,7 @@ describe('HM — CUT tree obstacle', () => {
   it('shows error if player lacks CASCADE badge', () => {
     const maps = {
       ...EMPTY_MAPS,
-      PALLET_TOWN: { tiles: makeGrid({ '4,5': CUT_TREE_TILE }) },
+      KANTO_OVERWORLD: { tiles: makeGrid({ '4,5': CUT_TREE_TILE }) },
     };
     const { handleAction, getState } = setup({
       playerPos: { x: 5, y: 5 },
@@ -492,7 +492,7 @@ describe('HM — CUT tree obstacle', () => {
   it('shows error if player has badge but lead Pokemon lacks CUT move', () => {
     const maps = {
       ...EMPTY_MAPS,
-      PALLET_TOWN: { tiles: makeGrid({ '4,5': CUT_TREE_TILE }) },
+      KANTO_OVERWORLD: { tiles: makeGrid({ '4,5': CUT_TREE_TILE }) },
     };
     const pkmnWithoutCut: Pokemon = {
       id: 'charmander', name: 'CHARMANDER', level: 10, hp: 28, maxHp: 28,
@@ -515,7 +515,7 @@ describe('HM — CUT tree obstacle', () => {
   it('clears the tree tile when badge and move are present', () => {
     const maps = {
       ...EMPTY_MAPS,
-      PALLET_TOWN: { tiles: makeGrid({ '4,5': CUT_TREE_TILE }) },
+      KANTO_OVERWORLD: { tiles: makeGrid({ '4,5': CUT_TREE_TILE }) },
     };
     const pkmnWithCut: Pokemon = {
       id: 'charmander', name: 'CHARMANDER', level: 10, hp: 28, maxHp: 28,
@@ -532,8 +532,8 @@ describe('HM — CUT tree obstacle', () => {
     act(() => handleAction());
 
     // Tile should be mutated to path (the hook modifies the tile in place)
-    expect(maps.PALLET_TOWN.tiles[4][5].type).toBe('path');
-    expect(maps.PALLET_TOWN.tiles[4][5].walkable).toBe(true);
+    expect(maps.KANTO_OVERWORLD.tiles[4][5].type).toBe('path');
+    expect(maps.KANTO_OVERWORLD.tiles[4][5].walkable).toBe(true);
     expect(getState().dialogue).toBeTruthy();
     expect(getState().dialogue).toContain('CORTAR');
   });
@@ -543,7 +543,7 @@ describe('HM — STRENGTH boulder obstacle', () => {
   it('shows error if player lacks RAINBOW badge', () => {
     const maps = {
       ...EMPTY_MAPS,
-      PALLET_TOWN: { tiles: makeGrid({ '4,5': BOULDER_TILE }) },
+      KANTO_OVERWORLD: { tiles: makeGrid({ '4,5': BOULDER_TILE }) },
     };
     const { handleAction, getState } = setup({
       maps,
@@ -559,7 +559,7 @@ describe('HM — STRENGTH boulder obstacle', () => {
   it('clears the boulder tile when badge and FUERZA move are present', () => {
     const maps = {
       ...EMPTY_MAPS,
-      PALLET_TOWN: { tiles: makeGrid({ '4,5': BOULDER_TILE }) },
+      KANTO_OVERWORLD: { tiles: makeGrid({ '4,5': BOULDER_TILE }) },
     };
     const pkmnWithStrength: Pokemon = {
       id: 'charmander', name: 'CHARMANDER', level: 10, hp: 28, maxHp: 28,
@@ -575,8 +575,8 @@ describe('HM — STRENGTH boulder obstacle', () => {
 
     act(() => handleAction());
 
-    expect(maps.PALLET_TOWN.tiles[4][5].type).toBe('path');
-    expect(maps.PALLET_TOWN.tiles[4][5].walkable).toBe(true);
+    expect(maps.KANTO_OVERWORLD.tiles[4][5].type).toBe('path');
+    expect(maps.KANTO_OVERWORLD.tiles[4][5].walkable).toBe(true);
     expect(getState().dialogue).toContain('FUERZA');
   });
 });
@@ -594,7 +594,7 @@ describe('No NPC or item in target tile', () => {
   it('shows dialogue for regular tree tile', () => {
     const maps = {
       ...EMPTY_MAPS,
-      PALLET_TOWN: { tiles: makeGrid({ '4,5': TREE_TILE }) },
+      KANTO_OVERWORLD: { tiles: makeGrid({ '4,5': TREE_TILE }) },
     };
     const { handleAction, getState } = setup({ maps });
 
