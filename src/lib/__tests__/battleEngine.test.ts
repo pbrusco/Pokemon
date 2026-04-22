@@ -699,7 +699,7 @@ describe('Potion use in battle', () => {
       { inventory: { POTION: 1 } },
     );
 
-    const result = stepBattle(state, { type: 'USE_ITEM', itemId: 'POTION' });
+    const result = stepBattle(state, { type: 'USE_ITEM', itemId: 'POTION', targetIndex: 0 });
 
     // Player was healed before enemy turn
     // After enemy turn the HP might decrease again — check the log
@@ -714,7 +714,7 @@ describe('Potion use in battle', () => {
 
   it('cannot use a Potion when inventory is empty', () => {
     const state = createBattleState([makePkmn({ hp: 5 })], makePkmn(), { inventory: {} });
-    const result = stepBattle(state, { type: 'USE_ITEM', itemId: 'POTION' });
+    const result = stepBattle(state, { type: 'USE_ITEM', itemId: 'POTION', targetIndex: 0 });
     expect(result.state.playerTeam[0].hp).toBe(5); // unchanged
     expect(result.state.phase).toBe('CHOOSING');
   });
@@ -726,7 +726,7 @@ describe('Potion use in battle', () => {
     const enemy = makePkmn({ moves: [makeMove({ power: 5 })] });
     const state = createBattleState([partialPlayer], enemy, { inventory: { POTION: 1 } });
 
-    const result = stepBattle(state, { type: 'USE_ITEM', itemId: 'POTION' });
+    const result = stepBattle(state, { type: 'USE_ITEM', itemId: 'POTION', targetIndex: 0 });
 
     // The heal log ("Recuperó 3 PS") appears in effects before enemy turn overwrites state.log
     expect(getLogs(result.effects).some(l => l.includes('3 PS'))).toBe(true);

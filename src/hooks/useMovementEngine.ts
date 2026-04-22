@@ -114,8 +114,9 @@ function applyOverworldPoison(
     store.setPhase(BLACKOUT);
     setTimeout(() => {
       const fs = useGameStore.getState();
-      fs.setCurrentMap(fs.lastHealLocation.map);
-      fs.setPlayerPos(fs.lastHealLocation.pos);
+      const validLoc = getValidTeleportLocation(fs.lastHealLocation.map, fs.lastHealLocation.pos);
+      fs.setCurrentMap(validLoc.map);
+      fs.setPlayerPos(validLoc.pos);
     }, sd(1200));
     setTimeout(() => useGameStore.getState().setPhase(HEALING), sd(2400));
     setTimeout(() => {
@@ -126,6 +127,26 @@ function applyOverworldPoison(
       useGameStore.getState().setDialogue('¡Te has quedado sin POKÉMON! Fuiste llevado al último lugar de descanso.');
     }, sd(2400) + sd(1600));
   }
+}
+
+/** Validates a teleport destination, falling back to a safe spot if invalid or blocked. */
+function getValidTeleportLocation(targetMap: string, targetPos: Position): { map: MapID; pos: Position } {
+  const store = useGameStore.getState();
+  const mapData = store.worldMaps[targetMap as MapID];
+  if (!mapData) {
+    console.warn(`[Teleport] Invalid map: ${targetMap}. Falling back to PLAYERS_HOUSE_2F`);
+    return { map: 'PLAYERS_HOUSE_2F', pos: { x: 4, y: 4 } };
+  }
+  
+  const grid = mapData.tiles;
+  const inBounds = targetPos.x >= 0 && targetPos.x < grid[0].length && targetPos.y >= 0 && targetPos.y < grid.length;
+  // Note: we might want to check for NPCs/items too, but a basic walkable check prevents hardlocks out of bounds.
+  if (!inBounds || !grid[targetPos.y][targetPos.x].walkable) {
+    console.warn(`[Teleport] Invalid pos {x:${targetPos.x}, y:${targetPos.y}} on map ${targetMap}. Falling back.`);
+    return { map: 'PLAYERS_HOUSE_2F', pos: { x: 4, y: 4 } };
+  }
+  
+  return { map: targetMap as MapID, pos: targetPos };
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
@@ -250,8 +271,9 @@ export function useMovementEngine({
       const fs = useGameStore.getState();
       fs.setIsMoving(false);
       if (warp) {
-        fs.setCurrentMap(warp.targetMap);
-        fs.setPlayerPos(warp.targetPos);
+        const validLoc = getValidTeleportLocation(warp.targetMap, warp.targetPos);
+        fs.setCurrentMap(validLoc.map);
+        fs.setPlayerPos(validLoc.pos);
         if (warp.targetDir) fs.setDirection(warp.targetDir);
       }
     }, sd(isLedgeJump ? 260 : 110));

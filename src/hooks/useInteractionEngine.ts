@@ -56,7 +56,7 @@ export const useInteractionEngine = ({
         }
         const name = npc.name.includes('JOY') ? 'JOY' : 'MAMÁ';
         const healPos: HealLocation = npc.name.includes('JOY')
-          ? { map: 'POKECENTER', pos: { x: 10, y: 14 } }
+          ? { map: 'POKECENTER', pos: { x: 4, y: 2 } }
           : { map: 'PLAYERS_HOUSE_1F', pos: { x: 3, y: 6 } };
         store.setLastHealLocation(healPos);
         store.setDialogue(`${name}: ¡Hola! Pareces cansado. Deberías descansar un poco...`);

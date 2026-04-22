@@ -49,7 +49,7 @@ export function applyItemToPokemon(pokemon: Pokemon, itemId: string): ItemUseRes
       const healAmount = Math.min(newPokemon.maxHp - newPokemon.hp, effect.healHp);
       newPokemon.hp += healAmount;
       success = true;
-      if (!message) message = `¡${newPokemon.name} recuperó salud!`;
+      if (!message) message = `¡${newPokemon.name} recuperó ${healAmount} PS!`;
     }
   }
 
