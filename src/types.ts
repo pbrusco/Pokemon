@@ -79,12 +79,20 @@ export interface PokemonSummary {
   sprite: string;
 }
 
+export interface ItemEffect {
+  healHp?: number;
+  cureStatus?: 'paralyzed' | 'sleep' | 'poison' | 'burn' | 'frozen' | 'all';
+  revive?: boolean;
+  reviveHpPercent?: number; // e.g. 50 for revive, 100 for max revive
+}
+
 export interface InventoryItem {
   id: string;
   name: string;
   description: string;
   icon: string;
-  type: 'potion' | 'pokeball' | 'key_item';
+  type: 'potion' | 'pokeball' | 'key_item' | 'status_heal' | 'revive';
+  effect?: ItemEffect;
 }
 
 export type InventoryCounts = Record<string, number>;

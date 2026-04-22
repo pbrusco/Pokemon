@@ -41,6 +41,7 @@ export function useInputHandler({
         if (battleSubPhase === 'CHOOSING') {
           const inMovesMenu = store.showMoves;
           if (!inMovesMenu) {
+            if (e.key === 'w' || e.key === 'W') { dispatchBattle({ type: 'CHEAT_KO' }); return; }
             if (e.key === '1') { store.setShowMoves(true); return; }
             if (e.key === '2') { store.setPhase(battle(B_BATTLE_TEAM)); return; }
             if (e.key === '3') { store.setPhase(battle(B_BATTLE_INVENTORY)); return; }

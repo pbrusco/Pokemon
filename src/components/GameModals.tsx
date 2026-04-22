@@ -19,6 +19,7 @@ interface GameModalsProps {
   playerAnim: 'idle' | 'attack' | 'hit' | 'faint';
   handlePCSwap: (teamIdx: number, pcIdx: number) => void;
   handleUseItem: (itemId: string) => void;
+  handleApplyItemToPokemon: (index: number) => void;
   dispatchBattle: (action: BattleAction) => void;
 }
 
@@ -28,6 +29,7 @@ export const GameModals = ({
   playerAnim,
   handlePCSwap,
   handleUseItem,
+  handleApplyItemToPokemon,
   dispatchBattle,
 }: GameModalsProps) => {
   const store = useGameStore();
@@ -108,11 +110,14 @@ export const GameModals = ({
 
       {/* Team Menu */}
       <AnimatePresence>
-        {(phase.type === 'TEAM' || battlePhase?.type === 'BATTLE_TEAM' || battlePhase?.type === 'FORCED_SWITCH') && (
+        {(phase.type === 'TEAM' || battlePhase?.type === 'BATTLE_TEAM' || battlePhase?.type === 'FORCED_SWITCH' || phase.type === 'ITEM_TEAM_SELECT' || battlePhase?.type === 'BATTLE_ITEM_TEAM_SELECT') && (
           <TeamMenuUI
             team={playerTeam}
             forcedSwitch={battlePhase?.type === 'FORCED_SWITCH'}
+            mode={(phase.type === 'ITEM_TEAM_SELECT' || battlePhase?.type === 'BATTLE_ITEM_TEAM_SELECT') ? 'use_item' : 'swap'}
+            selectedItemId={phase.type === 'ITEM_TEAM_SELECT' ? phase.itemId : (battlePhase?.type === 'BATTLE_ITEM_TEAM_SELECT' ? battlePhase.itemId : undefined)}
             onClose={() => store.setPhase(battlePhase ? battle(B_CHOOSING) : EXPLORING)}
+            onUseItem={handleApplyItemToPokemon}
             onSwap={(index) => {
               if (battlePhase) {
                 dispatchBattle({ type: 'SWITCH', index });

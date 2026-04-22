@@ -29,30 +29,15 @@ const EMPTY_MAPS: Record<MapID, { tiles: Tile[][] }> = {
   PLAYERS_HOUSE_2F: { tiles: makeGrid() },
   RIVALS_HOUSE: { tiles: makeGrid() },
   OAKS_LAB: { tiles: makeGrid() },
-  ROUTE_1: { tiles: makeGrid() },
-  VIRIDIAN_CITY: { tiles: makeGrid() },
   POKECENTER: { tiles: makeGrid() },
   POKEMART: { tiles: makeGrid() },
-  VIRIDIAN_FOREST: { tiles: makeGrid() },
-  PEWTER_CITY: { tiles: makeGrid() },
   PEWTER_GYM: { tiles: makeGrid() },
-  ROUTE_3: { tiles: makeGrid() },
   MT_MOON: { tiles: makeGrid() },
   MT_MOON_B1F: { tiles: makeGrid() },
   MT_MOON_B2F: { tiles: makeGrid() },
-  ROUTE_2: { tiles: makeGrid() },
-  ROUTE_4: { tiles: makeGrid() },
-  CERULEAN_CITY: { tiles: makeGrid() },
   CERULEAN_GYM: { tiles: makeGrid() },
-  ROUTE_5: { tiles: makeGrid() },
-  ROUTE_6: { tiles: makeGrid() },
-  SAFFRON_CITY: { tiles: makeGrid() },
-  VERMILION_CITY: { tiles: makeGrid() },
   VERMILION_GYM: { tiles: makeGrid() },
-  ROUTE_9: { tiles: makeGrid() },
-  ROUTE_10: { tiles: makeGrid() },
   ROCK_TUNNEL_1F: { tiles: makeGrid() },
-  LAVENDER_TOWN: { tiles: makeGrid() },
   POKEMON_TOWER_1F: { tiles: makeGrid() },
 };
 
@@ -79,7 +64,7 @@ function makeItem(overrides: Partial<Entity> = {}): Entity {
   };
 }
 
-const ALL_MAP_IDS = ['KANTO_OVERWORLD','PLAYERS_HOUSE_1F','PLAYERS_HOUSE_2F','RIVALS_HOUSE','OAKS_LAB','ROUTE_1','VIRIDIAN_CITY','POKECENTER','POKEMART','VIRIDIAN_FOREST','PEWTER_CITY','PEWTER_GYM','ROUTE_3','MT_MOON','MT_MOON_B1F','MT_MOON_B2F','ROUTE_2','ROUTE_4','CERULEAN_CITY','CERULEAN_GYM','ROUTE_5','ROUTE_6','SAFFRON_CITY','VERMILION_CITY','VERMILION_GYM','ROUTE_9','ROUTE_10','ROCK_TUNNEL_1F','LAVENDER_TOWN','POKEMON_TOWER_1F'];
+const ALL_MAP_IDS = ['KANTO_OVERWORLD','PLAYERS_HOUSE_1F','PLAYERS_HOUSE_2F','RIVALS_HOUSE','OAKS_LAB','POKECENTER','POKEMART','PEWTER_GYM','MT_MOON','MT_MOON_B1F','MT_MOON_B2F','CERULEAN_GYM','VERMILION_GYM','ROCK_TUNNEL_1F','POKEMON_TOWER_1F'];
 
 const EMPTY_NPCS: Record<MapID, NPC[]> = Object.fromEntries(
   ALL_MAP_IDS.map(k => [k, []])

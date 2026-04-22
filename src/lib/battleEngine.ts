@@ -18,6 +18,7 @@ import {
   getTypeEffectiveness,
 } from './damage';
 import { EVOLUTIONS, expForLevel, baseExpFor } from '../constants';
+import { applyItemToPokemon } from './itemUtils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -54,6 +55,7 @@ export type BattleSubPhase =
   | 'EVOLVING'
   | 'BATTLE_INVENTORY'
   | 'BATTLE_TEAM'
+  | 'BATTLE_ITEM_TEAM_SELECT'
   | 'TRAINER_NEXT_POKEMON';
 
 export interface BattleState {
@@ -80,10 +82,11 @@ export interface BattleState {
 
 export type BattleAction =
   | { type: 'ATTACK'; move: Move }
-  | { type: 'USE_ITEM'; itemId: string }
+  | { type: 'USE_ITEM'; itemId: string; targetIndex: number }
   | { type: 'SWITCH'; index: number }
   | { type: 'FLEE' }
   | { type: 'CATCH' }
+  | { type: 'CHEAT_KO' }
   /** Advance the state machine past an intermediate phase (replaces setTimeout callbacks) */
   | { type: 'TICK' };
 
@@ -406,6 +409,80 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       return { state: s, effects };
     }
 
+    // ── CHEAT_KO ────────────────────────────────────────────────────────────
+    case 'CHEAT_KO': {
+      if (s.phase !== 'CHOOSING') return { state, effects };
+      
+      const playerPkmn = s.playerTeam[0];
+      const damage = s.enemyPokemon.hp;
+      const attackLog = `¡${playerPkmn.name} usó ATAQUE FULMINANTE! (Cheat) Causó ${damage} de daño.`;
+
+      effects.push({ type: 'enemy_anim', payload: 'hit' });
+      effects.push({ type: 'screen_flash' });
+      effects.push({ type: 'battle_shake' });
+      effects.push(log(attackLog, playerPkmn.name));
+
+      s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: 0 }, log: attackLog };
+
+      // Enemy fainted logic (duplicated from ATTACK)
+      const trainerMult = s.isTrainerBattle ? 1.5 : 1;
+      const baseExp = s.enemyPokemon.baseExp ?? baseExpFor(s.enemyPokemon.id);
+      const livingParticipants = s.participantUids
+        .filter(uid => s.playerTeam.some(p => p.uid === uid && p.hp > 0))
+        .length;
+      const denom = Math.max(1, livingParticipants);
+      const expGain = Math.max(1, Math.floor((trainerMult * baseExp * s.enemyPokemon.level) / (7 * denom)));
+      const { pkmn: leveledPkmn, didLevelUp, learnedMove, willEvolve, evolvedPkmn } = computeExpAndLevelUp(playerPkmn, expGain);
+
+      const faintLog = `¡${s.enemyPokemon.name} se debilitó!`;
+      effects.push(log(faintLog));
+      effects.push({ type: 'enemy_anim', payload: 'faint' });
+      effects.push({ type: 'sound', payload: 'FAINT' });
+
+      const expLog = `¡${playerPkmn.name} ganó ${expGain} puntos de EXP!`;
+      effects.push(log(expLog));
+
+      const updatedTeamWithExp = [...s.playerTeam];
+      updatedTeamWithExp[0] = leveledPkmn;
+
+      s = { ...s, playerTeam: updatedTeamWithExp, log: expLog, phase: 'ENEMY_FAINTED' };
+
+      if (didLevelUp) {
+        const lvlLog = `¡${leveledPkmn.name} subió al nivel ${leveledPkmn.level}!`;
+        effects.push(log(lvlLog));
+        s = { ...s, log: lvlLog, phase: 'LEVEL_UP' };
+
+        if (learnedMove) {
+          effects.push(log(`¡${leveledPkmn.name} aprendió ${learnedMove.name}!`));
+        }
+
+        if (willEvolve && evolvedPkmn) {
+          const evoLog = `¡¿Qué?! ¡${leveledPkmn.name} está evolucionando!`;
+          effects.push(log(evoLog));
+          const evoTeam = [...updatedTeamWithExp];
+          evoTeam[0] = evolvedPkmn;
+          s = { ...s, playerTeam: evoTeam, log: `¡Felicidades! ¡${evolvedPkmn.name} ha evolucionado!`, phase: 'EVOLVING' };
+        }
+      }
+
+      // Check if trainer has more pokemon
+      const nextEnemyIdx = s.currentEnemyIndex + 1;
+      if (s.isTrainerBattle && nextEnemyIdx < s.enemyTeam.length) {
+        const nextEnemy = s.enemyTeam[nextEnemyIdx];
+        const trainerLabel = s.trainerName || 'El entrenador';
+        const nextLog = `¡${trainerLabel} saca a ${nextEnemy.name}!`;
+        effects.push(log(nextLog));
+        const cleared = clearBoosts(s.playerTeam, s.enemyPokemon);
+        const freshParticipants = cleared.playerTeam[0].hp > 0 ? [cleared.playerTeam[0].uid!] : [];
+        s = { ...s, playerTeam: cleared.playerTeam, currentEnemyIndex: nextEnemyIdx, badgeBoostGlitchStacks: 0, log: nextLog, phase: 'TRAINER_NEXT_POKEMON', participantUids: freshParticipants };
+      } else {
+        const cleared = clearBoosts(s.playerTeam, s.enemyPokemon);
+        s = { ...s, playerTeam: cleared.playerTeam, enemyPokemon: cleared.enemyPokemon, badgeBoostGlitchStacks: 0, outcome: 'player_win' };
+      }
+
+      return { state: s, effects };
+    }
+
     // ── ENEMY TURN (via TICK from ENEMY_ATTACK phase) ───────────────────────
     case 'TICK': {
       if (s.phase === 'ENEMY_ATTACK') {
@@ -567,27 +644,30 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
     // ── USE_ITEM ─────────────────────────────────────────────────────────────
     case 'USE_ITEM': {
       const itemId = action.itemId;
+      const targetIndex = action.targetIndex;
       const qty = s.inventory[itemId] ?? 0;
       if (qty <= 0) return { state, effects };
+
+      const playerPkmn = s.playerTeam[targetIndex];
+      const result = applyItemToPokemon(playerPkmn, itemId);
+      
+      if (!result.success) {
+        effects.push(log(result.message));
+        s = { ...s, log: result.message, phase: 'CHOOSING' };
+        return { state: s, effects };
+      }
 
       const newQty = qty - 1;
       const newInventory = newQty > 0
         ? { ...s.inventory, [itemId]: newQty }
         : (() => { const { [itemId]: _, ...rest } = s.inventory; return rest; })();
 
-      if (itemId === 'POTION') {
-        const playerPkmn = s.playerTeam[0];
-        const healed = Math.min(20, playerPkmn.maxHp - playerPkmn.hp);
-        const newHP = playerPkmn.hp + healed;
-        const healedTeam = [...s.playerTeam];
-        healedTeam[0] = { ...playerPkmn, hp: newHP };
-        const healLog = `¡Usaste una POCIÓN en ${playerPkmn.name}! Recuperó ${healed} PS.`;
-        effects.push(log(healLog));
-        s = { ...s, playerTeam: healedTeam, inventory: newInventory, log: healLog, phase: 'ENEMY_ATTACK' };
-        return { state: s, effects }; // useBattleEngine will dispatch TICK
-      }
-
-      return { state, effects };
+      const updatedTeam = [...s.playerTeam];
+      updatedTeam[targetIndex] = result.pokemon;
+      
+      effects.push(log(result.message));
+      s = { ...s, playerTeam: updatedTeam, inventory: newInventory, log: result.message, phase: 'ENEMY_ATTACK' };
+      return { state: s, effects }; // useBattleEngine will dispatch TICK
     }
 
     // ── CATCH ────────────────────────────────────────────────────────────────

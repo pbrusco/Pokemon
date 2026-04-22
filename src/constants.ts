@@ -518,9 +518,27 @@ export const STARTERS: Pokemon[] = [
 
 export const ITEMS_DATABASE: Record<string, InventoryItem> = {
   OAK_PARCEL: { id: 'OAK_PARCEL', name: 'PAQUETE OAK', description: 'Un paquete para el Prof. Oak.', icon: '📦', type: 'key_item' },
-  POTION: { id: 'POTION', name: 'POCIÓN', description: 'Restaura 20 PS de un Pokémon.', icon: '🧪', type: 'potion' },
-  POKEBALL: { id: 'POKEBALL', name: 'POKÉ BALL', description: 'Sirve para atrapar Pokémon salvajes.', icon: '🔴', type: 'pokeball' },
   TOWN_MAP: { id: 'TOWN_MAP', name: 'MAPA CIUDAD', description: 'Mapa de la región Kanto.', icon: '🗺️', type: 'key_item' },
+  POKEBALL: { id: 'POKEBALL', name: 'POKÉ BALL', description: 'Sirve para atrapar Pokémon salvajes.', icon: '🔴', type: 'pokeball' },
+  
+  // Healing Items
+  POTION: { id: 'POTION', name: 'POCIÓN', description: 'Restaura 20 PS.', icon: '🧪', type: 'potion', effect: { healHp: 20 } },
+  SUPER_POTION: { id: 'SUPER_POTION', name: 'SÚPER POCIÓN', description: 'Restaura 50 PS.', icon: '🧪', type: 'potion', effect: { healHp: 50 } },
+  HYPER_POTION: { id: 'HYPER_POTION', name: 'HIPER POCIÓN', description: 'Restaura 200 PS.', icon: '🧪', type: 'potion', effect: { healHp: 200 } },
+  MAX_POTION: { id: 'MAX_POTION', name: 'POCIÓN MÁXIMA', description: 'Restaura todos los PS.', icon: '🧪', type: 'potion', effect: { healHp: 9999 } },
+  FULL_RESTORE: { id: 'FULL_RESTORE', name: 'RESTAURAR TODO', description: 'Restaura todos los PS y cura estados.', icon: '✨', type: 'potion', effect: { healHp: 9999, cureStatus: 'all' } },
+  
+  // Status Healing Items
+  ANTIDOTE: { id: 'ANTIDOTE', name: 'ANTÍDOTO', description: 'Cura el envenenamiento.', icon: '💊', type: 'status_heal', effect: { cureStatus: 'poison' } },
+  AWAKENING: { id: 'AWAKENING', name: 'DESPERTAR', description: 'Despierta a un Pokémon dormido.', icon: '☕', type: 'status_heal', effect: { cureStatus: 'sleep' } },
+  BURN_HEAL: { id: 'BURN_HEAL', name: 'ANTIQUEMAR', description: 'Cura las quemaduras.', icon: '🩹', type: 'status_heal', effect: { cureStatus: 'burn' } },
+  ICE_HEAL: { id: 'ICE_HEAL', name: 'ANTIHIELO', description: 'Descongela a un Pokémon.', icon: '🔥', type: 'status_heal', effect: { cureStatus: 'frozen' } },
+  PARALYZE_HEAL: { id: 'PARALYZE_HEAL', name: 'ANTIPARALIZADOR', description: 'Cura la parálisis.', icon: '⚡', type: 'status_heal', effect: { cureStatus: 'paralyzed' } },
+  FULL_HEAL: { id: 'FULL_HEAL', name: 'CURA TOTAL', description: 'Cura cualquier problema de estado.', icon: '🌟', type: 'status_heal', effect: { cureStatus: 'all' } },
+  
+  // Revives
+  REVIVE: { id: 'REVIVE', name: 'REVIVIR', description: 'Revive a un Pokémon con la mitad de PS.', icon: '💎', type: 'revive', effect: { revive: true, reviveHpPercent: 50 } },
+  MAX_REVIVE: { id: 'MAX_REVIVE', name: 'MAX REVIVIR', description: 'Revive a un Pokémon con todos sus PS.', icon: '💎', type: 'revive', effect: { revive: true, reviveHpPercent: 100 } },
 };
 
 export const POKEMON_LIST: PokemonSummary[] = [

@@ -21,6 +21,7 @@ import { SideMenu } from './components/SideMenu';
 import { MenuButton } from './components/MenuButton';
 import { GameModals } from './components/GameModals';
 import { ScreenEffects } from './components/ScreenEffects';
+import { applyItemToPokemon } from './lib/itemUtils';
 
 export default function App() {
   const store = useGameStore();
@@ -110,19 +111,52 @@ export default function App() {
       const hasItem = (store.inventory[itemId] ?? 0) > 0;
       if (!hasItem) return;
       if (!inBattle) {
-        if (itemId === 'POTION') {
-          const healedTeam = store.playerTeam.map(applyPotion);
-          store.updateTeam(healedTeam);
-          store.removeInventoryItem('POTION');
-          store.setDialogue('¡Usaste una POCIÓN! Tus POKÉMON recuperaron salud.');
+        // If it's a Pokeball, we can't use it in overworld anyway
+        if (itemId === 'POKEBALL') {
+          store.setDialogue('¡No es el momento de usar eso!');
+          store.setPhase(EXPLORING);
+          return;
         }
-        store.setPhase(EXPLORING);
+        store.setPhase({ type: 'ITEM_TEAM_SELECT', itemId });
         return;
       }
       if (itemId === 'POKEBALL') {
         dispatchBattle({ type: 'CATCH' });
       } else {
-        dispatchBattle({ type: 'USE_ITEM', itemId });
+        store.setPhase(battle({ type: 'BATTLE_ITEM_TEAM_SELECT', itemId }));
+      }
+    });
+  };
+
+  const handleApplyItemToPokemon = (index: number) => {
+    withoutLogging(() => {
+      let itemId: string | undefined;
+      if (phase.type === 'ITEM_TEAM_SELECT') {
+        itemId = phase.itemId;
+      } else if (battlePhase?.type === 'BATTLE_ITEM_TEAM_SELECT') {
+        itemId = battlePhase.itemId;
+      }
+
+      if (!itemId) return;
+
+      if (!inBattle) {
+        const pkmn = store.playerTeam[index];
+        const result = applyItemToPokemon(pkmn, itemId);
+        if (result.success) {
+          const newTeam = [...store.playerTeam];
+          newTeam[index] = result.pokemon;
+          store.updateTeam(newTeam);
+          store.removeInventoryItem(itemId);
+          store.setDialogue(result.message);
+        } else {
+          // It shouldn't get here because TeamMenuUI prevents selecting if it fails, but just in case
+          store.setDialogue(result.message);
+        }
+        store.setPhase(EXPLORING);
+      } else {
+        // In-battle handling (will be handled by battle engine via action)
+        dispatchBattle({ type: 'USE_ITEM', itemId, targetIndex: index });
+        // Phase is reset by battle engine
       }
     });
   };
@@ -200,6 +234,7 @@ export default function App() {
         playerAnim={playerAnim}
         handlePCSwap={handlePCSwap}
         handleUseItem={handleUseItem}
+        handleApplyItemToPokemon={handleApplyItemToPokemon}
         dispatchBattle={dispatchBattle}
       />
 

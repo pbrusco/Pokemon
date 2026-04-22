@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Pokemon } from '../types';
+import { ITEMS_DATABASE } from '../constants';
+import { applyItemToPokemon } from '../lib/itemUtils';
 
 interface TeamMenuUIProps {
   team: Pokemon[];
   onClose: () => void;
-  onSwap: (index: number) => void;
+  onSwap?: (index: number) => void;
+  onUseItem?: (index: number) => void;
   forcedSwitch?: boolean;
+  mode?: 'swap' | 'use_item';
+  selectedItemId?: string;
 }
 
 const getHpColor = (hp: number, max: number) => {
@@ -16,16 +21,27 @@ const getHpColor = (hp: number, max: number) => {
   return 'bg-red-500';
 };
 
-export const TeamMenuUI = ({ team, onClose, onSwap, forcedSwitch = false }: TeamMenuUIProps) => {
+export const TeamMenuUI = ({ team, onClose, onSwap, onUseItem, forcedSwitch = false, mode = 'swap', selectedItemId }: TeamMenuUIProps) => {
   const [cursor, setCursor] = useState(0);
+  const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
   const canSelect = (pkmn: Pokemon, i: number) => {
+    if (mode === 'use_item' && selectedItemId) {
+      const result = applyItemToPokemon(pkmn, selectedItemId);
+      if (!result.success) {
+        setFeedbackMsg(result.message);
+        return false;
+      }
+      return true;
+    }
+    // swap mode
     if (i === 0) return false;
     if (pkmn.hp <= 0) return false;
     return true;
   };
 
   const handleSelect = (index: number) => {
+    setFeedbackMsg(null);
     if (index >= team.length) {
       if (!forcedSwitch) {
         onClose();
@@ -33,7 +49,11 @@ export const TeamMenuUI = ({ team, onClose, onSwap, forcedSwitch = false }: Team
       return;
     }
     if (canSelect(team[index], index)) {
-      onSwap(index);
+      if (mode === 'use_item' && onUseItem) {
+        onUseItem(index);
+      } else if (onSwap) {
+        onSwap(index);
+      }
     }
   };
 
@@ -50,7 +70,9 @@ export const TeamMenuUI = ({ team, onClose, onSwap, forcedSwitch = false }: Team
         {/* Header */}
         <div className="border-b-2 border-slate-300 px-4 py-2 bg-slate-50 rounded-t flex justify-between items-center">
           <span className="font-mono font-bold text-slate-800 text-sm tracking-wide uppercase">
-            {forcedSwitch ? '¡Elige un Pokémon!' : 'Equipo Pokémon'}
+            {mode === 'use_item' && selectedItemId
+              ? `Usar ${ITEMS_DATABASE[selectedItemId]?.name || 'Objeto'} en quién?`
+              : forcedSwitch ? '¡Elige un Pokémon!' : 'Equipo Pokémon'}
           </span>
           <span className="font-mono text-[10px] text-slate-400 uppercase">{team.length}/6</span>
         </div>
@@ -131,9 +153,13 @@ export const TeamMenuUI = ({ team, onClose, onSwap, forcedSwitch = false }: Team
         {/* Footer description */}
         <div className="border-t-2 border-slate-300 px-4 py-2 bg-slate-50 rounded-b">
           <p className="font-mono text-[10px] text-slate-500">
-            {forcedSwitch
-              ? 'Debes elegir un Pokémon con PS.'
-              : 'Elige un Pokémon para ponerlo al frente.'}
+            {feedbackMsg 
+              ? <span className="text-red-500 font-bold">{feedbackMsg}</span>
+              : mode === 'use_item' 
+                ? 'Elige un Pokémon para usar el objeto.'
+                : forcedSwitch
+                  ? 'Debes elegir un Pokémon con PS.'
+                  : 'Elige un Pokémon para ponerlo al frente.'}
           </p>
         </div>
       </div>

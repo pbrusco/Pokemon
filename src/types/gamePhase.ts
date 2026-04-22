@@ -16,6 +16,7 @@ export type BattlePhase =
   | { type: 'EVOLVING' }
   | { type: 'BATTLE_INVENTORY' }
   | { type: 'BATTLE_TEAM' }
+  | { type: 'BATTLE_ITEM_TEAM_SELECT'; itemId: string }
   | { type: 'TRAINER_NEXT_POKEMON' }
 
 /** Top-level game phase */
@@ -23,6 +24,7 @@ export type GamePhase =
   | { type: 'EXPLORING' }
   | { type: 'MENU'; returnTo?: GamePhase }
   | { type: 'INVENTORY'; returnTo?: GamePhase }
+  | { type: 'ITEM_TEAM_SELECT'; itemId: string; returnTo?: GamePhase }
   | { type: 'TEAM'; returnTo?: GamePhase }
   | { type: 'SHOP' }
   | { type: 'POKEDEX'; returnTo?: GamePhase }
@@ -61,3 +63,4 @@ export const B_EVOLVING      = { type: 'EVOLVING' } as const;
 export const B_BATTLE_INVENTORY = { type: 'BATTLE_INVENTORY' } as const;
 export const B_BATTLE_TEAM   = { type: 'BATTLE_TEAM' } as const;
 export const B_TRAINER_NEXT_POKEMON = { type: 'TRAINER_NEXT_POKEMON' } as const;
+

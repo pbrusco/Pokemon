@@ -1,71 +1,31 @@
 # TODO
 
-1. ~~Battle initiation duplicated in 3 places~~
-Fixed: unified into `src/lib/launchBattle.ts`. All three sites (initBattle, wild encounter, processBattle) now call `launchBattle()`.
-
-2. ~~handleMove is a 150-line god function~~
-Fixed: extracted `checkTrainerVision()`, `tryWildEncounter()`, and `applyOverworldPoison()` from handleMove. Core function is now ~50 lines.
-
-3. ~~resolveBattleOutcome trainer lookup is fragile~~
-Fixed: now uses `newState.trainerName` (the trainer ID) for direct lookup instead of matching by Pokémon species.
-
-4. ~~Nested setTimeout chains in useBattleEngine~~
-Fixed: flattened nested timeouts in `resolveBattleOutcome` (blackout flow uses absolute offsets instead of nesting). Extracted catch flow into `handleCatchAction` helper. All setTimeout callbacks use fresh `useGameStore.getState()`.
-
-5. ~~GameModals receives ~25 props~~
-Fixed: GameModals now reads store directly via `useGameStore()`. Interface reduced from 28 props to 6 (only local React state + non-store callbacks remain as props).
-
-## Faithful map migration (in progress)
-- [x] Stage 1 — Pallet Town + interiors (Oak's Lab, Red's 1F/2F, Rival's House)
-- [x] Stage 2 — Small interiors (Pokécenter 14×8, Pokémart 10×8, Pewter Gym 10×14)
-- [x] Stage 3 — Routes: Route 1 (10×36), Route 2 (10×40), Route 3 (40×18); warps coordinated with adjacent cities
-- [x] Stage 4 — Cities & dungeons: Viridian City (30×27), Pewter City (30×27), Viridian Forest (24×36), Mt. Moon (warps updated)
-- [x] Stage 5 — Expand existing maps to full pret dimensions
-  - [x] 5a. Viridian City → 40×36
-  - [x] 5b. Pewter City → 40×36
-  - [x] 5c. Viridian Forest → 34×48
-  - [x] 5d. Mt. Moon → split into 1F / B1F / B2F
-  - [x] 5e. Kanto Integration → Sew all disjoint outdoor towns and routes into a single massive KANTO_OVERWORLD mesh map with updated collision geometries and global encounter tables.
+## Ongoing Map Migration & Expansion
 - [ ] Stage 6 — Grab all missing Kanto locations:
-  - [x] 6a. Route 4 + Cerulean City (40×36) + Cerulean Gym (Misty)
-  - [x] 6b. Route 5 + Saffron City (stub) + Route 6 + Vermilion City (40×36) + Vermilion Gym (Surge). SS Anne deferred.
-  - [x] 6c. Route 9 (20×10) + Route 10 (10×24) + Rock Tunnel 1F (20×18) + Lavender Town (20×18) + Pokémon Tower 1F (20×18 stub). Rock Tunnel B1F, Tower 2-7F deferred.
-- [ ] Stage 7 — Faithfulness pass on existing maps (ledges, barriers, items, signs)
-  - [x] 7-infra. Ledge tile (L, <, >), movement-engine jump, tileset sprites
-  - [x] 7a. Pallet Town — fix Oak's Lab roof bug, add fences, realign signs
-  - [x] 7b. Route 1 — add south-facing ledges
-  - [x] 7c. Viridian City — add Gym stub, pond, south ledge, signs
-  - [x] 7d. Route 2 — add south-facing ledges
-  - [x] 7e. Route 3 — add south-facing ledges
-  - [x] 7f. Route 4 — add south-facing ledges
-  - [x] 7g. Viridian Forest — maze layout with trees (faithfulness)
-  - [x] 7h. Pewter City — museum stub, signs
-  - [x] 7i. Mt Moon — extra boulders 1F/B1F/B2F
-  - [x] 7j. Cerulean City — Bike Shop, Bill's route sign, Saffron gate (Route 5) guard
-  - Dungeons/multi-floor: Rock Tunnel (1F, B1F), Pokémon Tower (7F), Seafoam Islands (4F), Victory Road (3F), Cerulean Cave (3F), Silph Co. (11F), Power Plant, Pokémon Mansion (4F), Safari Zone (4 areas + warden), Indigo Plateau lobby + 5 Elite Four rooms
-  - Routes: 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 (+ gates: Saffron 5/6/7/8, Route 2 gate, 11/12/15/16 gates)
-  - Cities/towns: Cerulean, Vermilion, Lavender, Celadon, Fuchsia, Saffron, Cinnabar Island, Indigo Plateau
-  - Gyms: Cerulean, Vermilion, Celadon, Fuchsia, Saffron, Cinnabar, Viridian
-  - Interiors: Bill's House, Daycare, SS Anne (multi-floor), Celadon Dept Store (6F), Game Corner, Rocket Hideout (4F), Copycat's House, Pokémon Fan Club, Dojo, Cinnabar Lab, Safari Warden
+  - [ ] Dungeons/multi-floor: Rock Tunnel (B1F), Pokémon Tower (2-7F), Seafoam Islands (4F), Victory Road (3F), Cerulean Cave (3F), Silph Co. (11F), Power Plant, Pokémon Mansion (4F), Safari Zone (4 areas + warden), Indigo Plateau lobby + 5 Elite Four rooms
+  - [ ] Routes: 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 (+ gates: Saffron 5/6/7/8, Route 2 gate, 11/12/15/16 gates)
+  - [ ] Cities/towns: Cerulean, Vermilion, Lavender, Celadon, Fuchsia, Saffron, Cinnabar Island, Indigo Plateau
+  - [ ] Gyms: Cerulean, Vermilion, Celadon, Fuchsia, Saffron, Cinnabar, Viridian
+  - [ ] Interiors: Bill's House, Daycare, SS Anne (multi-floor), Celadon Dept Store (6F), Game Corner, Rocket Hideout (4F), Copycat's House, Pokémon Fan Club, Dojo, Cinnabar Lab, Safari Warden
+- [ ] Stage 7 — Faithfulness pass on existing maps
+  - [ ] Add missing overworld items (Pokéballs, Potions, etc.) as interactables on the map
+  - [ ] Adjust trainer level curves so trainers on a route stay within ±1 level, and Gym Leaders cap at +2
+
+## Inventory & Items
+- [ ] Update item usage UI to target specific Pokémon in the party (currently heals all)
+- [ ] Implement new items and their effects in battle and overworld (Antidote, Revive, etc.)
+
+## Battle Mechanics & Move Variety
+- [ ] Implement unreachable status effects: Freeze status
+- [ ] Implement missing status effect mechanics: Paralysis speed reduction
+- [ ] Expand move pool (~20 currently): Add key status/tactical moves like Thunder Wave, Confuse Ray, Leech Seed, Toxic
+- [ ] Add battle text feedback for invisible states: E.g. when stat boosts hit their maximum/minimum limits (±6 stages)
+
+## Story Events & Progression Items
+- [ ] Implement Rival encounters beyond the early game
+- [ ] Implement Team Rocket events (Mt. Moon, Game Corner, Silph Co.)
+- [ ] Implement Key Items and HM gates (e.g., CUT for gyms, Poké Flute for Snorlax, Silph Scope)
+
+## Playtesting
 - [ ] Manual browser playtest of pilot + Stage 2 interiors
 
-## PP tracking in battle
-- [x] Decrement PP when a move is used in `battleEngine.ts`
-- [x] Prevent selecting moves with 0 PP
-- [x] Implement Struggle (used when all moves have 0 PP): typeless, 50 power, 1/4 recoil damage
-- [x] Restore PP on heal at Pokécenter
-- [x] Display current/max PP in the battle move selection UI
-
-## More map content
-
-## Overworld poison damage
-- [x] Tick 1 HP every 4 steps for poisoned Pokémon while walking
-- [x] Faint poisoned Pokémon at 0 HP (Gen I: poison can kill outside battle)
-- [x] Show poison damage visual/text feedback on the overworld
-- [x] Clear poison on heal at Pokécenter
-
-## Battle fixes
-- [x] Team order preserved after blackout — `useBattleEngine.ts` now heals `store.playerTeam` (original order) instead of `newState.playerTeam` (battle order)
-- [x] Fainted lead Pokémon can no longer start a battle — `createBattleState` enters `FORCED_SWITCH` phase when `playerTeam[0].hp === 0`
-- [x] Key-repeat no longer auto-dismisses dialogues — `useInputHandler.ts` ignores `e.repeat` events for dialogue dismissal
-- [x] Oak greeting dialogue added before the escort walk
