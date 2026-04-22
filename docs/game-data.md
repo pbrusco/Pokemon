@@ -158,7 +158,7 @@ Other maps (Pallet Town, Viridian City, etc.) have no wild encounters.
 
 ## Maps
 
-All maps are 20×20 tile grids stored as `Tile[][]` JSON files in `src/data/maps/`.
+The overworld is structurally defined by a single connected outdoor map (`KANTO_OVERWORLD`) alongside localized interior maps (e.g., `OAKS_LAB`, `POKECENTER`). They are stored as `Tile[][]` grids in JSON format in `src/data/maps/`.
 
 ```typescript
 interface Tile {
@@ -176,16 +176,13 @@ type TileType =
 
 | ID | File | Description |
 |----|------|-------------|
-| `PALLET_TOWN` | `pallet_town.json` | Starting town |
+| `KANTO_OVERWORLD` | `kanto_overworld.json` | The single unified master grid encompassing all outdoor towns, routes, and paths (176×216 tiles) |
+| `PLAYERS_HOUSE_1F` | `players_house_1f.json` | Player's home interior |
 | `OAKS_LAB` | `oaks_lab.json` | Starter selection |
-| `ROUTE_1` | `route_1.json` | First route |
-| `VIRIDIAN_CITY` | `viridian_city.json` | Hub town |
-| `POKECENTER` | `pokecenter.json` | Healing center |
-| `POKEMART` | `pokemart.json` | Item shop |
-| `VIRIDIAN_FOREST` | `viridian_forest.json` | Forest dungeon |
-| `PEWTER_CITY` | `pewter_city.json` | First city with gym |
+| `POKECENTER` | `pokecenter.json` | Standard healing center |
+| `POKEMART` | `pokemart.json` | Standard item shop |
 | `PEWTER_GYM` | `pewter_gym.json` | Brock's gym |
-| `ROUTE_3` | `route_3.json` | Route to Mt. Moon |
+| `MT_MOON` | `mt_moon.json` | Multi-floor dungeon map |
 
 ---
 

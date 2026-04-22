@@ -25,6 +25,7 @@ Fixed: GameModals now reads store directly via `useGameStore()`. Interface reduc
   - [x] 5b. Pewter City → 40×36
   - [x] 5c. Viridian Forest → 34×48
   - [x] 5d. Mt. Moon → split into 1F / B1F / B2F
+  - [x] 5e. Kanto Integration → Sew all disjoint outdoor towns and routes into a single massive KANTO_OVERWORLD mesh map with updated collision geometries and global encounter tables.
 - [ ] Stage 6 — Grab all missing Kanto locations:
   - [x] 6a. Route 4 + Cerulean City (40×36) + Cerulean Gym (Misty)
   - [x] 6b. Route 5 + Saffron City (stub) + Route 6 + Vermilion City (40×36) + Vermilion Gym (Surge). SS Anne deferred.

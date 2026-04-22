@@ -68,7 +68,7 @@ src/
     ├── worldConfig.ts          # INITIAL_MAPS, teleports, static world config
     └── maps/
         ├── index.ts            # Barrel export of all map JSON files
-        └── *.json              # 20×20 tile grids (one file per map)
+        └── *.json              # Tile grids of varying sizes (Kanto master grid + interiors)
 ```
 
 ---
