@@ -1,0 +1,44 @@
+{
+  "rows": [
+    "WWWWWWWWWWWWWWWWWWWW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WWWWWWWWWWWWWWWWWWWW"
+  ],
+  "warps": [
+    {
+      "x": 1,
+      "y": 1,
+      "targetMap": "POKEMON_TOWER_1F",
+      "targetPos": {
+        "x": 1,
+        "y": 1
+      },
+      "targetDir": "up"
+    },
+    {
+      "x": 18,
+      "y": 1,
+      "targetMap": "POKEMON_TOWER_3F",
+      "targetPos": {
+        "x": 18,
+        "y": 1
+      },
+      "targetDir": "down"
+    }
+  ]
+}
