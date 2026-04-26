@@ -105,6 +105,9 @@ interface GameState extends GameSaveState {
   catchResult: boolean | null;
   ghostMode: boolean;
   showMinimap: boolean;
+  zoomLevel: number;
+  cameraOffset: Position;
+  isCameraLocked: boolean;
   
   worldMaps: typeof worldConfig.maps;
 
@@ -148,6 +151,10 @@ interface GameState extends GameSaveState {
   reorderTeam: (startIndex: number, endIndex: number) => void;
   toggleGhostMode: () => void;
   toggleMinimap: () => void;
+  setZoomLevel: (zoom: SetStateAction<number>) => void;
+  setCameraOffset: (offset: SetStateAction<Position>) => void;
+  setIsCameraLocked: (locked: boolean) => void;
+  resetCamera: () => void;
 
   resetGame: () => void;
 }
@@ -166,6 +173,7 @@ export const useGameStore = create<GameState>()(
       showMoves: false,
       dialogue: null,
       dialogueCallback: null,
+      teleportError: null,
       oakCutscenePos: null,
       oakCutsceneDir: null,
       isLocked: false,
@@ -182,6 +190,9 @@ export const useGameStore = create<GameState>()(
       catchResult: null,
       ghostMode: false,
       showMinimap: false,
+      zoomLevel: 1.0,
+      cameraOffset: { x: 0, y: 0 },
+      isCameraLocked: true,
       
       worldMaps: worldConfig.maps,
 
@@ -277,6 +288,10 @@ export const useGameStore = create<GameState>()(
 
       toggleGhostMode: () => set((state) => ({ ghostMode: !state.ghostMode })),
       toggleMinimap: () => set((state) => ({ showMinimap: !state.showMinimap })),
+      setZoomLevel: (zoom) => set((state) => ({ zoomLevel: typeof zoom === 'function' ? zoom(state.zoomLevel) : zoom })),
+      setCameraOffset: (offset) => set((state) => ({ cameraOffset: typeof offset === 'function' ? offset(state.cameraOffset) : offset })),
+      setIsCameraLocked: (locked) => set({ isCameraLocked: locked }),
+      resetCamera: () => set({ zoomLevel: 1.0, cameraOffset: { x: 0, y: 0 }, isCameraLocked: true }),
 
       setGrassEffect: (pos) => set({ grassEffect: pos }),
       setSpottedTrainerId: (id) => set({ spottedTrainerId: id }),

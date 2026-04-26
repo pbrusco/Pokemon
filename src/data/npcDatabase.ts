@@ -151,8 +151,6 @@ export function buildNPCDatabase(
     MT_MOON: [
       { id: 'hiker_mtmoon', name: 'MONTAÑERO MARCOS', type: 'npc', position: { x: 6, y: 10 }, direction: 'down', trainerClass: 'hiker', dialogue: ["¡Las rocas son mis amigas!", "¡Te aplastaré!"], isTrainer: true, trainerTeam: [makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }), makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }), makePokemon('onix', 'ONIX', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 95, { types: ['rock', 'ground'] })] },
       { id: 'rocket_mtmoon', name: 'SOLDADO ROCKET', type: 'npc', position: { x: 12, y: 5 }, direction: 'left', trainerClass: 'rocket', dialogue: ["¡El TEAM ROCKET se hará con todos los fósiles de MT MOON!"], isTrainer: true, trainerTeam: [makePokemon('rattata', 'RATTATA', 11, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19), makePokemon('zubat', 'ZUBAT', 11, 'poison', [MOVES.TACKLE], 41, { types: ['poison', 'flying'] })] },
-      { id: 'item_full_heal_mtmoon', type: 'item', position: { x: 3, y: 3 }, direction: 'down', sprite: '🌟' },
-      { id: 'item_revive_mtmoon', type: 'item', position: { x: 17, y: 14 }, direction: 'down', sprite: '💎' }
     ],
     MT_MOON_B1F: [
       { id: 'supernerd_mtmoon', name: 'SABIONDO MIGUEL', type: 'npc', position: { x: 8, y: 15 }, direction: 'left', trainerClass: 'supernerd', dialogue: ["¡Yo domino los fósiles y la ciencia!", "¡Mis POKÉMON son experimentos!"], isTrainer: true, trainerTeam: [makePokemon('grimer', 'GRIMER', 11, 'poison', [MOVES.POUND, MOVES.POISON_POWDER], 88, { types: ['poison'] }), makePokemon('voltorb', 'VOLTORB', 11, 'electric', [MOVES.TACKLE, MOVES.THUNDERSHOCK], 100, { types: ['electric'] }), makePokemon('koffing', 'KOFFING', 11, 'poison', [MOVES.TACKLE, MOVES.POISON_POWDER], 109, { types: ['poison'] })] }
@@ -175,7 +173,10 @@ export function buildNPCDatabase(
       { id: 'surge', name: 'TTE. SURGE', type: 'npc', position: { x: 4, y: 2 }, direction: 'down', trainerClass: 'surge', dialogue: badges.includes('THUNDER') ? ["¡Tienes potencial, novato!", "¡Sigue entrenando con esa MEDALLA TRUENO!"] : ["¡EH! ¡Soy el TENIENTE SURGE!", "¡Mis POKÉMON eléctricos te van a electrocutar!", "¡Prepárate para el dolor!"], isTrainer: true, trainerTeam: [makePokemon('voltorb', 'VOLTORB', 21, 'electric', [MOVES.TACKLE, MOVES.THUNDERSHOCK], 100), makePokemon('pikachu', 'PIKACHU', 18, 'electric', [MOVES.THUNDERSHOCK, MOVES.GROWL], 25), makePokemon('raichu', 'RAICHU', 24, 'electric', [MOVES.THUNDERSHOCK, MOVES.GROWL], 26)] }
     ],
     ROCK_TUNNEL_1F: [],
+    ROCK_TUNNEL_B1F: [],
     POKEMON_TOWER_1F: [],
+    POKEMON_TOWER_2F: [],
+    POKEMON_TOWER_3F: [],
   };
 }
 
@@ -242,14 +243,21 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
     RIVALS_HOUSE: [],
     POKECENTER: [],
     POKEMART: [],
-    MT_MOON:     [{ id: 'item_potion_mtmoon',     type: 'item', position: { x: 14, y: 14 }, direction: 'down', sprite: '🧪' }],
+    MT_MOON:     [
+      { id: 'item_potion_mtmoon',     type: 'item', position: { x: 14, y: 14 }, direction: 'down', sprite: '🧪' },
+      { id: 'item_full_heal_mtmoon', type: 'item', position: { x: 3, y: 3 }, direction: 'down', sprite: '🌟' },
+      { id: 'item_revive_mtmoon', type: 'item', position: { x: 17, y: 14 }, direction: 'down', sprite: '💎' }
+    ],
     MT_MOON_B1F: [{ id: 'item_potion_mtmoon_b1f', type: 'item', position: { x: 14, y: 14 }, direction: 'down', sprite: '🧪' }],
     MT_MOON_B2F: [{ id: 'item_moonstone_mtmoon',  type: 'item', position: { x: 10, y: 10 }, direction: 'down', sprite: '🌙' }],
     PEWTER_GYM:     [],
     CERULEAN_GYM:   [],
     VERMILION_GYM:  [],
     ROCK_TUNNEL_1F: [],
+    ROCK_TUNNEL_B1F: [],
     POKEMON_TOWER_1F: [],
+    POKEMON_TOWER_2F: [],
+    POKEMON_TOWER_3F: [],
   };
 
   return Object.fromEntries(

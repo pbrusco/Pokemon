@@ -1,7 +1,7 @@
 import { Pokemon } from '../types';
 import { ITEMS_DATABASE } from '../constants';
 
-export interface ItemUseResult {
+interface ItemUseResult {
   success: boolean;
   pokemon: Pokemon;
   message: string;

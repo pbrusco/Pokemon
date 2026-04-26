@@ -13,7 +13,6 @@ import { useInputHandler } from './hooks/useInputHandler';
 import { useDebugAPI } from './hooks/useDebugAPI';
 import { useBattleEngine } from './hooks/useBattleEngine';
 import { useMovementEngine } from './hooks/useMovementEngine';
-import { sd } from './lib/gameSpeed';
 import { GameHeader } from './components/GameHeader';
 import { WorldView } from './components/WorldView';
 import { Minimap } from './components/Minimap';
@@ -196,9 +195,6 @@ export default function App() {
 
       <WorldView
         currentMap={store.currentMap}
-        playerPos={store.playerPos}
-        direction={store.direction}
-        isMoving={store.isMoving}
         maps={store.worldMaps}
         npcs={npcs}
         items={items}

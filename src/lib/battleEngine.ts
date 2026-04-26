@@ -22,14 +22,14 @@ import { applyItemToPokemon } from './itemUtils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export type BattleOutcome =
+type BattleOutcome =
   | 'ongoing'
   | 'player_win'
   | 'player_blackout'
   | 'fled'
   | 'caught';
 
-export type EffectType =
+type EffectType =
   | 'sound'
   | 'player_anim'
   | 'enemy_anim'
@@ -43,7 +43,7 @@ export interface BattleEffect {
   speaker?: string;
 }
 
-export type BattleSubPhase =
+type BattleSubPhase =
   | 'CHOOSING'
   | 'PLAYER_ATTACK'
   | 'ENEMY_ATTACK'

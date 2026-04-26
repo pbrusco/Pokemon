@@ -859,7 +859,7 @@ export const WILD_ENCOUNTER_RATES: Record<string, number> = {
  * These are used to map an absolute (x,y) back to the legacy zone name so that
  * per-zone encounter tables still work.
  */
-export const KANTO_ZONE_OFFSETS: Record<string, { x: number; y: number; w: number; h: number }> = {
+const KANTO_ZONE_OFFSETS: Record<string, { x: number; y: number; w: number; h: number }> = {
   // NOTE: exact values are filled in after running `node scripts/stitch-kanto.mjs`.
   // Until then, all encounters default to Route 1 table.
   PALLET_TOWN:     { x:  11, y: 198, w: 20, h: 18 },
@@ -873,6 +873,8 @@ export const KANTO_ZONE_OFFSETS: Record<string, { x: number; y: number; w: numbe
   CERULEAN_CITY:   { x: 108, y:   0, w: 40, h: 36 },
   ROUTE_5:         { x: 124, y:  35, w: 10, h: 18 },
   SAFFRON_CITY:    { x: 108, y:  51, w: 40, h: 36 },
+  ROUTE_7:         { x:  89, y:  65, w: 20, h:  9 },
+  ROUTE_8:         { x: 147, y:  65, w: 30, h:  9 },
   ROUTE_6:         { x: 124, y:  86, w: 10, h: 18 },
   VERMILION_CITY:  { x: 108, y: 102, w: 40, h: 36 },
   ROUTE_9:         { x: 147, y:   3, w: 20, h: 10 },

@@ -8,10 +8,10 @@ export interface Position {
   y: number;
 }
 
-export type PokedexEntry = { seen: boolean; caught: boolean };
+type PokedexEntry = { seen: boolean; caught: boolean };
 export type PokedexState = Record<string, PokedexEntry>;
 
-export interface StatChange {
+interface StatChange {
   target: 'self' | 'enemy';
   stat: 'attack' | 'defense' | 'special' | 'speed';
   stages: number; // negative = lower, positive = raise
@@ -79,7 +79,7 @@ export interface PokemonSummary {
   sprite: string;
 }
 
-export interface ItemEffect {
+interface ItemEffect {
   healHp?: number;
   cureStatus?: 'paralyzed' | 'sleep' | 'poison' | 'burn' | 'frozen' | 'all';
   revive?: boolean;

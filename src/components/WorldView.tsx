@@ -2,6 +2,7 @@ import { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Position, Direction, NPC, Entity, Pokemon, MapID, TILE_SIZE } from '../types';
 import { WILD_POKEMON_DATABASE } from '../constants';
+import { useGameStore } from '../store/gameStore';
 import { NPCComponent } from './overworld/NPCComponent';
 import { GameTile } from './overworld/GameTile';
 import { PlayerSprite } from './overworld/PlayerSprite';
@@ -20,9 +21,6 @@ interface WindowSize {
 }
 
 interface WorldViewProps {
-  playerPos: Position;
-  direction: Direction;
-  isMoving: boolean;
   currentMap: MapID;
   maps: Record<MapID, MapData>;
   npcs: Record<MapID, NPC[]>;
@@ -39,10 +37,6 @@ interface WorldViewProps {
 }
 
 export const WorldView = memo(({
-  playerPos,
-  direction,
-  isMoving,
-  currentMap,
   maps,
   npcs,
   items,
@@ -56,6 +50,7 @@ export const WorldView = memo(({
   dialogue,
   playerTeam,
 }: WorldViewProps) => {
+  const { playerPos, direction, isMoving, currentMap, zoomLevel, cameraOffset, isCameraLocked, setZoomLevel, setCameraOffset, setIsCameraLocked } = useGameStore();
   const mapData = maps[currentMap];
   if (!mapData) return null;
   const grid = mapData.tiles;
@@ -65,7 +60,7 @@ export const WorldView = memo(({
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
   // ── Visible-tile culling ──────────────────────────────────────
-  const cullRadius = 24;
+  const cullRadius = Math.ceil(24 / zoomLevel);
   const cullStep = 4;
   const rows = grid.length;
   const cols = grid[0].length;
@@ -133,10 +128,77 @@ export const WorldView = memo(({
        ['tree', 'table', 'cut_tree', 'boulder'].includes(mapData.tiles[interactTargetY][interactTargetX].type))
     );
 
-  const centerX = -playerPos.x * TILE_SIZE + (windowSize.width / 2) - (TILE_SIZE / 2);
+  const handleWheel = (e: React.WheelEvent) => {
+    if (inBattle) return;
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setZoomLevel(prev => Math.min(Math.max(prev + delta, 0.2), 3.0));
+  };
+
+  const [isDragging, setIsDragging] = useState(false);
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 0 || e.button === 1) { // Left or middle click to drag
+      setIsDragging(true);
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      setIsCameraLocked(false);
+      setCameraOffset(prev => ({
+        x: prev.x + e.movementX / zoomLevel,
+        y: prev.y + e.movementY / zoomLevel
+      }));
+    }
+  };
+
+  const handleMouseUp = () => setIsDragging(false);
+
+  // Calculate camera position
+  // If locked, offset is 0,0 and we follow player.
+  // We use cameraOffset in world pixels, adjusted by zoom.
+  const targetX = isCameraLocked ? 0 : cameraOffset.x;
+  const targetY = isCameraLocked ? 0 : cameraOffset.y;
+
+  const playerScreenX = playerPos.x * TILE_SIZE + (TILE_SIZE / 2);
+  const playerScreenY = playerPos.y * TILE_SIZE + (TILE_SIZE / 2);
+
+  const viewportCenterX = (windowSize.width / 2);
+  const viewportCenterY = (windowSize.height / 2);
+
+  // The final translation needed to center the view
+  const baseTranslateX = viewportCenterX - playerScreenX * zoomLevel;
+  const baseTranslateY = viewportCenterY - playerScreenY * zoomLevel;
+
+  const finalX = baseTranslateX + targetX * zoomLevel;
+  const finalY = baseTranslateY + targetY * zoomLevel;
 
   return (
-    <div className="relative flex-1 w-full overflow-hidden">
+    <div 
+      className="relative flex-1 w-full overflow-hidden cursor-crosshair select-none bg-black"
+      onWheel={handleWheel}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      {/* Dynamic View Controls Overlay */}
+      <div className="absolute bottom-24 right-8 z-30 flex flex-col gap-2 pointer-events-auto">
+        <button 
+          onClick={() => setIsCameraLocked(!isCameraLocked)}
+          className={`p-3 rounded-full border-2 shadow-lg transition-all ${isCameraLocked ? 'bg-blue-600 border-blue-400 text-white' : 'bg-white border-slate-300 text-slate-600'}`}
+          title="Seguir personaje (Espacio)"
+        >
+          {isCameraLocked ? '🔒' : '🔓'}
+        </button>
+        <button 
+          onClick={() => { setZoomLevel(1.0); setCameraOffset({x:0, y:0}); setIsCameraLocked(true); }}
+          className="bg-white p-3 rounded-full border-2 border-slate-300 shadow-lg text-slate-600 hover:bg-slate-50 transition-all"
+          title="Restablecer vista"
+        >
+          🏠
+        </button>
+      </div>
       {/* Team HUD (Left Panel) with Drag & Drop */}
       <AnimatePresence>
         {playerTeam.length > 0 && !inBattle && (
@@ -194,13 +256,14 @@ export const WorldView = memo(({
 
       {/* Map viewport */}
       <motion.div
-        className="absolute"
+        className="absolute origin-top-left"
         initial={false}
         animate={{
           x: overworldShake
-            ? [centerX, centerX - 8, centerX + 8, centerX]
-            : centerX,
-          y: -playerPos.y * TILE_SIZE + (windowSize.height / 2) - (TILE_SIZE / 2)
+            ? [finalX, finalX - 8, finalX + 8, finalX]
+            : finalX,
+          y: finalY,
+          scale: zoomLevel
         }}
         transition={{ type: "tween", duration: 0.11, ease: "linear" }}
       >

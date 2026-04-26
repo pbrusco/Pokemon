@@ -38,7 +38,10 @@ const EMPTY_MAPS: Record<MapID, { tiles: Tile[][] }> = {
   CERULEAN_GYM: { tiles: makeGrid() },
   VERMILION_GYM: { tiles: makeGrid() },
   ROCK_TUNNEL_1F: { tiles: makeGrid() },
+  ROCK_TUNNEL_B1F: { tiles: makeGrid() },
   POKEMON_TOWER_1F: { tiles: makeGrid() },
+  POKEMON_TOWER_2F: { tiles: makeGrid() },
+  POKEMON_TOWER_3F: { tiles: makeGrid() },
 };
 
 function makeNPC(overrides: Partial<NPC> = {}): NPC {
