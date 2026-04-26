@@ -168,6 +168,24 @@ export const GameModals = ({
           />
         )}
       </AnimatePresence>
+
+      {/* Teleport Error Modal */}
+      <AnimatePresence>
+        {store.teleportError && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+            <div className="bg-red-900 border-4 border-red-500 rounded p-8 max-w-lg text-center shadow-[0_0_50px_rgba(239,68,68,0.5)]">
+              <h2 className="text-3xl text-white font-bold mb-4">⚠️ SYSTEM ERROR</h2>
+              <p className="text-red-100 text-lg mb-6 leading-relaxed">{store.teleportError}</p>
+              <button
+                className="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-8 rounded border-2 border-red-300 transition-colors"
+                onClick={() => store.setTeleportError(null)}
+              >
+                ACKNOWLEDGE
+              </button>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

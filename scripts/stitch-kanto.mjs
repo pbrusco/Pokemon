@@ -32,6 +32,8 @@ const route4         = load('route_4');
 const cerulean       = load('cerulean_city');
 const route5         = load('route_5');
 const saffron        = load('saffron_city');
+const route7         = load('route_7');
+const route8         = load('route_8');
 const route6         = load('route_6');
 const vermilion      = load('vermilion_city');
 const route9         = load('route_9');
@@ -45,8 +47,8 @@ function from(aOff, ax, ay, bx, by) {
 }
 
 const palletOff         = { x: 0, y: 0 };
-const route1Off         = from(palletOff,        9,   0,   4,  35);
-const viridianOff       = from(route1Off,         4,   0,  20,  35);
+const route1Off         = from(palletOff,        9,   0,  10,  35);
+const viridianOff       = from(route1Off,        10,   0,  20,  35);
 const route2Off         = from(viridianOff,      20,   0,   4,  39);
 const viridianForestOff = from(route2Off,         4,   0,  16,  47);
 const pewterOff         = from(viridianForestOff,16,   0,  20,  35);
@@ -56,6 +58,8 @@ const route4Off         = { x: route3Off.x + 30, y: route3Off.y - 4 };
 const ceruleanOff       = from(route4Off,        39,   4,   0,  18);
 const route5Off         = from(ceruleanOff,      20,  35,   4,   0);
 const saffronOff        = from(route5Off,         4,  17,  20,   1);
+const route7Off         = from(saffronOff,        0,  18,  19,   4);
+const route8Off         = from(saffronOff,       39,  18,   0,   4);
 const route6Off         = from(saffronOff,       20,  35,   4,   0);
 const vermilionOff      = from(route6Off,         4,  17,  20,   1);
 const route9Off         = from(ceruleanOff,      39,   7,   0,   4);
@@ -74,6 +78,8 @@ const SEGMENTS = [
   { map: cerulean,        off: ceruleanOff,        label: 'CERULEAN_CITY'   },
   { map: route5,          off: route5Off,          label: 'ROUTE_5'         },
   { map: saffron,         off: saffronOff,         label: 'SAFFRON_CITY'    },
+  { map: route7,          off: route7Off,          label: 'ROUTE_7'         },
+  { map: route8,          off: route8Off,          label: 'ROUTE_8'         },
   { map: route6,          off: route6Off,          label: 'ROUTE_6'         },
   { map: vermilion,       off: vermilionOff,       label: 'VERMILION_CITY'  },
   { map: route9,          off: route9Off,          label: 'ROUTE_9'         },
@@ -109,7 +115,7 @@ const OUTDOOR = new Set(SEGMENTS.map(s => s.label));
 const mergedWarps = [];
 for (const { map, off, label } of SEGMENTS) {
   for (const w of map.warps) {
-    if (!OUTDOOR.has(w.targetMap)) {
+    if (!OUTDOOR.has(w.targetMap) && w.targetMap !== 'KANTO_OVERWORLD') {
       mergedWarps.push({
         x: off.x + w.x,
         y: off.y + w.y,

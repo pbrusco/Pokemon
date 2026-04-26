@@ -838,19 +838,20 @@ export const STRUGGLE_MOVE: Move = {
 
 /** Gen I encounter rate per map (0–255). Roll 0–255; if roll < rate, battle starts. */
 export const WILD_ENCOUNTER_RATES: Record<string, number> = {
-  KANTO_OVERWORLD: 25,   // used for all outdoor tiles; per-zone rates applied in tryWildEncounter
-  ROUTE_1: 25,
-  VIRIDIAN_FOREST: 30,
-  ROUTE_3: 25,
-  MT_MOON: 10,
-  MT_MOON_B1F: 10,
-  MT_MOON_B2F: 10,
-  ROUTE_4: 20,
-  ROUTE_5: 20,
-  ROUTE_6: 20,
-  ROUTE_9: 25,
-  ROUTE_10: 20,
-  ROCK_TUNNEL_1F: 15,
+  KANTO_OVERWORLD: 10,   // fallback; per-zone rates applied in tryWildEncounter
+  ROUTE_1: 10,
+  ROUTE_2: 10,
+  VIRIDIAN_FOREST: 16,
+  ROUTE_3: 10,
+  MT_MOON: 8,
+  MT_MOON_B1F: 8,
+  MT_MOON_B2F: 8,
+  ROUTE_4: 10,
+  ROUTE_5: 10,
+  ROUTE_6: 10,
+  ROUTE_9: 10,
+  ROUTE_10: 10,
+  ROCK_TUNNEL_1F: 8,
 };
 
 /**
@@ -862,7 +863,7 @@ export const KANTO_ZONE_OFFSETS: Record<string, { x: number; y: number; w: numbe
   // NOTE: exact values are filled in after running `node scripts/stitch-kanto.mjs`.
   // Until then, all encounters default to Route 1 table.
   PALLET_TOWN:     { x:  11, y: 198, w: 20, h: 18 },
-  ROUTE_1:         { x:  16, y: 163, w: 10, h: 36 },
+  ROUTE_1:         { x:  10, y: 163, w: 20, h: 36 },
   VIRIDIAN_CITY:   { x:   0, y: 128, w: 40, h: 36 },
   ROUTE_2:         { x:  16, y:  89, w: 10, h: 40 },
   VIRIDIAN_FOREST: { x:   4, y:  42, w: 34, h: 48 },
@@ -896,6 +897,14 @@ export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {
     makePokemon('spearow', 'SPEAROW', 5, 'flying', [MOVES.PECK, MOVES.GROWL], 21, { types: ['normal', 'flying'] }),
     makePokemon('mankey', 'MANKEY', 5, 'fighting', [MOVES.SCRATCH, MOVES.TACKLE], 56),
     makePokemon('pikachu', 'PIKACHU', 6, 'electric', [MOVES.THUNDERSHOCK, MOVES.GROWL], 25),
+  ],
+  ROUTE_2: [
+    makePokemon('pidgey', 'PIDGEY', 7, 'flying', [MOVES.TACKLE, MOVES.GUST], 16, { types: ['normal', 'flying'] }),
+    makePokemon('rattata', 'RATTATA', 7, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19),
+    makePokemon('nidoran-f', 'NIDORAN♀', 7, 'poison', [MOVES.TACKLE, MOVES.GROWL], 29, { types: ['poison'] }),
+    makePokemon('nidoran-m', 'NIDORAN♂', 7, 'poison', [MOVES.TACKLE, MOVES.GROWL], 32, { types: ['poison'] }),
+    makePokemon('caterpie', 'CATERPIE', 6, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10),
+    makePokemon('weedle', 'WEEDLE', 6, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 13, { types: ['bug', 'poison'] }),
   ],
   VIRIDIAN_FOREST: [
     makePokemon('caterpie', 'CATERPIE', 4, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10),
@@ -965,4 +974,10 @@ export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = {
   ],
 };
 
-export const SHOP_PRICES: Record<string, number> = { POTION: 200, POKEBALL: 200 };
+export const SHOP_PRICES: Record<string, number> = { 
+  POTION: 200, 
+  POKEBALL: 200,
+  ANTIDOTE: 100,
+  PARALYZE_HEAL: 200,
+  BURN_HEAL: 250
+};

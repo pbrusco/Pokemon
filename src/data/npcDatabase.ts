@@ -6,7 +6,7 @@ import { NPC, Entity, MapID, Direction, Pokemon, Position } from '../types';
 // Format: top-left corner of each segment in world tile coordinates.
 const O = {
   PALLET_TOWN:     { x:  11, y: 198 },
-  ROUTE_1:         { x:  16, y: 163 },
+  ROUTE_1:         { x:  10, y: 163 },
   VIRIDIAN_CITY:   { x:   0, y: 128 },
   ROUTE_2:         { x:  16, y:  89 },
   VIRIDIAN_FOREST: { x:   4, y:  42 },
@@ -16,6 +16,8 @@ const O = {
   CERULEAN_CITY:   { x: 108, y:   0 },
   ROUTE_5:         { x: 124, y:  35 },
   SAFFRON_CITY:    { x: 108, y:  51 },
+  ROUTE_7:         { x:  89, y:  65 },
+  ROUTE_8:         { x: 147, y:  65 },
   ROUTE_6:         { x: 124, y:  86 },
   VERMILION_CITY:  { x: 108, y: 102 },
   ROUTE_9:         { x: 147, y:   3 },
@@ -50,12 +52,12 @@ export function buildNPCDatabase(
         trainerClass: 'oak',
         dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."]
       }] : []),
-      { id: 'fat_man', name: 'SEÑOR GORDO', type: 'npc', position: w('PALLET_TOWN', 16, 10), direction: 'left', trainerClass: 'fat_man', dialogue: ["¡La tecnología es increíble!", "¡Ahora puedes guardar POKÉMON y objetos como datos en el PC!"] },
+      { id: 'fat_man', name: 'SEÑOR GORDO', type: 'npc', position: w('PALLET_TOWN', 10, 6), direction: 'left', trainerClass: 'fat_man', dialogue: ["¡La tecnología es increíble!", "¡Ahora puedes guardar POKÉMON y objetos como datos en el PC!"] },
       // ── Route 1 ──
-      { id: 'youngster_chano', name: 'JOVEN CHANO', type: 'npc', position: w('ROUTE_1', 3, 10), direction: 'left', trainerClass: 'youngster', dialogue: ["¡Eh! ¡Tú! ¡Mis POKÉMON son de lo mejor!", "¡No me ignores cuando te hablo!"], isTrainer: true, trainerTeam: [makePokemon('rattata', 'RATTATA', 4, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19), makePokemon('spearow', 'SPEAROW', 4, 'flying', [MOVES.PECK, MOVES.GROWL], 21, { types: ['normal', 'flying'] })] },
-      { id: 'bug_catcher', name: 'CAZABICHOS', type: 'npc', position: w('ROUTE_1', 6, 5), direction: 'left', trainerClass: 'bugcatcher', dialogue: ["¿Te gustan los POKÉMON bicho?", "¡Son los más guays del mundo!"], isTrainer: true, trainerTeam: [makePokemon('caterpie', 'CATERPIE', 3, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10), makePokemon('weedle', 'WEEDLE', 4, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 13, { types: ['bug', 'poison'] })] },
+      { id: 'youngster_chano', name: 'JOVEN CHANO', type: 'npc', position: w('ROUTE_1', 10, 10), direction: 'left', trainerClass: 'youngster', dialogue: ["¡Eh! ¡Tú! ¡Mis POKÉMON son de lo mejor!", "¡No me ignores cuando te hablo!"], isTrainer: true, trainerTeam: [makePokemon('rattata', 'RATTATA', 4, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19), makePokemon('spearow', 'SPEAROW', 4, 'flying', [MOVES.PECK, MOVES.GROWL], 21, { types: ['normal', 'flying'] })] },
+      { id: 'bug_catcher', name: 'CAZABICHOS', type: 'npc', position: w('ROUTE_1', 8, 17), direction: 'left', trainerClass: 'bugcatcher', dialogue: ["¿Te gustan los POKÉMON bicho?", "¡Son los más guays del mundo!"], isTrainer: true, trainerTeam: [makePokemon('caterpie', 'CATERPIE', 3, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10), makePokemon('weedle', 'WEEDLE', 4, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 13, { types: ['bug', 'poison'] })] },
       // ── Viridian City ──
-      { id: 'citizen', name: 'CIUDADANO', type: 'npc', position: w('VIRIDIAN_CITY', 8, 23), direction: 'down', trainerClass: 'citizen', dialogue: ["¡Bienvenido a CIUDAD VERDE!", "El GIMNASIO del octavo LÍDER está aquí...", "pero permanece cerrado casi siempre."] },
+      { id: 'citizen', name: 'CIUDADANO', type: 'npc', position: w('VIRIDIAN_CITY', 15, 20), direction: 'down', trainerClass: 'citizen', dialogue: ["¡Bienvenido a CIUDAD VERDE!", "El GIMNASIO del octavo LÍDER está aquí...", "pero permanece cerrado casi siempre."] },
       // ── Route 2 ──
       { id: 'bug_catcher_rt2', name: 'CAZABICHOS TOMY', type: 'npc', position: w('ROUTE_2', 3, 12), direction: 'right', trainerClass: 'bugcatcher', dialogue: ["¡Atrapé estos bichos en el Bosque Verde!"], isTrainer: true, trainerTeam: [makePokemon('caterpie', 'CATERPIE', 4, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10), makePokemon('weedle', 'WEEDLE', 4, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 13, { types: ['bug', 'poison'] })] },
       // ── Viridian Forest ──
@@ -148,7 +150,9 @@ export function buildNPCDatabase(
     ],
     MT_MOON: [
       { id: 'hiker_mtmoon', name: 'MONTAÑERO MARCOS', type: 'npc', position: { x: 6, y: 10 }, direction: 'down', trainerClass: 'hiker', dialogue: ["¡Las rocas son mis amigas!", "¡Te aplastaré!"], isTrainer: true, trainerTeam: [makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }), makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }), makePokemon('onix', 'ONIX', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 95, { types: ['rock', 'ground'] })] },
-      { id: 'rocket_mtmoon', name: 'SOLDADO ROCKET', type: 'npc', position: { x: 12, y: 5 }, direction: 'left', trainerClass: 'rocket', dialogue: ["¡El TEAM ROCKET se hará con todos los fósiles de MT MOON!"], isTrainer: true, trainerTeam: [makePokemon('rattata', 'RATTATA', 11, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19), makePokemon('zubat', 'ZUBAT', 11, 'poison', [MOVES.TACKLE], 41, { types: ['poison', 'flying'] })] }
+      { id: 'rocket_mtmoon', name: 'SOLDADO ROCKET', type: 'npc', position: { x: 12, y: 5 }, direction: 'left', trainerClass: 'rocket', dialogue: ["¡El TEAM ROCKET se hará con todos los fósiles de MT MOON!"], isTrainer: true, trainerTeam: [makePokemon('rattata', 'RATTATA', 11, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19), makePokemon('zubat', 'ZUBAT', 11, 'poison', [MOVES.TACKLE], 41, { types: ['poison', 'flying'] })] },
+      { id: 'item_full_heal_mtmoon', type: 'item', position: { x: 3, y: 3 }, direction: 'down', sprite: '🌟' },
+      { id: 'item_revive_mtmoon', type: 'item', position: { x: 17, y: 14 }, direction: 'down', sprite: '💎' }
     ],
     MT_MOON_B1F: [
       { id: 'supernerd_mtmoon', name: 'SABIONDO MIGUEL', type: 'npc', position: { x: 8, y: 15 }, direction: 'left', trainerClass: 'supernerd', dialogue: ["¡Yo domino los fósiles y la ciencia!", "¡Mis POKÉMON son experimentos!"], isTrainer: true, trainerTeam: [makePokemon('grimer', 'GRIMER', 11, 'poison', [MOVES.POUND, MOVES.POISON_POWDER], 88, { types: ['poison'] }), makePokemon('voltorb', 'VOLTORB', 11, 'electric', [MOVES.TACKLE, MOVES.THUNDERSHOCK], 100, { types: ['electric'] }), makePokemon('koffing', 'KOFFING', 11, 'poison', [MOVES.TACKLE, MOVES.POISON_POWDER], 109, { types: ['poison'] })] }
@@ -179,24 +183,27 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
   const rawItems: Record<MapID, Entity[]> = {
     KANTO_OVERWORLD: [
       // ── Pallet Town ──
-      { id: 'sign_home',  type: 'object', position: w('PALLET_TOWN', 3, 5),   direction: 'down', sprite: '🪧', dialogue: ['CASA DE RED'] },
-      { id: 'sign_rival', type: 'object', position: w('PALLET_TOWN', 12, 5),  direction: 'down', sprite: '🪧', dialogue: ['CASA DE AZUL'] },
-      { id: 'sign_lab',   type: 'object', position: w('PALLET_TOWN', 7, 12),  direction: 'down', sprite: '🪧', dialogue: ['LAB. POKÉMON DEL PROF. OAK'] },
-      { id: 'sign_town',  type: 'object', position: w('PALLET_TOWN', 13, 14), direction: 'down', sprite: '🪧', dialogue: ['PUEBLO PALETA', 'Un lugar de sombra y tonos puros.'] },
+      { id: 'sign_home',  type: 'object', position: w('PALLET_TOWN', 6, 5),   direction: 'down', sprite: '🪧', dialogue: ['CASA DE RED'] },
+      { id: 'sign_rival', type: 'object', position: w('PALLET_TOWN', 16, 5),  direction: 'down', sprite: '🪧', dialogue: ['CASA DE AZUL'] },
+      { id: 'sign_lab',   type: 'object', position: w('PALLET_TOWN', 16, 13),  direction: 'down', sprite: '🪧', dialogue: ['LAB. POKÉMON DEL PROF. OAK'] },
+      { id: 'sign_town',  type: 'object', position: w('PALLET_TOWN', 10, 10), direction: 'down', sprite: '🪧', dialogue: ['PUEBLO PALETA', 'Un lugar de sombra y tonos puros.'] },
       ...(storyStep === 'START' ? [
-        { id: 'lab_locked', type: 'object' as const, position: w('PALLET_TOWN', 12, 13), direction: 'down' as const, sprite: '🚫' },
+        { id: 'lab_locked', type: 'object' as const, position: w('PALLET_TOWN', 14, 12), direction: 'down' as const, sprite: '🚫' },
       ] : []),
       // ── Route 1 ──
-      { id: 'sign_route1',    type: 'object', position: w('ROUTE_1', 3, 15), direction: 'down', sprite: '🪧' },
-      { id: 'item_potion_1',  type: 'item',   position: w('ROUTE_1', 7, 5),  direction: 'down', sprite: '🧪' },
+      { id: 'sign_route1',    type: 'object', position: w('ROUTE_1', 10, 15), direction: 'down', sprite: '🪧' },
+      { id: 'item_potion_1',  type: 'item',   position: w('ROUTE_1', 12, 25),  direction: 'down', sprite: '🧪' },
       // ── Viridian City ──
-      { id: 'viridian_gym_locked', type: 'object', position: w('VIRIDIAN_CITY', 28, 28), direction: 'up', sprite: '🚪', dialogue: ['El GIMNASIO de CIUDAD VERDE está cerrado.', 'El LÍDER ha salido.'] },
+      { id: 'viridian_gym_locked', type: 'object', position: w('VIRIDIAN_CITY', 28, 11), direction: 'up', sprite: '🚪', dialogue: ['El GIMNASIO de CIUDAD VERDE está cerrado.', 'El LÍDER ha salido.'] },
       // ── Route 2 ──
       { id: 'sign_route2',    type: 'object', position: w('ROUTE_2', 3, 15), direction: 'down', sprite: '🪧', dialogue: ['RUTA 2: Al norte a CIUDAD PLATEADA.'] },
       { id: 'item_potion_rt2', type: 'item',  position: w('ROUTE_2', 7, 5),  direction: 'down', sprite: '🧪' },
       // ── Viridian Forest ──
       { id: 'item_pokeball_1',   type: 'item', position: w('VIRIDIAN_FOREST', 10, 11), direction: 'down', sprite: '🔴' },
       { id: 'item_potion_forest', type: 'item', position: w('VIRIDIAN_FOREST', 20, 21), direction: 'down', sprite: '🧪' },
+      { id: 'item_antidote_forest', type: 'item', position: w('VIRIDIAN_FOREST', 2, 21), direction: 'down', sprite: '💊' },
+      { id: 'item_paralyze_heal_rt2', type: 'item', position: w('ROUTE_2', 5, 10), direction: 'down', sprite: '⚡' },
+      { id: 'item_awakening_rt3', type: 'item', position: w('ROUTE_3', 25, 6), direction: 'down', sprite: '☕' },
       // ── Pewter City ──
       { id: 'door_locked_1',  type: 'object', position: w('PEWTER_CITY', 10, 13), direction: 'up',   sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },
       { id: 'door_locked_2',  type: 'object', position: w('PEWTER_CITY', 24, 13), direction: 'up',   sprite: '🚪', dialogue: ['La puerta está cerrada por dentro.'] },

@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { ITEMS_DATABASE, SHOP_PRICES } from '../constants';
 
 export const ShopUI = ({ onBuy, onClose, money }: { onBuy: (itemId: string) => void, onClose: () => void, money: number }) => {
-  const shopItems = ['POTION', 'POKEBALL'];
+  const shopItems = ['POKEBALL', 'POTION', 'ANTIDOTE', 'PARALYZE_HEAL', 'BURN_HEAL'];
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}

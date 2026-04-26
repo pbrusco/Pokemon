@@ -4,6 +4,10 @@ import { battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING, EDITO
 import { BattleAction } from '../lib/battleEngine';
 import { useGameStore } from '../store/gameStore';
 
+// How long (ms) to wait after turning before walking begins if key is held.
+// Shorter = snappier; 120ms is enough to show the turn frame without feeling sluggish.
+const TURN_WALK_DELAY_MS = 120;
+
 interface UseInputHandlerParams {
   handleMove: (dir: Direction) => void;
   handleAction: () => void;
@@ -20,12 +24,14 @@ export function useInputHandler({
   spottedTrainerId,
 }: UseInputHandlerParams): void {
   const pressedKeys = useRef<Set<Direction>>(new Set());
+  const lastTurnedDir = useRef<Direction | null>(null);
+  const turnWalkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const store = useGameStore.getState();
       const inBattle = store.phase.type === 'BATTLE';
-      
+
       if (inBattle) {
         const battleSubPhase = store.phase.type === 'BATTLE' ? store.phase.sub.type : null;
         if (e.key === 'Escape') {
@@ -64,6 +70,16 @@ export function useInputHandler({
         return;
       }
 
+      if (e.key === 'g' || e.key === 'G') {
+        store.toggleGhostMode();
+        return;
+      }
+
+      if (e.key === 'm' || e.key === 'M') {
+        store.toggleMinimap();
+        return;
+      }
+
       if (store.dialogue) {
         if (!e.repeat) {
           const cb = store.dialogueCallback;
@@ -82,20 +98,52 @@ export function useInputHandler({
         case 'z': case 'Enter': case ' ': handleAction(); break;
         case 'Escape': if (store.phase.type === 'MENU') store.setPhase(store.phase.returnTo ?? EXPLORING); break;
       }
+
       if (dir) {
         if (spottedTrainerId) return; // Block movement if a trainer has spotted us
+
+        const currentDir = store.direction;
+
+        // Turn-in-place: first fresh press of a *new* direction just turns the sprite.
+        // e.repeat means the key is held down (OS key-repeat), so we skip turn-only then.
+        if (!e.repeat && dir !== currentDir && lastTurnedDir.current !== dir) {
+          store.setDirection(dir);
+          lastTurnedDir.current = dir;
+          pressedKeys.current.add(dir);
+          // After a short delay, if the key is still held start walking.
+          // We bypass the OS key-repeat delay (300-500ms) by doing this ourselves.
+          if (turnWalkTimer.current) clearTimeout(turnWalkTimer.current);
+          turnWalkTimer.current = setTimeout(() => {
+            if (pressedKeys.current.has(dir)) handleMove(dir);
+          }, TURN_WALK_DELAY_MS);
+          return; // Don't actually step yet
+        }
+
+        // Same direction pressed again (after already turning), or OS key-repeat → move
         const wasEmpty = pressedKeys.current.size === 0;
         pressedKeys.current.add(dir);
-        if (wasEmpty) handleMove(dir);
+        if (wasEmpty || e.repeat) handleMove(dir);
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
+      let dir: Direction | null = null;
       switch (e.key) {
-        case 'ArrowUp': pressedKeys.current.delete('up'); break;
-        case 'ArrowDown': pressedKeys.current.delete('down'); break;
-        case 'ArrowLeft': pressedKeys.current.delete('left'); break;
-        case 'ArrowRight': pressedKeys.current.delete('right'); break;
+        case 'ArrowUp': dir = 'up'; break;
+        case 'ArrowDown': dir = 'down'; break;
+        case 'ArrowLeft': dir = 'left'; break;
+        case 'ArrowRight': dir = 'right'; break;
+      }
+      if (dir) {
+        pressedKeys.current.delete(dir);
+        if (lastTurnedDir.current === dir) {
+          lastTurnedDir.current = null;
+          // Cancel pending walk if key was released before the delay elapsed
+          if (turnWalkTimer.current) {
+            clearTimeout(turnWalkTimer.current);
+            turnWalkTimer.current = null;
+          }
+        }
       }
     };
 

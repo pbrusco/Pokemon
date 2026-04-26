@@ -1,28 +1,28 @@
 {
   "rows": [
-    "TTTTTTTTTGGTTTTTTTTT",
-    "TGGGGGGGGPPGGGGGGGGT",
-    "TGGGWWWWGPPGWWWWGGGT",
-    "TGGGWWWWGPPGWWWWGGGT",
-    "TGGGWWWWGPPGWWWWGGGT",
-    "TGGSWDWWGPPGSWDWWGGT",
-    "TGG*GGGGGPPGGGGGG*GT",
-    "T++++++++PP++++++++T",
-    "TGGGGGGGGGGGGGGGGGGT",
-    "TGGGGGGGGGGGGGGGGGGT",
-    "TGGGGGGGGGWWWWWGGGGT",
-    "TGGGGGGGGGWWWWWGGGGT",
-    "TGGGGGGSGGWWWWWGGGGT",
-    "TGGGGGGGGGWWDWWGGGGT",
-    "TGGG*GGGGGGGGSGGGGGT",
-    "TGG*GGGGGGGGGGGG*GGT",
-    "T~~~~~~~~~~~~~~~~~~T",
-    "TTTTTTTTTTTTTTTTTTTT"
+    "TTTTTTTTTPPTTTTTTTTT",
+    "TTGTTTTTTPPTTTTTTGTT",
+    "TTTWWWWPPPPPPWWWWTTT",
+    "TTTWWWWPPPPPPWWWWTTT",
+    "TTTWWDWPPPPPPWWDWTTT",
+    "TTGPPPSPPPPPPPPSPGTT",
+    "TTGPPPPPPPPPPPPPPGTT",
+    "TTT+++++PPPP+++++TTT",
+    "TTTG*G*GPPPPGG*GGTTT",
+    "TTT*G*G*PPPPWWWWWTTT",
+    "TTTG*G*GPPPPWWWWWTTT",
+    "TTT*G*G*PPPPWWWWWTTT",
+    "TTTG*G*GPPPPWWDWWTTT",
+    "TTTGGGGGPPPPPPPPSTTT",
+    "TTT+++++PPPP+++++TTT",
+    "TTGPPPPPPPPPPPPPPGTT",
+    "TTT~~~~~PPPP~~~~~TTT",
+    "TTTTTTTT~~~~TTTTTTTT"
   ],
   "warps": [
     {
       "x": 5,
-      "y": 5,
+      "y": 4,
       "targetMap": "PLAYERS_HOUSE_1F",
       "targetPos": {
         "x": 3,
@@ -31,8 +31,8 @@
       "targetDir": "up"
     },
     {
-      "x": 14,
-      "y": 5,
+      "x": 15,
+      "y": 4,
       "targetMap": "RIVALS_HOUSE",
       "targetPos": {
         "x": 3,
@@ -41,8 +41,8 @@
       "targetDir": "up"
     },
     {
-      "x": 12,
-      "y": 13,
+      "x": 14,
+      "y": 12,
       "targetMap": "OAKS_LAB",
       "targetPos": {
         "x": 4,
@@ -65,7 +65,7 @@
       "y": 0,
       "targetMap": "KANTO_OVERWORLD",
       "targetPos": {
-        "x": 20,
+        "x": 21,
         "y": 198
       },
       "targetDir": "up"

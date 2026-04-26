@@ -51,12 +51,18 @@ function PokeballAnim({ isCatching, catchResult }: { isCatching: boolean; catchR
   const [scope, animate] = useAnimate();
   const [visible, setVisible] = useState(false);
   const catchResultRef = useRef<boolean | null>(null);
+  const [caughtFinal, setCaughtFinal] = useState(false);
 
   useEffect(() => { catchResultRef.current = catchResult; }, [catchResult]);
 
   useEffect(() => {
-    if (!isCatching) { setVisible(false); return; }
+    if (!isCatching) {
+      setVisible(false);
+      setCaughtFinal(false);
+      return;
+    }
     setVisible(true);
+    setCaughtFinal(false);
 
     (async () => {
       await new Promise(r => setTimeout(r, sd(30))); // wait for mount
@@ -95,14 +101,22 @@ function PokeballAnim({ isCatching, catchResult }: { isCatching: boolean; catchR
 
       const result = catchResultRef.current;
       if (result === true) {
-        // Caught: three quick flashes then settle
+        // Caught: three quick flashes to signal success, then settle and stay
         for (let i = 0; i < 3; i++) {
-          await animate(scope.current, { opacity: [1, 0.15, 1] }, { duration: sdur(0.28) });
+          await animate(scope.current, { opacity: [1, 0.1, 1] }, { duration: sdur(0.3) });
+          await new Promise(r => setTimeout(r, sd(80)));
         }
-        await animate(scope.current, { scale: [1, 1.15, 1] }, { duration: sdur(0.35) });
+        // Grow slightly then settle
+        await animate(scope.current, { scale: [1, 1.2, 1] }, { duration: sdur(0.4) });
+        setCaughtFinal(true);
+        // Ball stays on screen — component hidden when isCatching resets
       } else {
-        // Escaped: ball bursts open
-        await animate(scope.current, { scale: [1, 1.5], rotate: [540, 610], opacity: [1, 0] }, { duration: sdur(0.4) });
+        // Failed: ball bursts open (flash red, expand, fade)
+        await animate(scope.current,
+          { scale: [1, 1.6], rotate: [540, 620], opacity: [1, 0] },
+          { duration: sdur(0.45) }
+        );
+        setVisible(false);
       }
     })();
   }, [isCatching]);
@@ -125,9 +139,10 @@ function PokeballAnim({ isCatching, catchResult }: { isCatching: boolean; catchR
         {/* Center band */}
         <div className="absolute top-1/2 -translate-y-1/2 w-full h-[3px] bg-black z-10" />
         {/* Button */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20
-                        w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-black border-[2px] border-black
-                        flex items-center justify-center">
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20
+                        w-4 h-4 sm:w-5 sm:h-5 rounded-full border-[2px] border-black
+                        flex items-center justify-center transition-colors duration-200
+                        ${caughtFinal ? 'bg-yellow-300' : 'bg-black'}`}>
           <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white" />
         </div>
       </div>
@@ -217,7 +232,10 @@ export function BattleScreen({
                 hit: { x: [0, -10, 10, -10, 10, 0], filter: ["brightness(1)", "invert(1)", "brightness(1)"], transition: { duration: sdur(0.4) } },
                 faint: { y: [0, 100], opacity: [1, 0], transition: { duration: sdur(0.6), ease: "easeIn" } }
               }}
-              animate={isCatching ? { opacity: 0, scale: 0 } : enemyAnim}
+              animate={isCatching
+                ? { opacity: [1, 0.4, 0], scale: [1, 0.4, 0], y: [0, 40], transition: { duration: sdur(0.5), ease: 'easeIn' } }
+                : enemyAnim
+              }
             >
               {enemyPokemon?.sprite && !enemySpriteError && (
                 <img

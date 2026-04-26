@@ -134,15 +134,19 @@ function getValidTeleportLocation(targetMap: string, targetPos: Position): { map
   const store = useGameStore.getState();
   const mapData = store.worldMaps[targetMap as MapID];
   if (!mapData) {
-    console.warn(`[Teleport] Invalid map: ${targetMap}. Falling back to PLAYERS_HOUSE_2F`);
+    const err = `Teleport target map '${targetMap}' does not exist. Falling back to safe zone.`;
+    console.warn(`[Teleport] ${err}`);
+    store.setTeleportError(err);
     return { map: 'PLAYERS_HOUSE_2F', pos: { x: 4, y: 4 } };
   }
   
   const grid = mapData.tiles;
   const inBounds = targetPos.x >= 0 && targetPos.x < grid[0].length && targetPos.y >= 0 && targetPos.y < grid.length;
   // Note: we might want to check for NPCs/items too, but a basic walkable check prevents hardlocks out of bounds.
-  if (!inBounds || !grid[targetPos.y][targetPos.x].walkable) {
-    console.warn(`[Teleport] Invalid pos {x:${targetPos.x}, y:${targetPos.y}} on map ${targetMap}. Falling back.`);
+  if (!inBounds || (!grid[targetPos.y][targetPos.x].walkable && !store.ghostMode)) {
+    const err = `Teleport coordinate {x:${targetPos.x}, y:${targetPos.y}} on map '${targetMap}' is blocked or out of bounds. Falling back to safe zone.`;
+    console.warn(`[Teleport] ${err}`);
+    store.setTeleportError(err);
     return { map: 'PLAYERS_HOUSE_2F', pos: { x: 4, y: 4 } };
   }
   
@@ -175,7 +179,7 @@ export function useMovementEngine({
 
   const handleMove = useCallback((dir: Direction) => {
     const store = useGameStore.getState();
-    const { isMoving, dialogue, phase, playerPos, currentMap, playerTeam, worldMaps, defeatedTrainers } = store;
+    const { isMoving, dialogue, phase, playerPos, currentMap, playerTeam, worldMaps, defeatedTrainers, ghostMode } = store;
     const npcs = store.getNPCs();
     const items = store.getItems();
 
@@ -197,7 +201,7 @@ export function useMovementEngine({
     // In KANTO_OVERWORLD, Pallet Town's northern border is at world y = PALLET_NORTH_EXIT_Y
     const isLeavingPalletNorth =
       currentMap === 'KANTO_OVERWORLD' && nextY === PALLET_NORTH_EXIT_Y - 1 &&
-      nextX >= 11 && nextX < 31 && playerTeam.length === 0;
+      nextX >= 11 && nextX < 31 && playerTeam.length === 0 && !ghostMode;
     if (isLeavingPalletNorth) {
       triggerOakCutscene(playerPos);
       return;
@@ -224,14 +228,14 @@ export function useMovementEngine({
         const landY = dir === 'down' ? nextY + 1 : nextY;
         if (
           inBounds(landX, landY) &&
-          grid[landY][landX].walkable &&
+          (grid[landY][landX].walkable || ghostMode) &&
           !npcs[currentMap]?.some(n => n.position.x === landX && n.position.y === landY) &&
           !items[currentMap]?.some(i => i.type === 'object' && i.position.x === landX && i.position.y === landY)
         ) {
           isLedgeJump = true;
           nextX = landX;
           nextY = landY;
-        } else {
+        } else if (!ghostMode) {
           return;
         }
       }
@@ -240,27 +244,31 @@ export function useMovementEngine({
     const npcAtNext = !isLedgeJump && npcs[currentMap]?.some(n => n.position.x === nextX && n.position.y === nextY);
     const objectAtNext = !isLedgeJump && items[currentMap]?.some(i => i.type === 'object' && i.position.x === nextX && i.position.y === nextY);
 
-    if (
-      !inBounds(nextX, nextY) ||
-      !grid[nextY][nextX].walkable ||
-      npcAtNext ||
-      objectAtNext
-    ) return;
+    if (!ghostMode) {
+      if (
+        !inBounds(nextX, nextY) ||
+        !grid[nextY][nextX].walkable ||
+        npcAtNext ||
+        objectAtNext
+      ) return;
+    }
 
     // Warp at the destination tile (used for both the direction guard and seamless scroll)
     const warp = mapData.warps.find(w => w.x === nextX && w.y === nextY);
-    if (warp && warp.targetDir && dir !== warp.targetDir) return;
+    if (warp && warp.targetDir && dir !== warp.targetDir && !ghostMode) return;
 
     // ── Movement accepted ──
     store.setIsMoving(true);
     store.setPlayerPos({ x: nextX, y: nextY });
 
-    applyOverworldPoison(playerTeam, poisonStepCounter, setOverworldShake);
+    if (!ghostMode) {
+      applyOverworldPoison(playerTeam, poisonStepCounter, setOverworldShake);
 
-    // Visual grass rustle
-    if (grid[nextY][nextX].type === 'grass') {
-      store.setGrassEffect({ x: nextX, y: nextY });
-      setTimeout(() => useGameStore.getState().setGrassEffect(null), sd(500));
+      // Visual grass rustle
+      if (inBounds(nextX, nextY) && grid[nextY][nextX].type === 'grass') {
+        store.setGrassEffect({ x: nextX, y: nextY });
+        setTimeout(() => useGameStore.getState().setGrassEffect(null), sd(500));
+      }
     }
 
     // Seamless scroll: warps now commit immediately — the unified overworld means
@@ -277,6 +285,8 @@ export function useMovementEngine({
         if (warp.targetDir) fs.setDirection(warp.targetDir);
       }
     }, sd(isLedgeJump ? 260 : 110));
+
+    if (ghostMode) return;
 
     // Trainer vision check
     const spottedTrainer = checkTrainerVision(npcs[currentMap] || [], defeatedTrainers, nextX, nextY);

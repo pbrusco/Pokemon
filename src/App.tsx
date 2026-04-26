@@ -13,9 +13,10 @@ import { useInputHandler } from './hooks/useInputHandler';
 import { useDebugAPI } from './hooks/useDebugAPI';
 import { useBattleEngine } from './hooks/useBattleEngine';
 import { useMovementEngine } from './hooks/useMovementEngine';
-import { applyPotion } from './lib/healUtils';
+import { sd } from './lib/gameSpeed';
 import { GameHeader } from './components/GameHeader';
 import { WorldView } from './components/WorldView';
+import { Minimap } from './components/Minimap';
 import { MobileControls } from './components/MobileControls';
 import { SideMenu } from './components/SideMenu';
 import { MenuButton } from './components/MenuButton';
@@ -212,6 +213,8 @@ export default function App() {
         playerTeam={store.playerTeam}
 
       />
+
+      <Minimap />
 
       <MobileControls onMove={handleMove} onAction={handleAction} setPhase={store.setPhase} />
 

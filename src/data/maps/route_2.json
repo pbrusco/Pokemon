@@ -38,8 +38,8 @@
     "TGGGPGGGGT",
     "TGGGPGGGGT",
     "TGGGPGGGGT",
-    "TGGGPGGGGT",
-    "TTTTGTTTTT"
+    "TGGGPPPPGT",
+    "TTTTPPTTTT"
   ],
   "warps": [
     {
@@ -58,6 +58,16 @@
       "targetMap": "KANTO_OVERWORLD",
       "targetPos": {
         "x": 20,
+        "y": 128
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 5,
+      "y": 39,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 21,
         "y": 128
       },
       "targetDir": "down"

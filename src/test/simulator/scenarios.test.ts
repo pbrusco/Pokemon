@@ -88,19 +88,19 @@ describe('Scenario 1b: Oak\'s Lab locked at START', () => {
   it('blocks entry to Oak\'s Lab and shows locked message', () => {
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      // Stand one tile below the lab door at world (23, 211) -> (23, 212)
-      playerPos: { x: 23, y: 212 },
+      // Stand one tile below the lab door at world (25, 210) -> (25, 211)
+      playerPos: { x: 25, y: 211 },
       direction: 'up',
       playerTeam: [],
       storyStep: 'START',
     });
 
-    // Try to walk onto the lab door tile (23, 211) — should be blocked by lab_locked object
+    // Try to walk onto the lab door tile (25, 210) — should be blocked by lab_locked object
     sim.move('up');
     sim.tick(500);
 
-    // Player should NOT have moved (still at (23, 212))
-    expect(sim.pos).toEqual({ x: 23, y: 212 });
+    // Player should NOT have moved (still at (25, 211))
+    expect(sim.pos).toEqual({ x: 25, y: 211 });
     expect(sim.map).toBe('KANTO_OVERWORLD');
 
     // Interact with the blocking sign
@@ -275,16 +275,16 @@ describe('Scenario 7: Wild encounter on Route 1', () => {
     const starter = { ...STARTERS[1] }; // Charmander
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      // Position on path next to grass. Route 1 local (9, 10) = world (16+9, 163+10) = (25, 173)
-      playerPos: { x: 25, y: 173 },
+      // Position on path next to grass. Route 1 local (8, 10) = world (10+8, 163+10) = (18, 173)
+      playerPos: { x: 18, y: 173 },
       direction: 'left',
       playerTeam: [starter],
       storyStep: 'EXPLORING',
     });
 
     // Seed random: Per §4 of formulas.md, R = floor(random*256), encounter fires if R < EncounterRate.
-    // Route 1 EncounterRate = 25. With random=0.05, R = floor(0.05*256) = 12 < 25 → encounter.
-    sim.setRandomSequence([0.05, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]);
+    // Route 1 EncounterRate = 10. With random=0.02, R = floor(0.02*256) = 5 < 10 → encounter.
+    sim.setRandomSequence([0.02, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]);
 
     // Move left onto a grass tile (x=8 should be grass based on the map)
     sim.move('left');
@@ -467,8 +467,8 @@ describe('Scenario 13: Trainer vision range', () => {
   it('does NOT trigger when player is out of trainer line-of-sight', () => {
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      // Player at world (21, 173) — behind/right of trainer. Move further right → still safe.
-      playerPos: { x: 21, y: 173 },
+      // Player at world (22, 173) — behind/right of trainer. Move further right → still safe.
+      playerPos: { x: 22, y: 173 },
       direction: 'right',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',
@@ -537,11 +537,11 @@ describe('Scenario 14: Brock leader battle', () => {
 
 describe('Scenario 12: No ghost re-battle after winning trainer fight', () => {
   it('cleanly exits battle and does NOT re-enter with 0 HP enemy', () => {
-    // Start on Route 1 near the youngster trainer at (19, 173) facing left
-    // Player stands at (17, 173) — within trainer's 3-tile left vision
+    // Start on Route 1 near the youngster trainer at (20, 173) facing left
+    // Player stands at (18, 173) — within trainer's 3-tile left vision
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      playerPos: { x: 17, y: 173 },
+      playerPos: { x: 18, y: 173 },
       direction: 'right',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',

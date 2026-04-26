@@ -87,6 +87,7 @@ interface GameState extends GameSaveState {
   showMoves: boolean;
   dialogue: string | null;
   dialogueCallback: (() => void) | null;
+  teleportError: string | null;
   oakCutscenePos: Position | null;
   oakCutsceneDir: Direction | null;
   isLocked: boolean;
@@ -102,6 +103,8 @@ interface GameState extends GameSaveState {
   battleLog: string;
   battleLogs: any[];
   catchResult: boolean | null;
+  ghostMode: boolean;
+  showMinimap: boolean;
   
   worldMaps: typeof worldConfig.maps;
 
@@ -121,6 +124,7 @@ interface GameState extends GameSaveState {
   setBadges: (badges: SetStateAction<string[]>) => void;
   setDefeatedTrainers: (ids: SetStateAction<string[]>) => void;
   setDialogue: (text: string | null, onComplete?: () => void) => void;
+  setTeleportError: (err: string | null) => void;
   setOakCutscenePos: (pos: Position | null, dir?: Direction | null) => void;
   setIsLocked: (locked: boolean) => void;
   setStoryStep: (step: SetStateAction<GameState['storyStep']>) => void;
@@ -142,6 +146,8 @@ interface GameState extends GameSaveState {
   
   syncTeamStats: (battleTeam: Pokemon[]) => void;
   reorderTeam: (startIndex: number, endIndex: number) => void;
+  toggleGhostMode: () => void;
+  toggleMinimap: () => void;
 
   resetGame: () => void;
 }
@@ -174,6 +180,8 @@ export const useGameStore = create<GameState>()(
       battleLog: '',
       battleLogs: [],
       catchResult: null,
+      ghostMode: false,
+      showMinimap: false,
       
       worldMaps: worldConfig.maps,
 
@@ -199,6 +207,7 @@ export const useGameStore = create<GameState>()(
       setBadges: (badges) => set((state) => ({ badges: typeof badges === 'function' ? badges(state.badges) : badges })),
       setDefeatedTrainers: (ids) => set((state) => ({ defeatedTrainers: typeof ids === 'function' ? ids(state.defeatedTrainers) : ids })),
       setDialogue: (text, onComplete) => set({ dialogue: text, dialogueCallback: onComplete || null }),
+      setTeleportError: (err) => set({ teleportError: err }),
       setOakCutscenePos: (pos, dir) => set({ oakCutscenePos: pos, oakCutsceneDir: dir !== undefined ? dir : null }),
       setIsLocked: (locked) => set({ isLocked: locked }),
       setStoryStep: (step) => set((state) => ({ storyStep: typeof step === 'function' ? step(state.storyStep) : step })),
@@ -266,6 +275,9 @@ export const useGameStore = create<GameState>()(
         return { playerTeam: result };
       }),
 
+      toggleGhostMode: () => set((state) => ({ ghostMode: !state.ghostMode })),
+      toggleMinimap: () => set((state) => ({ showMinimap: !state.showMinimap })),
+
       setGrassEffect: (pos) => set({ grassEffect: pos }),
       setSpottedTrainerId: (id) => set({ spottedTrainerId: id }),
       setSpottedTrainerPos: (pos) => set((state) => ({ spottedTrainerPos: typeof pos === 'function' ? pos(state.spottedTrainerPos) : pos })),
@@ -300,6 +312,8 @@ export const useGameStore = create<GameState>()(
           spottedTrainerPos: null,
           oakCutscenePos: null,
           oakCutsceneDir: null,
+          ghostMode: false,
+          showMinimap: false,
         }));
       },
     }),
