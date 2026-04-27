@@ -48,8 +48,9 @@ const safeLocalStorage = {
 };
 
 const INITIAL_SAVE_STATE: GameSaveState = {
-  // Pallet Town in world coords: offset (11, 198), player starts at local (5,6)
-  playerPos: { x: 16, y: 204 },
+  // Pallet Town: player's house door warp sits at world (125, 203). Spawn one tile
+  // south of it, on the path strip, facing south into the town.
+  playerPos: { x: 125, y: 204 },
   direction: 'down',
   currentMap: 'KANTO_OVERWORLD',
 

@@ -8,6 +8,13 @@ import { useGameStore } from '../store/gameStore';
 // Shorter = snappier; 120ms is enough to show the turn frame without feeling sluggish.
 const TURN_WALK_DELAY_MS = 120;
 
+const turnLeft = (d: Direction): Direction =>
+  d === 'up' ? 'left' : d === 'left' ? 'down' : d === 'down' ? 'right' : 'up';
+const turnRight = (d: Direction): Direction =>
+  d === 'up' ? 'right' : d === 'right' ? 'down' : d === 'down' ? 'left' : 'up';
+const opposite = (d: Direction): Direction =>
+  d === 'up' ? 'down' : d === 'down' ? 'up' : d === 'left' ? 'right' : 'left';
+
 interface UseInputHandlerParams {
   handleMove: (dir: Direction) => void;
   handleAction: () => void;
@@ -26,6 +33,10 @@ export function useInputHandler({
   const pressedKeys = useRef<Set<Direction>>(new Set());
   const lastTurnedDir = useRef<Direction | null>(null);
   const turnWalkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 3D-mode (dungeon-crawler) hold state: forward / back resolve against the
+  // player's *current* facing each step, not against the world cardinal.
+  const forwardHeld = useRef(false);
+  const backwardHeld = useRef(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -114,6 +125,18 @@ export function useInputHandler({
         return;
       }
 
+      // First-person 3D mode: arrow keys are camera-relative (forward/back/turn).
+      if (store.viewMode === '3d' && store.phase.type === 'EXPLORING') {
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+          if (spottedTrainerId) return;
+          const facing = store.direction;
+          if (e.key === 'ArrowLeft')  { if (!e.repeat) store.setDirection(turnLeft(facing));  return; }
+          if (e.key === 'ArrowRight') { if (!e.repeat) store.setDirection(turnRight(facing)); return; }
+          if (e.key === 'ArrowUp')   { forwardHeld.current = true;  if (!store.isMoving) handleMove(facing);            return; }
+          if (e.key === 'ArrowDown') { backwardHeld.current = true; if (!store.isMoving) handleMove(opposite(facing));  return; }
+        }
+      }
+
       let dir: Direction | null = null;
       switch (e.key) {
         case 'ArrowUp': dir = 'up'; break;
@@ -153,6 +176,9 @@ export function useInputHandler({
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowUp') forwardHeld.current = false;
+      if (e.key === 'ArrowDown') backwardHeld.current = false;
+
       let dir: Direction | null = null;
       switch (e.key) {
         case 'ArrowUp': dir = 'up'; break;
@@ -185,7 +211,16 @@ export function useInputHandler({
   const isMoving = useGameStore(s => s.isMoving);
   // Self-trigger: the moment a move finishes, immediately start the next one if a key is held.
   useEffect(() => {
-    if (!isMoving && pressedKeys.current.size > 0 && !spottedTrainerId) {
+    if (isMoving || spottedTrainerId) return;
+    const store = useGameStore.getState();
+    if (store.viewMode === '3d') {
+      // In 3D mode, hold-keys re-resolve against the player's current facing each step,
+      // so turning mid-walk redirects the next step correctly.
+      if (forwardHeld.current) handleMove(store.direction);
+      else if (backwardHeld.current) handleMove(opposite(store.direction));
+      return;
+    }
+    if (pressedKeys.current.size > 0) {
       const dir = Array.from(pressedKeys.current)[0] as Direction;
       handleMove(dir);
     }
