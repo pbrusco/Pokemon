@@ -10,6 +10,8 @@ import { useGameStore } from '../store/gameStore';
 import { MapID } from '../types';
 import { launchBattle } from '../lib/launchBattle';
 import { logObservation } from '../lib/eventLog';
+import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES, getKantoRegion } from '../constants';
+import { calcHp } from '../lib/damage';
 
 // Pallet Town exit coords in the unified KANTO_OVERWORLD
 // Route 1 south end is at world y=196 (x=127-128). The cutscene fires when
@@ -263,8 +265,22 @@ export function useMovementEngine({
       triggerTrainerCutscene(spottedTrainer, { x: nextX, y: nextY });
     }
 
-    // Wild encounter roll (Disabled in favor of overworld wild pokemon)
-    // tryWildEncounter(grid[nextY][nextX].type, currentMap, { x: nextX, y: nextY }, playerTeam);
+    // Grass random encounter (coexists with overworld visible pokemon)
+    if (!warp && grid[nextY][nextX].type === 'grass' && playerTeam.length > 0) {
+      const zone = currentMap === 'KANTO_OVERWORLD' ? getKantoRegion(nextX, nextY) : currentMap;
+      const rate = WILD_ENCOUNTER_RATES[zone] ?? WILD_ENCOUNTER_RATES[currentMap] ?? 10;
+      if (Math.random() * 100 < rate) {
+        const speciesList = WILD_POKEMON_DATABASE[zone];
+        if (speciesList && speciesList.length > 0) {
+          const base = speciesList[Math.floor(Math.random() * speciesList.length)];
+          const level = Math.max(1, base.level + Math.floor(Math.random() * 3) - 1);
+          const maxHp = calcHp(base.baseStats.hp, level);
+          const enemy = { ...base, uid: Math.random().toString(36).substring(2, 9), level, hp: maxHp, maxHp };
+          logObservation({ k: 'obs_encounter', map: currentMap, pokemon: enemy.name, level });
+          launchBattle({ enemy, isTrainer: false, battleLog: `¡Un ${enemy.name} salvaje apareció!` });
+        }
+      }
+    }
   }, [battleStateRef, setOverworldShake]);
 
   return { handleMove, initBattle };
