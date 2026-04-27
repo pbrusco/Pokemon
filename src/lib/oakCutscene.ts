@@ -17,15 +17,15 @@ interface PathNode { x: number; y: number; dir: Direction }
 export function buildOakEscortPath(startPos: Position): PathNode[] {
   const path: PathNode[] = [];
   let { x, y } = startPos;
-  // Lab door is at Pallet Town local (12, 13) → world (11+12, 198+13) = (23, 211)
-  const labWorldX = 23;
-  const labWorldY = 211;
+  // Lab door warp is at world (134, 210). Row y=211 is all walkable path tiles
+  // from x=128 to x=135, so we navigate there to avoid the wall at y=210 x=132-133.
+  const labApproachX = 134;
+  const labApproachY = 211;
 
   path.push({ x, y, dir: 'down' });
-  while (x > labWorldX - 3) { x--; path.push({ x, y, dir: 'left' }); }
-  while (y < labWorldY)      { y++; path.push({ x, y, dir: 'down' }); }
-  while (x < labWorldX)     { x++; path.push({ x, y, dir: 'right' }); }
-  while (x > labWorldX)     { x--; path.push({ x, y, dir: 'left' }); }
+  while (x > labApproachX) { x--; path.push({ x, y, dir: 'left' }); }
+  while (y < labApproachY) { y++; path.push({ x, y, dir: 'down' }); }
+  while (x < labApproachX) { x++; path.push({ x, y, dir: 'right' }); }
 
   return path;
 }

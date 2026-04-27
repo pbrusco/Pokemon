@@ -20,12 +20,14 @@ describe('Oak Cutscene', () => {
 
   describe('buildOakEscortPath', () => {
     it('builds a path from player position to the lab door at world coords', () => {
-      const path = buildOakEscortPath({ x: 16, y: 204 });
+      // Player triggers cutscene at the Pallet Town north exit (world x=128-129, y=197).
+      const path = buildOakEscortPath({ x: 128, y: 197 });
 
-      expect(path[0]).toEqual({ x: 16, y: 204, dir: 'down' });
+      expect(path[0]).toEqual({ x: 128, y: 197, dir: 'down' });
 
+      // Path should end at the lab approach tile: world (134, 211).
       const last = path[path.length - 1];
-      expect(last.x).toBe(23);
+      expect(last.x).toBe(134);
       expect(last.y).toBe(211);
 
       // Every step is exactly 1 tile from the previous

@@ -39,10 +39,37 @@ afterEach(() => {
 // ─── Scenario 1: Oak stops player from leaving Pallet Town ─────────────────
 
 describe('Scenario 1: Oak stops player at Route 1', () => {
+  it('triggers Oak cutscene after walking north through Pallet Town path', () => {
+    // Start south of the Route 1 border (y=205) and walk north.
+    // Path: x=128, y=205→197 is open (stitched overworld), stepping to y=196 triggers Oak.
+    sim = new GameSimulator().init({
+      currentMap: 'KANTO_OVERWORLD',
+      playerPos: { x: 128, y: 205 },
+      direction: 'up',
+      playerTeam: [],
+    });
+
+    // Walk 8 tiles north — no cutscene yet (y=205 → y=197)
+    for (let i = 0; i < 8; i++) {
+      expect(sim.dialogue).toBeNull();
+      sim.move('up').tick(50);
+    }
+
+    // 9th step: player tries to enter Route 1 (y=196), Oak intercepts
+    sim.move('up');
+    expect(sim.dialogueContains('OAK')).toBe(true);
+    expect(sim.map).toBe('KANTO_OVERWORLD');
+
+    // Dismiss Oak's dialogues and let the cutscene walk complete
+    sim.dismissDialogue().dismissDialogue().tick(5000);
+    expect(sim.map).toBe('OAKS_LAB');
+    expect(sim.storyStep).toBe('OAK_STOPPED');
+  });
+
   it('walks player to Oak lab after dismissing Oak\'s dialogue', () => {
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      playerPos: { x: 21, y: 198 },
+      playerPos: { x: 128, y: 197 },
       direction: 'up',
       playerTeam: [],
     });

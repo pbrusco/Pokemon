@@ -72,7 +72,7 @@ export function buildNPCDatabase(
         dialogue: ["¡Espera! ¡No vayas por ahí!", "¡Es peligroso ir solo por la hierba alta!", "Ven conmigo a mi laboratorio."]
       }] : []),
       { id: 'girl_pallet', name: 'CHICA', type: 'npc', position: w('PALLET_TOWN', 8, 12), direction: 'right', trainerClass: 'lass', dialogue: ["¡Yo también entreno POKÉMON!", "¡Cuando crezca, seré una gran entrenadora!"] },
-      { id: 'fat_man', name: 'PESCADOR', type: 'npc', position: w('PALLET_TOWN', 14, 15), direction: 'left', trainerClass: 'fisher', dialogue: ["¡La tecnología es increíble!", "¡Ahora puedes guardar POKÉMON y objetos como datos en el PC!"] },
+      { id: 'fat_man', name: 'PESCADOR', type: 'npc', position: w('PALLET_TOWN', 9, 17), direction: 'left', trainerClass: 'fisher', dialogue: ["¡La tecnología es increíble!", "¡Ahora puedes guardar POKÉMON y objetos como datos en el PC!"] },
       // ── Route 1 ──
       { id: 'youngster_rt1_1', name: 'JOVEN', type: 'npc', position: w('ROUTE_1', 10, 15), direction: 'down', trainerClass: 'youngster', dialogue: ["¡Si te caes por un saliente, podrás volver rápidamente a PUEBLO PALETA!"] },
       { id: 'youngster_rt1_2', name: 'JOVEN', type: 'npc', position: w('ROUTE_1', 15, 13), direction: 'left', trainerClass: 'youngster', dialogue: ["¿Ves esas zonas de hierba alta?", "¡Ahí es donde aparecen los POKÉMON salvajes!"] },
