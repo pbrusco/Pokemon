@@ -1,4 +1,4 @@
-import { Pokemon } from '../types';
+import { Pokemon, NPC } from '../types';
 import { createBattleState } from './battleEngine';
 import { useGameStore } from '../store/gameStore';
 import { BATTLE_TRANSITION } from '../types/gamePhase';
@@ -26,7 +26,7 @@ export function launchBattle(options: LaunchBattleOptions): void {
 
   if (options.isTrainer && options.trainerName) {
     const allNpcs = s.getNPCs();
-    const trainer = Object.values(allNpcs).flat().find(n => n.id === options.trainerName);
+    const trainer = Object.values(allNpcs).flat().find(n => n.id === options.trainerName) as NPC | undefined;
     s.setTrainerBattleSprite(
       trainer?.trainerClass ? (TRAINER_BATTLE_SPRITES[trainer.trainerClass] ?? null) : null
     );

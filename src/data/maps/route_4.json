@@ -13,16 +13,6 @@
   ],
   "warps": [
     {
-      "x": 0,
-      "y": 4,
-      "targetMap": "MT_MOON",
-      "targetPos": {
-        "x": 19,
-        "y": 10
-      },
-      "targetDir": "left"
-    },
-    {
       "x": 39,
       "y": 4,
       "targetMap": "KANTO_OVERWORLD",

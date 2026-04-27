@@ -1,19 +1,13 @@
 import { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Position, Direction, NPC, Entity, Pokemon, MapID, TILE_SIZE } from '../types';
+import { Position, Entity, Pokemon, MapID, TILE_SIZE, MapData, NPC } from '../types';
 import { WILD_POKEMON_DATABASE } from '../constants';
 import { useGameStore } from '../store/gameStore';
 import { NPCComponent } from './overworld/NPCComponent';
 import { GameTile } from './overworld/GameTile';
 import { PlayerSprite } from './overworld/PlayerSprite';
+import { StaticMap } from './overworld/StaticMap';
 import { T } from '../data/tileset/tilesetGenerator';
-import type { RenderLayers } from '../data/tileset/autotiler';
-
-interface MapData {
-  tiles: { type: string; walkable: boolean }[][];
-  warps: Array<{ x: number; y: number; targetMap: MapID; targetPos: Position; targetDir?: Direction }>;
-  layers: RenderLayers;
-}
 
 interface WindowSize {
   width: number;
@@ -23,7 +17,7 @@ interface WindowSize {
 interface WorldViewProps {
   currentMap: MapID;
   maps: Record<MapID, MapData>;
-  npcs: Record<MapID, NPC[]>;
+  npcs: Record<MapID, Entity[]>;
   items: Record<MapID, Entity[]>;
   grassEffect: Position | null;
   overworldShake: boolean;
@@ -50,7 +44,7 @@ export const WorldView = memo(({
   dialogue,
   playerTeam,
 }: WorldViewProps) => {
-  const { playerPos, direction, isMoving, currentMap, zoomLevel, cameraOffset, isCameraLocked, setZoomLevel, setCameraOffset, setIsCameraLocked } = useGameStore();
+  const { playerPos, direction, isMoving, currentMap, zoomLevel, cameraOffset, isCameraLocked, setZoomLevel, setCameraOffset, setIsCameraLocked, wildPokemon } = useGameStore();
   const mapData = maps[currentMap];
   if (!mapData) return null;
   const grid = mapData.tiles;
@@ -59,8 +53,13 @@ export const WorldView = memo(({
 
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
+  // ── Rendering Strategy ──────────────────────────────────────
+  const isLargeMap = grid.length * grid[0].length > 2000;
+  const useStaticMap = isLargeMap && zoomLevel < 0.6;
+  const useColorMode = isLargeMap && zoomLevel < 0.15;
+
   // ── Visible-tile culling ──────────────────────────────────────
-  const cullRadius = Math.ceil(24 / zoomLevel);
+  const cullRadius = Math.min(Math.ceil(24 / zoomLevel), 50); 
   const cullStep = 4;
   const rows = grid.length;
   const cols = grid[0].length;
@@ -78,35 +77,37 @@ export const WorldView = memo(({
   const visibleObjectTiles = [];
   const visibleOverheadTiles = [];
 
-  for (let y = minY; y <= maxY; y++) {
-    for (let x = minX; x <= maxX; x++) {
-      const tile = grid[y][x];
-      let groundId = layers.ground[y][x];
-      const objectId = layers.objects[y][x];
-      const overheadId = layers.overhead[y][x];
+  if (!useStaticMap) {
+    for (let y = minY; y <= maxY; y++) {
+      for (let x = minX; x <= maxX; x++) {
+        const tile = grid[y][x];
+        let groundId = layers.ground[y][x];
+        const objectId = layers.objects[y][x];
+        const overheadId = layers.overhead[y][x];
 
-      // On encounter maps, swap normal grass for tall grass
-      if (mapHasEncounters && tile.type === 'grass') {
-        groundId = T.TALL_GRASS;
-      }
+        // On encounter maps, swap normal grass for tall grass
+        if (mapHasEncounters && tile.type === 'grass') {
+          groundId = T.TALL_GRASS;
+        }
 
-      // Ground — single flat div per tile (no wrapper)
-      visibleGroundTiles.push(
-        <GameTile key={`g-${x}-${y}`} tileId={groundId} x={x} y={y} />
-      );
-
-      // Objects (trunks, tables, bookshelves, etc.)
-      if (objectId !== T.EMPTY) {
-        visibleObjectTiles.push(
-          <GameTile key={`o-${x}-${y}`} tileId={objectId} x={x} y={y} z={15 + y} />
+        // Ground — single flat div per tile (no wrapper)
+        visibleGroundTiles.push(
+          <GameTile key={`g-${x}-${y}`} tileId={groundId} x={x} y={y} />
         );
-      }
 
-      // Overhead (tree canopies)
-      if (overheadId !== T.EMPTY) {
-        visibleOverheadTiles.push(
-          <GameTile key={`h-${x}-${y}`} tileId={overheadId} x={x} y={y} z={40 + y} noPointerEvents />
-        );
+        // Objects (trunks, tables, bookshelves, etc.)
+        if (objectId !== T.EMPTY) {
+          visibleObjectTiles.push(
+            <GameTile key={`o-${x}-${y}`} tileId={objectId} x={x} y={y} z={15 + y} />
+          );
+        }
+
+        // Overhead (tree canopies)
+        if (overheadId !== T.EMPTY) {
+          visibleOverheadTiles.push(
+            <GameTile key={`h-${x}-${y}`} tileId={overheadId} x={x} y={y} z={40 + y} noPointerEvents />
+          );
+        }
       }
     }
   }
@@ -125,13 +126,13 @@ export const WorldView = memo(({
       npcs[currentMap].some(npc => npc.position.x === interactTargetX && npc.position.y === interactTargetY) ||
       items[currentMap].some(item => item.position.x === interactTargetX && item.position.y === interactTargetY) ||
       (interactTargetX >= 0 && interactTargetX < cols && interactTargetY >= 0 && interactTargetY < rows &&
-       ['tree', 'table', 'cut_tree', 'boulder'].includes(mapData.tiles[interactTargetY][interactTargetX].type))
+       ['tree', 'table', 'cut_tree', 'boulder', 'door', 'sign'].includes(mapData.tiles[interactTargetY][interactTargetX].type))
     );
 
   const handleWheel = (e: React.WheelEvent) => {
     if (inBattle) return;
-    const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    setZoomLevel(prev => Math.min(Math.max(prev + delta, 0.2), 3.0));
+    const delta = e.deltaY > 0 ? -0.05 : 0.05;
+    setZoomLevel(prev => Math.min(Math.max(prev + delta, 0.05), 1.0));
   };
 
   const [isDragging, setIsDragging] = useState(false);
@@ -269,14 +270,14 @@ export const WorldView = memo(({
       >
         <div className="relative" style={{ width: cols * TILE_SIZE, height: rows * TILE_SIZE }}>
           {/* Ground layer */}
-          {visibleGroundTiles}
+          {useStaticMap ? <StaticMap mapData={mapData} layerIndex={0} colorMode={useColorMode} /> : visibleGroundTiles}
 
           {/* Object layer (trunks, furniture — z-indexed by row) */}
-          {visibleObjectTiles}
+          {useStaticMap ? <StaticMap mapData={mapData} layerIndex={1} colorMode={useColorMode} /> : visibleObjectTiles}
 
           {/* Trainer vision indicators */}
           {npcs[currentMap]
-            .filter(npc => npc.isTrainer && !defeatedTrainers.includes(npc.id))
+            .filter(npc => (npc as NPC).isTrainer && !defeatedTrainers.includes(npc.id))
             .flatMap(trainer =>
               [1, 2, 3].map(i => {
                 let vx = trainer.position.x, vy = trainer.position.y;
@@ -317,7 +318,7 @@ export const WorldView = memo(({
           {npcs[currentMap].map(npc => (
             <NPCComponent
               key={npc.id}
-              npc={npc.id === spottedTrainerId && spottedTrainerPos ? { ...npc, position: spottedTrainerPos } : npc}
+              npc={(npc.id === spottedTrainerId && spottedTrainerPos ? { ...npc, position: spottedTrainerPos } : npc) as NPC}
               isSpotted={npc.id === spottedTrainerId}
             />
           ))}
@@ -368,10 +369,21 @@ export const WorldView = memo(({
           </AnimatePresence>
 
           {/* Player */}
+          {wildPokemon.map(wild => (
+            <NPCComponent 
+              key={wild.id}
+              npc={{
+                ...wild,
+                name: wild.pokemon.name,
+                dialogue: [],
+                trainerClass: wild.pokemon.id
+              } as any}
+            />
+          ))}
           <PlayerSprite position={playerPos} direction={direction} isMoving={isMoving} />
 
           {/* Overhead layer (tree canopies — rendered above player) */}
-          {visibleOverheadTiles}
+          {useStaticMap ? <StaticMap mapData={mapData} layerIndex={2} colorMode={useColorMode} /> : visibleOverheadTiles}
 
           {/* Interaction indicator */}
           <AnimatePresence>

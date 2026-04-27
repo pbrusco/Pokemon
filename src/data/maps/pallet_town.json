@@ -1,73 +1,60 @@
 {
   "rows": [
-    "TTTTTTTTTPPTTTTTTTTT",
-    "TTGTTTTTTPPTTTTTTGTT",
-    "TTTWWWWPPPPPPWWWWTTT",
-    "TTTWWWWPPPPPPWWWWTTT",
-    "TTTWWDWPPPPPPWWDWTTT",
-    "TTGPPPSPPPPPPPPSPGTT",
-    "TTGPPPPPPPPPPPPPPGTT",
-    "TTT+++++PPPP+++++TTT",
-    "TTTG*G*GPPPPGG*GGTTT",
-    "TTT*G*G*PPPPWWWWWTTT",
-    "TTTG*G*GPPPPWWWWWTTT",
-    "TTT*G*G*PPPPWWWWWTTT",
-    "TTTG*G*GPPPPWWDWWTTT",
-    "TTTGGGGGPPPPPPPPSTTT",
-    "TTT+++++PPPP+++++TTT",
-    "TTGPPPPPPPPPPPPPPGTT",
-    "TTT~~~~~PPPP~~~~~TTT",
-    "TTTTTTTT~~~~TTTTTTTT"
+    "TTTTTTTTTTTTTTTTTTTTTTTT",
+    "TTTTTTTTTTTTTTTTTTTTTTTT",
+    "TTTTTTTTTTTTTTTTTTTTTTTT",
+    "TTTTTTTTTTPPTTTTTTTTTTTT",
+    "TTTTTTTTTTPPTTTTTTTTTTTT",
+    "TTTTTWWWWPPPPPPWWWWTTTTT",
+    "TTTTTWWWWPPPPPPWWWWTTTTT",
+    "TTTTTWWDWPPPPPPWWDWTTTTT",
+    "TTTTTPPPPPPPPPPPPPPTTTTT",
+    "TTTTTPPPPPPPPPPPPPPTTTTT",
+    "TTTTT+++++PPPP+++++TTTTT",
+    "TTTTT*G*G*PPPPG*G*GTTTTT",
+    "TTTTT*G*G*PPPPWWWWWTTTTT",
+    "TTTTT*G*G*PPPPWWWWWTTTTT",
+    "TTTTT*G*G*PPPPWWDWWTTTTT",
+    "TTTTTGGGGGPPPPPPPPSTTTTT",
+    "TTTTT+++++PPPP+++++TTTTT",
+    "TTTTTPPPPPPPPPPPPPPTTTTT",
+    "TTTTT~~~~~PPPP~~~~~TTTTT",
+    "TTTTTTTTTT~~~~TTTTTTTTTT"
   ],
   "warps": [
     {
-      "x": 5,
-      "y": 4,
+      "x": 7,
+      "y": 7,
       "targetMap": "PLAYERS_HOUSE_1F",
-      "targetPos": {
-        "x": 3,
-        "y": 6
-      },
+      "targetPos": { "x": 3, "y": 6 },
       "targetDir": "up"
     },
     {
-      "x": 15,
-      "y": 4,
+      "x": 17,
+      "y": 7,
       "targetMap": "RIVALS_HOUSE",
-      "targetPos": {
-        "x": 3,
-        "y": 6
-      },
+      "targetPos": { "x": 3, "y": 6 },
       "targetDir": "up"
     },
     {
-      "x": 14,
-      "y": 12,
+      "x": 16,
+      "y": 14,
       "targetMap": "OAKS_LAB",
-      "targetPos": {
-        "x": 4,
-        "y": 11
-      },
-      "targetDir": "up"
-    },
-    {
-      "x": 9,
-      "y": 0,
-      "targetMap": "KANTO_OVERWORLD",
-      "targetPos": {
-        "x": 20,
-        "y": 198
-      },
+      "targetPos": { "x": 4, "y": 11 },
       "targetDir": "up"
     },
     {
       "x": 10,
       "y": 0,
       "targetMap": "KANTO_OVERWORLD",
-      "targetPos": {
-        "x": 21,
-        "y": 198
-      },
+      "targetPos": { "x": 10, "y": 195 },
+      "targetDir": "up"
+    },
+    {
+      "x": 11,
+      "y": 0,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": { "x": 11, "y": 195 },
       "targetDir": "up"
     }
   ]

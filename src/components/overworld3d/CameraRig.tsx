@@ -8,11 +8,16 @@ const EYE_HEIGHT = 0.6;
 const POS_TAU = 0.06;
 const YAW_TAU = 0.04;
 
+// Three.js camera default look direction is -Z, so:
+//   rotation.y = 0     → camera looks -Z (north / tile -y)
+//   rotation.y = π     → camera looks +Z (south / tile +y)
+//   rotation.y = +π/2  → camera looks -X (west  / tile -x)
+//   rotation.y = -π/2  → camera looks +X (east  / tile +x)
 const DIR_TO_YAW: Record<Direction, number> = {
-  down: 0,
-  right: -Math.PI / 2,
-  up: Math.PI,
+  up: 0,
+  down: Math.PI,
   left: Math.PI / 2,
+  right: -Math.PI / 2,
 };
 
 export function CameraRig() {

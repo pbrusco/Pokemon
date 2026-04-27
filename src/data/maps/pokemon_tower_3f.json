@@ -21,11 +21,11 @@
   ],
   "warps": [
     {
-      "x": 18,
+      "x": 3,
       "y": 1,
       "targetMap": "POKEMON_TOWER_2F",
       "targetPos": {
-        "x": 18,
+        "x": 3,
         "y": 1
       },
       "targetDir": "up"

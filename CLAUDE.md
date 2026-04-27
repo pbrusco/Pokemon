@@ -76,7 +76,7 @@ setTimeout(() => setPhase(EXPLORING), 1000);
 - Coordinates: `(0,0)` top-left, x→right, y→down.
 - No backward compatibility — delete old code, no shims.
 - If npm is not found on macOS: `export PATH="/opt/homebrew/bin:$PATH"`
-- After every task run: `npx tsc --noEmit`, `npx tsc --noEmit --noUnusedLocals --noUnusedParameters 2>&1 | grep -E "error TS(6133|6192|6196|6198)" | grep -v node_modules`, `npx knip --no-progress 2>&1` — delete unused imports/exports/deps.
+- **Pre-commit script**: Always run `bash .githooks/pre-commit` before finishing a task. This script runs `tsc` (including unused checks), `vitest`, and `knip`.
 
 ## Testing
 

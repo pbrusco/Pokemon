@@ -446,6 +446,7 @@ describe('Sign / object interactions', () => {
       position: { x: 5, y: 4 },
       direction: 'down',
       sprite: '🪧',
+      dialogue: ['CASA DE RED']
     };
     const { handleAction, getState } = setup({
       items: { ...EMPTY_ITEMS, KANTO_OVERWORLD: [sign] },

@@ -1,19 +1,19 @@
 {
   "rows": [
-    "WWWWWWWWWW",
-    "WFFFFFFFFW",
-    "WFFFFFFFFW",
-    "WFFFFFFFFW",
-    "WFFFFFFFFW",
-    "WFFFFFFFFW",
-    "WFFFFFFFFW",
-    "WFFFFFFFFW",
-    "WFFFFFFFFW",
-    "WFFFFFFFFW",
-    "WFFFFFFFFW",
-    "WFFFFFFFFW",
-    "WFFFFFFFFW",
-    "WWWDWWWWWW"
+    "WWWWWWWW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WWWDWWWW"
   ],
   "warps": [
     {
@@ -21,8 +21,8 @@
       "y": 13,
       "targetMap": "KANTO_OVERWORLD",
       "targetPos": {
-        "x": 16,
-        "y": 27
+        "x": 124,
+        "y": 22
       },
       "targetDir": "down"
     }

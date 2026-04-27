@@ -21,21 +21,11 @@
   ],
   "warps": [
     {
-      "x": 10,
-      "y": 16,
-      "targetMap": "KANTO_OVERWORLD",
-      "targetPos": {
-        "x": 165,
-        "y": 44
-      },
-      "targetDir": "down"
-    },
-    {
-      "x": 1,
+      "x": 18,
       "y": 1,
       "targetMap": "POKEMON_TOWER_2F",
       "targetPos": {
-        "x": 1,
+        "x": 18,
         "y": 1
       },
       "targetDir": "down"

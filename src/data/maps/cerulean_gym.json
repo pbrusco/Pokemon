@@ -15,16 +15,5 @@
     "WFFFFFFFFW",
     "WWWWWDWWWW"
   ],
-  "warps": [
-    {
-      "x": 5,
-      "y": 13,
-      "targetMap": "KANTO_OVERWORLD",
-      "targetPos": {
-        "x": 114,
-        "y": 18
-      },
-      "targetDir": "down"
-    }
-  ]
+  "warps": []
 }

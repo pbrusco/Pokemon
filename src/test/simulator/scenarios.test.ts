@@ -69,7 +69,7 @@ describe('Scenario 1: Oak stops player at Route 1', () => {
   it('does not retrigger when player already has a team', () => {
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      playerPos: { x: 21, y: 198 },
+      playerPos: { x: 129, y: 198 },
       direction: 'up',
       playerTeam: [STARTERS[0]],
       storyStep: 'EXPLORING',
@@ -88,19 +88,19 @@ describe('Scenario 1b: Oak\'s Lab locked at START', () => {
   it('blocks entry to Oak\'s Lab and shows locked message', () => {
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      // Stand one tile below the lab door at world (25, 210) -> (25, 211)
-      playerPos: { x: 25, y: 211 },
+      // Stand one tile below the lab door at world (134, 210) -> (134, 211)
+      playerPos: { x: 134, y: 211 },
       direction: 'up',
       playerTeam: [],
       storyStep: 'START',
     });
 
-    // Try to walk onto the lab door tile (25, 210) — should be blocked by lab_locked object
+    // Try to walk onto the lab door tile (134, 210) — should be blocked by lab_locked object
     sim.move('up');
     sim.tick(500);
 
-    // Player should NOT have moved (still at (25, 211))
-    expect(sim.pos).toEqual({ x: 25, y: 211 });
+    // Player should NOT have moved (still at (134, 211))
+    expect(sim.pos).toEqual({ x: 134, y: 211 });
     expect(sim.map).toBe('KANTO_OVERWORLD');
 
     // Interact with the blocking sign
@@ -275,18 +275,23 @@ describe('Scenario 7: Wild encounter on Route 1', () => {
     const starter = { ...STARTERS[1] }; // Charmander
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      // Position on path next to grass. Route 1 local (8, 10) = world (10+8, 163+10) = (18, 173)
-      playerPos: { x: 18, y: 173 },
+      // Position on path next to grass. Route 1 local (8, 10) = world (118+8, 161+10) = (126, 171)
+      playerPos: { x: 126, y: 171 },
       direction: 'left',
       playerTeam: [starter],
       storyStep: 'EXPLORING',
     });
 
-    // Seed random: Per §4 of formulas.md, R = floor(random*256), encounter fires if R < EncounterRate.
-    // Route 1 EncounterRate = 10. With random=0.02, R = floor(0.02*256) = 5 < 10 → encounter.
-    sim.setRandomSequence([0.02, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]);
+    // Simulate overworld wild pokemon engine spawning a pokemon on the target grass tile
+    useGameStore.getState().setWildPokemon([{
+      id: 'wild_pidgey_test',
+      type: 'wild_pokemon',
+      position: { x: 125, y: 171 },
+      direction: 'down',
+      pokemon: starter
+    }]);
 
-    // Move left onto a grass tile (x=8 should be grass based on the map)
+    // Move left onto the wild pokemon
     sim.move('left');
     sim.tick(1000);
 
@@ -420,8 +425,8 @@ describe('loadLogAsScenario helper', () => {
   it('replays a hand-crafted log: move + interact', () => {
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      // local (9,8) in Pallet Town -> world (20, 206)
-      playerPos: { x: 20, y: 206 },
+      // local (9,8) in Pallet Town -> world (128, 206)
+      playerPos: { x: 128, y: 206 },
       direction: 'down',
       playerTeam: [STARTERS[0]],
       storyStep: 'EXPLORING',
@@ -440,7 +445,7 @@ describe('loadLogAsScenario helper', () => {
       observations: [],
     };
     sim.loadLogAsScenario(log);
-    expect(sim.pos).toEqual({ x: 20, y: 205 });
+    expect(sim.pos).toEqual({ x: 128, y: 205 });
   });
 });
 
@@ -450,7 +455,7 @@ describe('assertWorldIntact helper', () => {
   it('returns cleanly when world data is intact', () => {
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      playerPos: { x: 21, y: 208 },
+      playerPos: { x: 129, y: 208 },
       direction: 'down',
       playerTeam: [],
     });
@@ -482,8 +487,8 @@ describe('Scenario 13: Trainer vision range', () => {
   it('triggers cutscene when player steps into 3rd tile of vision (boundary)', () => {
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      // Start at (17, 174). Move up to (17, 173) — exactly the 2nd tile of vision (still in range).
-      playerPos: { x: 17, y: 174 },
+      // Start at (128, 59). Move up to (128, 58) — exactly the 3rd tile of vision (boundary).
+      playerPos: { x: 128, y: 59 },
       direction: 'up',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',
@@ -537,18 +542,18 @@ describe('Scenario 14: Brock leader battle', () => {
 
 describe('Scenario 12: No ghost re-battle after winning trainer fight', () => {
   it('cleanly exits battle and does NOT re-enter with 0 HP enemy', () => {
-    // Start on Route 1 near the youngster trainer at (20, 173) facing left
-    // Player stands at (18, 173) — within trainer's 3-tile left vision
+    // Start in Viridian Forest near bug_catcher_forest_2 at (131, 58) facing left
+    // Player stands at (129, 58) — within trainer's 3-tile left vision
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      playerPos: { x: 18, y: 173 },
+      playerPos: { x: 129, y: 58 },
       direction: 'right',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',
     });
 
     // Step into trainer's vision zone → triggers trainer cutscene
-    sim.move('right'); // now at (18, 173) — within youngster_chano's vision (3 tiles left from (19,173))
+    sim.move('right'); // now at (130, 58) — within vision
     sim.tick(500);
 
     // If dialogue appeared, dismiss it
@@ -592,7 +597,7 @@ describe('Scenario 12: No ghost re-battle after winning trainer fight', () => {
     expect(sim.state.activeBattle).toBeNull();
 
     // 3. The trainer should be in defeatedTrainers
-    expect(sim.state.defeatedTrainers).toContain('youngster_chano');
+    expect(sim.state.defeatedTrainers).toContain('bug_catcher_forest_2');
 
     // 4. Verify we don't bounce back into battle after further ticks
     sim.tick(5000);
@@ -605,3 +610,4 @@ describe('Scenario 12: No ghost re-battle after winning trainer fight', () => {
     expect(phasesAfterExploring).not.toContain('BATTLE_TRANSITION');
   });
 });
+

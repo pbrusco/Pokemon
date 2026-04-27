@@ -1,10 +1,11 @@
 import { worldConfig } from '../data/worldConfig';
 import { buildNPCDatabase, buildItemDatabase } from '../data/npcDatabase';
 import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES } from '../constants';
+import pokeredMetadata from '../data/reference/pokered_metadata.json';
 import type { MapID, Tile } from '../types';
 
 interface WorldValidationIssue {
-  category: 'warp' | 'npc' | 'item' | 'encounter';
+  category: 'warp' | 'npc' | 'item' | 'encounter' | 'faithfulness';
   message: string;
 }
 
@@ -31,7 +32,36 @@ export function validateWorld(): WorldValidationIssue[] {
   const maps = worldConfig.maps;
   const mapIds = Object.keys(maps) as MapID[];
 
-  // Warps
+  // Snapshots for entity checks
+  const allNpcs = buildNPCDatabase([], false, false, [], 'START', null, null);
+  const allItems = buildItemDatabase([], 'START');
+
+  // 1. Mandatory Tile-Entity Connections (Doors/Signs)
+  for (const id of mapIds) {
+    const map = maps[id];
+    const grid = map.tiles;
+    const mapEntities = [...(allNpcs[id] || []), ...(allItems[id] || [])];
+
+    for (let y = 0; y < grid.length; y++) {
+      for (let x = 0; x < grid[y].length; x++) {
+        if (grid[y][x].type === 'door') {
+          const hasWarp = map.warps.some(w => w.x === x && w.y === y);
+          const hasObject = mapEntities.some(e => e.type === 'object' && e.position.x === x && e.position.y === y);
+          if (!hasWarp && !hasObject) {
+            issues.push({ category: 'warp', message: `map ${id} has a "door" tile at (${x},${y}) with no warp and no blocking object.` });
+          }
+        }
+        if (grid[y][x].type === 'sign') {
+          const hasObject = mapEntities.some(e => e.type === 'object' && e.position.x === x && e.position.y === y);
+          if (!hasObject) {
+            issues.push({ category: 'item', message: `map ${id} has a "sign" tile at (${x},${y}) with no object entity (use object for custom dialogue).` });
+          }
+        }
+      }
+    }
+  }
+
+  // 2. Warps
   for (const id of mapIds) {
     const map = maps[id];
     for (const w of map.warps) {
@@ -70,7 +100,7 @@ export function validateWorld(): WorldValidationIssue[] {
     }
   }
 
-  // NPCs (most permissive snapshot — forces every conditional NPC to appear)
+  // 2. NPCs (most permissive snapshot — forces every conditional NPC to appear)
   const allBadges = ['boulder', 'cascade', 'thunder', 'rainbow', 'soul', 'marsh', 'volcano', 'earth'];
   const npcs = buildNPCDatabase([], false, false, allBadges, 'OAK_PARCEL_TURNED_IN', null, null);
   const seenNpcIds = new Map<string, MapID>();
@@ -95,7 +125,7 @@ export function validateWorld(): WorldValidationIssue[] {
     }
   }
 
-  // Items
+  // 3. Items
   const items = buildItemDatabase([], 'START');
   for (const id of mapIds) {
     const map = maps[id];
@@ -106,7 +136,7 @@ export function validateWorld(): WorldValidationIssue[] {
     }
   }
 
-  // Encounter tables (handles KANTO_OVERWORLD sub-zones)
+  // 4. Encounter tables (handles KANTO_OVERWORLD sub-zones)
   for (const id of Object.keys(WILD_POKEMON_DATABASE)) {
     const map = maps[id as MapID];
     const isZone = Object.keys(WILD_ENCOUNTER_RATES).includes(id); 
@@ -135,6 +165,27 @@ export function validateWorld(): WorldValidationIssue[] {
     }
     if (WILD_POKEMON_DATABASE[id] === undefined && id !== 'KANTO_OVERWORLD') {
       issues.push({ category: 'encounter', message: `${id} has WILD_ENCOUNTER_RATES but no WILD_POKEMON_DATABASE` });
+    }
+  }
+
+  // 5. Faithfulness Pass (Metadata Comparison)
+  for (const mapKey of Object.keys(pokeredMetadata)) {
+    const id = mapKey as MapID;
+    if (id === 'KANTO_OVERWORLD') continue;
+
+    const meta = (pokeredMetadata as any)[mapKey];
+    const map = maps[id];
+    if (!map) continue;
+
+    const npcsCount = (allNpcs[id] || []).length;
+    // signsCount: count objects in buildItemDatabase that start with 'sign_'
+    const signsCount = (allItems[id] || []).filter(e => e.id.startsWith('sign_')).length;
+
+    if (npcsCount < meta.npcs) {
+      issues.push({ category: 'faithfulness', message: `${id}: found ${npcsCount} NPCs, expected ${meta.npcs}` });
+    }
+    if (signsCount < meta.signs) {
+      issues.push({ category: 'faithfulness', message: `${id}: found ${signsCount} signs, expected ${meta.signs}` });
     }
   }
 

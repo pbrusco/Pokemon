@@ -21,33 +21,10 @@
   ],
   "warps": [
     {
-      "x": 4,
-      "y": 3,
-      "targetMap": "KANTO_OVERWORLD",
-      "targetPos": {
-        "x": 166,
-        "y": 19
-      },
-      "targetDir": "up"
-    },
-    {
-      "x": 15,
-      "y": 14,
-      "targetMap": "KANTO_OVERWORLD",
-      "targetPos": {
-        "x": 166,
-        "y": 21
-      },
-      "targetDir": "down"
-    },
-    {
       "x": 15,
       "y": 5,
       "targetMap": "ROCK_TUNNEL_B1F",
-      "targetPos": {
-        "x": 15,
-        "y": 5
-      },
+      "targetPos": { "x": 15, "y": 5 },
       "targetDir": "down"
     }
   ]

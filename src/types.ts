@@ -1,3 +1,4 @@
+import type { RenderLayers } from './data/tileset/autotiler';
 import type { worldMaps } from './data/maps';
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
@@ -6,6 +7,12 @@ export type MapID = keyof typeof worldMaps;
 export interface Position {
   x: number;
   y: number;
+}
+
+export interface MapData {
+  tiles: { type: string; walkable: boolean }[][];
+  warps: Array<{ x: number; y: number; targetMap: MapID; targetPos: Position; targetDir?: Direction }>;
+  layers: RenderLayers;
 }
 
 type PokedexEntry = { seen: boolean; caught: boolean };
@@ -108,12 +115,18 @@ export interface NPC extends Entity {
   trainerClass?: string;
 }
 
+export interface WildPokemonEntity extends Entity {
+  type: 'wild_pokemon';
+  pokemon: Pokemon;
+}
+
 export interface Entity {
   id: string;
-  type: 'player' | 'npc' | 'object' | 'teleport' | 'item';
+  type: 'player' | 'npc' | 'object' | 'teleport' | 'item' | 'wild_pokemon';
   position: Position;
   direction: Direction;
   sprite?: string;
+  itemId?: string; // Reference to ITEMS_DATABASE
   targetMap?: MapID;
   targetPos?: Position;
   dialogue?: string[];

@@ -42,40 +42,28 @@
       "x": 10,
       "y": 0,
       "targetMap": "KANTO_OVERWORLD",
-      "targetPos": {
-        "x": 20,
-        "y": 163
-      },
+      "targetPos": { "x": 10, "y": 10 },
       "targetDir": "up"
     },
     {
       "x": 11,
       "y": 0,
       "targetMap": "KANTO_OVERWORLD",
-      "targetPos": {
-        "x": 21,
-        "y": 163
-      },
+      "targetPos": { "x": 11, "y": 10 },
       "targetDir": "up"
     },
     {
       "x": 10,
       "y": 35,
       "targetMap": "KANTO_OVERWORLD",
-      "targetPos": {
-        "x": 20,
-        "y": 198
-      },
+      "targetPos": { "x": 10, "y": 10 },
       "targetDir": "down"
     },
     {
       "x": 11,
       "y": 35,
       "targetMap": "KANTO_OVERWORLD",
-      "targetPos": {
-        "x": 21,
-        "y": 198
-      },
+      "targetPos": { "x": 11, "y": 10 },
       "targetDir": "down"
     }
   ]

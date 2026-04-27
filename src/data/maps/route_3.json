@@ -29,16 +29,6 @@
         "y": 26
       },
       "targetDir": "left"
-    },
-    {
-      "x": 30,
-      "y": 0,
-      "targetMap": "MT_MOON",
-      "targetPos": {
-        "x": 10,
-        "y": 19
-      },
-      "targetDir": "up"
     }
   ]
 }

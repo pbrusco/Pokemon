@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import type { Pokemon, MapID, Position } from '../types';
-import { HM_REQUIREMENTS, STARTERS } from '../constants';
+import type { Pokemon, MapID, Position, NPC } from '../types';
+import { HM_REQUIREMENTS, STARTERS, ITEMS_DATABASE } from '../constants';
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
 import { EXPLORING, HEALING, SHOP } from '../types/gamePhase';
@@ -41,7 +41,7 @@ export const useInteractionEngine = ({
     const npcs = store.getNPCs();
     const items = store.getItems();
 
-    const npc = npcs[currentMap]?.find(n => n.position.x === targetX && n.position.y === targetY);
+    const npc = npcs[currentMap]?.find(n => n.position.x === targetX && n.position.y === targetY) as NPC | undefined;
     if (npc) {
       if (npc.isTrainer && npc.trainerTeam?.length && !store.defeatedTrainers.includes(npc.id)) {
         store.setDialogue(`${npc.name}: ${npc.dialogue[0]}`, () => {
@@ -125,23 +125,18 @@ export const useInteractionEngine = ({
           }, sd(1500));
         }
       } else if (item.type === 'item') {
-        if (item.id.startsWith('item_potion')) {
+        const itemKey = item.itemId || 
+                       Object.keys(ITEMS_DATABASE).find(k => item.id.includes(k.toLowerCase())) || 
+                       (item.id.includes('potion') ? 'POTION' : item.id.includes('pokeball') ? 'POKEBALL' : null);
+
+        if (itemKey && ITEMS_DATABASE[itemKey]) {
+          const dbItem = ITEMS_DATABASE[itemKey];
           store.setPickedItemIds(prev => [...prev, item.id]);
-          store.addInventoryItem('POTION');
-          store.setDialogue("¡Has encontrado una POCIÓN!");
-        } else if (item.id.startsWith('item_pokeball')) {
-          store.setPickedItemIds(prev => [...prev, item.id]);
-          store.addInventoryItem('POKEBALL');
-          store.setDialogue("¡Has encontrado una POKÉ BALL!");
+          store.addInventoryItem(itemKey);
+          store.setDialogue(`¡Has encontrado: ${dbItem.name}!`);
         }
       } else if (item.type === 'object') {
-        if (item.id === 'sign_home') store.setDialogue("CASA DE PABLO");
-        else if (item.id === 'sign_rival') store.setDialogue("CASA DE AZUL");
-        else if (item.id === 'sign_lab') store.setDialogue("LABORATORIO DEL PROF. OAK: Investigando POKÉMON.");
-        else if (item.id === 'lab_locked') store.setDialogue("El laboratorio está cerrado. Parece que el PROF. OAK no está.");
-        else if (item.id === 'sign_route1') store.setDialogue("RUTA 1: Hacia CIUDAD VERDE.");
-        else if (item.id === 'snes') store.setDialogue("¡Red está jugando a la SNES! ... ¡Vale! ¡Es hora de irse!");
-        else if (item.id === 'pc_reds_house') {
+        if (item.id === 'pc_reds_house') {
           if (!pickedItemIds.includes('item_potion_pc')) {
             store.setPickedItemIds(prev => [...prev, 'item_potion_pc']);
             store.addInventoryItem('POTION');
@@ -183,6 +178,13 @@ export const useInteractionEngine = ({
         }
       } else if (tile.type === 'table') {
         store.setDialogue("Hay muchos libros sobre POKÉMON aquí.");
+      } else if (tile.type === 'door') {
+        const hasWarp = map.warps.some(w => w.x === targetX && w.y === targetY);
+        if (!hasWarp) {
+          store.setDialogue("Está cerrado.");
+        }
+      } else if (tile.type === 'sign') {
+        store.setDialogue("Es un cartel.");
       } else if (tile.type === 'grass' && Math.random() < 0.05) {
         if (!inventory['POTION']) {
           store.addInventoryItem('POTION');

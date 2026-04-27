@@ -4,8 +4,6 @@ import { BLACKOUT, HEALING, EXPLORING } from '../types/gamePhase';
 import { fullHeal } from '../lib/healUtils';
 import { BattleState } from '../lib/battleEngine';
 import { sd } from '../lib/gameSpeed';
-import { calcHp } from '../lib/damage';
-import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES, getKantoRegion } from '../constants';
 import { triggerOakCutscene } from '../lib/oakCutscene';
 import { triggerTrainerCutscene } from '../lib/cutscenes/trainerEncounter';
 import { useGameStore } from '../store/gameStore';
@@ -38,51 +36,6 @@ function checkTrainerVision(
     }
   }
   return undefined;
-}
-
-/** Roll for a wild encounter and start battle if triggered. Returns true if a battle started. */
-function tryWildEncounter(
-  tileType: string,
-  currentMap: MapID,
-  playerPos: Position,
-  playerTeam: Pokemon[],
-): boolean {
-  if (tileType !== 'grass' || playerTeam.length === 0) return false;
-  if (playerTeam.every(p => p.hp === 0)) return false;
-
-  // On the unified overworld, look up the zone from the player's absolute coordinates
-  const zone = currentMap === 'KANTO_OVERWORLD'
-    ? getKantoRegion(playerPos.x, playerPos.y)
-    : (currentMap as string);
-
-  const routeWilds = WILD_POKEMON_DATABASE[zone];
-  const encounterRate = WILD_ENCOUNTER_RATES[zone] ?? WILD_ENCOUNTER_RATES[currentMap];
-  if (!routeWilds || encounterRate === undefined) return false;
-  if (Math.floor(Math.random() * 256) >= encounterRate) return false;
-  const randomPkmn = routeWilds[Math.floor(Math.random() * routeWilds.length)];
-  const levelVariation = Math.floor(Math.random() * 3) - 1;
-  const finalLevel = Math.max(2, randomPkmn.level + levelVariation);
-  const finalMaxHp = calcHp(randomPkmn.baseStats.hp, finalLevel);
-
-  const wildPkmn: Pokemon = {
-    ...randomPkmn,
-    level: finalLevel,
-    hp: finalMaxHp,
-    maxHp: finalMaxHp,
-    baseStats: {
-      ...randomPkmn.baseStats,
-      attack: Math.floor(randomPkmn.baseStats.attack * 0.85),
-      special: Math.floor(randomPkmn.baseStats.special * 0.85),
-    },
-  };
-
-  logObservation({ k: 'obs_encounter', map: currentMap, pokemon: randomPkmn.name, level: finalLevel });
-  launchBattle({
-    enemy: wildPkmn,
-    isTrainer: false,
-    battleLog: `¡Un ${randomPkmn.name} salvaje apareció!`,
-  });
-  return true;
 }
 
 /** Apply overworld poison damage every 4 steps. Triggers blackout if all faint. */
@@ -243,6 +196,7 @@ export function useMovementEngine({
 
     const npcAtNext = !isLedgeJump && npcs[currentMap]?.some(n => n.position.x === nextX && n.position.y === nextY);
     const objectAtNext = !isLedgeJump && items[currentMap]?.some(i => i.type === 'object' && i.position.x === nextX && i.position.y === nextY);
+    const wildAtNext = !isLedgeJump && store.wildPokemon.find(p => p.position.x === nextX && p.position.y === nextY);
 
     if (!ghostMode) {
       if (
@@ -251,6 +205,18 @@ export function useMovementEngine({
         npcAtNext ||
         objectAtNext
       ) return;
+    }
+
+    // ── Collision with overworld wild pokemon ──
+    if (wildAtNext && !ghostMode) {
+        logObservation({ k: 'obs_encounter', map: currentMap, pokemon: wildAtNext.pokemon.name, level: wildAtNext.pokemon.level });
+        launchBattle({
+          enemy: wildAtNext.pokemon,
+          isTrainer: false,
+          battleLog: `¡Un ${wildAtNext.pokemon.name} salvaje apareció!`,
+        });
+        store.setWildPokemon(prev => prev.filter(p => p.id !== wildAtNext.id));
+        return;
     }
 
     // Warp at the destination tile (used for both the direction guard and seamless scroll)
@@ -289,14 +255,14 @@ export function useMovementEngine({
     if (ghostMode) return;
 
     // Trainer vision check
-    const spottedTrainer = checkTrainerVision(npcs[currentMap] || [], defeatedTrainers, nextX, nextY);
+    const spottedTrainer = checkTrainerVision((npcs[currentMap] as NPC[]) || [], defeatedTrainers, nextX, nextY);
     if (spottedTrainer) {
       logObservation({ k: 'obs_trainer_spotted', trainerId: spottedTrainer.id });
       triggerTrainerCutscene(spottedTrainer, { x: nextX, y: nextY });
     }
 
-    // Wild encounter roll
-    tryWildEncounter(grid[nextY][nextX].type, currentMap, { x: nextX, y: nextY }, playerTeam);
+    // Wild encounter roll (Disabled in favor of overworld wild pokemon)
+    // tryWildEncounter(grid[nextY][nextX].type, currentMap, { x: nextX, y: nextY }, playerTeam);
   }, [battleStateRef, setOverworldShake]);
 
   return { handleMove, initBattle };

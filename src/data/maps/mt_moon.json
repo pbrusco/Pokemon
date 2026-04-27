@@ -23,34 +23,11 @@
   ],
   "warps": [
     {
-      "x": 10,
-      "y": 19,
-      "targetMap": "KANTO_OVERWORLD",
-      "targetPos": {
-        "x": 69,
-        "y": 18
-      },
-      "targetDir": "down"
-    },
-    {
       "x": 5,
       "y": 4,
       "targetMap": "MT_MOON_B1F",
-      "targetPos": {
-        "x": 5,
-        "y": 4
-      },
+      "targetPos": { "x": 5, "y": 4 },
       "targetDir": "down"
-    },
-    {
-      "x": 19,
-      "y": 10,
-      "targetMap": "KANTO_OVERWORLD",
-      "targetPos": {
-        "x": 69,
-        "y": 18
-      },
-      "targetDir": "right"
     }
   ]
 }
