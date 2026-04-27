@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { Pokemon, Position, Direction, Entity, NPC, InventoryCounts, MapID, PokedexState } from '../types';
+import { Pokemon, Position, Direction, Entity, InventoryCounts, MapID, PokedexState, WildPokemonEntity } from '../types';
 import { worldConfig } from '../data/worldConfig';
 import { buildNPCDatabase, buildItemDatabase } from '../data/npcDatabase';
 import { GamePhase, EXPLORING } from '../types/gamePhase';
@@ -108,10 +108,12 @@ interface GameState extends GameSaveState {
   zoomLevel: number;
   cameraOffset: Position;
   isCameraLocked: boolean;
+  viewMode: '2d' | '3d';
+  wildPokemon: WildPokemonEntity[];
   
   worldMaps: typeof worldConfig.maps;
 
-  getNPCs: () => Record<MapID, NPC[]>;
+  getNPCs: () => Record<MapID, Entity[]>;
   getItems: () => Record<MapID, Entity[]>;
   
   setPlayerPos: (pos: Position) => void;
@@ -146,6 +148,7 @@ interface GameState extends GameSaveState {
   setMoney: (money: SetStateAction<number>) => void;
   setBadgeBoostGlitchStacks: (stacks: SetStateAction<number>) => void;
   setActiveBattle: (battle: BattleState | null) => void;
+  setWildPokemon: (pokemon: SetStateAction<WildPokemonEntity[]>) => void;
   
   syncTeamStats: (battleTeam: Pokemon[]) => void;
   reorderTeam: (startIndex: number, endIndex: number) => void;
@@ -155,6 +158,7 @@ interface GameState extends GameSaveState {
   setCameraOffset: (offset: SetStateAction<Position>) => void;
   setIsCameraLocked: (locked: boolean) => void;
   resetCamera: () => void;
+  setViewMode: (mode: '2d' | '3d') => void;
 
   resetGame: () => void;
 }
@@ -193,6 +197,8 @@ export const useGameStore = create<GameState>()(
       zoomLevel: 1.0,
       cameraOffset: { x: 0, y: 0 },
       isCameraLocked: true,
+      viewMode: '2d',
+      wildPokemon: [],
       
       worldMaps: worldConfig.maps,
 
@@ -256,6 +262,7 @@ export const useGameStore = create<GameState>()(
       setMoney: (money) => set((state) => ({ money: typeof money === 'function' ? money(state.money) : money })),
       setBadgeBoostGlitchStacks: (stacks) => set((state) => ({ badgeBoostGlitchStacks: typeof stacks === 'function' ? stacks(state.badgeBoostGlitchStacks) : stacks })),
       setActiveBattle: (battle) => set({ activeBattle: battle }),
+      setWildPokemon: (pokemon) => set((state) => ({ wildPokemon: typeof pokemon === 'function' ? pokemon(state.wildPokemon) : pokemon })),
       
       syncTeamStats: (battleTeam) => set((state) => {
         const safeTeam = state.playerTeam.filter(Boolean).map(ensureUid);
@@ -292,6 +299,7 @@ export const useGameStore = create<GameState>()(
       setCameraOffset: (offset) => set((state) => ({ cameraOffset: typeof offset === 'function' ? offset(state.cameraOffset) : offset })),
       setIsCameraLocked: (locked) => set({ isCameraLocked: locked }),
       resetCamera: () => set({ zoomLevel: 1.0, cameraOffset: { x: 0, y: 0 }, isCameraLocked: true }),
+      setViewMode: (mode) => set({ viewMode: mode }),
 
       setGrassEffect: (pos) => set({ grassEffect: pos }),
       setSpottedTrainerId: (id) => set({ spottedTrainerId: id }),

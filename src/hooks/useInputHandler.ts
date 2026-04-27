@@ -65,6 +65,11 @@ export function useInputHandler({
 
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
 
+      if (store.phase.type === 'EXPLORING') {
+        if (e.key === '1') { store.setViewMode('3d'); return; }
+        if (e.key === '2') { store.setViewMode('2d'); return; }
+      }
+
       if (e.key === 'E' && e.shiftKey) {
         store.setPhase(prev => prev.type === 'EDITOR' ? EXPLORING : EDITOR);
         return;
@@ -81,11 +86,11 @@ export function useInputHandler({
       }
 
       if (e.key === '+' || e.key === '=') {
-        store.setZoomLevel(prev => Math.min(prev + 0.1, 3.0));
+        store.setZoomLevel(prev => Math.min(prev + 0.05, 1.0));
         return;
       }
       if (e.key === '-') {
-        store.setZoomLevel(prev => Math.max(prev - 0.1, 0.2));
+        store.setZoomLevel(prev => Math.max(prev - 0.05, 0.05));
         return;
       }
       if (e.key === 'Home' || (e.key === 'c' || e.key === 'C')) {

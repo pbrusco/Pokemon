@@ -1,0 +1,57 @@
+{
+  "PALLET_TOWN": {
+    "npcs": 3,
+    "signs": 4,
+    "warps": 3
+  },
+  "ROUTE_1": {
+    "npcs": 2,
+    "signs": 1,
+    "warps": 0
+  },
+  "VIRIDIAN_CITY": {
+    "npcs": 7,
+    "signs": 6,
+    "warps": 5
+  },
+  "PEWTER_CITY": {
+    "npcs": 5,
+    "signs": 7,
+    "warps": 7
+  },
+  "CERULEAN_CITY": {
+    "npcs": 11,
+    "signs": 6,
+    "warps": 10
+  },
+  "LAVENDER_TOWN": {
+    "npcs": 3,
+    "signs": 6,
+    "warps": 6
+  },
+  "VERMILION_CITY": {
+    "npcs": 6,
+    "signs": 7,
+    "warps": 9
+  },
+  "SAFFRON_CITY": {
+    "npcs": 15,
+    "signs": 10,
+    "warps": 8
+  },
+  "CELADON_CITY": {
+    "npcs": 9,
+    "signs": 9,
+    "warps": 13
+  },
+  "FUCHSIA_CITY": {
+    "npcs": 10,
+    "signs": 14,
+    "warps": 9
+  },
+  "CINNABAR_ISLAND": {
+    "npcs": 2,
+    "signs": 5,
+    "warps": 5
+  }
+}
