@@ -97,7 +97,8 @@ const route20Off     = from(route19Off,   0,  53, 99, 4);
 const cinnabarOff    = from(route20Off,   0,  4,  19, 4);
 const route21Off     = from(cinnabarOff,  10, 0,  10, 89);
 
-const celadonOff     = { x: 500, y: 0 }; // Far away
+// Celadon is west of Route 7: celadon's east exit (x=49, y=8) aligns with route7's west end (x=0, y=4)
+const celadonOff     = from(route7Off,    0,  4,  49, 8);
 const route16Off     = from(celadonOff,   0,  9,  39, 4);
 const route17Off     = from(route16Off,   0,  17, 0,  0);
 const route18Off     = from(route17Off,   0,  143,0,  0);
@@ -110,7 +111,12 @@ const route24Off     = { x: 500, y: 400 }; // Far away
 const route25Off     = from(route24Off,   19, 0,  0,  0);
 
 const SEGMENTS = [
-  { map: pallet,          off: palletOff,         label: 'PALLET_TOWN'     },
+  // Celadon + its routes early so route1/pallet write last and win at the east-border overlap (x=128)
+  { map: route16,         off: route16Off,         label: 'ROUTE_16'        },
+  { map: route17,         off: route17Off,         label: 'ROUTE_17'        },
+  { map: route18,         off: route18Off,         label: 'ROUTE_18'        },
+  { map: celadon,         off: celadonOff,         label: 'CELADON_CITY'    },
+  { map: pallet,          off: palletOff,          label: 'PALLET_TOWN'     },
   { map: route1,          off: route1Off,          label: 'ROUTE_1'         },
   { map: viridian,        off: viridianOff,        label: 'VIRIDIAN_CITY'   },
   { map: route2,          off: route2Off,          label: 'ROUTE_2'         },
@@ -138,10 +144,6 @@ const SEGMENTS = [
   { map: route20,         off: route20Off,         label: 'ROUTE_20'        },
   { map: cinnabar,        off: cinnabarOff,        label: 'CINNABAR_ISLAND' },
   { map: route21,         off: route21Off,         label: 'ROUTE_21'        },
-  { map: celadon,         off: celadonOff,         label: 'CELADON_CITY'    },
-  { map: route16,         off: route16Off,         label: 'ROUTE_16'        },
-  { map: route17,         off: route17Off,         label: 'ROUTE_17'        },
-  { map: route18,         off: route18Off,         label: 'ROUTE_18'        },
   { map: route22,         off: route22Off,         label: 'ROUTE_22'        },
   { map: route23,         off: route23Off,         label: 'ROUTE_23'        },
   { map: indigo,          off: indigoOff,          label: 'INDIGO_PLATEAU'  },

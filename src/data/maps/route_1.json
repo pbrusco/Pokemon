@@ -35,6 +35,8 @@
     "TTTTTTTTGGPPPPGGTTTT",
     "TTTTTTTTGGPPPPGGTTTT",
     "TTTTTTTTTTPPTTTTTTTT",
+    "TTTTTTTTTTPPTTTTTTTT",
+    "TTTTTTTTTTPPTTTTTTTT",
     "TTTTTTTTTTPPTTTTTTTT"
   ],
   "warps": [
@@ -42,28 +44,40 @@
       "x": 10,
       "y": 0,
       "targetMap": "KANTO_OVERWORLD",
-      "targetPos": { "x": 10, "y": 10 },
+      "targetPos": {
+        "x": 10,
+        "y": 10
+      },
       "targetDir": "up"
     },
     {
       "x": 11,
       "y": 0,
       "targetMap": "KANTO_OVERWORLD",
-      "targetPos": { "x": 11, "y": 10 },
+      "targetPos": {
+        "x": 11,
+        "y": 10
+      },
       "targetDir": "up"
     },
     {
       "x": 10,
       "y": 35,
       "targetMap": "KANTO_OVERWORLD",
-      "targetPos": { "x": 10, "y": 10 },
+      "targetPos": {
+        "x": 10,
+        "y": 10
+      },
       "targetDir": "down"
     },
     {
       "x": 11,
       "y": 35,
       "targetMap": "KANTO_OVERWORLD",
-      "targetPos": { "x": 11, "y": 10 },
+      "targetPos": {
+        "x": 11,
+        "y": 10
+      },
       "targetDir": "down"
     }
   ]

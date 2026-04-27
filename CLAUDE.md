@@ -10,6 +10,11 @@ Node and npm may not be available directly, but I do have access to them:
 Maybe use:
 export PATH="/opt/homebrew/bin:$PATH" && cd /Users/pbrusco/projects/poke && npm run ...
 
+## Reference
+
+When in doubt about map layouts, building positions, NPC placements, tile types, or any game data:
+- **pokered source** — https://github.com/pret/pokered (decompiled Pokémon Red ROM; canonical reference for maps, scripts, constants, sprite data)
+
 ## Vision
 
 This is a faithful recreation of Pokémon Red / Fire Red (Gen I) built with modern web tech (React 19, TypeScript, Vite, Zustand). The goal is to reproduce the original gameplay feel — turn-based battles, tile movement, Kanto story — not to clone the visuals pixel-for-pixel. Mechanics (damage formula, type chart, stat calc, status effects) follow Gen I rules. All in-game text is in Spanish. Scope is Gen I: 151 Pokémon, Kanto region, full storyline from Pallet Town through the Indigo Plateau (work-in-progress; extending map by map).
