@@ -1,11 +1,12 @@
 import { worldConfig } from '../data/worldConfig';
-import { buildNPCDatabase, buildItemDatabase } from '../data/npcDatabase';
+import { buildNPCDatabase, buildItemDatabase, O } from '../data/npcDatabase';
+import { BUILDING_REFERENCE } from '../data/reference/buildingReference';
 import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES } from '../constants';
 import pokeredMetadata from '../data/reference/pokered_metadata.json';
 import type { MapID, Tile } from '../types';
 
 interface WorldValidationIssue {
-  category: 'warp' | 'npc' | 'item' | 'encounter' | 'faithfulness';
+  category: 'warp' | 'npc' | 'item' | 'encounter' | 'faithfulness' | 'building';
   message: string;
 }
 
@@ -16,6 +17,8 @@ function inBounds(tiles: Tile[][], x: number, y: number): boolean {
 function tileAt(tiles: Tile[][], x: number, y: number): Tile | null {
   return inBounds(tiles, x, y) ? tiles[y][x] : null;
 }
+
+const ZONE_OFFSETS = O as Record<string, { x: number; y: number }>;
 
 /**
  * Pure validator. Returns a list of integrity issues with the current world data
@@ -35,6 +38,94 @@ export function validateWorld(): WorldValidationIssue[] {
   // Snapshots for entity checks
   const allNpcs = buildNPCDatabase([], false, false, [], 'START', null, null);
   const allItems = buildItemDatabase([], 'START');
+
+  // --- Building structure validation (must run early for entity snapshots) ---
+  // Entities live under KANTO_OVERWORLD with world coords.  We collect them all
+  // once so each building check can query with world‑space lookups.
+  const overworld = maps.KANTO_OVERWORLD;
+  const overworldEntities = [
+    ...(allNpcs.KANTO_OVERWORLD || []),
+    ...(allItems.KANTO_OVERWORLD || []),
+  ];
+
+  for (const [mapIdStr, buildings] of Object.entries(BUILDING_REFERENCE)) {
+    const off = ZONE_OFFSETS[mapIdStr] ?? { x: 0, y: 0 };
+
+    for (const b of buildings) {
+      const label = `${mapIdStr}:${b.name}`;
+      const grid = overworld?.tiles;
+      if (!grid) continue;
+
+      // 1. Wall rectangle: check KANTO_OVERWORLD tiles at world coords
+      for (let row = b.wallY; row < b.wallY + b.wallH; row++) {
+        const wy = off.y + row;
+        for (let col = b.wallX; col < b.wallX + b.wallW; col++) {
+          const wx = off.x + col;
+          const t = tileAt(grid, wx, wy);
+          if (!t) {
+            issues.push({ category: 'building', message: `${label}: out-of-bounds at world (${wx},${wy})` });
+            continue;
+          }
+          if (t.type !== 'wall') {
+            issues.push({ category: 'building', message: `${label}: tile at world (${wx},${wy}) is "${t.type}", expected wall` });
+          }
+        }
+      }
+
+      // 2. Door + warp (skipped for locked buildings)
+      if (b.doorX !== null && b.doorY !== null) {
+        const wx = off.x + b.doorX;
+        const wy = off.y + b.doorY;
+        const dt = tileAt(grid, wx, wy);
+        if (!dt) {
+          issues.push({ category: 'building', message: `${label}: door at world (${wx},${wy}) out-of-bounds` });
+        } else if (dt.type !== 'door') {
+          issues.push({ category: 'building', message: `${label}: tile at world (${wx},${wy}) is "${dt.type}", expected door` });
+        }
+
+        if (b.targetMap) {
+          const hasWarp = (overworld?.warps ?? []).some(
+            w => w.x === wx && w.y === wy && w.targetMap === b.targetMap,
+          );
+          if (!hasWarp) {
+            issues.push({ category: 'building', message: `${label}: door at world (${wx},${wy}) has no warp to ${b.targetMap}` });
+          }
+        }
+      }
+
+      // 3. Sign positions (check overworld entities at world coords)
+      for (const [sx, sy] of b.signPositions ?? []) {
+        const wx = off.x + sx;
+        const wy = off.y + sy;
+        const hasSign = overworldEntities.some(
+          e =>
+            e.type === 'object' &&
+            (e.id.startsWith('sign_') || e.sprite === '🪧') &&
+            e.position.x === wx &&
+            e.position.y === wy,
+        );
+        if (!hasSign) {
+          issues.push({ category: 'building', message: `${label}: no sign object at world (${wx},${wy})` });
+        }
+      }
+
+      // 4. Door object positions (blocking objects at world coords)
+      for (const [dx, dy] of b.doorObjectPositions ?? []) {
+        const wx = off.x + dx;
+        const wy = off.y + dy;
+        const hasObj = overworldEntities.some(
+          e =>
+            e.type === 'object' &&
+            (e.sprite === '🚪' || e.sprite === '🚫') &&
+            e.position.x === wx &&
+            e.position.y === wy,
+        );
+        if (!hasObj) {
+          issues.push({ category: 'building', message: `${label}: no blocking object at world (${wx},${wy})` });
+        }
+      }
+    }
+  }
 
   // 1. Mandatory Tile-Entity Connections (Doors/Signs)
   for (const id of mapIds) {
@@ -139,7 +230,7 @@ export function validateWorld(): WorldValidationIssue[] {
   // 4. Encounter tables (handles KANTO_OVERWORLD sub-zones)
   for (const id of Object.keys(WILD_POKEMON_DATABASE)) {
     const map = maps[id as MapID];
-    const isZone = Object.keys(WILD_ENCOUNTER_RATES).includes(id); 
+    const isZone = Object.keys(WILD_ENCOUNTER_RATES).includes(id);
 
     if (!map && !isZone && id !== 'KANTO_OVERWORLD') {
       issues.push({ category: 'encounter', message: `WILD_POKEMON_DATABASE references unknown map/zone ${id}` });

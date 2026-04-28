@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Menu, X } from 'lucide-react';
 import { type GamePhase, EXPLORING } from '../types/gamePhase';
 import { type Dispatch, type SetStateAction } from 'react';
@@ -7,7 +8,7 @@ interface MenuButtonProps {
   setPhase: Dispatch<SetStateAction<GamePhase>>;
 }
 
-export const MenuButton = ({ phase, setPhase }: MenuButtonProps) => {
+export const MenuButton = memo(({ phase, setPhase }: MenuButtonProps) => {
   const inMenu = phase.type === 'MENU';
   const onClick = () => {
     if (inMenu) {
@@ -26,4 +27,4 @@ export const MenuButton = ({ phase, setPhase }: MenuButtonProps) => {
       {inMenu ? <X size={20} className="text-slate-800" /> : <Menu size={20} className="text-slate-800" />}
     </button>
   );
-};
+});

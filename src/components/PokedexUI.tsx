@@ -1,8 +1,9 @@
+import { memo } from 'react';
 import { motion } from 'motion/react';
 import { Map as MapIcon, X } from 'lucide-react';
 import { POKEMON_LIST } from '../constants';
 
-export const PokedexUI = ({ pokedex, onClose }: { pokedex: Record<string, { seen: boolean, caught: boolean }>, onClose: () => void }) => {
+export const PokedexUI = memo(({ pokedex, onClose }: { pokedex: Record<string, { seen: boolean, caught: boolean }>, onClose: () => void }) => {
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.9 }}
@@ -66,4 +67,4 @@ export const PokedexUI = ({ pokedex, onClose }: { pokedex: Record<string, { seen
       </div>
     </motion.div>
   );
-};
+});

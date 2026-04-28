@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { motion } from 'motion/react';
 import { X, ArrowLeftRight } from 'lucide-react';
 import { type Pokemon } from '../types';
 
-export const PCStorageUI = ({ team, pc, onClose, onSwap }: { team: Pokemon[], pc: Pokemon[], onClose: () => void, onSwap: (teamIdx: number, pcIdx: number) => void }) => {
+export const PCStorageUI = memo(({ team, pc, onClose, onSwap }: { team: Pokemon[], pc: Pokemon[], onClose: () => void, onSwap: (teamIdx: number, pcIdx: number) => void }) => {
   const [selectedTeamIdx, setSelectedTeamIdx] = useState<number | null>(null);
   const [selectedPCIdx, setSelectedPCIdx] = useState<number | null>(null);
 
@@ -96,4 +96,4 @@ export const PCStorageUI = ({ team, pc, onClose, onSwap }: { team: Pokemon[], pc
       </div>
     </motion.div>
   );
-};
+});

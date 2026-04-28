@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { type Position, type Entity, type Pokemon, type MapID, TILE_SIZE, type MapData, type NPC } from '../types';
 import { WILD_POKEMON_DATABASE } from '../constants';
@@ -6,7 +6,7 @@ import { useGameStore } from '../store/gameStore';
 import { NPCComponent } from './overworld/NPCComponent';
 import { GameTile } from './overworld/GameTile';
 import { PlayerSprite } from './overworld/PlayerSprite';
-import { StaticMap } from './overworld/StaticMap';
+
 import { T } from '../data/tileset/tilesetGenerator';
 
 interface WindowSize {
@@ -48,69 +48,78 @@ export const WorldView = memo(({
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const mapData = maps[currentMap];
-  if (!mapData) return null;
-  const grid = mapData.tiles;
-  const { layers } = mapData;
+
+  // Derive stable refs before hooks — safe to use in useMemo deps
+  const grid = mapData?.tiles ?? [];
+  const layers = mapData?.layers;
   const mapHasEncounters = currentMap in WILD_POKEMON_DATABASE;
-
-  // ── Rendering Strategy ──────────────────────────────────────
-  const isLargeMap = grid.length * grid[0].length > 2000;
-  const useStaticMap = isLargeMap && zoomLevel < 0.6;
-  const useColorMode = isLargeMap && zoomLevel < 0.15;
-
-  // ── Visible-tile culling ──────────────────────────────────────
-  const cullRadius = Math.min(Math.ceil(24 / zoomLevel), 50); 
-  const cullStep = 4;
   const rows = grid.length;
-  const cols = grid[0].length;
-  const rawMinY = Math.max(0, playerPos.y - cullRadius);
-  const rawMaxY = Math.min(rows - 1, playerPos.y + cullRadius);
-  const rawMinX = Math.max(0, playerPos.x - cullRadius);
-  const rawMaxX = Math.min(cols - 1, playerPos.x + cullRadius);
-  const minY = Math.max(0, Math.floor(rawMinY / cullStep) * cullStep);
-  const minX = Math.max(0, Math.floor(rawMinX / cullStep) * cullStep);
-  const maxY = Math.min(rows - 1, Math.ceil((rawMaxY + 1) / cullStep) * cullStep - 1);
-  const maxX = Math.min(cols - 1, Math.ceil((rawMaxX + 1) / cullStep) * cullStep - 1);
+  const cols = grid[0]?.length ?? 0;
 
-  // ── Build layer tile arrays ───────────────────────────────────
-  const visibleGroundTiles = [];
-  const visibleObjectTiles = [];
-  const visibleOverheadTiles = [];
-
-  if (!useStaticMap) {
-    for (let y = minY; y <= maxY; y++) {
-      for (let x = minX; x <= maxX; x++) {
+  // ── Build layer tile arrays — memoized per map, not per player step ───
+  const { groundTiles, objectTiles, overheadTiles } = useMemo(() => {
+    if (!mapData || !layers) return { groundTiles: [], objectTiles: [], overheadTiles: [] };
+    const groundTiles = [];
+    const objectTiles = [];
+    const overheadTiles = [];
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
         const tile = grid[y][x];
         let groundId = layers.ground[y][x];
         const objectId = layers.objects[y][x];
         const overheadId = layers.overhead[y][x];
-
-        // On encounter maps, swap normal grass for tall grass
-        if (mapHasEncounters && tile.type === 'grass') {
-          groundId = T.TALL_GRASS;
-        }
-
-        // Ground — single flat div per tile (no wrapper)
-        visibleGroundTiles.push(
-          <GameTile key={`g-${x}-${y}`} tileId={groundId} x={x} y={y} />
-        );
-
-        // Objects (trunks, tables, bookshelves, etc.)
-        if (objectId !== T.EMPTY) {
-          visibleObjectTiles.push(
-            <GameTile key={`o-${x}-${y}`} tileId={objectId} x={x} y={y} z={15 + y} />
-          );
-        }
-
-        // Overhead (tree canopies)
-        if (overheadId !== T.EMPTY) {
-          visibleOverheadTiles.push(
-            <GameTile key={`h-${x}-${y}`} tileId={overheadId} x={x} y={y} z={40 + y} noPointerEvents />
-          );
-        }
+        if (mapHasEncounters && tile.type === 'grass') groundId = T.TALL_GRASS;
+        groundTiles.push(<GameTile key={`g-${x}-${y}`} tileId={groundId} x={x} y={y} />);
+        if (objectId !== T.EMPTY) objectTiles.push(<GameTile key={`o-${x}-${y}`} tileId={objectId} x={x} y={y} z={15 + y} />);
+        if (overheadId !== T.EMPTY) overheadTiles.push(<GameTile key={`h-${x}-${y}`} tileId={overheadId} x={x} y={y} z={40 + y} noPointerEvents />);
       }
     }
-  }
+    return { groundTiles, objectTiles, overheadTiles };
+  }, [mapData, mapHasEncounters]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Trainer vision indicators — memoized, only update when npcs/defeated changes ──
+  const visionIndicators = useMemo(() =>
+    npcs[currentMap]
+      .filter(npc => (npc as NPC).isTrainer && !defeatedTrainers.includes(npc.id))
+      .flatMap(trainer =>
+        [1, 2, 3].map(i => {
+          let vx = trainer.position.x, vy = trainer.position.y;
+          if (trainer.direction === 'up') vy -= i;
+          if (trainer.direction === 'down') vy += i;
+          if (trainer.direction === 'left') vx -= i;
+          if (trainer.direction === 'right') vx += i;
+          if (vx < 0 || vx >= cols || vy < 0 || vy >= rows) return null;
+          return (
+            <div
+              key={`vision-${trainer.id}-${i}`}
+              className="absolute z-10 pointer-events-none"
+              style={{ left: vx * TILE_SIZE, top: vy * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE, background: 'rgba(248, 56, 56, 0.18)', borderRadius: 4 }}
+            />
+          );
+        }).filter(Boolean)
+      )
+  , [npcs, currentMap, defeatedTrainers, cols, rows]);
+
+  // ── Warp indicators — memoized, only update when warps change ──────────
+  const warpIndicators = useMemo(() =>
+    mapData?.warps?.map(warp => (
+      <div
+        key={`warp-${warp.x}-${warp.y}`}
+        className="absolute z-25 pointer-events-none flex items-end justify-center pb-1"
+        style={{ left: warp.x * TILE_SIZE, top: warp.y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}
+      >
+        <motion.div
+          animate={{ y: [0, -6, 0] }}
+          transition={{ repeat: Infinity, duration: 0.8, ease: 'easeInOut' }}
+          className="text-white text-lg drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
+        >
+          {warp.targetDir === 'up' ? '▲' : warp.targetDir === 'down' ? '▼' : warp.targetDir === 'left' ? '◀' : '▶'}
+        </motion.div>
+      </div>
+    ))
+  , [mapData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!mapData) return null;
 
   // ── Interaction indicator target ──────────────────────────────
   let interactTargetX = playerPos.x;
@@ -240,8 +249,9 @@ export const WorldView = memo(({
                   <div className="flex-1 h-1.5 sm:h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-300">
                     <motion.div
                       initial={false}
-                      animate={{ width: `${(pkmn.hp / pkmn.maxHp) * 100}%` }}
-                      className={`h-full ${pkmn.hp > pkmn.maxHp / 2 ? 'bg-emerald-500' : pkmn.hp > pkmn.maxHp / 5 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                      animate={{ scaleX: pkmn.hp / pkmn.maxHp }}
+                      style={{ originX: 0 }}
+                      className={`h-full w-full ${pkmn.hp > pkmn.maxHp / 2 ? 'bg-emerald-500' : pkmn.hp > pkmn.maxHp / 5 ? 'bg-yellow-500' : 'bg-red-500'}`}
                     />
                   </div>
                 </div>
@@ -257,6 +267,7 @@ export const WorldView = memo(({
       {/* Map viewport */}
       <motion.div
         className="absolute origin-top-left"
+        style={{ willChange: 'transform' }}
         initial={false}
         animate={{
           x: overworldShake
@@ -267,51 +278,18 @@ export const WorldView = memo(({
         }}
         transition={{ type: "tween", duration: 0.11, ease: "linear" }}
       >
-        <div className="relative" style={{ width: cols * TILE_SIZE, height: rows * TILE_SIZE }}>
+        <div className="relative" style={{ width: cols * TILE_SIZE, height: rows * TILE_SIZE, contain: 'strict' }}>
           {/* Ground layer */}
-          {useStaticMap ? <StaticMap mapData={mapData} layerIndex={0} colorMode={useColorMode} /> : visibleGroundTiles}
+          {groundTiles}
 
           {/* Object layer (trunks, furniture — z-indexed by row) */}
-          {useStaticMap ? <StaticMap mapData={mapData} layerIndex={1} colorMode={useColorMode} /> : visibleObjectTiles}
+          {objectTiles}
 
           {/* Trainer vision indicators */}
-          {npcs[currentMap]
-            .filter(npc => (npc as NPC).isTrainer && !defeatedTrainers.includes(npc.id))
-            .flatMap(trainer =>
-              [1, 2, 3].map(i => {
-                let vx = trainer.position.x, vy = trainer.position.y;
-                if (trainer.direction === 'up') vy -= i;
-                if (trainer.direction === 'down') vy += i;
-                if (trainer.direction === 'left') vx -= i;
-                if (trainer.direction === 'right') vx += i;
-                if (vx < 0 || vx >= cols || vy < 0 || vy >= rows) return null;
-                return (
-                  <div
-                    key={`vision-${trainer.id}-${i}`}
-                    className="absolute z-10 pointer-events-none"
-                    style={{ left: vx * TILE_SIZE, top: vy * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE, background: 'rgba(248, 56, 56, 0.18)', borderRadius: 4 }}
-                  />
-                );
-              }).filter(Boolean)
-            )
-          }
+          {visionIndicators}
 
           {/* Warp indicators */}
-          {mapData.warps?.map(warp => (
-            <div
-              key={`warp-${warp.x}-${warp.y}`}
-              className="absolute z-25 pointer-events-none flex items-end justify-center pb-1"
-              style={{ left: warp.x * TILE_SIZE, top: warp.y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}
-            >
-              <motion.div
-                animate={{ y: [0, -6, 0] }}
-                transition={{ repeat: Infinity, duration: 0.8, ease: 'easeInOut' }}
-                className="text-white text-lg drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
-              >
-                {warp.targetDir === 'up' ? '▲' : warp.targetDir === 'down' ? '▼' : warp.targetDir === 'left' ? '◀' : '▶'}
-              </motion.div>
-            </div>
-          ))}
+          {warpIndicators}
 
           {/* NPCs */}
           {npcs[currentMap].map(npc => (
@@ -382,7 +360,7 @@ export const WorldView = memo(({
           <PlayerSprite position={playerPos} direction={direction} isMoving={isMoving} />
 
           {/* Overhead layer (tree canopies — rendered above player) */}
-          {useStaticMap ? <StaticMap mapData={mapData} layerIndex={2} colorMode={useColorMode} /> : visibleOverheadTiles}
+          {overheadTiles}
 
           {/* Interaction indicator */}
           <AnimatePresence>

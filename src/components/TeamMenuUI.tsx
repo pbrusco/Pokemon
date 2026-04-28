@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { motion } from 'motion/react';
 import { type Pokemon } from '../types';
 import { ITEMS_DATABASE } from '../constants';
@@ -21,7 +21,7 @@ const getHpColor = (hp: number, max: number) => {
   return 'bg-red-500';
 };
 
-export const TeamMenuUI = ({ team, onClose, onSwap, onUseItem, forcedSwitch = false, mode = 'swap', selectedItemId }: TeamMenuUIProps) => {
+export const TeamMenuUI = memo(({ team, onClose, onSwap, onUseItem, forcedSwitch = false, mode = 'swap', selectedItemId }: TeamMenuUIProps) => {
   const [cursor, setCursor] = useState(0);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
@@ -165,4 +165,4 @@ export const TeamMenuUI = ({ team, onClose, onSwap, onUseItem, forcedSwitch = fa
       </div>
     </motion.div>
   );
-};
+});

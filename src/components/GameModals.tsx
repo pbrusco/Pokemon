@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { type BattlePhase, EXPLORING, battle, B_CHOOSING, B_FORCED_SWITCH } from '../types/gamePhase';
 import { type BattleAction } from '../lib/battleEngine';
@@ -23,7 +24,7 @@ interface GameModalsProps {
   dispatchBattle: (action: BattleAction) => void;
 }
 
-export const GameModals = ({
+export const GameModals = memo(({
   battleShake,
   enemyAnim,
   playerAnim,
@@ -188,4 +189,4 @@ export const GameModals = ({
       </AnimatePresence>
     </>
   );
-};
+});

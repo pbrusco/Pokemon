@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MapIcon, Backpack, Gamepad2, X } from 'lucide-react';
 import { ITEMS_DATABASE } from '../constants';
@@ -16,7 +17,7 @@ interface SideMenuProps {
   resetGame: () => void;
 }
 
-export const SideMenu = ({
+export const SideMenu = memo(({
   phase,
   playerTeam,
   storyStep,
@@ -109,4 +110,4 @@ export const SideMenu = ({
       </motion.div>
     )}
   </AnimatePresence>
-);
+));

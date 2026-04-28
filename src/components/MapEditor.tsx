@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useGameStore } from '../store/gameStore';
 
 const TILE_TYPES = ['grass', 'path', 'wall', 'door', 'floor', 'carpet', 'table', 'tree', 'sign', 'cut_tree', 'boulder', 'water'];
 
-export function MapEditor({ onClose }: { onClose: () => void }) {
+export const MapEditor = memo(function MapEditor({ onClose }: { onClose: () => void }) {
   const store = useGameStore();
   const [selectedMapKey, setSelectedMapKey] = useState<string>(store.currentMap);
   const [activeTile, setActiveTile] = useState<string>('grass');
@@ -126,4 +126,4 @@ export function MapEditor({ onClose }: { onClose: () => void }) {
       </div>
     </div>
   );
-}
+});

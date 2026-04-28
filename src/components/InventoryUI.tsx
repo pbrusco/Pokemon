@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { motion } from 'motion/react';
 import { ITEMS_DATABASE } from '../constants';
 import type { InventoryCounts } from '../types';
 
-export const InventoryUI = ({ items, onClose, onUse }: { items: InventoryCounts, onClose: () => void, onUse?: (itemId: string) => void }) => {
+export const InventoryUI = memo(({ items, onClose, onUse }: { items: InventoryCounts, onClose: () => void, onUse?: (itemId: string) => void }) => {
   const entries = Object.entries(items).filter(([, qty]) => qty > 0);
   const [cursor, setCursor] = useState(0);
 
@@ -88,4 +88,4 @@ export const InventoryUI = ({ items, onClose, onUse }: { items: InventoryCounts,
       </div>
     </motion.div>
   );
-};
+});

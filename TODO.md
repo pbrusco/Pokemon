@@ -8,10 +8,17 @@
 - [x] Minimap — background tiles cached in offscreen canvas, only redraws on map change (not every player step)
 - [x] React.memo added: DialogueBox, GameHeader, NPCComponent, ScreenEffects, BattleTransition, PlayerSprite, BattleScreen
 
+### Done (this session)
+- [x] Add React.memo to: GameModals, MobileControls, MenuButton, SideMenu, InventoryUI, TeamMenuUI, PCStorageUI, PokedexUI, ShopUI, MapEditor
+- [x] Memoize vision indicators and warp indicators in WorldView.tsx (useMemo)
+- [x] Removed zoom-out efficiency patches (cullRadius, cullStep, useStaticMap, useColorMode) — replaced with useMemo on tile arrays, rebuilds only on map change not player step
+- [x] Added `will-change: transform` and `contain: strict` to map container
+- [x] HP bar in team HUD now uses `scaleX` transform instead of `width` (GPU-composited)
+- [x] Deleted unused StaticMap component
+- [x] Fixed pre-existing tsc error: VIRIDIAN_CITY type in buildingReference.ts
+
 ### Remaining
-- [ ] Add React.memo to: GameModals, MobileControls, MenuButton, SideMenu, InventoryUI, TeamMenuUI, PCStorageUI, PokedexUI, ShopUI, MapEditor
-- [ ] Memoize vision indicators (trainer sight lines) and warp indicators in WorldView.tsx
-- [ ] Run pre-commit checks (tsc + vitest + knip)
+- [ ] Fix pre-existing building reference test failures (6 tests) — wall/door coordinates stale for Pallet Town (Casa de Red, Casa de Azul, Lab. Oak) and Viridian City (Pokecenter sur) vs current kanto_overworld.json
 
 ## Building Restoration (complete)
 

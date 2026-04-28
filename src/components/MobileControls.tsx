@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Joystick } from './Joystick';
 import { type Direction } from '../types';
 import { type GamePhase, EXPLORING } from '../types/gamePhase';
@@ -9,7 +10,7 @@ interface MobileControlsProps {
   setPhase: Dispatch<SetStateAction<GamePhase>>;
 }
 
-export const MobileControls = ({ onMove, onAction, setPhase }: MobileControlsProps) => (
+export const MobileControls = memo(({ onMove, onAction, setPhase }: MobileControlsProps) => (
   <div className="fixed bottom-0 left-0 w-full p-6 lg:hidden flex justify-between items-end z-30 pointer-events-none">
     <Joystick onMove={(dir) => dir && onMove(dir)} />
     <div className="flex gap-4 pointer-events-auto mb-4">
@@ -42,4 +43,4 @@ export const MobileControls = ({ onMove, onAction, setPhase }: MobileControlsPro
       </div>
     </div>
   </div>
-);
+));

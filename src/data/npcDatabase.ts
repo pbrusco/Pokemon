@@ -4,7 +4,7 @@ import { type NPC, type Entity, type MapID, type Direction, type Pokemon, type P
 // ─── Kanto zone offsets in the unified KANTO_OVERWORLD map ───────────────────
 // Derived from scripts/stitch-kanto.mjs output.
 // Format: top-left corner of each segment in world tile coordinates.
-const O = {
+export const O = {
   PALLET_TOWN:     { x: 118, y: 196 },
   ROUTE_1:         { x: 118, y: 161 },
   VIRIDIAN_CITY:   { x: 108, y: 126 },
