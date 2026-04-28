@@ -18,6 +18,7 @@ import rock_tunnel_b1f  from './rock_tunnel_b1f.json';
 import pokemon_tower_1f from './pokemon_tower_1f.json';
 import pokemon_tower_2f from './pokemon_tower_2f.json';
 import pokemon_tower_3f from './pokemon_tower_3f.json';
+import bills_house from './bills_house.json';
 
 export const MAP_KANTO_OVERWORLD  = parseTileMap(kanto_overworld);
 
@@ -38,6 +39,7 @@ export const MAP_ROCK_TUNNEL_B1F  = parseTileMap(rock_tunnel_b1f);
 export const MAP_POKEMON_TOWER_1F = parseTileMap(pokemon_tower_1f);
 export const MAP_POKEMON_TOWER_2F = parseTileMap(pokemon_tower_2f);
 export const MAP_POKEMON_TOWER_3F = parseTileMap(pokemon_tower_3f);
+export const MAP_BILLS_HOUSE = parseTileMap(bills_house);
 
 export const worldMaps = {
   // ── Single unified outdoor map ──
@@ -60,4 +62,5 @@ export const worldMaps = {
   POKEMON_TOWER_1F: MAP_POKEMON_TOWER_1F,
   POKEMON_TOWER_2F: MAP_POKEMON_TOWER_2F,
   POKEMON_TOWER_3F: MAP_POKEMON_TOWER_3F,
+  BILLS_HOUSE:      MAP_BILLS_HOUSE,
 };

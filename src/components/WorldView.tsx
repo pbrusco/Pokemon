@@ -1,6 +1,6 @@
 import { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Position, Entity, Pokemon, MapID, TILE_SIZE, MapData, NPC } from '../types';
+import { type Position, type Entity, type Pokemon, type MapID, TILE_SIZE, type MapData, type NPC } from '../types';
 import { WILD_POKEMON_DATABASE } from '../constants';
 import { useGameStore } from '../store/gameStore';
 import { NPCComponent } from './overworld/NPCComponent';
@@ -45,13 +45,13 @@ export const WorldView = memo(({
   playerTeam,
 }: WorldViewProps) => {
   const { playerPos, direction, isMoving, currentMap, zoomLevel, cameraOffset, isCameraLocked, setZoomLevel, setCameraOffset, setIsCameraLocked, wildPokemon } = useGameStore();
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const mapData = maps[currentMap];
   if (!mapData) return null;
   const grid = mapData.tiles;
   const { layers } = mapData;
   const mapHasEncounters = currentMap in WILD_POKEMON_DATABASE;
-
-  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
   // ── Rendering Strategy ──────────────────────────────────────
   const isLargeMap = grid.length * grid[0].length > 2000;
@@ -135,7 +135,6 @@ export const WorldView = memo(({
     setZoomLevel(prev => Math.min(Math.max(prev + delta, 0.05), 1.0));
   };
 
-  const [isDragging, setIsDragging] = useState(false);
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button === 0 || e.button === 1) { // Left or middle click to drag
       setIsDragging(true);

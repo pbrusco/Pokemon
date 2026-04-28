@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Direction } from '../types';
+import { type Direction } from '../types';
 
 export const Joystick = ({ onMove }: { onMove: (dir: Direction | null) => void }) => {
   const [knobPos, setKnobPos] = useState({ x: 0, y: 0 });

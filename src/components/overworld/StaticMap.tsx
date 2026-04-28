@@ -1,6 +1,8 @@
 import { memo, useEffect, useRef } from 'react';
-import { MapData, TILE_SIZE } from '../../types';
+import { type MapData, TILE_SIZE } from '../../types';
 import { getTilesetUrl, TILESET_COLS } from '../../data/tileset/tilesetGenerator';
+
+const LAYER_KEYS = ['ground', 'objects', 'overhead'] as const;
 
 const TILE_COLORS: Record<string, string> = {
   tree: '#2d5a27',
@@ -44,7 +46,7 @@ export const StaticMap = memo(({ mapData, layerIndex, colorMode }: StaticMapProp
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
           const tile = mapData.tiles[y][x];
-          const tileId = mapData.layers[layerIndex][y][x];
+          const tileId = mapData.layers[LAYER_KEYS[layerIndex]][y][x];
           if (tileId === -1) continue;
 
           ctx.fillStyle = TILE_COLORS[tile.type] || '#000000';
@@ -59,7 +61,7 @@ export const StaticMap = memo(({ mapData, layerIndex, colorMode }: StaticMapProp
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         for (let y = 0; y < rows; y++) {
           for (let x = 0; x < cols; x++) {
-            const tileId = mapData.layers[layerIndex][y][x];
+            const tileId = mapData.layers[LAYER_KEYS[layerIndex]][y][x];
             if (tileId === -1) continue;
 
             const sx = (tileId % TILESET_COLS) * TILE_SIZE;

@@ -1,13 +1,14 @@
+import { memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { sdur } from '../lib/gameSpeed';
-import { BattlePhase } from '../types/gamePhase';
+import { type BattlePhase } from '../types/gamePhase';
 
 interface ScreenEffectsProps {
   phaseType: string;
   battlePhase: BattlePhase | null;
 }
 
-export const ScreenEffects = ({ phaseType, battlePhase }: ScreenEffectsProps) => (
+export const ScreenEffects = memo(({ phaseType, battlePhase }: ScreenEffectsProps) => (
   <>
     {/* Level-up flash */}
     <AnimatePresence>
@@ -64,4 +65,4 @@ export const ScreenEffects = ({ phaseType, battlePhase }: ScreenEffectsProps) =>
     {/* Overlay Vignette */}
     <div className="fixed inset-0 pointer-events-none shadow-[inset_0_0_40px_rgba(0,0,0,0.2)] z-10" />
   </>
-);
+));

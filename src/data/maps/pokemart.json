@@ -14,10 +14,7 @@
       "x": 3,
       "y": 7,
       "targetMap": "KANTO_OVERWORLD",
-      "targetPos": {
-        "x": 137,
-        "y": 145
-      },
+      "targetPos": { "x": 133, "y": 146 },
       "targetDir": "down"
     }
   ]

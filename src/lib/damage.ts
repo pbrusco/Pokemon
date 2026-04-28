@@ -1,4 +1,4 @@
-import { Pokemon, Move, StatBoosts } from '../types';
+import { type Pokemon, type Move, type StatBoosts } from '../types';
 
 // Gen I: types are either Physical or Special
 const PHYSICAL_TYPES = new Set([

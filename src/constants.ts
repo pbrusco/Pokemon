@@ -1,4 +1,4 @@
-import { Move, Pokemon, InventoryItem, PokemonSummary, BaseStats } from './types';
+import { type Move, type Pokemon, type InventoryItem, type PokemonSummary, type BaseStats } from './types';
 import { calcHp } from './lib/damage';
 
 /** Gen I base stats for all 151 Pokemon */

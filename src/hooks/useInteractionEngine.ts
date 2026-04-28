@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import type { Pokemon, MapID, Position, NPC } from '../types';
-import { HM_REQUIREMENTS, STARTERS, ITEMS_DATABASE } from '../constants';
+import { HM_REQUIREMENTS, STARTERS, ITEMS_DATABASE, MOVES, makePokemon } from '../constants';
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
 import { EXPLORING, HEALING, SHOP } from '../types/gamePhase';
@@ -94,6 +94,33 @@ export const useInteractionEngine = ({
         } else {
           store.setDialogue(`MARGARITA: ${npc.dialogue[0]}`);
         }
+      } else if (npc.onInteract === 'give_poke_flute') {
+        if (!inventory['POKE_FLUTE']) {
+          store.addInventoryItem('POKE_FLUTE');
+          store.setHasPokeFlute(true);
+          store.setDialogue('¡Recibiste la FLAUTA POKé!');
+        } else {
+          store.setDialogue('La FLAUTA POKé ya la tienes.');
+        }
+      } else if (npc.onInteract === 'give_ss_ticket') {
+        if (!inventory['SS_TICKET']) {
+          store.addInventoryItem('SS_TICKET');
+          store.setHasSsTicket(true);
+          store.setDialogue('¡Recibiste el BILLETE SS!');
+        } else {
+          store.setDialogue('¡El barco SS ANNE está en el muelle de CIUDAD CARMÍN!');
+        }
+      } else if (npc.onInteract === 'wake_snorlax') {
+        if (!inventory['POKE_FLUTE']) {
+          store.setDialogue('Está dormido profundamente...');
+        } else {
+          store.setDialogue('¡La FLAUTA POKé despertó a SNORLAX!\n¡Quiere luchar!');
+          store.setPendingSnorlaxId(npc.id);
+          setTimeout(() => initBattle(
+            makePokemon('snorlax', 'SNORLAX', 30, 'normal', [MOVES.REST, MOVES.AMNESIA, MOVES.BODY_SLAM, MOVES.HEADBUTT], 143),
+            false
+          ), sd(800));
+        }
       } else {
         store.setDialogue(npc.dialogue[0]);
       }
@@ -133,6 +160,7 @@ export const useInteractionEngine = ({
           const dbItem = ITEMS_DATABASE[itemKey];
           store.setPickedItemIds(prev => [...prev, item.id]);
           store.addInventoryItem(itemKey);
+          if (itemKey === 'SILPH_SCOPE') store.setHasSilphScope(true);
           store.setDialogue(`¡Has encontrado: ${dbItem.name}!`);
         }
       } else if (item.type === 'object') {

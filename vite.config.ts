@@ -42,9 +42,11 @@ function logSaverPlugin(): Plugin {
           const files = fs.readdirSync(logsDir).filter(f => f.endsWith('.json')).sort().reverse();
           res.setHeader('Content-Type', 'application/json');
           res.end(JSON.stringify(files));
+          return;
         } catch (err) {
           res.statusCode = 500;
           res.end(JSON.stringify({ error: String(err) }));
+          return;
         }
       });
 

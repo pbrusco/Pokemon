@@ -1,7 +1,7 @@
-import { useEffect, MutableRefObject, Dispatch, SetStateAction } from 'react';
-import { Pokemon } from '../types';
-import { GamePhase, battle, B_CHOOSING, EXPLORING } from '../types/gamePhase';
-import { BattleAction, BattleState, createBattleState } from '../lib/battleEngine';
+import { useEffect, type MutableRefObject, type Dispatch, type SetStateAction } from 'react';
+import { type Pokemon } from '../types';
+import { type GamePhase, battle, B_CHOOSING, EXPLORING } from '../types/gamePhase';
+import { type BattleAction, type BattleState, createBattleState } from '../lib/battleEngine';
 import { MOVES, makePokemon } from '../constants';
 import { useGameStore } from '../store/gameStore';
 

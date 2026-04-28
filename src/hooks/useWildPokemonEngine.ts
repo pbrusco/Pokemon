@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { WILD_POKEMON_DATABASE, getKantoRegion } from '../constants';
-import { Position, WildPokemonEntity, Direction, Pokemon } from '../types';
+import { type Position, type WildPokemonEntity, type Direction, type Pokemon } from '../types';
 import { calcHp } from '../lib/damage';
 import { launchBattle } from '../lib/launchBattle';
 import { logObservation } from '../lib/eventLog';
@@ -9,26 +9,38 @@ import { logObservation } from '../lib/eventLog';
 const MAX_WILD_POKEMON = 5;
 const SPAWN_CHANCE = 0.3;
 const MOVE_CHANCE = 0.4;
-const TICK_RATE = 3000; // 3 seconds
+const TICK_RATE = 3000;
+
+function triggerBattle(pkmn: Pokemon) {
+  logObservation({ k: 'obs_encounter', map: useGameStore.getState().currentMap, pokemon: pkmn.name, level: pkmn.level });
+  launchBattle({
+    enemy: pkmn,
+    isTrainer: false,
+    battleLog: `¡Un ${pkmn.name} salvaje apareció!`,
+  });
+}
 
 export function useWildPokemonEngine() {
-  const store = useGameStore();
-  const { currentMap, playerPos, worldMaps, wildPokemon, setWildPokemon, phase, ghostMode } = store;
+  const phaseType = useGameStore(s => s.phase.type);
+  const currentMap = useGameStore(s => s.currentMap);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (phase.type !== 'EXPLORING' || currentMap === 'PLAYERS_HOUSE_2F') {
-        if (wildPokemon.length > 0) setWildPokemon([]);
-        return;
+    if (phaseType !== 'EXPLORING' || currentMap === 'PLAYERS_HOUSE_2F') {
+      const { wildPokemon, setWildPokemon } = useGameStore.getState();
+      if (wildPokemon.length > 0) setWildPokemon([]);
+      return;
     }
 
     const tick = () => {
-      const mapData = worldMaps[currentMap];
+      const s = useGameStore.getState();
+      const mapData = s.worldMaps[s.currentMap];
       if (!mapData) return;
 
       const grid = mapData.tiles;
       const rows = grid.length;
       const cols = grid[0].length;
+      const { playerPos, wildPokemon, ghostMode } = s;
 
       // 1. Clean up distant or out-of-bounds pokemon
       const kept = wildPokemon.filter(p => {
@@ -38,13 +50,11 @@ export function useWildPokemonEngine() {
 
       // 2. Spawn new pokemon if under limit
       if (kept.length < MAX_WILD_POKEMON && Math.random() < SPAWN_CHANCE) {
-        // Find grass tiles near player
         const candidates: Position[] = [];
         const radius = 10;
         for (let y = Math.max(0, playerPos.y - radius); y < Math.min(rows, playerPos.y + radius); y++) {
           for (let x = Math.max(0, playerPos.x - radius); x < Math.min(cols, playerPos.x + radius); x++) {
             if (grid[y][x].type === 'grass') {
-              // Don't spawn on player or existing pokemon
               if (x === playerPos.x && y === playerPos.y) continue;
               if (kept.some(p => p.position.x === x && p.position.y === y)) continue;
               candidates.push({ x, y });
@@ -54,14 +64,14 @@ export function useWildPokemonEngine() {
 
         if (candidates.length > 0) {
           const pos = candidates[Math.floor(Math.random() * candidates.length)];
-          const zone = currentMap === 'KANTO_OVERWORLD' ? getKantoRegion(pos.x, pos.y) : currentMap;
+          const zone = s.currentMap === 'KANTO_OVERWORLD' ? getKantoRegion(pos.x, pos.y) : s.currentMap;
           const speciesList = WILD_POKEMON_DATABASE[zone];
 
           if (speciesList && speciesList.length > 0) {
             const base = speciesList[Math.floor(Math.random() * speciesList.length)];
             const level = base.level + Math.floor(Math.random() * 3) - 1;
             const maxHp = calcHp(base.baseStats.hp, level);
-            
+
             const pkmn: Pokemon = {
               ...base,
               uid: Math.random().toString(36).substring(2, 9),
@@ -96,39 +106,26 @@ export function useWildPokemonEngine() {
         if (dir === 'left') nx--;
         if (dir === 'right') nx++;
 
-        // Can only move into grass tiles
         if (
           ny >= 0 && ny < rows && nx >= 0 && nx < cols &&
           grid[ny][nx].type === 'grass' &&
           !kept.some(other => other.id !== p.id && other.position.x === nx && other.position.y === ny)
         ) {
-          // Check collision with player
           if (nx === playerPos.x && ny === playerPos.y && !ghostMode) {
-            // Trigger battle!
             triggerBattle(p.pokemon);
-            return null; // Remove from overworld
+            return null;
           }
           return { ...p, position: { x: nx, y: ny }, direction: dir };
         }
         return p;
       }).filter((p): p is WildPokemonEntity => p !== null);
 
-      setWildPokemon(moved);
+      s.setWildPokemon(moved);
     };
 
     timerRef.current = setInterval(tick, TICK_RATE);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [currentMap, playerPos, worldMaps, wildPokemon, phase.type, ghostMode]);
-
-  function triggerBattle(pkmn: Pokemon) {
-    logObservation({ k: 'obs_encounter', map: currentMap, pokemon: pkmn.name, level: pkmn.level });
-    launchBattle({
-      enemy: pkmn,
-      isTrainer: false,
-      battleLog: `¡Un ${pkmn.name} salvaje apareció!`,
-    });
-    // The hook will clear the pokemon in the next tick or via setWildPokemon([]) if phase changes
-  }
+  }, [phaseType, currentMap]);
 }

@@ -1,7 +1,7 @@
 import { Joystick } from './Joystick';
-import { Direction } from '../types';
-import { GamePhase, EXPLORING } from '../types/gamePhase';
-import { Dispatch, SetStateAction } from 'react';
+import { type Direction } from '../types';
+import { type GamePhase, EXPLORING } from '../types/gamePhase';
+import { type Dispatch, type SetStateAction } from 'react';
 
 interface MobileControlsProps {
   onMove: (dir: Direction) => void;

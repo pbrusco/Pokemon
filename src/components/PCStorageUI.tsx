@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { X, ArrowLeftRight } from 'lucide-react';
-import { Pokemon } from '../types';
+import { type Pokemon } from '../types';
 
 export const PCStorageUI = ({ team, pc, onClose, onSwap }: { team: Pokemon[], pc: Pokemon[], onClose: () => void, onSwap: (teamIdx: number, pcIdx: number) => void }) => {
   const [selectedTeamIdx, setSelectedTeamIdx] = useState<number | null>(null);

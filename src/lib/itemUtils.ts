@@ -1,4 +1,4 @@
-import { Pokemon } from '../types';
+import { type Pokemon } from '../types';
 import { ITEMS_DATABASE } from '../constants';
 
 interface ItemUseResult {

@@ -1,5 +1,5 @@
 import { MOVES, STARTERS, makePokemon } from '../constants';
-import { NPC, Entity, MapID, Direction, Pokemon, Position } from '../types';
+import { type NPC, type Entity, type MapID, type Direction, type Pokemon, type Position } from '../types';
 
 // ─── Kanto zone offsets in the unified KANTO_OVERWORLD map ───────────────────
 // Derived from scripts/stitch-kanto.mjs output.
@@ -83,7 +83,7 @@ export function buildNPCDatabase(
       // ── Viridian City ──
       { id: 'viridian_youngster1', name: 'JOVEN', type: 'npc', position: w('VIRIDIAN_CITY', 13, 20), direction: 'down', trainerClass: 'youngster', dialogue: ["¡Esas POKÉ BALL que llevas en el cinturón son POKÉMON!", "¡Es genial poder llevarlos contigo!"] },
       { id: 'viridian_gambler1', name: 'GOLFO', type: 'npc', position: w('VIRIDIAN_CITY', 30, 8), direction: 'down', trainerClass: 'gambler', dialogue: ["¡Este GIMNASIO POKÉMON siempre está cerrado!", "Me pregunto quién será el LÍDER..."] },
-      { id: 'viridian_youngster2', name: 'JOVEN', type: 'npc', position: w('VIRIDIAN_CITY', 30, 25), direction: 'down', trainerClass: 'youngster', dialogue: ["¿Quieres saber algo sobre el TÚNEL ROCA?", "¡Está lleno de POKÉMON salvajes!"] },
+      { id: 'viridian_youngster2', name: 'JOVEN', type: 'npc', position: w('VIRIDIAN_CITY', 32, 25), direction: 'down', trainerClass: 'youngster', dialogue: ["¿Quieres saber algo sobre el TÚNEL ROCA?", "¡Está lleno de POKÉMON salvajes!"] },
       {
         id: 'viridian_girl', name: 'CHICA', type: 'npc', position: w('VIRIDIAN_CITY', 17, 9), direction: 'right', trainerClass: 'lass',
         dialogue: hasPokedex
@@ -128,7 +128,7 @@ export function buildNPCDatabase(
       }] : []),
       // ── Cerulean City ──
       { id: 'cerulean_rival', name: 'AZUL', type: 'npc', position: w('CERULEAN_CITY', 20, 2), direction: 'down', trainerClass: 'rival', dialogue: ["¡Hola! ¡Hacía tiempo que no nos veíamos!", "¡He atrapado un montón de POKÉMON fuertes!", "¡Enséñame qué has conseguido tú!"], isTrainer: true, trainerTeam: [makePokemon('pidgeotto', 'PIDGEOTTO', 18, 'flying', [MOVES.GUST, MOVES.SAND_ATTACK], 17), makePokemon('abra', 'ABRA', 15, 'psychic', [MOVES.TELEPORT], 63), makePokemon('rattata', 'RATTATA', 15, 'normal', [MOVES.TACKLE, MOVES.QUICK_ATTACK], 19), makePokemon('bulbasaur', 'BULBASAUR', 17, 'grass', [MOVES.TACKLE, MOVES.VINE_WHIP], 1)] },
-      { id: 'cerulean_rocket', name: 'SOLDADO ROCKET', type: 'npc', position: w('CERULEAN_CITY', 30, 8), direction: 'down', trainerClass: 'rocket', dialogue: ["¡El TEAM ROCKET se llevará todo lo que quiera!", "¡No te metas en nuestros asuntos!"], isTrainer: true, trainerTeam: [makePokemon('machop', 'MACHOP', 15, 'fighting', [MOVES.LOW_KICK, MOVES.LEER], 66), makePokemon('drowzee', 'DROWZEE', 15, 'psychic', [MOVES.POUND, MOVES.HYPNOSIS], 96)] },
+      { id: 'cerulean_rocket', name: 'SOLDADO ROCKET', type: 'npc', position: w('CERULEAN_CITY', 32, 8), direction: 'down', trainerClass: 'rocket', dialogue: ["¡El TEAM ROCKET se llevará todo lo que quiera!", "¡No te metas en nuestros asuntos!"], isTrainer: true, trainerTeam: [makePokemon('machop', 'MACHOP', 15, 'fighting', [MOVES.LOW_KICK, MOVES.LEER], 66), makePokemon('drowzee', 'DROWZEE', 15, 'psychic', [MOVES.POUND, MOVES.HYPNOSIS], 96)] },
       { id: 'cerulean_cooltrainer_m', name: 'ENTRENADOR', type: 'npc', position: w('CERULEAN_CITY', 31, 20), direction: 'down', trainerClass: 'cooltrainer_m', dialogue: ["¡MISTY es la mejor!", "¡Sus POKÉMON de agua son invencibles!"] },
       { id: 'cerulean_supernerd1', name: 'SABIONDO', type: 'npc', position: w('CERULEAN_CITY', 15, 18), direction: 'down', trainerClass: 'supernerd', dialogue: ["¿Has visto al POKÉMON raro de esa cueva?", "¡Dicen que es increíblemente poderoso!"] },
       { id: 'cerulean_supernerd2', name: 'SABIONDO', type: 'npc', position: w('CERULEAN_CITY', 9, 21), direction: 'left', trainerClass: 'supernerd', dialogue: ["¡He intercambiado un POKÉMON con ese chico de ahí!", "¡Mira qué guay es!"] },
@@ -187,23 +187,24 @@ export function buildNPCDatabase(
       { id: 'vermilion_gambler2', name: 'GOLFO', type: 'npc', position: w('VERMILION_CITY', 30, 7), direction: 'down', trainerClass: 'gambler', dialogue: ["¡Estoy construyendo mi propia casa!", "¡Mi POKÉMON me está ayudando!"] },
       { id: 'vermilion_machop', name: 'MACHOP', type: 'npc', position: w('VERMILION_CITY', 29, 9), direction: 'down', trainerClass: 'machop', dialogue: ["¡Guoh! ¡Guoguo!", "¡MACHOP está apisonando el suelo con cuidado!"] },
       { id: 'vermilion_sailor2', name: 'MARINERO', type: 'npc', position: w('VERMILION_CITY', 25, 27), direction: 'left', trainerClass: 'sailor', dialogue: ["¿Has oído hablar del TENIENTE SURGE?", "¡Es el LÍDER del GIMNASIO y un experto en POKÉMON eléctricos!"] },
+      // ── SS Anne Dock ──
+      ...(!hasSsTicket ? [{
+        id: 'dock_guard', name: 'GUARDIA', type: 'npc' as const,
+        position: w('VERMILION_CITY', 29, 16),
+        direction: 'down' as Direction, trainerClass: 'sailor',
+        dialogue: ['Solo se admiten viajeros con BILLETE SS.', '¡Vuelve cuando tengas uno!'],
+      }] : []),
       // ── Lavender Town ──
       { id: 'lavender_girl', name: 'NIÑA', type: 'npc', position: w('LAVENDER_TOWN', 15, 9), direction: 'down', trainerClass: 'lass', dialogue: ["¿Crees en los fantasmas?", "¡Yo sí! ¡He visto uno en la TORRE POKÉMON!"] },
-      { id: 'lavender_cooltrainer_m', name: 'ENTRENADOR', type: 'npc', position: w('LAVENDER_TOWN', 9, 10), direction: 'down', trainerClass: 'cooltrainer_m', dialogue: ["Este pueblo es muy tranquilo...", "Demasiado tranquilo para mi gusto."] },
+      { id: 'lavender_cooltrainer_m', name: 'ENTRENADOR', type: 'npc', position: w('LAVENDER_TOWN', 5, 14), direction: 'down', trainerClass: 'cooltrainer_m', dialogue: ["Este pueblo es muy tranquilo...", "Demasiado tranquilo para mi gusto."] },
       { id: 'lavender_supernerd', name: 'SABIONDO', type: 'npc', position: w('LAVENDER_TOWN', 8, 7), direction: 'left', trainerClass: 'supernerd', dialogue: ["¿Has oído hablar del SCOPE SILPH?", "¡Dicen que puede identificar a los fantasmas!"] },
       // ── Lavender Town Signs ──
-      { id: 'sign_lavender_main', type: 'object', position: w('LAVENDER_TOWN', 11, 9), direction: 'down', sprite: '🪧', dialogue: ['PUEBLO LAVANDA', 'El pueblo noble y púrpura.'] },
+      { id: 'sign_lavender_main', type: 'object', position: w('LAVENDER_TOWN', 15, 9), direction: 'down', sprite: '🪧', dialogue: ['PUEBLO LAVANDA', 'El pueblo noble y púrpura.'] },
       { id: 'sign_silph_scope', type: 'object', position: w('LAVENDER_TOWN', 9, 3), direction: 'down', sprite: '🪧', dialogue: ['NUEVO SCOPE SILPH!', '¡Haz visible lo invisible!', 'SILPH S.A.'] },
       { id: 'sign_mart_lavender', type: 'object', position: w('LAVENDER_TOWN', 16, 13), direction: 'down', sprite: '🪧', dialogue: ['TIENDA POKÉMON'] },
-      { id: 'sign_center_lavender', type: 'object', position: w('LAVENDER_TOWN', 4, 5), direction: 'down', sprite: '🪧', dialogue: ['CENTRO POKÉMON'] },
+      { id: 'sign_center_lavender', type: 'object', position: w('LAVENDER_TOWN', 2, 5), direction: 'down', sprite: '🪧', dialogue: ['CENTRO POKÉMON'] },
       { id: 'sign_pokemon_house', type: 'object', position: w('LAVENDER_TOWN', 5, 9), direction: 'down', sprite: '🪧', dialogue: ['CASA POKÉMON VOLUNTARIA DE LAVANDA'] },
       { id: 'sign_tower_lavender', type: 'object', position: w('LAVENDER_TOWN', 17, 7), direction: 'down', sprite: '🪧', dialogue: ['TORRE POKÉMON', 'Aquí descansan los POKÉMON fallecidos.'] },
-      { id: 'door_lavender_center', type: 'object', position: w('LAVENDER_TOWN', 3, 5), direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
-      { id: 'door_pokemon_tower', type: 'object', position: w('LAVENDER_TOWN', 14, 5), direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
-      { id: 'door_fuji_house', type: 'object', position: w('LAVENDER_TOWN', 7, 9), direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
-      { id: 'door_lavender_mart', type: 'object', position: w('LAVENDER_TOWN', 15, 13), direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
-      { id: 'door_cubone_house', type: 'object', position: w('LAVENDER_TOWN', 3, 13), direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
-      { id: 'door_name_rater', type: 'object', position: w('LAVENDER_TOWN', 7, 13), direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
     ],
 
     // ── Indoor maps (positions unchanged — all local coords) ─────────────────
@@ -296,7 +297,39 @@ export function buildNPCDatabase(
       { id: 'door_pokemon_tower_internal', type: 'object', position: { x: 10, y: 16 }, direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
     ],
     POKEMON_TOWER_2F: [],
-    POKEMON_TOWER_3F: [],
+    POKEMON_TOWER_3F: [
+      ...(!hasSilphScope ? [{
+        id: 'tower_3f_ghost',
+        name: 'FANTASMA',
+        type: 'npc' as const,
+        position: { x: 10, y: 2 },
+        direction: 'down' as Direction,
+        trainerClass: 'ghost',
+        dialogue: ['¡Un FANTASMA horrible bloquea el paso!', 'Necesitas el ALCANCE SILPH para verlo.'],
+      }] : []),
+      ...(hasSilphScope && !hasPokeFlute ? [{
+        id: 'mr_fuji',
+        name: 'SR. FUJI',
+        type: 'npc' as const,
+        position: { x: 10, y: 8 },
+        direction: 'down' as Direction,
+        trainerClass: 'old_man',
+        onInteract: 'give_poke_flute' as const,
+        dialogue: ['Gracias por liberar esta torre de los ROCKET...', '¡Toma esta FLAUTA POKé como agradecimiento!'],
+      }] : []),
+    ],
+    BILLS_HOUSE: [
+      {
+        id: 'bill', name: 'BILL', type: 'npc' as const,
+        position: { x: 3, y: 2 }, direction: 'down' as Direction,
+        trainerClass: 'scientist',
+        onInteract: 'give_ss_ticket' as const,
+        dialogue: hasSsTicket
+          ? ['¡Ya tienes tu BILLETE SS! El barco está en CIUDAD CARMÍN.']
+          : ['¡Mi teletransportador falló y quedé atrapado en el cuerpo de un POKÉMON!',
+             '¡Solucioné el problema! ¡Toma este BILLETE SS como agradecimiento!']
+      },
+    ],
   } as unknown as Record<MapID, NPC[]>;
 }
 
@@ -350,10 +383,6 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'door_nidoran_house', type: 'object', position: w('PEWTER_CITY', 29, 13), direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
       { id: 'door_speech_house', type: 'object', position: w('PEWTER_CITY', 7, 29), direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
       // ── Cerulean City ──
-      { id: 'door_closed_cerulean_center', type: 'object', position: { x: 115, y: 8 }, direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
-      { id: 'door_closed_cerulean_mart', type: 'object', position: { x: 124, y: 8 }, direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
-      { id: 'door_closed_cerulean_gym',  type: 'object', position: { x: 137, y: 8 }, direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
-      { id: 'door_closed_cerulean_extra',type: 'object', position: { x: 146, y: 8 }, direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
       // ── Cinnabar Island ──
       { id: 'sign_cinnabar_main', type: 'object', position: w('CINNABAR_ISLAND', 9, 5), direction: 'down', sprite: '🪧', dialogue: ['ISLA CANELA', '¡La ciudad de los deseos fervientes!'] },
       { id: 'sign_mart_cinnabar', type: 'object', position: w('CINNABAR_ISLAND', 16, 11), direction: 'down', sprite: '🪧', dialogue: ['TIENDA POKÉMON'] },
@@ -496,10 +525,13 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'item_revive_rock_1', type: 'item', position: { x: 5, y: 15 }, direction: 'down', sprite: '💎', itemId: 'REVIVE' },
     ],
     POKEMON_TOWER_1F: [],
-    POKEMON_TOWER_2F: [],
+    POKEMON_TOWER_2F: [
+      { id: 'item_silph_scope', type: 'item', position: { x: 5, y: 3 }, direction: 'down', sprite: '🔭', itemId: 'SILPH_SCOPE' },
+    ],
     POKEMON_TOWER_3F: [
       { id: 'item_pokeball_tower_1', type: 'item', position: { x: 5, y: 5 }, direction: 'down', sprite: '🔴', itemId: 'POKEBALL' },
     ],
+    BILLS_HOUSE: [],
   };
 
   return Object.fromEntries(

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Pokemon } from '../types';
+import { type Pokemon } from '../types';
 import { ITEMS_DATABASE } from '../constants';
 import { applyItemToPokemon } from '../lib/itemUtils';
 

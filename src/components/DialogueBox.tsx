@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import { motion } from 'motion/react';
 
-export const DialogueBox = ({ text, onComplete }: { text: string, onComplete: () => void }) => {
+export const DialogueBox = memo(({ text, onComplete }: { text: string, onComplete: () => void }) => {
   return (
     <motion.div 
       initial={{ y: 100, opacity: 0 }}
@@ -29,4 +30,4 @@ export const DialogueBox = ({ text, onComplete }: { text: string, onComplete: ()
       </div>
     </motion.div>
   );
-};
+});

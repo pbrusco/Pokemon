@@ -693,6 +693,7 @@ export function getTilesetUrl(): string {
 
   // Draw each tile into its slot
   for (const [idStr, drawFn] of Object.entries(DRAW_MAP)) {
+    if (!drawFn) continue;
     const id = Number(idStr);
     const [ox, oy] = origin(id);
     drawFn(ctx, ox, oy);

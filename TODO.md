@@ -1,5 +1,24 @@
 # TODO
 
+## Performance Optimization (in progress)
+
+### Done
+- [x] App.tsx — granular store selectors (was subscribing to full 100+ prop store, re-rendering on every player step, camera drag, and wildPokemon tick)
+- [x] useWildPokemonEngine — removed playerPos + wildPokemon from useEffect deps, reads from getState() inside tick instead of destroying/recreating setInterval every step
+- [x] Minimap — background tiles cached in offscreen canvas, only redraws on map change (not every player step)
+- [x] React.memo added: DialogueBox, GameHeader, NPCComponent, ScreenEffects, BattleTransition, PlayerSprite, BattleScreen
+
+### Remaining
+- [ ] Add React.memo to: GameModals, MobileControls, MenuButton, SideMenu, InventoryUI, TeamMenuUI, PCStorageUI, PokedexUI, ShopUI, MapEditor
+- [ ] Memoize vision indicators (trainer sight lines) and warp indicators in WorldView.tsx
+- [ ] Run pre-commit checks (tsc + vitest + knip)
+
+## Building Restoration (complete)
+
+All city building tiles restored, warps added, and reciprocal checks passing. World validator: 0 issues. Tests: 174/174 passing.
+
+---
+
 ## Ongoing Map Migration & Expansion
 - [ ] Stage 6 — Grab all missing Kanto locations:
   - [ ] Dungeons/multi-floor: Rock Tunnel (B1F), Pokémon Tower (2-7F) [Partially: 2-3F], Seafoam Islands (4F), Victory Road (3F), Cerulean Cave (3F), Silph Co. (11F), Power Plant, Pokémon Mansion (4F), Safari Zone (4 areas + warden), Indigo Plateau lobby + 5 Elite Four rooms

@@ -1,8 +1,9 @@
+import { memo } from 'react';
 import { motion } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
-import { Position, Direction, TILE_SIZE } from '../../types';
+import { type Position, type Direction, TILE_SIZE } from '../../types';
 
-export const PlayerSprite = ({ position, direction, isMoving }: { position: Position, direction: Direction, isMoving: boolean }) => {
+export const PlayerSprite = memo(({ position, direction, isMoving }: { position: Position, direction: Direction, isMoving: boolean }) => {
   return (
     <motion.div
       className="absolute top-0 left-0 flex items-center justify-center"
@@ -42,4 +43,4 @@ export const PlayerSprite = ({ position, direction, isMoving }: { position: Posi
       </div>
     </motion.div>
   );
-};
+});

@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { Pokemon, Position, Direction, Entity, InventoryCounts, MapID, PokedexState, WildPokemonEntity } from '../types';
+import { type Pokemon, type Position, type Direction, type Entity, type InventoryCounts, type MapID, type PokedexState, type WildPokemonEntity } from '../types';
 import { worldConfig } from '../data/worldConfig';
 import { buildNPCDatabase, buildItemDatabase } from '../data/npcDatabase';
-import { GamePhase, EXPLORING } from '../types/gamePhase';
+import { type GamePhase, EXPLORING } from '../types/gamePhase';
 import type { BattleState } from '../lib/battleEngine';
 import type { SetStateAction } from 'react';
 

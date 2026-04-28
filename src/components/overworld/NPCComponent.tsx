@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { NPC, TILE_SIZE } from '../../types';
+import { type NPC, TILE_SIZE } from '../../types';
 import { TRAINER_OVERWORLD_SPRITES } from '../../data/trainerSprites';
 
-export const NPCComponent = ({ npc, isSpotted }: { npc: NPC, key?: string, isSpotted?: boolean }) => {
+export const NPCComponent = memo(({ npc, isSpotted }: { npc: NPC, key?: string, isSpotted?: boolean }) => {
   const [spriteError, setSpriteError] = useState(false);
   const overworldSprite = npc.trainerClass ? TRAINER_OVERWORLD_SPRITES[npc.trainerClass] : undefined;
 
@@ -78,4 +78,4 @@ export const NPCComponent = ({ npc, isSpotted }: { npc: NPC, key?: string, isSpo
       </div>
     </motion.div>
   );
-};
+});

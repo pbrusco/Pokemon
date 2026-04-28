@@ -1,9 +1,9 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { MapIcon, Backpack, Gamepad2, X } from 'lucide-react';
 import { ITEMS_DATABASE } from '../constants';
-import { Pokemon, InventoryCounts } from '../types';
-import { GamePhase, EXPLORING } from '../types/gamePhase';
-import { Dispatch, SetStateAction } from 'react';
+import { type Pokemon, type InventoryCounts } from '../types';
+import { type GamePhase, EXPLORING } from '../types/gamePhase';
+import { type Dispatch, type SetStateAction } from 'react';
 
 interface SideMenuProps {
   phase: GamePhase;

@@ -1,5 +1,5 @@
-import { Tile, Position, MapID, Direction } from '../../types';
-import { buildRenderLayers, RenderLayers } from '../tileset/autotiler';
+import { type Tile, type Position, type MapID, type Direction } from '../../types';
+import { buildRenderLayers, type RenderLayers } from '../tileset/autotiler';
 
 interface Warp {
   x: number;

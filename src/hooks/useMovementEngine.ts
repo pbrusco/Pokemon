@@ -1,13 +1,13 @@
-import { useCallback, useRef, useEffect, MutableRefObject } from 'react';
-import { Direction, NPC, Pokemon, Position } from '../types';
+import { useCallback, useRef, useEffect, type MutableRefObject } from 'react';
+import { type Direction, type NPC, type Pokemon, type Position } from '../types';
 import { BLACKOUT, HEALING, EXPLORING } from '../types/gamePhase';
 import { fullHeal } from '../lib/healUtils';
-import { BattleState } from '../lib/battleEngine';
+import { type BattleState } from '../lib/battleEngine';
 import { sd } from '../lib/gameSpeed';
 import { triggerOakCutscene } from '../lib/oakCutscene';
 import { triggerTrainerCutscene } from '../lib/cutscenes/trainerEncounter';
 import { useGameStore } from '../store/gameStore';
-import { MapID } from '../types';
+import { type MapID } from '../types';
 import { launchBattle } from '../lib/launchBattle';
 import { logObservation } from '../lib/eventLog';
 import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES, getKantoRegion } from '../constants';

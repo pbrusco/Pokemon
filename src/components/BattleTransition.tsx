@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import { motion } from 'motion/react';
 
-export const BattleTransition = ({ onComplete }: { onComplete: () => void }) => {
+export const BattleTransition = memo(({ onComplete }: { onComplete: () => void }) => {
   return (
     <motion.div
       initial={{ scale: 0, rotate: 0, opacity: 0 }}
@@ -23,4 +24,4 @@ export const BattleTransition = ({ onComplete }: { onComplete: () => void }) => 
       </motion.div>
     </motion.div>
   );
-};
+});

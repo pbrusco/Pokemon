@@ -1,6 +1,6 @@
 import { AnimatePresence } from 'motion/react';
-import { BattlePhase, EXPLORING, battle, B_CHOOSING, B_FORCED_SWITCH } from '../types/gamePhase';
-import { BattleAction } from '../lib/battleEngine';
+import { type BattlePhase, EXPLORING, battle, B_CHOOSING, B_FORCED_SWITCH } from '../types/gamePhase';
+import { type BattleAction } from '../lib/battleEngine';
 import { BattleScreen } from './BattleScreen';
 import { BattleTransition } from './BattleTransition';
 import { DialogueBox } from './DialogueBox';

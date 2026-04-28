@@ -6,7 +6,7 @@
  * select visual variants for walls, trees, etc.
  */
 
-import { Tile } from '../../types';
+import { type Tile } from '../../types';
 import { T } from './tilesetGenerator';
 
 export interface RenderLayers {

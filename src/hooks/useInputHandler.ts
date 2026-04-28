@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { Direction } from '../types';
+import { type Direction } from '../types';
 import { battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING, EDITOR } from '../types/gamePhase';
-import { BattleAction } from '../lib/battleEngine';
+import { type BattleAction } from '../lib/battleEngine';
 import { useGameStore } from '../store/gameStore';
 
 // How long (ms) to wait after turning before walking begins if key is held.

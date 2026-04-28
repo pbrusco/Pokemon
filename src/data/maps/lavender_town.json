@@ -1,23 +1,28 @@
 {
   "rows": [
-    "TTTTTTTTTTTTTTTTTTTT",
+    "TTTTTTTTTTGTTTTTTTTT",
     "TPPPPPPPPPPPPPPPPPPT",
     "TPPPPPPPPPPPPPPPPPPT",
     "TPPPPPPPPPPPPPPPPPPT",
+    "TPPWWWWPPPPPPWWWWPPT",
+    "TPPWWWWPPPPPPWWWWPPT",
+    "TPPWWWWPPPPPPWWWWPPT",
+    "TPPPDPPPPPPPPPDPPPPT",
     "TPPPPPPPPPPPPPPPPPPT",
-    "TPPPPPPPPPPPPPPPPPPT",
-    "TPPPPPPPPPPPPPPPPPPT",
-    "TPPPPPPPPPPPPPPPPPPT",
-    "TPPPPPPPPPPPPPPPPPPT",
-    "TPPPPPPPPPPPPPPPPPPT",
-    "TPPPPPPPPPPPPPPPPPPT",
-    "TPPPPPPPPPPPPPPPPPPT",
-    "TPPPPPPPPPPPPPPPPPPT",
-    "TPPPPPPPPPPPPPPPPPPT",
+    "TPPPPPPWWWWWWPPPPPPT",
+    "TPPPPPPWWWWWWPPPPPPT",
+    "TPPPPPPWWWWWWPPPPPPT",
+    "TPPPPPPWWWWWWPPPPPPT",
+    "TPPPPPPPPPDPPPPPPPPT",
     "TPPPPPPPPPPPPPPPPPPT",
     "TPPPPPPPPPPPPPPPPPPT",
     "TPPPPPPPPPPPPPPPPPPT",
     "TTTTTTTTTTTTTTTTTTTT"
   ],
-  "warps": []
+  "warps": [
+    { "x": 10, "y": 0,  "targetMap": "ROUTE_10",         "targetPos": { "x": 4,  "y": 22 }, "targetDir": "up" },
+    { "x": 4,  "y": 7,  "targetMap": "POKECENTER",       "targetPos": { "x": 6,  "y": 6  }, "targetDir": "up" },
+    { "x": 14, "y": 7,  "targetMap": "POKEMART",         "targetPos": { "x": 3,  "y": 6  }, "targetDir": "up" },
+    { "x": 10, "y": 13, "targetMap": "POKEMON_TOWER_1F", "targetPos": { "x": 10, "y": 15 }, "targetDir": "up" }
+  ]
 }

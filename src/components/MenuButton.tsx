@@ -1,6 +1,6 @@
 import { Menu, X } from 'lucide-react';
-import { GamePhase, EXPLORING } from '../types/gamePhase';
-import { Dispatch, SetStateAction } from 'react';
+import { type GamePhase, EXPLORING } from '../types/gamePhase';
+import { type Dispatch, type SetStateAction } from 'react';
 
 interface MenuButtonProps {
   phase: GamePhase;

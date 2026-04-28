@@ -1,9 +1,9 @@
 import { useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
-import { BattleState, BattleAction } from './lib/battleEngine';
+import { type BattleState, type BattleAction } from './lib/battleEngine';
 import { battle, B_CHOOSING, B_FORCED_SWITCH, EXPLORING } from './types/gamePhase';
 import { RecorderButton } from './components/RecorderButton';
 import { logEvent, withoutLogging } from './lib/eventLog';
-import { Direction } from './types';
+import { type Direction } from './types';
 import { useInteractionEngine } from './hooks/useInteractionEngine';
 import { useWindowSize } from './hooks/useWindowSize';
 import { useBattleVFX } from './hooks/useBattleVFX';
@@ -24,23 +24,56 @@ import { MenuButton } from './components/MenuButton';
 import { GameModals } from './components/GameModals';
 import { ScreenEffects } from './components/ScreenEffects';
 import { applyItemToPokemon } from './lib/itemUtils';
+import { HM_MOVE_MAP, MOVES } from './constants';
 
 export default function App() {
-  const store = useGameStore();
+  // ── Granular store selectors ────────────────────────────────────
+  // App MUST NOT subscribe to rapidly-changing values like playerPos,
+  // direction, isMoving, cameraOffset, zoomLevel, or wildPokemon.
+  // Each selector below only triggers re-render when its value changes.
+  const phase = useGameStore(s => s.phase);
+  const viewMode = useGameStore(s => s.viewMode);
+  const currentMap = useGameStore(s => s.currentMap);
+  const worldMaps = useGameStore(s => s.worldMaps);
+  const grassEffect = useGameStore(s => s.grassEffect);
+  const spottedTrainerId = useGameStore(s => s.spottedTrainerId);
+  const spottedTrainerPos = useGameStore(s => s.spottedTrainerPos);
+  const defeatedTrainers = useGameStore(s => s.defeatedTrainers);
+  const dialogue = useGameStore(s => s.dialogue);
+  const playerTeam = useGameStore(s => s.playerTeam);
+  const storyStep = useGameStore(s => s.storyStep);
+  const inventory = useGameStore(s => s.inventory);
+  const hasPokedex = useGameStore(s => s.hasPokedex);
+  const isTrainerBattle = useGameStore(s => s.isTrainerBattle);
+  const badges = useGameStore(s => s.badges);
+  const hasParcel = useGameStore(s => s.hasParcel);
+  const hasSilphScope = useGameStore(s => s.hasSilphScope);
+  const hasPokeFlute = useGameStore(s => s.hasPokeFlute);
+  const hasSsTicket = useGameStore(s => s.hasSsTicket);
+  const clearedSnorlax = useGameStore(s => s.clearedSnorlax);
+  const oakCutscenePos = useGameStore(s => s.oakCutscenePos);
+  const oakCutsceneDir = useGameStore(s => s.oakCutsceneDir);
+  const pickedItemIds = useGameStore(s => s.pickedItemIds);
+  // Stable method refs (Zustand actions — identity never changes)
+  const getNPCs = useGameStore(s => s.getNPCs);
+  const getItems = useGameStore(s => s.getItems);
+  const setPhase = useGameStore(s => s.setPhase);
+  const setDialogue = useGameStore(s => s.setDialogue);
+  const resetGame = useGameStore(s => s.resetGame);
+  const updateTeam = useGameStore(s => s.updateTeam);
+  const setEnemyPokemon = useGameStore(s => s.setEnemyPokemon);
+  const setBattleLog = useGameStore(s => s.setBattleLog);
 
-  const phase = store.phase;
   const inBattle = phase.type === 'BATTLE' || ('returnTo' in phase && phase.returnTo?.type === 'BATTLE');
   const battlePhase = phase.type === 'BATTLE' ? phase.sub : ('returnTo' in phase && phase.returnTo?.type === 'BATTLE' ? phase.returnTo.sub : null);
-  // Memoize NPC/item databases — only recompute when the inputs to buildNPCDatabase / buildItemDatabase change
+
   const npcs = useMemo(
-    () => store.getNPCs(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [store.playerTeam, store.hasParcel, store.hasPokedex, store.badges, store.storyStep, store.oakCutscenePos, store.oakCutsceneDir]
+    () => getNPCs(),
+    [getNPCs, playerTeam, hasParcel, hasPokedex, badges, storyStep, oakCutscenePos, oakCutsceneDir, hasSilphScope, hasPokeFlute, hasSsTicket, clearedSnorlax]
   );
   const items = useMemo(
-    () => store.getItems(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [store.pickedItemIds, store.storyStep]
+    () => getItems(),
+    [getItems, pickedItemIds, storyStep]
   );
 
   const windowSize = useWindowSize();
@@ -49,16 +82,17 @@ export default function App() {
 
   const battleStateRef = useRef<BattleState | null>(null);
 
-  const handlePCSwap = (teamIdx: number, pcIdx: number) => {
+  const handlePCSwap = useCallback((teamIdx: number, pcIdx: number) => {
     logEvent({ k: 'pcSwap', teamIdx, pcIdx });
-    const newTeam = [...store.playerTeam];
-    const newPC = [...store.pcStorage];
+    const s = useGameStore.getState();
+    const newTeam = [...s.playerTeam];
+    const newPC = [...s.pcStorage];
     const temp = newTeam[teamIdx];
     newTeam[teamIdx] = newPC[pcIdx];
     newPC[pcIdx] = temp;
-    store.updateTeam(newTeam);
-    store.updatePcStorage(newPC);
-  };
+    s.updateTeam(newTeam);
+    s.updatePcStorage(newPC);
+  }, []);
 
   const { dispatchBattle: rawDispatchBattle } = useBattleEngine({
     battleStateRef,
@@ -80,14 +114,12 @@ export default function App() {
       s.setIsTrainerBattle(s.activeBattle.isTrainerBattle);
       s.setBattleLog(s.activeBattle.log);
       s.setBattleLogs([{ text: s.activeBattle.log, speaker: 'Sistema', id: -1 }]);
-      // If refreshed during transition, jump straight to battle
       if (s.phase.type === 'BATTLE_TRANSITION') {
         s.setPhase(s.activeBattle?.phase === 'FORCED_SWITCH' ? battle(B_FORCED_SWITCH) : battle(B_CHOOSING));
       }
     } else if (!s.activeBattle && (s.phase.type === 'BATTLE' || s.phase.type === 'BATTLE_TRANSITION')) {
       s.setPhase(EXPLORING);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { handleMove: rawHandleMove, initBattle } = useMovementEngine({
@@ -107,86 +139,117 @@ export default function App() {
     rawHandleAction();
   }, [rawHandleAction]);
 
-  const handleUseItem = (itemId: string) => {
+  const handleUseItem = useCallback((itemId: string) => {
     logEvent({ k: 'item', itemId });
     withoutLogging(() => {
-      const hasItem = (store.inventory[itemId] ?? 0) > 0;
+      const s = useGameStore.getState();
+      const hasItem = (s.inventory[itemId] ?? 0) > 0;
       if (!hasItem) return;
-      if (!inBattle) {
-        // If it's a Pokeball, we can't use it in overworld anyway
+      const ph = s.phase;
+      const ib = ph.type === 'BATTLE' || ('returnTo' in ph && ph.returnTo?.type === 'BATTLE');
+      if (!ib) {
         if (itemId === 'POKEBALL') {
-          store.setDialogue('¡No es el momento de usar eso!');
-          store.setPhase(EXPLORING);
+          s.setDialogue('¡No es el momento de usar eso!');
+          s.setPhase(EXPLORING);
           return;
         }
-        store.setPhase({ type: 'ITEM_TEAM_SELECT', itemId });
+        s.setPhase({ type: 'ITEM_TEAM_SELECT', itemId });
         return;
       }
       if (itemId === 'POKEBALL') {
-        dispatchBattle({ type: 'CATCH' });
+        dispatchBattleRef.current({ type: 'CATCH' });
       } else {
-        store.setPhase(battle({ type: 'BATTLE_ITEM_TEAM_SELECT', itemId }));
+        s.setPhase(battle({ type: 'BATTLE_ITEM_TEAM_SELECT', itemId }));
       }
     });
-  };
+  }, []);
 
-  const handleApplyItemToPokemon = (index: number) => {
+  // dispatchBattle reference is stable (useCallback with stable dep), so it's
+  // safe to reference inside the handler below even though it's not in deps.
+  const dispatchBattleRef = useRef(dispatchBattle);
+  dispatchBattleRef.current = dispatchBattle;
+
+  const handleApplyItemToPokemon = useCallback((index: number) => {
     withoutLogging(() => {
+      const s = useGameStore.getState();
+      const ph = s.phase;
+      const ib = ph.type === 'BATTLE' || ('returnTo' in ph && ph.returnTo?.type === 'BATTLE');
       let itemId: string | undefined;
-      if (phase.type === 'ITEM_TEAM_SELECT') {
-        itemId = phase.itemId;
-      } else if (battlePhase?.type === 'BATTLE_ITEM_TEAM_SELECT') {
-        itemId = battlePhase.itemId;
+      if (ph.type === 'ITEM_TEAM_SELECT') {
+        itemId = ph.itemId;
+      } else if (ib && ph.type === 'BATTLE') {
+        if (ph.sub.type === 'BATTLE_ITEM_TEAM_SELECT') itemId = ph.sub.itemId;
       }
 
       if (!itemId) return;
 
-      if (!inBattle) {
-        const pkmn = store.playerTeam[index];
+      if (!ib) {
+        const team = s.playerTeam;
+        const hmMoveName = HM_MOVE_MAP[itemId];
+        if (hmMoveName) {
+          const pkmn = team[index];
+          if (pkmn.moves.some(m => m.name === hmMoveName)) {
+            s.setDialogue(`¡${pkmn.name} ya sabe ${hmMoveName}!`);
+          } else {
+            const move = Object.values(MOVES).find(m => m.name === hmMoveName)!;
+            const newMoves = pkmn.moves.length < 4
+              ? [...pkmn.moves, move]
+              : [...pkmn.moves.slice(0, 3), move];
+            const newTeam = [...team];
+            newTeam[index] = { ...pkmn, moves: newMoves };
+            s.updateTeam(newTeam);
+            s.setDialogue(`¡${pkmn.name} aprendió ${hmMoveName}!`);
+          }
+          s.setPhase(EXPLORING);
+          return;
+        }
+
+        const pkmn = team[index];
         const result = applyItemToPokemon(pkmn, itemId);
         if (result.success) {
-          const newTeam = [...store.playerTeam];
+          const newTeam = [...team];
           newTeam[index] = result.pokemon;
-          store.updateTeam(newTeam);
-          store.removeInventoryItem(itemId);
-          store.setDialogue(result.message);
+          s.updateTeam(newTeam);
+          s.removeInventoryItem(itemId);
+          s.setDialogue(result.message);
         } else {
-          // It shouldn't get here because TeamMenuUI prevents selecting if it fails, but just in case
-          store.setDialogue(result.message);
+          s.setDialogue(result.message);
         }
-        store.setPhase(EXPLORING);
+        s.setPhase(EXPLORING);
       } else {
-        // In-battle handling (will be handled by battle engine via action)
-        dispatchBattle({ type: 'USE_ITEM', itemId, targetIndex: index });
-        // Phase is reset by battle engine
+        dispatchBattleRef.current({ type: 'USE_ITEM', itemId, targetIndex: index });
       }
     });
-  };
+  }, []);
 
   useDebugAPI({
     dispatchBattle,
     battleStateRef,
     phase,
-    setDialogue: store.setDialogue,
-    setPhase: store.setPhase,
+    setDialogue,
+    setPhase,
     handleMove,
     handleAction,
     handleUseItem,
     handlePCSwap,
-    isTrainerBattle: store.isTrainerBattle,
-    gameState: { current: store } as any,
-    setPlayerTeam: store.updateTeam,
-    setEnemyPokemon: store.setEnemyPokemon,
-    setBattleLog: store.setBattleLog,
-    setIsTrainerBattle: store.setIsTrainerBattle,
+    isTrainerBattle,
+    gameState: { current: useGameStore.getState() } as any,
+    setPlayerTeam: updateTeam,
+    setEnemyPokemon,
+    setBattleLog,
+    setIsTrainerBattle: (v: boolean | ((prev: boolean) => boolean)) => {
+      const s = useGameStore.getState();
+      const next = typeof v === 'function' ? v(s.isTrainerBattle) : v;
+      s.setIsTrainerBattle(next);
+    },
   });
 
   useInputHandler({
     handleMove,
     handleAction,
     dispatchBattle,
-    isTrainerBattle: store.isTrainerBattle,
-    spottedTrainerId: store.spottedTrainerId,
+    isTrainerBattle,
+    spottedTrainerId,
   });
 
   useWildPokemonEngine();
@@ -197,28 +260,27 @@ export default function App() {
 
       <GameHeader />
 
-      {store.viewMode === '2d' ? (
+      {viewMode === '2d' ? (
         <WorldView
-          currentMap={store.currentMap}
-          maps={store.worldMaps}
+          currentMap={currentMap}
+          maps={worldMaps}
           npcs={npcs}
           items={items}
-          grassEffect={store.grassEffect}
+          grassEffect={grassEffect}
           overworldShake={overworldShake}
           windowSize={windowSize}
-          spottedTrainerId={store.spottedTrainerId}
-          spottedTrainerPos={store.spottedTrainerPos}
-          defeatedTrainers={store.defeatedTrainers}
+          spottedTrainerId={spottedTrainerId}
+          spottedTrainerPos={spottedTrainerPos}
+          defeatedTrainers={defeatedTrainers}
           inBattle={inBattle}
-          dialogue={store.dialogue}
-          playerTeam={store.playerTeam}
-
+          dialogue={dialogue}
+          playerTeam={playerTeam}
         />
       ) : (
         <Suspense fallback={<div className="absolute inset-0 bg-slate-900" />}>
           <WorldView3D
-            currentMap={store.currentMap}
-            maps={store.worldMaps}
+            currentMap={currentMap}
+            maps={worldMaps}
             npcs={npcs}
             items={items}
           />
@@ -227,19 +289,19 @@ export default function App() {
 
       <Minimap />
 
-      <MobileControls onMove={handleMove} onAction={handleAction} setPhase={store.setPhase} />
+      <MobileControls onMove={handleMove} onAction={handleAction} setPhase={setPhase} />
 
-      <MenuButton phase={phase} setPhase={store.setPhase} />
+      <MenuButton phase={phase} setPhase={setPhase} />
 
       <SideMenu
         phase={phase}
-        playerTeam={store.playerTeam}
-        storyStep={store.storyStep}
-        inventory={store.inventory}
-        hasPokedex={store.hasPokedex}
-        setPhase={store.setPhase}
-        setDialogue={store.setDialogue}
-        resetGame={store.resetGame}
+        playerTeam={playerTeam}
+        storyStep={storyStep}
+        inventory={inventory}
+        hasPokedex={hasPokedex}
+        setPhase={setPhase}
+        setDialogue={setDialogue}
+        resetGame={resetGame}
       />
 
       <GameModals

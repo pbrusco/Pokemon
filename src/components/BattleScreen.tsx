@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { motion, useAnimate } from 'motion/react';
-import { Pokemon, Move } from '../types';
+import { type Pokemon, type Move } from '../types';
 import { STRUGGLE_MOVE } from '../constants';
 import { sd, sdur } from '../lib/gameSpeed';
 import { useGameStore } from '../store/gameStore';
@@ -150,7 +150,7 @@ function PokeballAnim({ isCatching, catchResult }: { isCatching: boolean; catchR
   );
 }
 
-export function BattleScreen({
+export const BattleScreen = memo(function BattleScreen({
   currentMap,
   battleShake, enemyPokemon, enemyAnim, isCatching, catchResult,
   playerTeam, playerAnim, battleLog, battleLogs, isTrainerBattle, isPlayerTurn, onFlee,
@@ -477,4 +477,4 @@ export function BattleScreen({
       </div>
     </motion.div>
   );
-}
+});

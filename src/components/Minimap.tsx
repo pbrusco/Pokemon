@@ -17,47 +17,68 @@ const TILE_COLORS: Record<string, string> = {
 };
 
 export const Minimap: React.FC = () => {
-  const { currentMap, worldMaps, playerPos, showMinimap } = useGameStore();
+  const currentMap = useGameStore(s => s.currentMap);
+  const worldMaps = useGameStore(s => s.worldMaps);
+  const playerPos = useGameStore(s => s.playerPos);
+  const showMinimap = useGameStore(s => s.showMinimap);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const bgCacheRef = useRef<ImageData | null>(null);
+  const cachedMapRef = useRef<string>('');
 
+  // Rebuild background cache only when map changes
+  useEffect(() => {
+    if (!showMinimap) return;
+    const mapData = worldMaps[currentMap];
+    if (!mapData) return;
+    const rows = mapData.tiles.length;
+    const cols = mapData.tiles[0].length;
+
+    if (cachedMapRef.current === currentMap) return;
+
+    const offscreen = document.createElement('canvas');
+    offscreen.width = cols;
+    offscreen.height = rows;
+    const ctx = offscreen.getContext('2d')!;
+
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        ctx.fillStyle = TILE_COLORS[mapData.tiles[y][x].type] || '#000000';
+        ctx.fillRect(x, y, 1, 1);
+      }
+    }
+
+    bgCacheRef.current = ctx.getImageData(0, 0, cols, rows);
+    cachedMapRef.current = currentMap;
+  }, [currentMap, worldMaps, showMinimap]);
+
+  // Stamp background + draw player position (runs every render)
   useEffect(() => {
     if (!showMinimap || !canvasRef.current) return;
-
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
+    const ctx = canvas.getContext('2d')!;
     const mapData = worldMaps[currentMap];
     if (!mapData) return;
 
     const rows = mapData.tiles.length;
     const cols = mapData.tiles[0].length;
-
-    // Set canvas internal resolution to match map tiles or a fixed size
     canvas.width = cols;
     canvas.height = rows;
 
-    // Draw tiles
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        const tile = mapData.tiles[y][x];
-        ctx.fillStyle = TILE_COLORS[tile.type] || '#000000';
-        ctx.fillRect(x, y, 1, 1);
-      }
+    // Fast: stamp cached background
+    if (bgCacheRef.current && cachedMapRef.current === currentMap) {
+      ctx.putImageData(bgCacheRef.current, 0, 0);
     }
 
-    // Draw player
+    // Draw player dot
     ctx.fillStyle = '#ff0000';
     ctx.fillRect(playerPos.x, playerPos.y, 1, 1);
 
-    // Add a small border around the player if the map is large
     if (cols > 50 || rows > 50) {
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 0.5;
-        ctx.strokeRect(playerPos.x - 1, playerPos.y - 1, 3, 3);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(playerPos.x - 1, playerPos.y - 1, 3, 3);
     }
-
-  }, [currentMap, worldMaps, playerPos, showMinimap]);
+  });
 
   if (!showMinimap) return null;
 

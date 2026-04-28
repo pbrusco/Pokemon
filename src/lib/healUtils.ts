@@ -1,4 +1,4 @@
-import { Pokemon } from '../types';
+import { type Pokemon } from '../types';
 
 /** Fully restore a single Pokémon (Pokécenter / blackout recovery). */
 export function fullHeal(p: Pokemon): Pokemon {

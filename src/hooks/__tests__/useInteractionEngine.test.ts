@@ -6,7 +6,7 @@ import type { NPC, Entity, Tile, Pokemon, Position, InventoryCounts } from '../.
 import type { MapID } from '../../types';
 import { STARTERS } from '../../constants';
 import { EXPLORING, SHOP, battle, B_CHOOSING } from '../../types/gamePhase';
-import { worldConfig } from '../../data/worldConfig';
+import { type worldConfig } from '../../data/worldConfig';
 
 // ─── Map / world fixtures ─────────────────────────────────────────────────────
 
@@ -42,6 +42,7 @@ const EMPTY_MAPS: Record<MapID, { tiles: Tile[][] }> = {
   POKEMON_TOWER_1F: { tiles: makeGrid() },
   POKEMON_TOWER_2F: { tiles: makeGrid() },
   POKEMON_TOWER_3F: { tiles: makeGrid() },
+  BILLS_HOUSE: { tiles: makeGrid() },
 };
 
 function makeNPC(overrides: Partial<NPC> = {}): NPC {
@@ -71,11 +72,11 @@ const ALL_MAP_IDS = ['KANTO_OVERWORLD','PLAYERS_HOUSE_1F','PLAYERS_HOUSE_2F','RI
 
 const EMPTY_NPCS: Record<MapID, NPC[]> = Object.fromEntries(
   ALL_MAP_IDS.map(k => [k, []])
-) as Record<MapID, NPC[]>;
+) as unknown as Record<MapID, NPC[]>;
 
 const EMPTY_ITEMS: Record<MapID, Entity[]> = Object.fromEntries(
   ALL_MAP_IDS.map(k => [k, []])
-) as Record<MapID, Entity[]>;
+) as unknown as Record<MapID, Entity[]>;
 
 // ─── Hook factory ─────────────────────────────────────────────────────────────
 // The hook now reads all state from the Zustand store, so setup() configures
