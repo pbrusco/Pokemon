@@ -1,0 +1,23 @@
+{
+  "rows": [
+    "WWWWWWWW",
+    "WFFFFFFW",
+    "WFMFXFFW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WFFFFFFW",
+    "WWWDWWWW"
+  ],
+  "warps": [
+    {
+      "x": 3,
+      "y": 6,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 647,
+        "y": 612
+      },
+      "targetDir": "down"
+    }
+  ]
+}
