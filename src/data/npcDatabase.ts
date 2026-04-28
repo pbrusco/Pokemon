@@ -56,7 +56,11 @@ export function buildNPCDatabase(
   _badges: string[],
   storyStep: string = 'START',
   oakCutscenePos: Position | null = null,
-  oakCutsceneDir: Direction | null = null
+  oakCutsceneDir: Direction | null = null,
+  hasSilphScope: boolean = false,
+  hasPokeFlute: boolean = false,
+  hasSsTicket: boolean = false,
+  clearedSnorlax: string[] = []
 ): Record<MapID, NPC[]> {
   return {
     // ── Unified outdoor map ──────────────────────────────────────────────────
@@ -80,10 +84,15 @@ export function buildNPCDatabase(
       { id: 'viridian_youngster1', name: 'JOVEN', type: 'npc', position: w('VIRIDIAN_CITY', 13, 20), direction: 'down', trainerClass: 'youngster', dialogue: ["¡Esas POKÉ BALL que llevas en el cinturón son POKÉMON!", "¡Es genial poder llevarlos contigo!"] },
       { id: 'viridian_gambler1', name: 'GOLFO', type: 'npc', position: w('VIRIDIAN_CITY', 30, 8), direction: 'down', trainerClass: 'gambler', dialogue: ["¡Este GIMNASIO POKÉMON siempre está cerrado!", "Me pregunto quién será el LÍDER..."] },
       { id: 'viridian_youngster2', name: 'JOVEN', type: 'npc', position: w('VIRIDIAN_CITY', 30, 25), direction: 'down', trainerClass: 'youngster', dialogue: ["¿Quieres saber algo sobre el TÚNEL ROCA?", "¡Está lleno de POKÉMON salvajes!"] },
-      { id: 'viridian_girl', name: 'CHICA', type: 'npc', position: w('VIRIDIAN_CITY', 17, 9), direction: 'right', trainerClass: 'lass', dialogue: ["¡Ese abuelo está durmiendo en medio del camino!", "¡No nos deja pasar!"] },
-      { id: 'viridian_oldman_sleepy', name: 'ABUELO', type: 'npc', position: w('VIRIDIAN_CITY', 18, 9), direction: 'down', trainerClass: 'old_man', dialogue: ["Zzzzz... Zzzzz..."] },
+      {
+        id: 'viridian_girl', name: 'CHICA', type: 'npc', position: w('VIRIDIAN_CITY', 17, 9), direction: 'right', trainerClass: 'lass',
+        dialogue: hasPokedex
+          ? ["¡El abuelo ya se despertó y se quitó del camino!", "¡Ahora podemos ir al norte!"]
+          : ["¡Ese abuelo está durmiendo en medio del camino!", "¡No nos deja pasar!"]
+      },
+      ...(!hasPokedex ? [{ id: 'viridian_oldman_sleepy', name: 'ABUELO', type: 'npc' as const, position: w('VIRIDIAN_CITY', 18, 9), direction: 'down' as Direction, trainerClass: 'old_man', dialogue: ["Zzzzz... No me molestes...", "Aún no me he tomado el café..."] }] : []),
       { id: 'viridian_fisher', name: 'PESCADOR', type: 'npc', position: w('VIRIDIAN_CITY', 6, 23), direction: 'down', trainerClass: 'fisher', dialogue: ["¡He pescado un POKÉMON increíble!", "¡Pero se me escapó!"] },
-      { id: 'viridian_oldman', name: 'ABUELO', type: 'npc', position: w('VIRIDIAN_CITY', 17, 5), direction: 'down', trainerClass: 'old_man', dialogue: ["¡He tomado mi café y ahora me siento de maravilla!", "¡Por supuesto que puedes pasar!"] },
+      ...(hasPokedex ? [{ id: 'viridian_oldman', name: 'ABUELO', type: 'npc' as const, position: w('VIRIDIAN_CITY', 17, 5), direction: 'down' as Direction, trainerClass: 'old_man', dialogue: ["¡He tomado mi café y ahora me siento de maravilla!", "¡Por supuesto que puedes pasar!"] }] : []),
       // ── Route 2 ──
       { id: 'bug_catcher_rt2', name: 'CAZABICHOS TOMY', type: 'npc', position: w('ROUTE_2', 3, 12), direction: 'right', trainerClass: 'bugcatcher', dialogue: ["¡Atrapé estos bichos en el Bosque Verde!"], isTrainer: true, trainerTeam: [makePokemon('caterpie', 'CATERPIE', 4, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 10), makePokemon('weedle', 'WEEDLE', 4, 'bug', [MOVES.TACKLE, MOVES.STRING_SHOT], 13, { types: ['bug', 'poison'] })] },
       // ── Viridian Forest ──
@@ -102,6 +111,21 @@ export function buildNPCDatabase(
       { id: 'lass_rt3', name: 'CHICA JANICE', type: 'npc', position: w('ROUTE_3', 13, 11), direction: 'left' as Direction, trainerClass: 'lass', dialogue: ["¡Oye tú! ¡No pases por aquí sin luchar!", "¡Mis PIDGEY son adorables Y fuertes!"], isTrainer: true, trainerTeam: [makePokemon('pidgey', 'PIDGEY', 11, 'flying', [MOVES.TACKLE, MOVES.GUST], 16, { types: ['normal', 'flying'] }), makePokemon('pidgey', 'PIDGEY', 11, 'flying', [MOVES.TACKLE, MOVES.GUST], 16, { types: ['normal', 'flying'] })] },
       { id: 'youngster_rt3', name: 'CHICO BEN', type: 'npc', position: w('ROUTE_3', 8, 14), direction: 'down' as Direction, trainerClass: 'youngster', dialogue: ["¡Llevo mis pantalones cortos todo el año!", "¡Eso me hace más fuerte!"], isTrainer: true, trainerTeam: [makePokemon('rattata', 'RATTATA', 10, 'normal', [MOVES.TACKLE, MOVES.SCRATCH], 19), makePokemon('ekans', 'EKANS', 10, 'poison', [MOVES.TACKLE, MOVES.GROWL], 23, { types: ['poison'] })] },
       { id: 'lass_rt3_2', name: 'CHICA HALEY', type: 'npc', position: w('ROUTE_3', 16, 7), direction: 'down' as Direction, trainerClass: 'lass', dialogue: ["¡Las flores son mis favoritas!", "¡Prepárate!"], isTrainer: true, trainerTeam: [makePokemon('oddish', 'ODDISH', 14, 'grass', [MOVES.POUND, MOVES.SLEEP_POWDER], 43, { types: ['grass', 'poison'] })] },
+      // ── Route 12 / 16 Snorlax ──
+      ...(!clearedSnorlax.includes('SNORLAX_12') ? [{
+        id: 'snorlax_12', name: 'SNORLAX', type: 'npc' as const,
+        position: w('ROUTE_12', 10, 2),
+        direction: 'down' as Direction, trainerClass: 'snorlax',
+        onInteract: 'wake_snorlax' as const,
+        dialogue: ['...ZZZ...', '¡Está dormido profundamente! Necesitas la FLAUTA POKé.'],
+      }] : []),
+      ...(!clearedSnorlax.includes('SNORLAX_16') ? [{
+        id: 'snorlax_16', name: 'SNORLAX', type: 'npc' as const,
+        position: w('ROUTE_16', 1, 9),
+        direction: 'down' as Direction, trainerClass: 'snorlax',
+        onInteract: 'wake_snorlax' as const,
+        dialogue: ['...ZZZ...', '¡Está dormido profundamente! Necesitas la FLAUTA POKé.'],
+      }] : []),
       // ── Cerulean City ──
       { id: 'cerulean_rival', name: 'AZUL', type: 'npc', position: w('CERULEAN_CITY', 20, 2), direction: 'down', trainerClass: 'rival', dialogue: ["¡Hola! ¡Hacía tiempo que no nos veíamos!", "¡He atrapado un montón de POKÉMON fuertes!", "¡Enséñame qué has conseguido tú!"], isTrainer: true, trainerTeam: [makePokemon('pidgeotto', 'PIDGEOTTO', 18, 'flying', [MOVES.GUST, MOVES.SAND_ATTACK], 17), makePokemon('abra', 'ABRA', 15, 'psychic', [MOVES.TELEPORT], 63), makePokemon('rattata', 'RATTATA', 15, 'normal', [MOVES.TACKLE, MOVES.QUICK_ATTACK], 19), makePokemon('bulbasaur', 'BULBASAUR', 17, 'grass', [MOVES.TACKLE, MOVES.VINE_WHIP], 1)] },
       { id: 'cerulean_rocket', name: 'SOLDADO ROCKET', type: 'npc', position: w('CERULEAN_CITY', 30, 8), direction: 'down', trainerClass: 'rocket', dialogue: ["¡El TEAM ROCKET se llevará todo lo que quiera!", "¡No te metas en nuestros asuntos!"], isTrainer: true, trainerTeam: [makePokemon('machop', 'MACHOP', 15, 'fighting', [MOVES.LOW_KICK, MOVES.LEER], 66), makePokemon('drowzee', 'DROWZEE', 15, 'psychic', [MOVES.POUND, MOVES.HYPNOSIS], 96)] },

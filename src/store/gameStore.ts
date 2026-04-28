@@ -14,6 +14,11 @@ interface GameSaveState {
   
   hasPokedex: boolean;
   hasParcel: boolean;
+  hasSilphScope: boolean;
+  hasPokeFlute: boolean;
+  hasSsTicket: boolean;
+  clearedSnorlax: string[];
+  pendingSnorlaxId: string | null;
   badges: string[];
   storyStep: 'START' | 'OAK_STOPPED' | 'IN_LAB' | 'PICKED_STARTER' | 'RIVAL_BATTLE' | 'EXPLORING';
   defeatedTrainers: string[];
@@ -56,6 +61,11 @@ const INITIAL_SAVE_STATE: GameSaveState = {
 
   hasPokedex: false,
   hasParcel: false,
+  hasSilphScope: false,
+  hasPokeFlute: false,
+  hasSsTicket: false,
+  clearedSnorlax: [],
+  pendingSnorlaxId: null,
   badges: [],
   storyStep: 'START',
   defeatedTrainers: [],
@@ -127,6 +137,11 @@ interface GameState extends GameSaveState {
   
   setHasPokedex: (v: boolean) => void;
   setHasParcel: (v: boolean) => void;
+  setHasSilphScope: (v: boolean) => void;
+  setHasPokeFlute: (v: boolean) => void;
+  setHasSsTicket: (v: boolean) => void;
+  setClearedSnorlax: (ids: string[]) => void;
+  setPendingSnorlaxId: (id: string | null) => void;
   setBadges: (badges: SetStateAction<string[]>) => void;
   setDefeatedTrainers: (ids: SetStateAction<string[]>) => void;
   setDialogue: (text: string | null, onComplete?: () => void) => void;
@@ -205,7 +220,11 @@ export const useGameStore = create<GameState>()(
 
       getNPCs: () => {
         const state = get();
-        return buildNPCDatabase(state.playerTeam, state.hasParcel, state.hasPokedex, state.badges, state.storyStep, state.oakCutscenePos, state.oakCutsceneDir);
+        return buildNPCDatabase(
+          state.playerTeam, state.hasParcel, state.hasPokedex, state.badges, state.storyStep,
+          state.oakCutscenePos, state.oakCutsceneDir,
+          state.hasSilphScope, state.hasPokeFlute, state.hasSsTicket, state.clearedSnorlax
+        );
       },
       getItems: () => {
         const state = get();
@@ -222,6 +241,11 @@ export const useGameStore = create<GameState>()(
       
       setHasPokedex: (v) => set({ hasPokedex: v }),
       setHasParcel: (v) => set({ hasParcel: v }),
+      setHasSilphScope: (v) => set({ hasSilphScope: v }),
+      setHasPokeFlute: (v) => set({ hasPokeFlute: v }),
+      setHasSsTicket: (v) => set({ hasSsTicket: v }),
+      setClearedSnorlax: (ids) => set({ clearedSnorlax: ids }),
+      setPendingSnorlaxId: (id) => set({ pendingSnorlaxId: id }),
       setBadges: (badges) => set((state) => ({ badges: typeof badges === 'function' ? badges(state.badges) : badges })),
       setDefeatedTrainers: (ids) => set((state) => ({ defeatedTrainers: typeof ids === 'function' ? ids(state.defeatedTrainers) : ids })),
       setDialogue: (text, onComplete) => set({ dialogue: text, dialogueCallback: onComplete || null }),
@@ -350,6 +374,10 @@ export const useGameStore = create<GameState>()(
         currentMap: state.currentMap,
         hasPokedex: state.hasPokedex,
         hasParcel: state.hasParcel,
+        hasSilphScope: state.hasSilphScope,
+        hasPokeFlute: state.hasPokeFlute,
+        hasSsTicket: state.hasSsTicket,
+        clearedSnorlax: state.clearedSnorlax,
         badges: state.badges,
         storyStep: state.storyStep,
         defeatedTrainers: state.defeatedTrainers,

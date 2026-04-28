@@ -516,9 +516,19 @@ export const STARTERS: Pokemon[] = [
   }),
 ];
 
+export const HM_MOVE_MAP: Record<string, string> = {
+  HM01_CUT:      'CORTAR',
+  HM04_STRENGTH: 'FUERZA',
+};
+
 export const ITEMS_DATABASE: Record<string, InventoryItem> = {
-  OAK_PARCEL: { id: 'OAK_PARCEL', name: 'PAQUETE OAK', description: 'Un paquete para el Prof. Oak.', icon: '📦', type: 'key_item' },
-  TOWN_MAP: { id: 'TOWN_MAP', name: 'MAPA CIUDAD', description: 'Mapa de la región Kanto.', icon: '🗺️', type: 'key_item' },
+  OAK_PARCEL:    { id: 'OAK_PARCEL',    name: 'PAQUETE OAK',   description: 'Un paquete para el Prof. Oak.',        icon: '📦', type: 'key_item' },
+  TOWN_MAP:      { id: 'TOWN_MAP',      name: 'MAPA CIUDAD',   description: 'Mapa de la región Kanto.',              icon: '🗺️', type: 'key_item' },
+  HM01_CUT:      { id: 'HM01_CUT',      name: 'MO01 CORTAR',   description: 'Enseña CORTAR a un POKÉMON.',           icon: '✂️', type: 'key_item' },
+  HM04_STRENGTH: { id: 'HM04_STRENGTH', name: 'MO04 FUERZA',   description: 'Enseña FUERZA a un POKÉMON.',           icon: '💪', type: 'key_item' },
+  SILPH_SCOPE:   { id: 'SILPH_SCOPE',   name: 'ALCANCE SILPH', description: 'Revela a los POKÉMON fantasma.',        icon: '🔭', type: 'key_item' },
+  POKE_FLUTE:    { id: 'POKE_FLUTE',    name: 'FLAUTA POKé',   description: 'Despierta a los POKÉMON dormidos.',     icon: '🎵', type: 'key_item' },
+  SS_TICKET:     { id: 'SS_TICKET',     name: 'BILLETE SS',    description: 'Billete de embarque para el SS ANNE.',  icon: '🎫', type: 'key_item' },
   POKEBALL: { id: 'POKEBALL', name: 'POKÉ BALL', description: 'Sirve para atrapar Pokémon salvajes.', icon: '🔴', type: 'pokeball' },
   
   // Healing Items
