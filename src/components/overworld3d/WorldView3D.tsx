@@ -18,6 +18,7 @@ export default function WorldView3D({ currentMap, maps, npcs, items }: WorldView
   return (
     <div className="absolute inset-0 bg-slate-900">
       <Canvas
+        shadows
         camera={{ fov: 75, near: 0.05, far: 200 }}
         dpr={[1, 1.5]}
         gl={{ antialias: true }}

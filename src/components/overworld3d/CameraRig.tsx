@@ -24,9 +24,11 @@ export function CameraRig() {
   const camera = useThree((s) => s.camera);
   const playerPos = useGameStore((s) => s.playerPos);
   const direction = useGameStore((s) => s.direction);
+  const isMoving = useGameStore((s) => s.isMoving);
 
   const target = useRef(new THREE.Vector3());
   const initialized = useRef(false);
+  const bobPhase = useRef(0);
 
   target.current.set(playerPos.x + 0.5, EYE_HEIGHT, playerPos.y + 0.5);
   const targetYaw = DIR_TO_YAW[direction];
@@ -44,13 +46,24 @@ export function CameraRig() {
     const posAlpha = 1 - Math.exp(-dt / POS_TAU);
     camera.position.lerp(target.current, posAlpha);
 
+    // --- head bobbing ---
+    if (isMoving) bobPhase.current += dt * 8;
+    const bobY = isMoving ? Math.sin(bobPhase.current) * 0.025 : 0;
+    const currentBobY = camera.position.y - EYE_HEIGHT;
+    camera.position.y = EYE_HEIGHT + THREE.MathUtils.lerp(currentBobY, bobY, 0.2);
+
+    // --- yaw ---
     const cur = camera.rotation.y;
     let delta = ((targetYaw - cur + Math.PI) % (2 * Math.PI)) - Math.PI;
     if (delta < -Math.PI) delta += 2 * Math.PI;
     const yawAlpha = 1 - Math.exp(-dt / YAW_TAU);
     camera.rotation.y = cur + delta * yawAlpha;
+
+    // --- turn lean ---
+    const leanAmount = delta * 0.08;
+    camera.rotation.z = THREE.MathUtils.lerp(camera.rotation.z, -leanAmount, 0.15);
+
     camera.rotation.x = 0;
-    camera.rotation.z = 0;
   });
 
   return null;

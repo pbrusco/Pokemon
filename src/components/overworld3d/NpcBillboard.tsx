@@ -3,6 +3,7 @@ import { useLoader } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { NPC, Direction } from '../../types';
 import { TRAINER_OVERWORLD_SPRITES } from '../../data/trainerSprites';
+import { ShadowBlob } from './ShadowBlob';
 
 const DIR_ROW: Record<Direction, number> = {
   down: 0,
@@ -66,6 +67,11 @@ interface NpcBillboardProps {
 export function NpcBillboard({ npc }: NpcBillboardProps) {
   const url = npc.trainerClass ? TRAINER_OVERWORLD_SPRITES[npc.trainerClass] : undefined;
   const position: [number, number, number] = [npc.position.x + 0.5, 0.5, npc.position.y + 0.5];
-  if (!url) return <FallbackBox position={position} />;
-  return <SpriteFrame url={url} direction={npc.direction} position={position} />;
+  return (
+    <group>
+      <ShadowBlob x={npc.position.x + 0.5} z={npc.position.y + 0.5} />
+      {url ? <SpriteFrame url={url} direction={npc.direction} position={position} />
+            : <FallbackBox position={position} />}
+    </group>
+  );
 }

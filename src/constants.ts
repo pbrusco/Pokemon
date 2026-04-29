@@ -485,6 +485,21 @@ export const MOVES: Record<string, Move> = {
   // High-crit moves (baseSpeed × 8 / 512 crit chance)
   SLASH:         move('CUCHILLADA',    'normal',   70, 100, 20, { highCrit: true }),
   RAZOR_LEAF:    move('HOJA AFILADA',  'grass',    55,  95, 25, { highCrit: true }),
+  // Damage + status / utility
+  BUBBLEBEAM:    move('RAYO BURBUJA',  'water',    65, 100, 20),
+  MEGA_DRAIN:    move('MEGA DRENADO',  'grass',    40, 100, 15),
+  THUNDERBOLT:   move('RAYO',          'electric', 90, 100, 15, { statusEffect: 'paralyzed', statusChance: 10 }),
+  ICE_BEAM:      move('RAYO HIELO',    'ice',      90, 100, 10, { statusEffect: 'frozen',    statusChance: 10 }),
+  FLAMETHROWER:  move('LANZALLAMAS',   'fire',     90, 100, 15, { statusEffect: 'burn',      statusChance: 10 }),
+  BODY_SLAM:     move('GOLPE CUERPO',  'normal',   85, 100, 15, { statusEffect: 'paralyzed', statusChance: 30 }),
+  CONFUSION:     move('CONFUSIÓN',     'psychic',  50, 100, 25),
+  PSYCHIC:       move('PSÍQUICO',      'psychic',  90, 100, 10),
+  SURF:          move('SURF',          'water',    90, 100, 15),
+  EARTHQUAKE:    move('TERREMOTO',     'ground',  100, 100, 10),
+  // Stat changes
+  TAIL_WHIP:     move('LÁTIGO',        'normal',    0, 100, 30, { statChange: { target: 'enemy', stat: 'defense', stages: -1 } }),
+  LEER:          move('MALICIA',       'normal',    0, 100, 30, { statChange: { target: 'enemy', stat: 'defense', stages: -1 } }),
+  GROWTH:        move('CRECIMIENTO',   'normal',    0, 100, 20, { statChange: { target: 'self',  stat: 'special',  stages: +1 } }),
 };
 
 export const HM_REQUIREMENTS = {
