@@ -8,3 +8,4 @@ coverage/
 !.env.example
 logs/
 pokered_dissasembly/
+pokefirered_dissasembly/
