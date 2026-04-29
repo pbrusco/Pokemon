@@ -286,13 +286,33 @@ export function buildNPCDatabase(
       { id: 'brock', name: 'BROCK', type: 'npc', position: { x: 4, y: 2 }, direction: 'down', trainerClass: 'brock', dialogue: ["¡Soy BROCK!", "¡Soy el líder de gimnasio de Ciudad Plateada!", "Mis POKÉMON son tipo roca."], isTrainer: true, trainerTeam: [makePokemon('geodude', 'GEODUDE', 12, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 86, { types: ['rock', 'ground'] }), makePokemon('onix', 'ONIX', 14, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 108, { types: ['rock', 'ground'] })] }
     ],
     CERULEAN_GYM: [
-      { id: 'door_cerulean_gym_internal', type: 'object', position: { x: 5, y: 13 }, direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
+      { id: 'swimmer_cerulean_gym', name: 'NADADOR LUIS', type: 'npc', position: { x: 7, y: 4 }, direction: 'left', trainerClass: 'swimmer', dialogue: ['¡No permito que cualquiera vea a MISTY!', '¡Solo los mejores pueden desafiarla!'], isTrainer: true, trainerTeam: [makePokemon('horsea', 'HORSEA', 16, 'water', [MOVES.WATER_GUN], 116, { types: ['water'] }), makePokemon('shellder', 'SHELLDER', 16, 'water', [MOVES.TACKLE, MOVES.WATER_GUN], 90, { types: ['water'] })] },
+      { id: 'misty', name: 'MISTY', type: 'npc', position: { x: 5, y: 2 }, direction: 'down', trainerClass: 'misty', dialogue: ['¡Soy MISTY!', '¡La líder del gimnasio de CIUDAD CELESTE!', '¡Mis POKÉMON de agua son invencibles!'], isTrainer: true, trainerTeam: [makePokemon('staryu', 'STARYU', 18, 'water', [MOVES.TACKLE, MOVES.WATER_GUN], 120, { types: ['water'] }), makePokemon('starmie', 'STARMIE', 21, 'water', [MOVES.TACKLE, MOVES.WATER_GUN, MOVES.BUBBLEBEAM], 121, { types: ['water', 'psychic'] })] },
     ],
     VERMILION_GYM: [
-      { id: 'door_vermilion_gym_internal', type: 'object', position: { x: 5, y: 13 }, direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
+      { id: 'sailor_ver_gym_1', name: 'MARINERO DMITRI', type: 'npc', position: { x: 7, y: 6 }, direction: 'left', trainerClass: 'sailor', dialogue: ['¡No pasarás!', '¡El TENIENTE SURGE no tiene tiempo para novatos!'], isTrainer: true, trainerTeam: [makePokemon('pikachu', 'PIKACHU', 21, 'electric', [MOVES.THUNDERSHOCK, MOVES.QUICK_ATTACK], 25, { types: ['electric'] }), makePokemon('pikachu', 'PIKACHU', 21, 'electric', [MOVES.THUNDERSHOCK, MOVES.QUICK_ATTACK], 25, { types: ['electric'] })] },
+      { id: 'lt_surge', name: 'TENIENTE SURGE', type: 'npc', position: { x: 5, y: 2 }, direction: 'down', trainerClass: 'lt_surge', dialogue: ['¡Soy el TENIENTE SURGE!', '¡Líder del gimnasio de CIUDAD CARMÍN!', '¡Mis POKÉMON eléctricos te electrocutarán!'], isTrainer: true, trainerTeam: [makePokemon('voltorb', 'VOLTORB', 21, 'electric', [MOVES.TACKLE, MOVES.THUNDERSHOCK], 100, { types: ['electric'] }), makePokemon('pikachu', 'PIKACHU', 18, 'electric', [MOVES.THUNDERSHOCK, MOVES.QUICK_ATTACK], 25, { types: ['electric'] }), makePokemon('raichu', 'RAICHU', 24, 'electric', [MOVES.THUNDERSHOCK, MOVES.QUICK_ATTACK, MOVES.THUNDERBOLT], 26, { types: ['electric'] })] },
     ],
     ROCK_TUNNEL_1F: [],
     ROCK_TUNNEL_B1F: [],
+    CELADON_GYM: [
+      { id: 'lass_celadon_gym', name: 'CHICA LINA', type: 'npc', position: { x: 3, y: 7 }, direction: 'right', trainerClass: 'lass', dialogue: ['¡No puedes pasar!', '¡ERIKA es demasiado buena para novatos!'], isTrainer: true, trainerTeam: [makePokemon('bellsprout', 'BELLSPROUT', 23, 'grass', [MOVES.VINE_WHIP, MOVES.POISON_POWDER], 69, { types: ['grass', 'poison'] }), makePokemon('weepinbell', 'WEEPINBELL', 23, 'grass', [MOVES.VINE_WHIP, MOVES.SLEEP_POWDER], 70, { types: ['grass', 'poison'] })] },
+      { id: 'lass_celadon_gym2', name: 'CHICA MARTA', type: 'npc', position: { x: 8, y: 5 }, direction: 'left', trainerClass: 'lass', dialogue: ['¡Me encantan las plantas!', '¡Pero en batalla son letales!'], isTrainer: true, trainerTeam: [makePokemon('oddish', 'ODDISH', 23, 'grass', [MOVES.POUND, MOVES.SLEEP_POWDER], 43, { types: ['grass', 'poison'] }), makePokemon('gloom', 'GLOOM', 23, 'grass', [MOVES.POUND, MOVES.POISON_POWDER], 44, { types: ['grass', 'poison'] })] },
+      { id: 'erika', name: 'ERIKA', type: 'npc', position: { x: 5, y: 2 }, direction: 'down', trainerClass: 'erika', dialogue: ['¡Soy ERIKA!', '¡Líder del gimnasio de CIUDAD AZULONA!', '¡Mis POKÉMON planta son hermosos y fuertes!'], isTrainer: true, trainerTeam: [makePokemon('victreebel', 'VICTREEBEL', 29, 'grass', [MOVES.VINE_WHIP, MOVES.POISON_POWDER, MOVES.RAZOR_LEAF], 71, { types: ['grass', 'poison'] }), makePokemon('tangela', 'TANGELA', 24, 'grass', [MOVES.VINE_WHIP, MOVES.SLEEP_POWDER], 114, { types: ['grass'] }), makePokemon('vileplume', 'VILEPLUME', 29, 'grass', [MOVES.VINE_WHIP, MOVES.POISON_POWDER, MOVES.RAZOR_LEAF], 45, { types: ['grass', 'poison'] })] },
+    ],
+    FUCHSIA_GYM: [
+      { id: 'juggler_fuchsia_gym', name: 'MALABARISTA KAY', type: 'npc', position: { x: 7, y: 5 }, direction: 'left', trainerClass: 'juggler', dialogue: ['¡KOGA es un maestro ninja!', '¡No llegarás a verlo!'], isTrainer: true, trainerTeam: [makePokemon('koffing', 'KOFFING', 30, 'poison', [MOVES.TACKLE, MOVES.POISON_POWDER], 109, { types: ['poison'] })] },
+      { id: 'koga', name: 'KOGA', type: 'npc', position: { x: 5, y: 2 }, direction: 'down', trainerClass: 'koga', dialogue: ['¡Soy KOGA!', '¡Líder del gimnasio de CIUDAD FUCSIA!', '¡Mis tácticas ninja y POKÉMON veneno te derrotarán!'], isTrainer: true, trainerTeam: [makePokemon('koffing', 'KOFFING', 37, 'poison', [MOVES.TACKLE, MOVES.POISON_POWDER], 109, { types: ['poison'] }), makePokemon('muk', 'MUK', 39, 'poison', [MOVES.POUND, MOVES.POISON_POWDER], 89, { types: ['poison'] }), makePokemon('koffing', 'KOFFING', 37, 'poison', [MOVES.TACKLE, MOVES.POISON_POWDER], 109, { types: ['poison'] }), makePokemon('weezing', 'WEEZING', 43, 'poison', [MOVES.TACKLE, MOVES.POISON_POWDER, MOVES.TACKLE], 110, { types: ['poison'] })] },
+    ],
+    SAFFRON_GYM: [
+      { id: 'sabrina', name: 'SABRINA', type: 'npc', position: { x: 5, y: 2 }, direction: 'down', trainerClass: 'sabrina', dialogue: ['...Soy SABRINA...', 'Líder del gimnasio de CIUDAD AZAFRÁN.', '...Tu mente es débil...'], isTrainer: true, trainerTeam: [makePokemon('kadabra', 'KADABRA', 38, 'psychic', [MOVES.POUND, MOVES.TACKLE], 64, { types: ['psychic'] }), makePokemon('venomoth', 'VENOMOTH', 38, 'bug', [MOVES.TACKLE, MOVES.POISON_POWDER], 49, { types: ['bug', 'poison'] }), makePokemon('alakazam', 'ALAKAZAM', 43, 'psychic', [MOVES.POUND, MOVES.TACKLE], 65, { types: ['psychic'] })] },
+    ],
+    CINNABAR_GYM: [
+      { id: 'blaine', name: 'BLAINE', type: 'npc', position: { x: 5, y: 2 }, direction: 'down', trainerClass: 'blaine', dialogue: ['¡Soy BLAINE!', '¡Líder del gimnasio de ISLA CANELA!', '¡Mis POKÉMON fuego arden con pasión!'], isTrainer: true, trainerTeam: [makePokemon('growlithe', 'GROWLITHE', 42, 'fire', [MOVES.EMBER, MOVES.TACKLE], 58, { types: ['fire'] }), makePokemon('ponyta', 'PONYTA', 40, 'fire', [MOVES.EMBER, MOVES.TACKLE], 77, { types: ['fire'] }), makePokemon('rapidash', 'RAPIDASH', 42, 'fire', [MOVES.EMBER, MOVES.TACKLE, MOVES.SLASH], 78, { types: ['fire'] }), makePokemon('arcanine', 'ARCANINE', 47, 'fire', [MOVES.EMBER, MOVES.TACKLE, MOVES.SLASH], 59, { types: ['fire'] })] },
+    ],
+    VIRIDIAN_GYM: [
+      { id: 'giovanni', name: 'GIOVANNI', type: 'npc', position: { x: 5, y: 2 }, direction: 'down', trainerClass: 'giovanni', dialogue: ['...Bienvenido...', 'Soy GIOVANNI, el líder de CIUDAD VERDE.', '¡Prepárate para perder!'], isTrainer: true, trainerTeam: [makePokemon('nidorino', 'NIDORINO', 37, 'poison', [MOVES.TACKLE, MOVES.POISON_POWDER], 33, { types: ['poison'] }), makePokemon('kangaskhan', 'KANGASKHAN', 35, 'normal', [MOVES.TACKLE, MOVES.SLASH], 115, { types: ['normal'] }), makePokemon('rhyhorn', 'RHYHORN', 37, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 111, { types: ['ground', 'rock'] }), makePokemon('nidoqueen', 'NIDOQUEEN', 41, 'poison', [MOVES.TACKLE, MOVES.ROCK_THROW], 31, { types: ['poison', 'ground'] }), makePokemon('rhydon', 'RHYDON', 45, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW, MOVES.SLASH], 112, { types: ['ground', 'rock'] })] },
+    ],
     POKEMON_TOWER_1F: [
       { id: 'door_pokemon_tower_internal', type: 'object', position: { x: 10, y: 16 }, direction: 'up', sprite: '🚪', dialogue: ['Está cerrado.'] },
     ],
@@ -532,6 +552,11 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'item_pokeball_tower_1', type: 'item', position: { x: 5, y: 5 }, direction: 'down', sprite: '🔴', itemId: 'POKEBALL' },
     ],
     BILLS_HOUSE: [],
+    CELADON_GYM: [],
+    FUCHSIA_GYM: [],
+    SAFFRON_GYM: [],
+    CINNABAR_GYM: [],
+    VIRIDIAN_GYM: [],
   };
 
   return Object.fromEntries(

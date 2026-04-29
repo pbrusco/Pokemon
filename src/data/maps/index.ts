@@ -19,6 +19,11 @@ import pokemon_tower_1f from './pokemon_tower_1f.json';
 import pokemon_tower_2f from './pokemon_tower_2f.json';
 import pokemon_tower_3f from './pokemon_tower_3f.json';
 import bills_house from './bills_house.json';
+import celadon_gym     from './celadon_gym.json';
+import fuchsia_gym     from './fuchsia_gym.json';
+import saffron_gym     from './saffron_gym.json';
+import cinnabar_gym    from './cinnabar_gym.json';
+import viridian_gym    from './viridian_gym.json';
 
 export const MAP_KANTO_OVERWORLD  = parseTileMap(kanto_overworld);
 
@@ -40,6 +45,11 @@ export const MAP_POKEMON_TOWER_1F = parseTileMap(pokemon_tower_1f);
 export const MAP_POKEMON_TOWER_2F = parseTileMap(pokemon_tower_2f);
 export const MAP_POKEMON_TOWER_3F = parseTileMap(pokemon_tower_3f);
 export const MAP_BILLS_HOUSE = parseTileMap(bills_house);
+export const MAP_CELADON_GYM  = parseTileMap(celadon_gym);
+export const MAP_FUCHSIA_GYM  = parseTileMap(fuchsia_gym);
+export const MAP_SAFFRON_GYM  = parseTileMap(saffron_gym);
+export const MAP_CINNABAR_GYM = parseTileMap(cinnabar_gym);
+export const MAP_VIRIDIAN_GYM = parseTileMap(viridian_gym);
 
 export const worldMaps = {
   // ── Single unified outdoor map ──
@@ -63,4 +73,9 @@ export const worldMaps = {
   POKEMON_TOWER_2F: MAP_POKEMON_TOWER_2F,
   POKEMON_TOWER_3F: MAP_POKEMON_TOWER_3F,
   BILLS_HOUSE:      MAP_BILLS_HOUSE,
+  CELADON_GYM:      MAP_CELADON_GYM,
+  FUCHSIA_GYM:      MAP_FUCHSIA_GYM,
+  SAFFRON_GYM:      MAP_SAFFRON_GYM,
+  CINNABAR_GYM:     MAP_CINNABAR_GYM,
+  VIRIDIAN_GYM:     MAP_VIRIDIAN_GYM,
 };

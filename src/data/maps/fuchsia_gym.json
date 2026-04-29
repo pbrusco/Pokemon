@@ -1,0 +1,30 @@
+{
+  "rows": [
+    "WWWWWWWWWW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WWWWWDWWWW"
+  ],
+  "warps": [
+    {
+      "x": 5,
+      "y": 13,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 113,
+        "y": 244
+      },
+      "targetDir": "down"
+    }
+  ]
+}

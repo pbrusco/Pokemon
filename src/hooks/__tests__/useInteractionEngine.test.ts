@@ -43,6 +43,11 @@ const EMPTY_MAPS: Record<MapID, { tiles: Tile[][] }> = {
   POKEMON_TOWER_2F: { tiles: makeGrid() },
   POKEMON_TOWER_3F: { tiles: makeGrid() },
   BILLS_HOUSE: { tiles: makeGrid() },
+  CELADON_GYM: { tiles: makeGrid() },
+  FUCHSIA_GYM: { tiles: makeGrid() },
+  SAFFRON_GYM: { tiles: makeGrid() },
+  CINNABAR_GYM: { tiles: makeGrid() },
+  VIRIDIAN_GYM: { tiles: makeGrid() },
 };
 
 function makeNPC(overrides: Partial<NPC> = {}): NPC {

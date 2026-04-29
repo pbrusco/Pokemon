@@ -103,9 +103,23 @@ export function useBattleEngine({
           const moneyReward = newState.enemyPokemon.level * 20;
           s.setDefeatedTrainers(prev => [...prev, trainer.id]);
           if (moneyReward > 0) s.setMoney(prev => prev + moneyReward);
-          if (trainer.id === 'brock') {
-            s.setBadges(prev => [...prev, 'BOULDER']);
-            s.setBattleLog(`${s.battleLog}\n¡Recibiste la MEDALLA ROCA de BROCK!`);
+
+          const badgeAwards: Record<string, [string, string]> = {
+            brock:      ['BOULDER',     'MEDALLA ROCA de BROCK'],
+            misty:      ['CASCADE',     'MEDALLA CASCADA de MISTY'],
+            lt_surge:   ['THUNDER',     'MEDALLA TRUENO del TENIENTE SURGE'],
+            erika:      ['RAINBOW',     'MEDALLA ARCOÍRIS de ERIKA'],
+            koga:       ['SOUL',        'MEDALLA ALMA de KOGA'],
+            sabrina:    ['MARSH',       'MEDALLA PANTANO de SABRINA'],
+            blaine:     ['VOLCANO',     'MEDALLA VOLCÁN de BLAINE'],
+            giovanni:   ['EARTH',       'MEDALLA TIERRA de GIOVANNI'],
+          };
+
+          const award = badgeAwards[trainer.id];
+          if (award) {
+            const [badge, label] = award;
+            s.setBadges(prev => [...prev, badge]);
+            s.setBattleLog(`${s.battleLog}\n¡Recibiste la ${label}!`);
           }
         }
       }

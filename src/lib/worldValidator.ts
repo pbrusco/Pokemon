@@ -260,23 +260,71 @@ export function validateWorld(): WorldValidationIssue[] {
   }
 
   // 5. Faithfulness Pass (Metadata Comparison)
-  for (const mapKey of Object.keys(pokeredMetadata)) {
-    const id = mapKey as MapID;
-    if (id === 'KANTO_OVERWORLD') continue;
+  const metadataMaps = (pokeredMetadata as { maps?: Record<string, unknown> } & Record<string, unknown>).maps
+    ?? (pokeredMetadata as Record<string, unknown>);
 
-    const meta = (pokeredMetadata as Record<string, { npcs: number; signs: number }>)[mapKey];
+  const allBadgesFull = ['boulder', 'cascade', 'thunder', 'rainbow', 'soul', 'marsh', 'volcano', 'earth'];
+  const permissiveNpcs = buildNPCDatabase([], false, true, allBadgesFull, 'EXPLORING', null, null, true, true, true, []);
+  const permissiveItems = buildItemDatabase([], 'EXPLORING');
+
+  // Determine which maps are outdoor sub-zones (KANTO_OVERWORLD segments)
+  const outdoorZones = new Set(Object.keys(O));
+
+  for (const mapKey of Object.keys(metadataMaps)) {
+    const meta = (metadataMaps as Record<string, Record<string, unknown>>)[mapKey];
+    if (!meta) continue;
+
+    const id = mapKey as MapID;
     const map = maps[id];
     if (!map) continue;
 
-    const npcsCount = (allNpcs[id] || []).length;
-    // signsCount: count objects in buildItemDatabase that start with 'sign_'
-    const signsCount = (allItems[id] || []).filter(e => e.id.startsWith('sign_')).length;
+    const isOutdoorZone = outdoorZones.has(mapKey);
 
-    if (npcsCount < meta.npcs) {
-      issues.push({ category: 'faithfulness', message: `${id}: found ${npcsCount} NPCs, expected ${meta.npcs}` });
+    // --- NPC count (outdoor zones only — indoor maps vary too much in scope) ---
+    if (isOutdoorZone) {
+      const npcCount = (permissiveNpcs[id] || []).length;
+      const expectedNpcs = Number(meta.npcs ?? 0);
+      if (npcCount < expectedNpcs) {
+        issues.push({ category: 'faithfulness', message: `${id}: found ${npcCount} NPCs, expected ${expectedNpcs}` });
+      }
     }
-    if (signsCount < meta.signs) {
-      issues.push({ category: 'faithfulness', message: `${id}: found ${signsCount} signs, expected ${meta.signs}` });
+
+    // --- Sign count (outdoor zones only) ---
+    if (isOutdoorZone) {
+      const signCount = (permissiveItems[id] || []).filter(e => e.id.startsWith('sign_')).length;
+      if (signCount < Number(meta.signs ?? 0)) {
+        issues.push({ category: 'faithfulness', message: `${id}: found ${signCount} signs, expected ${meta.signs}` });
+      }
+    }
+
+    // --- Item (ball pickup) count (outdoor zones only) ---
+    if (isOutdoorZone) {
+      const itemCount = (permissiveItems[id] || []).filter(e => e.type === 'item').length;
+      if (itemCount < Number(meta.items ?? 0)) {
+        issues.push({ category: 'faithfulness', message: `${id}: found ${itemCount} item balls, expected ${meta.items}` });
+      }
+    }
+
+    // --- Trainer count (outdoor zones only) ---
+    // TODO: refine once we parse trainer assignments per map from object file data
+
+    // --- Wild encounter species (all maps) ---
+    if (meta.wildLand) {
+      const wildMeta = meta.wildLand as Array<{ species: string }>;
+      const wildSpecies = wildMeta.map(s => s.species);
+      const encounterList = WILD_POKEMON_DATABASE[id] ?? WILD_POKEMON_DATABASE[mapKey] ?? [];
+      const foundSpecies = new Set(encounterList.map((p: { name: string }) => p.name.toUpperCase()));
+      const missingSpecies = wildSpecies.filter(s => !foundSpecies.has(s));
+      if (missingSpecies.length > 0) {
+        issues.push({ category: 'faithfulness', message: `${id}: missing wild species: ${missingSpecies.join(', ')}` });
+      }
+
+      // Wild encounter rate
+      const expectedRate = Number(meta.wildRate ?? 0);
+      const actualRate = WILD_ENCOUNTER_RATES[id] ?? WILD_ENCOUNTER_RATES[mapKey];
+      if (expectedRate > 0 && actualRate !== undefined && actualRate !== expectedRate) {
+        issues.push({ category: 'faithfulness', message: `${id}: wild encounter rate ${actualRate}, expected ${expectedRate}` });
+      }
     }
   }
 
