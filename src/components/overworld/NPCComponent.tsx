@@ -62,6 +62,14 @@ export const NPCComponent = memo(({ npc, isSpotted }: { npc: NPC, key?: string, 
               onError={() => setSpriteError(true)}
             />
           </>
+        ) : npc.sprite?.startsWith('http') && !spriteError ? (
+          <img
+            src={npc.sprite}
+            alt={npc.name}
+            className="w-11 h-11 pixelated object-contain"
+            style={{ imageRendering: 'pixelated' }}
+            onError={() => setSpriteError(true)}
+          />
         ) : (
           <div className="w-11 h-13 bg-white rounded-lg border-[3px] border-[#383838] shadow-md flex flex-col items-center overflow-hidden">
             <div className="w-full h-1/3 bg-[#d8d8d8] border-b-2 border-[#383838]" />

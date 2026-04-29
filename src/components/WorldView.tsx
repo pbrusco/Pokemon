@@ -359,13 +359,14 @@ export const WorldView = memo(({
 
           {/* Player */}
           {wildPokemon.map(wild => (
-            <NPCComponent 
+            <NPCComponent
               key={wild.id}
               npc={{
                 ...wild,
                 name: wild.pokemon.name,
                 dialogue: [],
-                trainerClass: String(wild.pokemon.id)
+                trainerClass: String(wild.pokemon.id),
+                sprite: wild.pokemon.sprite,
               } as NPC}
             />
           ))}
