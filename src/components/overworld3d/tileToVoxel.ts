@@ -13,7 +13,8 @@ interface VoxelDef {
 export const FLOOR_FALLBACK_COLOR = '#5fa85a';
 
 export const TILE_VOXEL: Record<Tile['type'], VoxelDef> = {
-  grass:       { kind: 'floor',  height: 0,    color: '#5fa85a' },
+  grass:       { kind: 'floor',  height: 0,    color: '#5fa85a',
+                 extras: [{ kind: 'object', height: 0.28, yOffset: 0, color: '#3d8a30' }] },
   path:        { kind: 'floor',  height: 0,    color: '#d8c890' },
   floor:       { kind: 'floor',  height: 0,    color: '#c8a878' },
   carpet:      { kind: 'floor',  height: 0,    color: '#c84848' },

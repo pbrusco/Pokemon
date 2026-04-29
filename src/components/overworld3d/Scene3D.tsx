@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
 import type { MapData, NPC, Entity, Tile } from '../../types';
+import { useGameStore } from '../../store/gameStore';
 import { CameraRig } from './CameraRig';
 import { MapMesh3D } from './MapMesh3D';
 import { NpcBillboard } from './NpcBillboard';
 import { ItemBillboard } from './ItemBillboard';
+import { WildPokemonBillboard } from './WildPokemonBillboard';
 
 interface Scene3DProps {
   mapData: MapData;
@@ -13,6 +15,7 @@ interface Scene3DProps {
 
 export function Scene3D({ mapData, npcs, items }: Scene3DProps) {
   const tiles = mapData.tiles as Tile[][];
+  const wildPokemon = useGameStore(s => s.wildPokemon);
 
   const isInterior = useMemo(
     () => tiles.flat().some((t) => t.type === 'floor' || t.type === 'carpet'),
@@ -40,6 +43,10 @@ export function Scene3D({ mapData, npcs, items }: Scene3DProps) {
 
       {items.map((item) => (
         <ItemBillboard key={item.id} item={item} />
+      ))}
+
+      {wildPokemon.map((wild) => (
+        <WildPokemonBillboard key={wild.id} wild={wild} />
       ))}
     </>
   );
