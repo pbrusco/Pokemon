@@ -27,7 +27,7 @@ export function RecorderButton() {
       if (p) {
         setSavedPath(p);
         lastSavedCountRef.current = count;
-        console.info(`[log] saved → ${p}`);
+        console.warn(`[log] saved → ${p}`);
       }
     } catch (err) {
       console.error('[log] save failed', err);

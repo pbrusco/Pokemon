@@ -18,7 +18,9 @@
 - [x] Fixed pre-existing tsc error: VIRIDIAN_CITY type in buildingReference.ts
 
 ### Remaining
-- [ ] Fix pre-existing building reference test failures (6 tests) — wall/door coordinates stale for Pallet Town (Casa de Red, Casa de Azul, Lab. Oak) and Viridian City (Pokecenter sur) vs current kanto_overworld.json
+- [ ] Add `itemUtils.test.ts` — pure function with high edge-case density: Potion on full HP fails, Antidote on non-poisoned fails, Revive on alive fails, combined effects
+- [ ] Add movement unit tests — ledge one-way constraint, warp trigger, poison chip damage on step (movement engine has zero direct tests)
+- [ ] Add Struggle move test — verify that when all PP = 0, STRUGGLE is used and deals recoil damage to the user
 
 ## Building Restoration (complete)
 

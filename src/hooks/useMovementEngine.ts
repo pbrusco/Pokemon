@@ -2,7 +2,6 @@ import { useCallback, useRef, useEffect, type MutableRefObject } from 'react';
 import { type Direction, type NPC, type Pokemon, type Position } from '../types';
 import { BLACKOUT, HEALING, EXPLORING } from '../types/gamePhase';
 import { fullHeal } from '../lib/healUtils';
-import { type BattleState } from '../lib/battleEngine';
 import { sd } from '../lib/gameSpeed';
 import { triggerOakCutscene } from '../lib/oakCutscene';
 import { triggerTrainerCutscene } from '../lib/cutscenes/trainerEncounter';
@@ -113,12 +112,10 @@ function getValidTeleportLocation(targetMap: string, targetPos: Position): { map
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 interface UseMovementEngineParams {
-  battleStateRef: MutableRefObject<BattleState | null>;
   setOverworldShake: (v: boolean) => void;
 }
 
 export function useMovementEngine({
-  battleStateRef,
   setOverworldShake,
 }: UseMovementEngineParams) {
   const moveTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -281,7 +278,7 @@ export function useMovementEngine({
         }
       }
     }
-  }, [battleStateRef, setOverworldShake]);
+  }, [setOverworldShake]);
 
   return { handleMove, initBattle };
 }

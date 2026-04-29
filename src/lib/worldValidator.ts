@@ -264,7 +264,7 @@ export function validateWorld(): WorldValidationIssue[] {
     const id = mapKey as MapID;
     if (id === 'KANTO_OVERWORLD') continue;
 
-    const meta = (pokeredMetadata as any)[mapKey];
+    const meta = (pokeredMetadata as Record<string, { npcs: number; signs: number }>)[mapKey];
     const map = maps[id];
     if (!map) continue;
 

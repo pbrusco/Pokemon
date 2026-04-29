@@ -5,7 +5,7 @@
  * Oak appears, speaks, then leads the player to his lab.
  */
 
-import type { Direction, Position } from '../types';
+import type { Direction, Position, MapID } from '../types';
 import type { CutsceneStep } from './cutscenes/types';
 import { runCutscene } from './cutscenes/runner';
 
@@ -44,7 +44,7 @@ export function buildOakEscortSteps(playerPos: Position): CutsceneStep[] {
     { type: 'walk', path, npcLeadId: 'oak_escort' },
     { type: 'npc_remove' },
     { type: 'set_story', step: 'OAK_STOPPED' },
-    { type: 'warp', map: 'OAKS_LAB' as any, position: { x: 4, y: 10 }, direction: 'up' as Direction },
+    { type: 'warp', map: 'OAKS_LAB' as MapID, position: { x: 4, y: 10 }, direction: 'up' as Direction },
     { type: 'unlock' },
     { type: 'wait', ms: 500 },
     { type: 'dialogue', text: "OAK: ¡Hola! Por fin llegas.\nToma uno de estos POKÉMON, te ayudará en tu viaje." },

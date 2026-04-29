@@ -1,5 +1,5 @@
 import { useEffect, type MutableRefObject, type Dispatch, type SetStateAction } from 'react';
-import { type Pokemon } from '../types';
+import { type Pokemon, type Direction } from '../types';
 import { type GamePhase, battle, B_CHOOSING, EXPLORING } from '../types/gamePhase';
 import { type BattleAction, type BattleState, createBattleState } from '../lib/battleEngine';
 import { MOVES, makePokemon } from '../constants';
@@ -18,7 +18,7 @@ interface UseDebugAPIParams {
   phase: GamePhase;
   setDialogue: (d: string | null) => void;
   setPhase: Dispatch<SetStateAction<GamePhase>>;
-  handleMove: (dir: any) => void;
+  handleMove: (dir: Direction) => void;
   handleAction: () => void;
   handleUseItem: (itemId: string) => void;
   handlePCSwap: (teamIdx: number, pcIdx: number) => void;
@@ -49,6 +49,7 @@ export function useDebugAPI({
 }: UseDebugAPIParams): void {
   useEffect(() => {
     if (import.meta.env.DEV) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__game = {
         dispatchBattle,
         battleStateRef,

@@ -56,14 +56,26 @@ export const WorldView = memo(({
   const rows = grid.length;
   const cols = grid[0]?.length ?? 0;
 
-  // ── Build layer tile arrays — memoized per map, not per player step ───
+  // ── Viewport culling — only render tiles visible on screen ─────────────
+  // Sized to actual pixels so no tiles are culled when the map fits entirely
+  // in the window (all interiors), and only off-screen tiles are skipped on
+  // large maps like KANTO_OVERWORLD (440K tiles — rendering all would hang).
+  const halfW = Math.ceil((windowSize.width  / 2) / (TILE_SIZE * zoomLevel)) + 2;
+  const halfH = Math.ceil((windowSize.height / 2) / (TILE_SIZE * zoomLevel)) + 2;
+  const minX = Math.max(0, playerPos.x - halfW);
+  const maxX = Math.min(cols - 1, playerPos.x + halfW);
+  const minY = Math.max(0, playerPos.y - halfH);
+  const maxY = Math.min(rows - 1, playerPos.y + halfH);
+
+  // ── Build layer tile arrays ── memoized; rebuilds only when the visible
+  // tile window shifts (playerPos) or the map / zoom / window changes.
   const { groundTiles, objectTiles, overheadTiles } = useMemo(() => {
     if (!mapData || !layers) return { groundTiles: [], objectTiles: [], overheadTiles: [] };
     const groundTiles = [];
     const objectTiles = [];
     const overheadTiles = [];
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
+    for (let y = minY; y <= maxY; y++) {
+      for (let x = minX; x <= maxX; x++) {
         const tile = grid[y][x];
         let groundId = layers.ground[y][x];
         const objectId = layers.objects[y][x];
@@ -75,11 +87,11 @@ export const WorldView = memo(({
       }
     }
     return { groundTiles, objectTiles, overheadTiles };
-  }, [mapData, mapHasEncounters]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mapData, mapHasEncounters, minX, maxX, minY, maxY]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Trainer vision indicators — memoized, only update when npcs/defeated changes ──
   const visionIndicators = useMemo(() =>
-    npcs[currentMap]
+    (npcs[currentMap] ?? [])
       .filter(npc => (npc as NPC).isTrainer && !defeatedTrainers.includes(npc.id))
       .flatMap(trainer =>
         [1, 2, 3].map(i => {
@@ -117,7 +129,7 @@ export const WorldView = memo(({
         </motion.div>
       </div>
     ))
-  , [mapData]); // eslint-disable-line react-hooks/exhaustive-deps
+  , [mapData]);
 
   if (!mapData) return null;
 
@@ -141,7 +153,7 @@ export const WorldView = memo(({
   const handleWheel = (e: React.WheelEvent) => {
     if (inBattle) return;
     const delta = e.deltaY > 0 ? -0.05 : 0.05;
-    setZoomLevel(prev => Math.min(Math.max(prev + delta, 0.05), 1.0));
+    setZoomLevel(prev => Math.min(Math.max(prev + delta, 0.5), 1.0));
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -278,7 +290,7 @@ export const WorldView = memo(({
         }}
         transition={{ type: "tween", duration: 0.11, ease: "linear" }}
       >
-        <div className="relative" style={{ width: cols * TILE_SIZE, height: rows * TILE_SIZE, contain: 'strict' }}>
+        <div className="relative" style={{ width: cols * TILE_SIZE, height: rows * TILE_SIZE }}>
           {/* Ground layer */}
           {groundTiles}
 
@@ -353,8 +365,8 @@ export const WorldView = memo(({
                 ...wild,
                 name: wild.pokemon.name,
                 dialogue: [],
-                trainerClass: wild.pokemon.id
-              } as any}
+                trainerClass: String(wild.pokemon.id)
+              } as NPC}
             />
           ))}
           <PlayerSprite position={playerPos} direction={direction} isMoving={isMoving} />

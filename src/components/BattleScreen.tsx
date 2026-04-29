@@ -1,6 +1,6 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import { motion, useAnimate } from 'motion/react';
-import { type Pokemon, type Move } from '../types';
+import { type Pokemon, type Move, type BattleLogEntry } from '../types';
 import { STRUGGLE_MOVE } from '../constants';
 import { sd, sdur } from '../lib/gameSpeed';
 import { useGameStore } from '../store/gameStore';
@@ -15,7 +15,7 @@ interface BattleScreenProps {
   playerTeam: Pokemon[];
   playerAnim: 'idle' | 'attack' | 'hit' | 'faint';
   battleLog: string;
-  battleLogs: any[];
+  battleLogs: BattleLogEntry[];
   showMoves: boolean;
   setShowMoves: (show: boolean) => void;
   isTrainerBattle: boolean;
@@ -119,7 +119,7 @@ function PokeballAnim({ isCatching, catchResult }: { isCatching: boolean; catchR
         setVisible(false);
       }
     })();
-  }, [isCatching]);
+  }, [isCatching, animate, scope]);
 
   if (!visible) return null;
 

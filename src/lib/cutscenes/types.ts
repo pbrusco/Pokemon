@@ -5,7 +5,7 @@
  * by the CutsceneRunner. Each step type maps to a specific game action.
  */
 
-import type { Direction, Position, MapID } from '../../types';
+import type { Direction, Position, MapID, Pokemon } from '../../types';
 
 // ── Step types ────────────────────────────────────────────────────────────────
 
@@ -84,7 +84,7 @@ export interface BattleStep {
   type: 'battle';
   isTrainer: boolean;
   trainerId?: string;
-  enemyPokemon?: any; // Will be typed properly in implementation
+  enemyPokemon?: Pokemon;
 }
 
 export type CutsceneStep =

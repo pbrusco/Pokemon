@@ -285,6 +285,7 @@ export function useBattleEngine({
         }
       }
     }, aDelay);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [battleStateRef, setPlayerAnim, setEnemyAnim, setBattleShake]);
 
   dispatchBattleRef.current = dispatchBattle;

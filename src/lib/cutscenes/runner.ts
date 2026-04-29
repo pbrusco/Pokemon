@@ -13,6 +13,7 @@
  */
 
 import type { CutsceneStep } from './types';
+import type { Direction } from '../../types';
 import { useGameStore } from '../../store/gameStore';
 import { sd } from '../gameSpeed';
 
@@ -98,7 +99,7 @@ function processNext() {
     }
 
     case 'set_story':
-      useGameStore.getState().setStoryStep(step.step as any);
+      useGameStore.getState().setStoryStep(step.step as any); // eslint-disable-line @typescript-eslint/no-explicit-any
       processNext();
       break;
 
@@ -178,7 +179,7 @@ function processNpcWalk(step: Extract<CutsceneStep, { type: 'npc_walk' }>) {
 
     const pos = path[currentStep];
     // Direction calculation for NPC walk
-    let dir: any = 'down';
+    let dir: Direction = 'down';
     if (currentStep > 0) {
       const prev = path[currentStep - 1];
       if (pos.x > prev.x) dir = 'right';
@@ -197,7 +198,7 @@ function processBattle(step: Extract<CutsceneStep, { type: 'battle' }>) {
   s.setSpottedTrainerPos(null);
 
   launchBattle({
-    enemy: step.enemyPokemon,
+    enemy: step.enemyPokemon!,
     isTrainer: step.isTrainer,
     trainerName: step.trainerId,
     battleLog: '¡Batalla iniciada!',

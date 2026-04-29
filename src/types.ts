@@ -138,3 +138,9 @@ export interface Tile {
 }
 
 export const TILE_SIZE = 64;
+
+export interface BattleLogEntry {
+  id: number;
+  speaker: string;
+  text: string;
+}

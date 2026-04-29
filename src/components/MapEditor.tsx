@@ -1,5 +1,6 @@
 import { useState, memo } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { type Tile } from '../types';
 
 const TILE_TYPES = ['grass', 'path', 'wall', 'door', 'floor', 'carpet', 'table', 'tree', 'sign', 'cut_tree', 'boulder', 'water'];
 
@@ -52,8 +53,8 @@ export const MapEditor = memo(function MapEditor({ onClose }: { onClose: () => v
       table: 'X', tree: 'T', sign: 'S', cut_tree: 'H', boulder: 'B', water: '~'
     };
 
-    const rows = currentGrid.map((row: any[]) =>
-      row.map((tile: any) => tileToCode[tile.type] ?? 'G').join('')
+    const rows = currentGrid.map((row: Tile[]) =>
+      row.map((tile: Tile) => tileToCode[tile.type] ?? 'G').join('')
     );
 
     const output = JSON.stringify({ rows, warps: mapData.warps }, null, 2);
@@ -110,7 +111,7 @@ export const MapEditor = memo(function MapEditor({ onClose }: { onClose: () => v
            onMouseLeave={() => setIsDragging(false)}
          >
            <div className="grid" style={{ gridTemplateColumns: `repeat(20, 32px)`, width: 640 }}>
-             {currentGrid.map((row: any, y: number) => row.map((tile: any, x: number) => (
+             {currentGrid.map((row: Tile[], y: number) => row.map((tile: Tile, x: number) => (
                <div 
                  key={`${x}-${y}`}
                  onMouseDown={() => handleTileDraw(y, x)}

@@ -25,7 +25,6 @@ export function useGameLoop() {
   });
 
   const { handleMove, initBattle } = useMovementEngine({
-    battleStateRef,
     setOverworldShake: noop,
   });
 

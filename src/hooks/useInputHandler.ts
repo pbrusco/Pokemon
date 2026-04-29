@@ -206,7 +206,7 @@ export function useInputHandler({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [handleMove, handleAction, isTrainerBattle, spottedTrainerId]);
+  }, [handleMove, handleAction, isTrainerBattle, spottedTrainerId, dispatchBattle]);
 
   const isMoving = useGameStore(s => s.isMoving);
   // Self-trigger: the moment a move finishes, immediately start the next one if a key is held.

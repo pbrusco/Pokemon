@@ -39,7 +39,7 @@ function makeState(overrides: Partial<BattleState> = {}): BattleState {
   return createBattleState(
     [makePkmn()],
     makePkmn({ name: 'RATTATA', id: 'rattata', type: 'normal', baseStats: { hp: 30, attack: 56, defense: 35, special: 25, speed: 72 } }),
-    overrides as any,
+    overrides as any, // eslint-disable-line @typescript-eslint/no-explicit-any
   );
 }
 
@@ -442,6 +442,7 @@ describe('EXP formula — Gen I species-weighted', () => {
     return createBattleState([player], enemy1hp);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getExpLog(effects: ReturnType<typeof getLogs> extends string[] ? any[] : never): string | undefined {
     return getLogs(effects).find(l => l.includes('ganó') && l.includes('EXP'));
   }

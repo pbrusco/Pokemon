@@ -69,7 +69,7 @@ function snapshotState(): Record<string, unknown> {
 }
 
 function restoreState(snap: Record<string, unknown>) {
-  useGameStore.setState(structuredClone(snap) as any);
+  useGameStore.setState(structuredClone(snap) as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 /* ---------- Recording ---------- */
@@ -189,7 +189,7 @@ async function waitUntilReady(e: RecEvent, timeoutMs = 8000): Promise<void> {
 }
 
 function apply(e: RecEvent): void {
-  const g = (window as any).__game;
+  const g = (window as any).__game; // eslint-disable-line @typescript-eslint/no-explicit-any
   if (!g) return;
   switch (e.k) {
     case 'move': g.handleMove(e.dir); break;
@@ -245,8 +245,9 @@ function installCrashAutoSave() {
 }
 
 /* ---------- window bridge ---------- */
-if (typeof window !== 'undefined' && (import.meta as any).env?.DEV) {
+if (typeof window !== 'undefined' && import.meta.env?.DEV) {
   installCrashAutoSave();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).__log = {
     start: startRecord,
     stop: stopRecord,

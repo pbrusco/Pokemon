@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { type Pokemon, type Position, type Direction, type Entity, type InventoryCounts, type MapID, type PokedexState, type WildPokemonEntity } from '../types';
+import { type Pokemon, type Position, type Direction, type Entity, type InventoryCounts, type MapID, type PokedexState, type WildPokemonEntity, type BattleLogEntry } from '../types';
 import { worldConfig } from '../data/worldConfig';
 import { buildNPCDatabase, buildItemDatabase } from '../data/npcDatabase';
 import { type GamePhase, EXPLORING } from '../types/gamePhase';
@@ -88,7 +88,7 @@ interface GameState extends GameSaveState {
   setIsTrainerBattle: (v: boolean) => void;
   setTrainerBattleSprite: (url: string | null) => void;
   setBattleLog: (log: string) => void;
-  setBattleLogs: (logs: SetStateAction<any[]>) => void;
+  setBattleLogs: (logs: SetStateAction<BattleLogEntry[]>) => void;
   setCatchResult: (v: boolean | null) => void;
 
   isMoving: boolean;
@@ -112,7 +112,7 @@ interface GameState extends GameSaveState {
   isTrainerBattle: boolean;
   trainerBattleSprite: string | null;
   battleLog: string;
-  battleLogs: any[];
+  battleLogs: BattleLogEntry[];
   catchResult: boolean | null;
   ghostMode: boolean;
   showMinimap: boolean;
@@ -320,7 +320,10 @@ export const useGameStore = create<GameState>()(
 
       toggleGhostMode: () => set((state) => ({ ghostMode: !state.ghostMode })),
       toggleMinimap: () => set((state) => ({ showMinimap: !state.showMinimap })),
-      setZoomLevel: (zoom) => set((state) => ({ zoomLevel: typeof zoom === 'function' ? zoom(state.zoomLevel) : zoom })),
+      setZoomLevel: (zoom) => set((state) => {
+        const next = typeof zoom === 'function' ? zoom(state.zoomLevel) : zoom;
+        return { zoomLevel: Math.min(Math.max(next, 0.5), 1.0) };
+      }),
       setCameraOffset: (offset) => set((state) => ({ cameraOffset: typeof offset === 'function' ? offset(state.cameraOffset) : offset })),
       setIsCameraLocked: (locked) => set({ isCameraLocked: locked }),
       resetCamera: () => set({ zoomLevel: 1.0, cameraOffset: { x: 0, y: 0 }, isCameraLocked: true }),
@@ -397,5 +400,5 @@ export const useGameStore = create<GameState>()(
 
 // Expose store for dev tools
 if (import.meta.env.DEV) {
-  (window as any).__gameStore = useGameStore;
+  (window as any).__gameStore = useGameStore; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
