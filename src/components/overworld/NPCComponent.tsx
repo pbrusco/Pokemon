@@ -1,11 +1,16 @@
 import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { type NPC, TILE_SIZE } from '../../types';
-import { TRAINER_OVERWORLD_SPRITES } from '../../data/trainerSprites';
+import { NPC_SPRITE_MAP } from '../../data/npcSpriteMap';
+import { cssFrame } from '../../lib/spriteFormat';
 
 export const NPCComponent = memo(({ npc, isSpotted }: { npc: NPC, key?: string, isSpotted?: boolean }) => {
   const [spriteError, setSpriteError] = useState(false);
-  const overworldSprite = npc.trainerClass ? TRAINER_OVERWORLD_SPRITES[npc.trainerClass] : undefined;
+  const entry = npc.trainerClass ? NPC_SPRITE_MAP[npc.trainerClass] : undefined;
+  const url = entry?.overworld ?? '';
+  const numFrames = entry?.overworldFrames ?? 0;
+  const hasSprite = url && numFrames > 0;
+  const frame = hasSprite ? cssFrame(npc.direction, numFrames) : null;
 
   return (
     <motion.div
@@ -18,7 +23,6 @@ export const NPCComponent = memo(({ npc, isSpotted }: { npc: NPC, key?: string, 
       style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 20 + npc.position.y }}
     >
       <div className="relative">
-        {/* Exclamation mark when spotted */}
         <AnimatePresence>
           {isSpotted && (
             <motion.div
@@ -36,26 +40,24 @@ export const NPCComponent = memo(({ npc, isSpotted }: { npc: NPC, key?: string, 
           )}
         </AnimatePresence>
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-2 bg-black/20 rounded-full blur-sm" />
-        {overworldSprite && !spriteError ? (
+        {hasSprite && !spriteError ? (
           <>
             <div
               className="w-11 h-11 pixelated"
               style={{
-                backgroundImage: `url('${overworldSprite}')`,
-                backgroundSize: '100% 600%',
+                backgroundImage: `url('${url}')`,
+                backgroundSize: `${numFrames * 100}% 100%`,
                 backgroundRepeat: 'no-repeat',
-                backgroundPositionY:
-                  npc.direction === 'down' ? '0%'
-                  : npc.direction === 'up' ? '40%'
-                  : '80%',
-                transform: npc.direction === 'right' ? 'scaleX(-1)' : 'none',
+                backgroundPositionX: frame?.backgroundPositionX ?? '0%',
+                backgroundPositionY: '0%',
+                transform: frame?.transform ?? 'none',
                 imageRendering: 'pixelated',
               }}
               role="img"
               aria-label={npc.name}
             />
             <img
-              src={overworldSprite}
+              src={url}
               alt=""
               aria-hidden="true"
               style={{ display: 'none' }}

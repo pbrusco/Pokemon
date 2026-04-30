@@ -205,9 +205,12 @@ function computeExpAndLevelUp(pkmn: Pokemon, expGain: number): {
 // ─── Trainer AI ──────────────────────────────────────────────────────────────
 
 function selectTrainerMove(attacker: Pokemon, defender: Pokemon): Move {
-  const moves = attacker.moves;
+  const moves = attacker.moves.filter(m => m.pp > 0);
+  if (moves.length === 0) return {
+    name: 'FORCEJEO', type: 'normal', power: 50, accuracy: 100, pp: 99, maxPp: 99,
+    sfxType: 'noise'
+  };
   const damagingMoves = moves.filter(m => m.power > 0);
-
   if (damagingMoves.length === 0) return moves[Math.floor(Math.random() * moves.length)];
 
   // Score each damaging move: prefer super-effective, then higher base power
@@ -235,10 +238,18 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
     // ── ATTACK ──────────────────────────────────────────────────────────────
     case 'ATTACK': {
       if (s.phase !== 'CHOOSING') return { state, effects };
-      const move = action.move;
-      if (move.pp <= 0) return { state, effects };
-
+      let move = action.move;
       const playerPkmn = s.playerTeam[0];
+
+      if (move.pp <= 0) {
+        const totalPP = playerPkmn.moves.reduce((sum, m) => sum + m.pp, 0);
+        if (totalPP <= 0) {
+          move = { name: 'FORCEJEO', type: 'normal', power: 50, accuracy: 100, pp: 99, maxPp: 99, sfxType: 'noise' };
+          effects.push(log(`¡${playerPkmn.name} no tiene movimientos! ¡Usa FORCEJEO!`));
+        } else {
+          return { state, effects };
+        }
+      }
 
       // Deduct PP
       const updatedTeam = [...s.playerTeam];
@@ -268,6 +279,21 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         effects.push(log(`¡${playerPkmn.name} está paralizado! ¡No puede moverse!`));
         s = { ...s, log: `¡${playerPkmn.name} está paralizado! ¡No puede moverse!`, phase: 'ENEMY_ATTACK' };
         return { state: s, effects };
+      }
+
+      // Status check: Frozen (unfreeze 20% or skip)
+      if (playerPkmn.status === 'frozen') {
+        const thaw = Math.random() < 0.2;
+        if (thaw) {
+          effects.push(log(`¡${playerPkmn.name} se ha descongelado!`));
+          const thawedTeam = [...s.playerTeam];
+          thawedTeam[0] = { ...thawedTeam[0], status: 'none' };
+          s = { ...s, playerTeam: thawedTeam };
+        } else {
+          effects.push(log(`¡${playerPkmn.name} está congelado!`));
+          s = { ...s, log: `¡${playerPkmn.name} está congelado!`, phase: 'ENEMY_ATTACK' };
+          return { state: s, effects };
+        }
       }
 
       // Accuracy check (player attacker accuracy stage vs enemy evasion stage)
@@ -511,6 +537,21 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           return { state: s, effects };
         }
 
+        // Status: Frozen
+        if (s.enemyPokemon.status === 'frozen') {
+          const thaw = Math.random() < 0.2;
+          if (thaw) {
+            effects.push(log(`¡${s.enemyPokemon.name} se ha descongelado!`));
+            s = { ...s, enemyPokemon: { ...s.enemyPokemon, status: 'none' } };
+          } else {
+            const freezeLog = `¡${s.enemyPokemon.name} está congelado!`;
+            effects.push(log(freezeLog));
+            effects.push(log(''));
+            s = { ...s, log: '', phase: 'CHOOSING' };
+            return { state: s, effects };
+          }
+        }
+
         const enemyMove = s.isTrainerBattle
           ? selectTrainerMove(s.enemyPokemon, playerPkmn)
           : s.enemyPokemon.moves[Math.floor(Math.random() * s.enemyPokemon.moves.length)];
@@ -609,6 +650,24 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         const nextEnemy = s.enemyTeam[s.currentEnemyIndex];
         effects.push(log(''));
         s = { ...s, enemyPokemon: nextEnemy, log: '', phase: 'CHOOSING' };
+      }
+
+      // Burn chip damage (1/16 maxHP at end of turn)
+      if (s.phase === 'CHOOSING') {
+        if (s.playerTeam[0]?.status === 'burn' && s.playerTeam[0]?.hp > 0) {
+          const chip = Math.max(1, Math.floor(s.playerTeam[0].maxHp / 16));
+          const newHp = Math.max(0, s.playerTeam[0].hp - chip);
+          const updated = [...s.playerTeam];
+          updated[0] = { ...updated[0], hp: newHp };
+          effects.push(log(`¡${s.playerTeam[0].name} recibe daño por quemaduras!`));
+          s = { ...s, playerTeam: updated };
+          if (newHp === 0) { s = { ...s, phase: 'PLAYER_FAINTED' }; }
+        }
+        if (s.enemyPokemon.status === 'burn' && s.enemyPokemon.hp > 0) {
+          const chip = Math.max(1, Math.floor(s.enemyPokemon.maxHp / 16));
+          s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: Math.max(0, s.enemyPokemon.hp - chip) } };
+          effects.push(log(`¡${s.enemyPokemon.name} recibe daño por quemaduras!`));
+        }
       }
 
       return { state: s, effects };
@@ -747,8 +806,8 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         return { state: r.state, effects: [...effects, ...r.effects] };
       }
 
-      const playerSpeed = s.playerTeam[0].baseStats.speed;
-      const enemySpeed = Math.max(1, s.enemyPokemon.baseStats.speed);
+      const playerSpeed = s.playerTeam[0].status === 'paralyzed' ? Math.floor(s.playerTeam[0].baseStats.speed / 4) : s.playerTeam[0].baseStats.speed;
+      const enemySpeed = Math.max(1, s.enemyPokemon.status === 'paralyzed' ? Math.floor(s.enemyPokemon.baseStats.speed / 4) : s.enemyPokemon.baseStats.speed);
       const fleeValue = (playerSpeed * 128 / enemySpeed + 30) % 256;
       const roll = Math.floor(Math.random() * 256);
 

@@ -2,7 +2,7 @@ import { type Pokemon, type NPC } from '../types';
 import { createBattleState } from './battleEngine';
 import { useGameStore } from '../store/gameStore';
 import { BATTLE_TRANSITION } from '../types/gamePhase';
-import { TRAINER_BATTLE_SPRITES } from '../data/trainerSprites';
+import { getTrainerBattleSprite } from '../data/trainerSprites';
 
 interface LaunchBattleOptions {
   enemy: Pokemon;
@@ -28,7 +28,7 @@ export function launchBattle(options: LaunchBattleOptions): void {
     const allNpcs = s.getNPCs();
     const trainer = Object.values(allNpcs).flat().find(n => n.id === options.trainerName) as NPC | undefined;
     s.setTrainerBattleSprite(
-      trainer?.trainerClass ? (TRAINER_BATTLE_SPRITES[trainer.trainerClass] ?? null) : null
+      trainer?.trainerClass ? (getTrainerBattleSprite(trainer.trainerClass) ?? null) : null
     );
   } else {
     s.setTrainerBattleSprite(null);

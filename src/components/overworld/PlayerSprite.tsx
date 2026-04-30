@@ -2,8 +2,12 @@ import { memo } from 'react';
 import { motion } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
 import { type Position, type Direction, TILE_SIZE } from '../../types';
+import { PLAYER_OVERWORLD_SPRITE, PLAYER_OVERWORLD_FRAMES } from '../../data/npcSpriteMap';
+import { cssFrame } from '../../lib/spriteFormat';
 
 export const PlayerSprite = memo(({ position, direction, isMoving }: { position: Position, direction: Direction, isMoving: boolean }) => {
+  const frame = cssFrame(direction, PLAYER_OVERWORLD_FRAMES);
+
   return (
     <motion.div
       className="absolute top-0 left-0 flex items-center justify-center"
@@ -16,7 +20,6 @@ export const PlayerSprite = memo(({ position, direction, isMoving }: { position:
       style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 20 + position.y }}
     >
       <div className="relative">
-        {/* Floating Indicator */}
         <motion.div
           animate={{ y: [0, -10, 0] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
@@ -25,18 +28,16 @@ export const PlayerSprite = memo(({ position, direction, isMoving }: { position:
           <ChevronDown size={32} strokeWidth={3} />
         </motion.div>
 
-        {/* Shadow */}
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-10 h-3 bg-black/40 rounded-full blur-sm" />
 
-        {/* Character Sprite */}
         <div
           className={`w-16 h-16 pointer-events-none drop-shadow-md ${isMoving ? 'animate-walk' : ''}`}
           style={{
-            backgroundImage: "url('/player.png')",
-            backgroundSize: "400% 300%",
-            backgroundPositionX: isMoving ? undefined : "0%",
-            backgroundPositionY: direction === 'down' ? '0%' : direction === 'up' ? '50%' : '100%',
-            transform: direction === 'right' ? 'scaleX(-1)' : 'none',
+            backgroundImage: `url('${PLAYER_OVERWORLD_SPRITE}')`,
+            backgroundSize: `${PLAYER_OVERWORLD_FRAMES * 100}% 100%`,
+            backgroundPositionX: frame.backgroundPositionX,
+            backgroundPositionY: '0%',
+            transform: frame.transform,
             imageRendering: "pixelated",
           }}
         />

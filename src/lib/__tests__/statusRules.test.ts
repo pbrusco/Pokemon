@@ -372,15 +372,15 @@ describe('PP deduction and zero-PP guard', () => {
     expect(result.state.playerTeam[0].moves[0].pp).toBe(6);
   });
 
-  it('move with pp=0 cannot be used', () => {
+  it('move with pp=0 triggers STRUGGLE when all moves exhausted', () => {
     const state = makeState();
     const exhaustedMove = makeMove({ pp: 0 });
     state.playerTeam[0] = { ...state.playerTeam[0], moves: [exhaustedMove] };
 
     const result = stepBattle(state, { type: 'ATTACK', move: exhaustedMove });
 
-    expect(result.state.phase).toBe('CHOOSING'); // no phase transition
-    expect(result.state.enemyPokemon.hp).toBe(state.enemyPokemon.hp);
+    expect(result.state.phase).toBe('ENEMY_ATTACK');
+    expect(result.effects.some(e => (e.payload as string)?.includes('FORCEJEO'))).toBe(true);
   });
 });
 

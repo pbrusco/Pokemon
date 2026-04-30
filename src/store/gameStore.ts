@@ -19,6 +19,7 @@ interface GameSaveState {
   hasSsTicket: boolean;
   clearedSnorlax: string[];
   pendingSnorlaxId: string | null;
+  eventFlags: string[];
   badges: string[];
   storyStep: 'START' | 'OAK_STOPPED' | 'IN_LAB' | 'PICKED_STARTER' | 'RIVAL_BATTLE' | 'EXPLORING';
   defeatedTrainers: string[];
@@ -66,6 +67,7 @@ const INITIAL_SAVE_STATE: GameSaveState = {
   hasSsTicket: false,
   clearedSnorlax: [],
   pendingSnorlaxId: null,
+  eventFlags: [],
   badges: [],
   storyStep: 'START',
   defeatedTrainers: [],
@@ -142,6 +144,9 @@ interface GameState extends GameSaveState {
   setHasSsTicket: (v: boolean) => void;
   setClearedSnorlax: (ids: string[]) => void;
   setPendingSnorlaxId: (id: string | null) => void;
+  setEventFlag: (flag: string) => void;
+  removeEventFlag: (flag: string) => void;
+  hasEventFlag: (flag: string) => boolean;
   setBadges: (badges: SetStateAction<string[]>) => void;
   setDefeatedTrainers: (ids: SetStateAction<string[]>) => void;
   setDialogue: (text: string | null, onComplete?: () => void) => void;
@@ -246,6 +251,9 @@ export const useGameStore = create<GameState>()(
       setHasSsTicket: (v) => set({ hasSsTicket: v }),
       setClearedSnorlax: (ids) => set({ clearedSnorlax: ids }),
       setPendingSnorlaxId: (id) => set({ pendingSnorlaxId: id }),
+      setEventFlag: (flag) => set(s => ({ eventFlags: [...s.eventFlags, flag] })),
+      removeEventFlag: (flag) => set(s => ({ eventFlags: s.eventFlags.filter(f => f !== flag) })),
+      hasEventFlag: (flag) => get().eventFlags.includes(flag),
       setBadges: (badges) => set((state) => ({ badges: typeof badges === 'function' ? badges(state.badges) : badges })),
       setDefeatedTrainers: (ids) => set((state) => ({ defeatedTrainers: typeof ids === 'function' ? ids(state.defeatedTrainers) : ids })),
       setDialogue: (text, onComplete) => set({ dialogue: text, dialogueCallback: onComplete || null }),

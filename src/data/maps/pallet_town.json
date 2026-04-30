@@ -44,10 +44,10 @@
       "targetDir": "up"
     },
     {
-      "x": 10,
+      "x": 4,
       "y": 0,
       "targetMap": "KANTO_OVERWORLD",
-      "targetPos": { "x": 10, "y": 195 },
+      "targetPos": { "x": 4, "y": 195 },
       "targetDir": "up"
     },
     {

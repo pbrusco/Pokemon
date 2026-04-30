@@ -41,11 +41,11 @@
   ],
   "warps": [
     {
-      "x": 10,
+      "x": 4,
       "y": 0,
       "targetMap": "KANTO_OVERWORLD",
       "targetPos": {
-        "x": 10,
+        "x": 4,
         "y": 10
       },
       "targetDir": "up"
@@ -61,11 +61,11 @@
       "targetDir": "up"
     },
     {
-      "x": 10,
+      "x": 4,
       "y": 35,
       "targetMap": "KANTO_OVERWORLD",
       "targetPos": {
-        "x": 10,
+        "x": 4,
         "y": 10
       },
       "targetDir": "down"

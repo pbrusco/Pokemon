@@ -20,6 +20,6 @@
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
   ],
   "warps": [
-    { "x": 10, "y": 16, "targetMap": "BILLS_HOUSE", "targetPos": { "x": 3, "y": 5 }, "targetDir": "up" }
+    { "x": 4, "y": 16, "targetMap": "BILLS_HOUSE", "targetPos": { "x": 3, "y": 5 }, "targetDir": "up" }
   ]
 }

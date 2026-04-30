@@ -95,15 +95,15 @@ describe('Normal attack flow', () => {
     expect(result.state.playerTeam[0].moves[0].pp).toBe(4);
   });
 
-  it('attack with 0 PP is rejected', () => {
+  it('attack with 0 PP triggers STRUGGLE when all moves exhausted', () => {
     const state = makeState();
     const move = makeMove({ pp: 0 });
     state.playerTeam[0] = { ...state.playerTeam[0], moves: [move] };
 
     const result = stepBattle(state, { type: 'ATTACK', move });
 
-    expect(result.state.phase).toBe('CHOOSING'); // unchanged
-    expect(result.state.playerTeam[0].moves[0].pp).toBe(0);
+    expect(result.state.phase).toBe('ENEMY_ATTACK');
+    expect(result.effects.some(e => (e.payload as string)?.includes('FORCEJEO'))).toBe(true);
   });
 });
 
