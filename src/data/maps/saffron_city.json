@@ -27,7 +27,7 @@
     "TPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPT",
     "TPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPT",
     "TPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPT",
-    "TPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPT",
+    "GPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPG",
     "TPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPT",
     "TPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPT",
     "TPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPT",
@@ -37,5 +37,14 @@
     "TPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPT",
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
   ],
+<<<<<<< Updated upstream
   "warps": []
+=======
+  "warps": [
+    { "x": 20, "y": 0,  "targetMap": "ROUTE_5", "targetPos": { "x": 4, "y": 16 }, "targetDir": "up" },
+    { "x": 20, "y": 35, "targetMap": "ROUTE_6", "targetPos": { "x": 4, "y": 0  }, "targetDir": "down" },
+    { "x": 0,  "y": 27, "targetMap": "ROUTE_7", "targetPos": { "x": 19, "y": 4 }, "targetDir": "left" },
+    { "x": 39, "y": 27, "targetMap": "ROUTE_8", "targetPos": { "x": 0,  "y": 4 }, "targetDir": "right" }
+  ]
+>>>>>>> Stashed changes
 }
