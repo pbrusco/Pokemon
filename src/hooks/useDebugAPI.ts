@@ -85,6 +85,44 @@ export function useDebugAPI({
           setBattleLog(`¡Un ${enemy.name} salvaje apareció!`);
           setPhase(battle(B_CHOOSING));
         },
+        giveDemoTeam: () => {
+          const store = useGameStore.getState();
+
+          const demoTeam = [
+            makePokemon('charizard', 'CHARIZARD', 50, 'fire',
+              [MOVES.CUT, MOVES.SURF, MOVES.SLASH, MOVES.FLAMETHROWER], 6,
+              { types: ['fire', 'flying'] }),
+            makePokemon('blastoise', 'BLASTOISE', 50, 'water',
+              [MOVES.STRENGTH, MOVES.SURF, MOVES.WATER_GUN, MOVES.ICE_BEAM], 9,
+              { types: ['water'] }),
+            makePokemon('venusaur',  'VENUSAUR',  50, 'grass',
+              [MOVES.CUT, MOVES.RAZOR_LEAF, MOVES.SLEEP_POWDER, MOVES.MEGA_DRAIN], 3,
+              { types: ['grass', 'poison'] }),
+            makePokemon('mewtwo',    'MEWTWO',    70, 'psychic',
+              [MOVES.PSYCHIC, MOVES.THUNDERBOLT, MOVES.CONFUSION, MOVES.EARTHQUAKE], 150,
+              { types: ['psychic'] }),
+            makePokemon('dragonite', 'DRAGONITE', 55, 'dragon',
+              [MOVES.SURF, MOVES.THUNDERBOLT, MOVES.ICE_BEAM, MOVES.FLAMETHROWER], 149,
+              { types: ['dragon', 'flying'] }),
+            makePokemon('snorlax',   'SNORLAX',   40, 'normal',
+              [MOVES.BODY_SLAM, MOVES.EARTHQUAKE, MOVES.PSYCHIC, MOVES.BLIZZARD], 143),
+          ];
+
+          const allBadges = ['BOULDER', 'CASCADE', 'THUNDER', 'RAINBOW', 'SOUL', 'MARSH', 'VOLCANO', 'EARTH'];
+
+          store.setPlayerTeam(demoTeam);
+          store.setBadges(allBadges);
+          store.setHasPokedex(true);
+          store.setHasPokeFlute(true);
+          store.setHasSsTicket(true);
+          store.setHasSilphScope(true);
+          store.setStoryStep('EXPLORING');
+          store.setMoney(99999);
+          store.setInventory({ POTION: 50, POKEBALL: 50, FULL_HEAL: 20, REVIVE: 10 });
+
+          setDialogue('¡Equipo de test listo! Con todas las MOs y medallas.');
+          setTimeout(() => useGameStore.getState().setDialogue(null), 2000);
+        },
       };
     }
   });

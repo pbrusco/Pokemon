@@ -152,7 +152,7 @@ export function buildNPCDatabase(
       { id: 'cerulean_supernerd3', name: 'SABIONDO', type: 'npc', position: w('CERULEAN_CITY', 4, 12), direction: 'down', trainerClass: 'supernerd', dialogue: ["¡Esta cueva es peligrosa!", "¡Sólo los mejores entrenadores pueden entrar!"] },
       { id: 'cerulean_guard2', name: 'GUARDIA', type: 'npc', position: w('CERULEAN_CITY', 27, 12), direction: 'down', trainerClass: 'citizen', dialogue: ["¡Estamos vigilando la zona!", "¡Ten cuidado!"] },
       // ── Vermilion City ──
-      { id: 'saffron_guard_n', name: 'GUARDIA', type: 'npc', position: w('ROUTE_5', 4, 15), direction: 'up', trainerClass: 'citizen', dialogue: ["¡No puedes pasar! ¡Tengo mucha sed!", "Dicen que en CIUDAD CELESTE venden TÉ..."] },
+      { id: 'saffron_guard_n', name: 'GUARDIA', type: 'npc', position: w('ROUTE_5', 4, 15), direction: 'up', trainerClass: 'citizen', questId: 'thirsty_guard' as const, dialogue: ["¡No puedes pasar! ¡Tengo mucha sed!", "Dicen que en CIUDAD CELESTE venden TÉ..."] },
       // ── Saffron City ──
       { id: 'saffron_rocket1', name: 'SOLDADO ROCKET', type: 'npc', position: w('SAFFRON_CITY', 7, 6), direction: 'down', trainerClass: 'rocket', dialogue: ["¡Estamos ocupados! ¡Lárgate!", "¡El TEAM ROCKET manda en esta ciudad!"] },
       { id: 'saffron_rocket2', name: 'SOLDADO ROCKET', type: 'npc', position: w('SAFFRON_CITY', 20, 8), direction: 'down', trainerClass: 'rocket', dialogue: ["¡Ni un paso más!", "¡SILPH S.A. es ahora nuestra!"] },

@@ -549,6 +549,7 @@ export const MOVES: Record<string, Move> = {
 export const HM_REQUIREMENTS = {
   cut: { badge: 'CASCADE', move: 'CORTAR' },
   strength: { badge: 'RAINBOW', move: 'FUERZA' },
+  surf:  { badge: 'SOUL',    move: 'SURF' },
 } as const;
 
 const getSprite = (id: number) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
@@ -587,8 +588,10 @@ export const ITEMS_DATABASE: Record<string, InventoryItem> = {
   HM04_STRENGTH: { id: 'HM04_STRENGTH', name: 'MO04 FUERZA',   description: 'Enseña FUERZA a un POKÉMON.',           icon: '💪', type: 'key_item' },
   SILPH_SCOPE:   { id: 'SILPH_SCOPE',   name: 'ALCANCE SILPH', description: 'Revela a los POKÉMON fantasma.',        icon: '🔭', type: 'key_item' },
   POKE_FLUTE:    { id: 'POKE_FLUTE',    name: 'FLAUTA POKé',   description: 'Despierta a los POKÉMON dormidos.',     icon: '🎵', type: 'key_item' },
-  SS_TICKET:     { id: 'SS_TICKET',     name: 'BILLETE SS',    description: 'Billete de embarque para el SS ANNE.',  icon: '🎫', type: 'key_item' },
-  POKEBALL: { id: 'POKEBALL', name: 'POKÉ BALL', description: 'Sirve para atrapar Pokémon salvajes.', icon: '🔴', type: 'pokeball' },
+   SS_TICKET:     { id: 'SS_TICKET',     name: 'BILLETE SS',    description: 'Billete de embarque para el SS ANNE.',  icon: '🎫', type: 'key_item' },
+   HM03_SURF:     { id: 'HM03_SURF',     name: 'MO03 SURF',     description: 'Enseña SURF a un POKÉMON.',              icon: '🌊', type: 'key_item' },
+   FRESH_WATER:   { id: 'FRESH_WATER',   name: 'AGUA FRESCA',  description: 'Agua mineral muy refrescante.',           icon: '🥤', type: 'key_item' },
+   POKEBALL: { id: 'POKEBALL', name: 'POKÉ BALL', description: 'Sirve para atrapar Pokémon salvajes.', icon: '🔴', type: 'pokeball' },
   
   // Healing Items
   POTION: { id: 'POTION', name: 'POCIÓN', description: 'Restaura 20 PS.', icon: '🧪', type: 'potion', effect: { healHp: 20 } },

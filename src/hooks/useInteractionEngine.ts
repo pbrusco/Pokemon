@@ -12,6 +12,39 @@ interface UseInteractionEngineParams {
   initBattle: (enemyPokemon: Pokemon, isTrainer: boolean, trainerName?: string) => void;
 }
 
+/** Handle story-progression NPC interactions */
+function handleStoryNPC(npc: NPC, inventory: Record<string, number>, store: ReturnType<typeof useGameStore.getState>): boolean {
+  // Drink guard gate (Saffron Route 5 / Route 6 / Route 7 / Route 8)
+  if (npc.questId === 'thirsty_guard') {
+    if (inventory['FRESH_WATER'] || inventory['LEMONADE'] || inventory['SODA_POP']) {
+      const drink = inventory['FRESH_WATER'] ? 'FRESH_WATER' : inventory['LEMONADE'] ? 'LEMONADE' : 'SODA_POP';
+      store.removeInventoryItem(drink);
+      store.setDialogue('GUARDIA: ¡Ahhh! ¡Qué fresca! ¡Gracias! Ya puedes pasar.');
+      store.setEventFlag('BEAT_THIRSTY_GUARD');
+    } else {
+      store.setDialogue("GUARDIA: ¡Tengo mucha sed! Si me traes una bebida te dejaré pasar...");
+    }
+    return true;
+  }
+  // Route 23 badge check guards
+  if (npc.questId === 'badge_check') {
+    const needed = ((npc.id.match(/_(\w+)$/)?.[1] || '').toUpperCase());
+    const badgeMap: Record<string, string> = {
+      CASCADE: 'CASCADE', THUNDER: 'THUNDER', RAINBOW: 'RAINBOW',
+      SOUL: 'SOUL', MARSH: 'MARSH', VOLCANO: 'VOLCANO', EARTH: 'EARTH',
+    };
+    const badge = badgeMap[needed] || needed;
+    if (store.badges.includes(badge)) {
+      store.setDialogue('GUARDIA: ¡Adelante! Veo que tienes la medalla necesaria.');
+      store.setEventFlag('PASSED_' + badge + '_CHECK');
+    } else {
+      store.setDialogue(`GUARDIA: ¡Alto! Sólo pueden pasar quienes tengan la MEDALLA ${badge}.`);
+    }
+    return true;
+  }
+  return false;
+}
+
 export const useInteractionEngine = ({
   initBattle,
 }: UseInteractionEngineParams) => {
@@ -43,6 +76,7 @@ export const useInteractionEngine = ({
 
     const npc = npcs[currentMap]?.find(n => n.position.x === targetX && n.position.y === targetY) as NPC | undefined;
     if (npc) {
+      if (handleStoryNPC(npc, inventory, store)) return;
       if (npc.isTrainer && npc.trainerTeam?.length && !store.defeatedTrainers.includes(npc.id)) {
         store.setDialogue(`${npc.name}: ${npc.dialogue[0]}`, () => {
           initBattle(npc.trainerTeam![0], true, npc.id);
@@ -184,6 +218,13 @@ export const useInteractionEngine = ({
       const tile = map.tiles[targetY][targetX];
       if (tile.type === 'tree') {
         store.setDialogue("Es un árbol muy robusto.");
+      } else if (tile.type === 'water') {
+        const surfReq = HM_REQUIREMENTS.surf;
+        if (!badges.includes(surfReq.badge)) {
+          store.setDialogue(`¡El agua parece profunda! Necesitas la medalla ${surfReq.badge} para navegar.`);
+        } else {
+          store.setDialogue("¡Usaste SURF! ¡Ahora puedes navegar por el agua!");
+        }
       } else if (tile.type === 'cut_tree') {
         const leadMoves = playerTeam[0]?.moves.map(m => m.name) ?? [];
         if (!badges.includes(HM_REQUIREMENTS.cut.badge)) {
