@@ -24,6 +24,8 @@ function makeProps(overrides: Partial<BattleScreenProps> = {}): BattleScreenProp
     setShowInventory: vi.fn(),
     setShowTeam: vi.fn(),
     handleAttack: vi.fn(),
+    cinematicEvent: null,
+    onCinematicDone: vi.fn(),
     ...overrides,
   };
 }

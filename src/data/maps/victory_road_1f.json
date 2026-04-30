@@ -1,0 +1,40 @@
+{
+  "rows": [
+    "WWWWWWWWWW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WFFFFFFFFW",
+    "WWWWDWWWWW"
+  ],
+  "warps": [
+    {
+      "x": 4,
+      "y": 13,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 618,
+        "y": 289
+      },
+      "targetDir": "up"
+    },
+    {
+      "x": 4,
+      "y": 13,
+      "targetMap": "VICTORY_ROAD_2F",
+      "targetPos": {
+        "x": 4,
+        "y": 12
+      },
+      "targetDir": "up"
+    }
+  ]
+}

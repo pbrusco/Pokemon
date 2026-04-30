@@ -13,11 +13,14 @@ import { PokedexUI } from './PokedexUI';
 import { PCStorageUI } from './PCStorageUI';
 import { MapEditor } from './MapEditor';
 import { useGameStore } from '../store/gameStore';
+import type { CinematicEvent } from '../hooks/useBattleVFX';
 
 interface GameModalsProps {
   battleShake: boolean;
   enemyAnim: 'idle' | 'attack' | 'hit' | 'faint';
   playerAnim: 'idle' | 'attack' | 'hit' | 'faint';
+  cinematicEvent: CinematicEvent;
+  onCinematicDone: () => void;
   handlePCSwap: (teamIdx: number, pcIdx: number) => void;
   handleUseItem: (itemId: string) => void;
   handleApplyItemToPokemon: (index: number) => void;
@@ -28,6 +31,8 @@ export const GameModals = memo(({
   battleShake,
   enemyAnim,
   playerAnim,
+  cinematicEvent,
+  onCinematicDone,
   handlePCSwap,
   handleUseItem,
   handleApplyItemToPokemon,
@@ -67,6 +72,8 @@ export const GameModals = memo(({
             setShowInventory={() => { store.setShowMoves(false); store.setPhase(battle({ type: 'BATTLE_INVENTORY' })); }}
             setShowTeam={() => { store.setShowMoves(false); store.setPhase(battle({ type: 'BATTLE_TEAM' })); }}
             handleAttack={(move) => dispatchBattle({ type: 'ATTACK', move })}
+            cinematicEvent={cinematicEvent}
+            onCinematicDone={onCinematicDone}
           />
         )}
       </AnimatePresence>

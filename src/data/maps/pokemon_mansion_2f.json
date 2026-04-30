@@ -1,0 +1,40 @@
+{
+  "rows": [
+    "WWWWWWWWWW",
+    "WCCCCCCCCW",
+    "WCCCCCCCCW",
+    "WCCCCCCCCW",
+    "WCCCCCCCCW",
+    "WCCCCCCCCW",
+    "WCCCCCCCCW",
+    "WCCCCCCCCW",
+    "WCCCCCCCCW",
+    "WCCCCCCCCW",
+    "WCCCCCCCCW",
+    "WCCCCCCCCW",
+    "WCCCCCCCCW",
+    "WWWWDWWWWW"
+  ],
+  "warps": [
+    {
+      "x": 4,
+      "y": 12,
+      "targetMap": "POKEMON_MANSION_1F",
+      "targetPos": {
+        "x": 4,
+        "y": 13
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 4,
+      "y": 13,
+      "targetMap": "POKEMON_MANSION_3F",
+      "targetPos": {
+        "x": 4,
+        "y": 12
+      },
+      "targetDir": "up"
+    }
+  ]
+}

@@ -370,7 +370,7 @@ export const WorldView = memo(({
               } as NPC}
             />
           ))}
-          <PlayerSprite position={playerPos} direction={direction} isMoving={isMoving} />
+          <PlayerSprite position={playerPos} direction={direction} />
 
           {/* Overhead layer (tree canopies — rendered above player) */}
           {overheadTiles}

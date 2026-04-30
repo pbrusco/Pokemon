@@ -5,12 +5,15 @@ import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
 import { useGameStore } from '../store/gameStore';
 import { logObservation } from '../lib/eventLog';
+import type { CinematicEvent } from './useBattleVFX';
+import { CINEMATIC_DURATION_MS } from './useBattleVFX';
 
 interface UseBattleEngineParams {
   battleStateRef: MutableRefObject<BattleState | null>;
   setPlayerAnim: (anim: 'idle' | 'attack' | 'hit' | 'faint') => void;
   setEnemyAnim: (anim: 'idle' | 'attack' | 'hit' | 'faint') => void;
   setBattleShake: (v: boolean) => void;
+  setCinematicEvent: (e: CinematicEvent) => void;
 }
 
 function mapEnginePhase(p: string): GamePhase {
@@ -36,6 +39,7 @@ export function useBattleEngine({
   setPlayerAnim,
   setEnemyAnim,
   setBattleShake,
+  setCinematicEvent,
 }: UseBattleEngineParams) {
   const store = useGameStore();
   const nextLogId = useRef(0);
@@ -74,12 +78,24 @@ export function useBattleEngine({
         case 'sound':
           break;
         case 'player_anim':
-          setTimeout(() => setPlayerAnim(effect.payload as 'idle' | 'attack' | 'hit' | 'faint'), d);
-          if (effect.payload === 'hit' || effect.payload === 'faint') delay += sd(400);
+          setTimeout(() => {
+            setPlayerAnim(effect.payload as 'idle' | 'attack' | 'hit' | 'faint');
+            if (effect.payload === 'attack' && effect.moveName) {
+              setCinematicEvent({ attacker: 'player', moveName: effect.moveName, moveType: effect.moveType ?? 'normal' });
+            }
+          }, d);
+          if (effect.payload === 'attack') delay += sd(CINEMATIC_DURATION_MS);
+          else if (effect.payload === 'hit' || effect.payload === 'faint') delay += sd(400);
           break;
         case 'enemy_anim':
-          setTimeout(() => setEnemyAnim(effect.payload as 'idle' | 'attack' | 'hit' | 'faint'), d);
-          if (effect.payload === 'hit' || effect.payload === 'faint' || effect.payload === 'attack') delay += sd(400);
+          setTimeout(() => {
+            setEnemyAnim(effect.payload as 'idle' | 'attack' | 'hit' | 'faint');
+            if (effect.payload === 'attack' && effect.moveName) {
+              setCinematicEvent({ attacker: 'enemy', moveName: effect.moveName, moveType: effect.moveType ?? 'normal' });
+            }
+          }, d);
+          if (effect.payload === 'attack') delay += sd(CINEMATIC_DURATION_MS);
+          else if (effect.payload === 'hit' || effect.payload === 'faint') delay += sd(400);
           break;
         case 'battle_shake':
           setTimeout(() => { setBattleShake(true); setTimeout(() => setBattleShake(false), sd(400)); }, d);

@@ -75,7 +75,7 @@ export default function App() {
 
   const windowSize = useWindowSize();
   const { overworldShake, setOverworldShake } = useOverworldVFX();
-  const { playerAnim, setPlayerAnim, enemyAnim, setEnemyAnim, battleShake, setBattleShake } = useBattleVFX();
+  const { playerAnim, setPlayerAnim, enemyAnim, setEnemyAnim, battleShake, setBattleShake, cinematicEvent, setCinematicEvent } = useBattleVFX();
 
   const battleStateRef = useRef<BattleState | null>(null);
 
@@ -96,6 +96,7 @@ export default function App() {
     setPlayerAnim,
     setEnemyAnim,
     setBattleShake,
+    setCinematicEvent,
   });
   const dispatchBattle = useCallback((action: BattleAction) => {
     if (action.type !== 'TICK') logEvent({ k: 'battle', action });
@@ -304,6 +305,8 @@ export default function App() {
         battleShake={battleShake}
         enemyAnim={enemyAnim}
         playerAnim={playerAnim}
+        cinematicEvent={cinematicEvent}
+        onCinematicDone={() => setCinematicEvent(null)}
         handlePCSwap={handlePCSwap}
         handleUseItem={handleUseItem}
         handleApplyItemToPokemon={handleApplyItemToPokemon}

@@ -55,5 +55,4 @@ export const NPC_SPRITE_MAP: Record<string, SpriteEntry> = {
   youngster:       { overworld: `${O}youngster.png`,       overworldFrames: 10, battle: `${B}youngster_front_pic.png` },
 };
 
-export const PLAYER_OVERWORLD_SPRITE = `${O}red_normal.png`;
-export const PLAYER_OVERWORLD_FRAMES = 9;
+export const PLAYER_OVERWORLD_SPRITE = '/player.png';

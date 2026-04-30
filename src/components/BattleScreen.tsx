@@ -4,6 +4,8 @@ import { type Pokemon, type Move, type BattleLogEntry } from '../types';
 import { STRUGGLE_MOVE } from '../constants';
 import { sd, sdur } from '../lib/gameSpeed';
 import { useGameStore } from '../store/gameStore';
+import { CinematicPanel } from './CinematicPanel';
+import type { CinematicEvent } from '../hooks/useBattleVFX';
 
 interface BattleScreenProps {
   currentMap: string;
@@ -25,6 +27,8 @@ interface BattleScreenProps {
   setShowInventory: (show: boolean) => void;
   setShowTeam: (show: boolean) => void;
   handleAttack: (move: Move) => void;
+  cinematicEvent: CinematicEvent;
+  onCinematicDone: () => void;
 }
 
 function StatBoostBadges({ boosts }: { boosts: Pokemon['statBoosts'] }) {
@@ -333,7 +337,8 @@ export const BattleScreen = memo(function BattleScreen({
   currentMap,
   battleShake, enemyPokemon, enemyAnim, isCatching, catchResult,
   playerTeam, playerAnim, battleLog, battleLogs, isTrainerBattle, isPlayerTurn, onFlee,
-  setShowInventory, setShowTeam, handleAttack, showMoves, setShowMoves
+  setShowInventory, setShowTeam, handleAttack, showMoves, setShowMoves,
+  cinematicEvent, onCinematicDone,
 }: BattleScreenProps) {
 
   const playerPkmn = playerTeam[0];
@@ -560,6 +565,12 @@ export const BattleScreen = memo(function BattleScreen({
           </div>
         </div>
         <PokeballAnim isCatching={isCatching} catchResult={catchResult} />
+        <CinematicPanel
+          event={cinematicEvent}
+          playerBackSprite={playerPkmn?.sprite.replace('pokemon/', 'pokemon/back/') ?? ''}
+          enemySprite={enemyPokemon?.sprite ?? ''}
+          onDone={onCinematicDone}
+        />
       </div>
 
       {/* Bottom Menu Area */}

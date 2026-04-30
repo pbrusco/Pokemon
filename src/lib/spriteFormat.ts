@@ -21,10 +21,12 @@ export function getSpriteFrame(direction: Direction, numFrames: number): SpriteF
   const frames = FRAME_MAP[numFrames] ?? DEFAULT_FRAMES;
   const frame = frames[direction] ?? 0;
   const flipped = direction === 'right';
-  const oneFrame = 1 / numFrames;
+  // CSS background-position % uses n/(N-1): 0%=leftmost frame, 100%=rightmost frame.
+  const steps = Math.max(numFrames - 1, 1);
+  const oneStep = 1 / steps;
   return {
-    offsetX: flipped ? (frame + 1) * oneFrame : frame * oneFrame,
-    repeatX: flipped ? -oneFrame : oneFrame,
+    offsetX: frame * oneStep,
+    repeatX: flipped ? -oneStep : oneStep,
   };
 }
 

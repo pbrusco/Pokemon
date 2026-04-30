@@ -41,6 +41,8 @@ export interface BattleEffect {
   type: EffectType;
   payload?: string | number;
   speaker?: string;
+  moveName?: string;
+  moveType?: string;
 }
 
 type BattleSubPhase =
@@ -340,6 +342,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         attackLog += ` Causó ${damage} de daño.`;
       }
 
+      effects.push({ type: 'player_anim', payload: 'attack', moveName: move.name, moveType: move.type });
       effects.push({ type: 'enemy_anim', payload: 'hit' });
       effects.push({ type: 'screen_flash' });
       effects.push({ type: 'battle_shake' });
@@ -443,6 +446,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       const damage = s.enemyPokemon.hp;
       const attackLog = `¡${playerPkmn.name} usó ATAQUE FULMINANTE! (Cheat) Causó ${damage} de daño.`;
 
+      effects.push({ type: 'player_anim', payload: 'attack', moveName: 'ATAQUE FULMINANTE', moveType: 'normal' });
       effects.push({ type: 'enemy_anim', payload: 'hit' });
       effects.push({ type: 'screen_flash' });
       effects.push({ type: 'battle_shake' });
@@ -555,7 +559,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         const enemyMove = s.isTrainerBattle
           ? selectTrainerMove(s.enemyPokemon, playerPkmn)
           : s.enemyPokemon.moves[Math.floor(Math.random() * s.enemyPokemon.moves.length)];
-        effects.push({ type: 'enemy_anim', payload: 'attack' });
+        effects.push({ type: 'enemy_anim', payload: 'attack', moveName: enemyMove.name, moveType: enemyMove.type });
 
         // Accuracy check (enemy attacker accuracy stage vs player evasion stage)
         if (!doesMoveHit(enemyMove.accuracy, s.enemyPokemon.statBoosts?.accuracy ?? 0, playerPkmn.statBoosts?.evasion ?? 0)) {

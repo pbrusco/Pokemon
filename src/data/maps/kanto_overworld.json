@@ -893,6 +893,76 @@
                 "y": 12
             },
             "targetDir": "up"
+        },
+        {
+            "x": 618,
+            "y": 289,
+            "targetMap": "VICTORY_ROAD_1F",
+            "targetPos": {
+                "x": 4,
+                "y": 12
+            },
+            "targetDir": "up"
+        },
+        {
+            "x": 226,
+            "y": 21,
+            "targetMap": "CERULEAN_CAVE_1F",
+            "targetPos": {
+                "x": 4,
+                "y": 12
+            },
+            "targetDir": "up"
+        },
+        {
+            "x": 18,
+            "y": 315,
+            "targetMap": "SEAFOAM_ISLANDS_1F",
+            "targetPos": {
+                "x": 4,
+                "y": 12
+            },
+            "targetDir": "up"
+        },
+        {
+            "x": 6,
+            "y": 311,
+            "targetMap": "POKEMON_MANSION_1F",
+            "targetPos": {
+                "x": 4,
+                "y": 12
+            },
+            "targetDir": "up"
+        },
+        {
+            "x": 128,
+            "y": 289,
+            "targetMap": "DIGLETTS_CAVE",
+            "targetPos": {
+                "x": 4,
+                "y": 12
+            },
+            "targetDir": "up"
+        },
+        {
+            "x": 254,
+            "y": 29,
+            "targetMap": "POWER_PLANT",
+            "targetPos": {
+                "x": 4,
+                "y": 12
+            },
+            "targetDir": "up"
+        },
+        {
+            "x": 118,
+            "y": 229,
+            "targetMap": "SAFARI_ZONE_CENTER",
+            "targetPos": {
+                "x": 4,
+                "y": 12
+            },
+            "targetDir": "up"
         }
     ]
 }

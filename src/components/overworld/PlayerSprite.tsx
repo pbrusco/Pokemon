@@ -1,12 +1,30 @@
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
 import { type Position, type Direction, TILE_SIZE } from '../../types';
-import { PLAYER_OVERWORLD_SPRITE, PLAYER_OVERWORLD_FRAMES } from '../../data/npcSpriteMap';
-import { cssFrame } from '../../lib/spriteFormat';
+import { PLAYER_OVERWORLD_SPRITE } from '../../data/npcSpriteMap';
 
-export const PlayerSprite = memo(({ position, direction, isMoving }: { position: Position, direction: Direction, isMoving: boolean }) => {
-  const frame = cssFrame(direction, PLAYER_OVERWORLD_FRAMES);
+// player.png: 4-column × 3-row vertical spritesheet (256×192, each frame 64×64).
+// Columns 0-3 = walk frames. Rows: down=0%, up=50%, left/right=100%.
+const WALK_FRAMES = 4;
+
+const ROW_PCT: Record<Direction, string> = {
+  down:  '0%',
+  up:    '50%',
+  left:  '100%',
+  right: '100%',
+};
+
+export const PlayerSprite = memo(({ position, direction }: { position: Position, direction: Direction }) => {
+  const [walkStep, setWalkStep] = useState(0);
+
+  // Advance one walk frame each time the player lands on a new tile (no timer).
+  useEffect(() => {
+    setWalkStep(s => (s + 1) % WALK_FRAMES);
+  }, [position.x, position.y]);
+
+  // CSS percentage for 4 frames: n/(4-1)*100 gives 0%, 33.3%, 66.7%, 100%
+  const bgPosX = `${(walkStep / (WALK_FRAMES - 1)) * 100}%`;
 
   return (
     <motion.div
@@ -31,14 +49,14 @@ export const PlayerSprite = memo(({ position, direction, isMoving }: { position:
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-10 h-3 bg-black/40 rounded-full blur-sm" />
 
         <div
-          className={`w-16 h-16 pointer-events-none drop-shadow-md ${isMoving ? 'animate-walk' : ''}`}
+          className="w-16 h-16 pointer-events-none drop-shadow-md"
           style={{
             backgroundImage: `url('${PLAYER_OVERWORLD_SPRITE}')`,
-            backgroundSize: `${PLAYER_OVERWORLD_FRAMES * 100}% 100%`,
-            backgroundPositionX: frame.backgroundPositionX,
-            backgroundPositionY: '0%',
-            transform: frame.transform,
-            imageRendering: "pixelated",
+            backgroundSize: '400% 300%',
+            backgroundPositionX: bgPosX,
+            backgroundPositionY: ROW_PCT[direction],
+            transform: direction === 'right' ? 'scaleX(-1)' : 'none',
+            imageRendering: 'pixelated',
           }}
         />
       </div>
