@@ -1,5 +1,6 @@
-const O = '/sprites/overworld/';
-const B = '/sprites/battle/';
+const base = import.meta.env.BASE_URL;
+const O = `${base}sprites/overworld/`;
+const B = `${base}sprites/battle/`;
 
 interface SpriteEntry {
   overworld: string;
@@ -55,4 +56,4 @@ export const NPC_SPRITE_MAP: Record<string, SpriteEntry> = {
   youngster:       { overworld: `${O}youngster.png`,       overworldFrames: 10, battle: `${B}youngster_front_pic.png` },
 };
 
-export const PLAYER_OVERWORLD_SPRITE = '/player.png';
+export const PLAYER_OVERWORLD_SPRITE = `${base}player.png`;
