@@ -1,28 +1,70 @@
 {
   "rows": [
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFWWWWWWWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFWWWWWWWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFMMFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WWWWWWWWWWWWWWWWWWWW"
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "WFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "WFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFW",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "WWWWWWWWWWWWFFF"
   ],
   "warps": [
-    { "x": 1, "y": 17, "targetMap": "ROCKET_HIDEOUT_B1F", "targetPos": { "x": 1, "y": 1 }, "targetDir": "down" },
-    { "x": 1, "y": 1, "targetMap": "ROCKET_HIDEOUT_B3F", "targetPos": { "x": 1, "y": 17 }, "targetDir": "up" }
+    {
+      "x": 27,
+      "y": 8,
+      "targetMap": "ROCKET_HIDEOUT_B1F",
+      "targetPos": {
+        "x": 27,
+        "y": 9
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 21,
+      "y": 8,
+      "targetMap": "ROCKET_HIDEOUT_B3F",
+      "targetPos": {
+        "x": 21,
+        "y": 9
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 24,
+      "y": 19,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 24,
+        "y": 20
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 21,
+      "y": 22,
+      "targetMap": "ROCKET_HIDEOUT_B1F",
+      "targetPos": {
+        "x": 21,
+        "y": 23
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 25,
+      "y": 19,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 25,
+        "y": 20
+      },
+      "targetDir": "down"
+    }
   ]
 }

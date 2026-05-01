@@ -118,6 +118,7 @@ function applyStatChange(
   const targetIsPlayer = attackerIsPlayer ? sc.target === 'self' : sc.target === 'enemy';
   const statName = sc.stat;
   const stages = sc.stages;
+  const statLabels: Record<string, string> = { attack: 'ATAQUE', defense: 'DEFENSA', special: 'ESPECIAL', speed: 'VELOCIDAD' };
 
   let newPlayerTeam = playerTeam;
   let newEnemyPokemon = enemyPokemon;
@@ -126,18 +127,30 @@ function applyStatChange(
   if (targetIsPlayer) {
     const updated = [...playerTeam];
     const boosts = { ...(updated[0].statBoosts ?? ZERO_BOOSTS) };
-    boosts[statName] = Math.max(-6, Math.min(6, (boosts[statName] ?? 0) + stages));
+    const oldVal = boosts[statName] ?? 0;
+    const newVal = Math.max(-6, Math.min(6, oldVal + stages));
+    boosts[statName] = newVal;
     updated[0] = { ...updated[0], statBoosts: boosts };
     newPlayerTeam = updated;
     if (hasBoulderBadge) newGlitchStacks = badgeBoostGlitchStacks + 1;
+
+    if (oldVal === newVal) {
+      const targetName = playerTeam[0]?.name;
+      return { playerTeam: newPlayerTeam, enemyPokemon, msg: `¡${targetName} ya no puede mejorar su ${statLabels[statName]}!`, newGlitchStacks };
+    }
   } else {
     const boosts = { ...(enemyPokemon.statBoosts ?? ZERO_BOOSTS) };
-    boosts[statName] = Math.max(-6, Math.min(6, (boosts[statName] ?? 0) + stages));
+    const oldVal = boosts[statName] ?? 0;
+    const newVal = Math.max(-6, Math.min(6, oldVal + stages));
+    boosts[statName] = newVal;
     newEnemyPokemon = { ...enemyPokemon, statBoosts: boosts };
+
+    if (oldVal === newVal) {
+      return { playerTeam, enemyPokemon: newEnemyPokemon, msg: `¡${enemyPokemon.name} ya no puede mejorar su ${statLabels[statName]}!`, newGlitchStacks: badgeBoostGlitchStacks };
+    }
   }
 
   const targetName = targetIsPlayer ? playerTeam[0]?.name : enemyPokemon.name;
-  const statLabels: Record<string, string> = { attack: 'ATAQUE', defense: 'DEFENSA', special: 'ESPECIAL', speed: 'VELOCIDAD' };
   const dir = stages > 0 ? 'subió' : 'bajó';
   const amount = Math.abs(stages) === 1 ? '' : Math.abs(stages) === 2 ? ' mucho' : ' al máximo';
   const msg = `¡${targetName} ${dir} su ${statLabels[statName]}${amount}!`;

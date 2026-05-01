@@ -1,27 +1,55 @@
 {
   "rows": [
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WFFFFFFMMFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WWWWWWWWWWWWWWWWWWWW"
+    "WWWWWWWWW",
+    "FFFFFFFFW",
+    "FFFDFFFFW",
+    "FFFFFFFFW",
+    "FFFFFFFFW",
+    "FFFFFDFFW",
+    "FFFFFFFFW",
+    "FFFFFFFFW",
+    "WWWWWWWWW"
   ],
   "warps": [
-    { "x": 1, "y": 17, "targetMap": "SILPH_CO_10F", "targetPos": { "x": 1, "y": 1 }, "targetDir": "down" },
-    { "x": 9, "y": 17, "targetMap": "KANTO_OVERWORLD", "targetPos": { "x": 22, "y": 13 }, "targetDir": "down" }
+    {
+      "x": 9,
+      "y": 0,
+      "targetMap": "SILPH_CO_10F",
+      "targetPos": {
+        "x": 9,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 13,
+      "y": 0,
+      "targetMap": "SILPH_CO_ELEVATOR",
+      "targetPos": {
+        "x": 13,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 5,
+      "y": 5,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 5,
+        "y": 6
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "targetMap": "SILPH_CO_7F",
+      "targetPos": {
+        "x": 3,
+        "y": 3
+      },
+      "targetDir": "down"
+    }
   ]
 }

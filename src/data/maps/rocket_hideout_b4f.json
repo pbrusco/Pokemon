@@ -1,26 +1,48 @@
 {
   "rows": [
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WFFFFFFMMFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WWWWWWWWWWWWWWWWWWWW"
+    "FFFFFFFFWWWFFFW",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFW",
+    "FFFFFFFFFFFFFFW",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFWFFFFFFFFFF"
   ],
   "warps": [
-    { "x": 1, "y": 17, "targetMap": "ROCKET_HIDEOUT_B3F", "targetPos": { "x": 1, "y": 1 }, "targetDir": "down" }
+    {
+      "x": 19,
+      "y": 10,
+      "targetMap": "ROCKET_HIDEOUT_B3F",
+      "targetPos": {
+        "x": 19,
+        "y": 11
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 24,
+      "y": 15,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 24,
+        "y": 16
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 25,
+      "y": 15,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 25,
+        "y": 16
+      },
+      "targetDir": "down"
+    }
   ]
 }

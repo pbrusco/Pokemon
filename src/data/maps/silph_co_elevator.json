@@ -7,7 +7,7 @@
     {
       "x": 1,
       "y": 3,
-      "targetMap": "CELADON_MART_1F",
+      "targetMap": "KANTO_OVERWORLD",
       "targetPos": {
         "x": 1,
         "y": 4
@@ -17,7 +17,7 @@
     {
       "x": 2,
       "y": 3,
-      "targetMap": "CELADON_MART_1F",
+      "targetMap": "KANTO_OVERWORLD",
       "targetPos": {
         "x": 2,
         "y": 4

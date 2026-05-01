@@ -1,28 +1,40 @@
 {
   "rows": [
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFWWWWWWWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFWWFFFFWWFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFMMFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WWWWWWWWWWWWWWWWWWWW"
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFW",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFW",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFW",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFWFFFFFFWFFF"
   ],
   "warps": [
-    { "x": 1, "y": 17, "targetMap": "ROCKET_HIDEOUT_B2F", "targetPos": { "x": 1, "y": 1 }, "targetDir": "down" },
-    { "x": 1, "y": 1, "targetMap": "ROCKET_HIDEOUT_B4F", "targetPos": { "x": 1, "y": 17 }, "targetDir": "up" }
+    {
+      "x": 25,
+      "y": 6,
+      "targetMap": "ROCKET_HIDEOUT_B2F",
+      "targetPos": {
+        "x": 25,
+        "y": 7
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 19,
+      "y": 18,
+      "targetMap": "ROCKET_HIDEOUT_B4F",
+      "targetPos": {
+        "x": 19,
+        "y": 19
+      },
+      "targetDir": "down"
+    }
   ]
 }

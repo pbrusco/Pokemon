@@ -20,8 +20,8 @@ export type PokedexState = Record<string, PokedexEntry>;
 
 interface StatChange {
   target: 'self' | 'enemy';
-  stat: 'attack' | 'defense' | 'special' | 'speed';
-  stages: number; // negative = lower, positive = raise
+  stat: 'attack' | 'defense' | 'special' | 'speed' | 'accuracy' | 'evasion';
+  stages: number;
 }
 
 export interface Move {
@@ -48,6 +48,8 @@ export interface Move {
   fixedDmg?: number;
   dmgEqualsLevel?: boolean;
   faintsUser?: boolean;
+  healSelf?: number;
+  healStatus?: boolean;
 }
 
 export interface BaseStats {

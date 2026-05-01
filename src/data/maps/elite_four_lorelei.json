@@ -1,18 +1,52 @@
 {
   "rows": [
-    "WWWWWWWWWWW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WWWWWWDWWWW"
+    "WWWWD",
+    "FFFFF",
+    "FFFFF",
+    "FFFFF",
+    "FFFFF",
+    "FWFWF"
   ],
   "warps": [
-    { "x": 5, "y": 10, "targetMap": "INDIGO_PLATEAU_LOBBY", "targetPos": { "x": 4, "y": 5 }, "targetDir": "down" }
+    {
+      "x": 4,
+      "y": 11,
+      "targetMap": "INDIGO_PLATEAU_LOBBY",
+      "targetPos": {
+        "x": 4,
+        "y": 12
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 5,
+      "y": 11,
+      "targetMap": "INDIGO_PLATEAU_LOBBY",
+      "targetPos": {
+        "x": 5,
+        "y": 12
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "targetMap": "ELITE_FOUR_BRUNO",
+      "targetPos": {
+        "x": 4,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 5,
+      "y": 0,
+      "targetMap": "ELITE_FOUR_BRUNO",
+      "targetPos": {
+        "x": 5,
+        "y": 1
+      },
+      "targetDir": "down"
+    }
   ]
 }

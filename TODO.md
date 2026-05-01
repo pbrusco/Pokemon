@@ -34,7 +34,7 @@ All city building tiles restored, warps added, and reciprocal checks passing. Wo
   - [x] Celadon Dept Store (5F + elevator + roof)
   - [x] Game Corner
   - [x] All 8 gyms + 22 dungeon maps registered
-  - [ ] Map JSONs are placeholders — need faithful tile layouts + proper warp wiring
+  - [x] Map JSONs are now faithful — generated from pokered BLK files with correct dimensions + warp coordinates
 - [x] Stage 7 — Faithfulness pass
   - [x] 208 route trainers with pokered parties (151 outdoor + 57 indoor)
   - [x] NPCs validated: duplicate IDs and unwalkable tiles filtered
@@ -45,16 +45,19 @@ All city building tiles restored, warps added, and reciprocal checks passing. Wo
 - [x] Implement new items and their effects in battle and overworld (Antidote, Revive, etc.)
 
 ## Battle Mechanics & Move Variety
-- [ ] Implement unreachable status effects: Freeze status
-- [ ] Implement missing status effect mechanics: Paralysis speed reduction
-- [ ] Expand move pool (~20 currently): Add key status/tactical moves like Thunder Wave, Confuse Ray, Leech Seed, Toxic
-- [ ] Add battle text feedback for invisible states: E.g. when stat boosts hit their maximum/minimum limits (±6 stages)
+- [x] Freeze status — fully implemented (20% thaw chance per turn, skip turn while frozen)
+- [x] Paralysis speed reduction — quartered speed in escape, applied to turn-order comparison
+- [x] Expand move pool — 77 moves (up from 19) with Gen I flags: recoil, drain, multi-hit, rampage, recharge, two-turn, fixed-dmg, confuse, priority
+- [x] Thunder Wave, Confusion/Psybeam, Leech Seed, Toxic — all implemented
+- [ ] Add battle text feedback for invisible states: stat boosts at ±6 limits
 
 ## Story Events & Progression Items
-- [ ] Implement Rival encounters beyond the early game
-- [ ] Implement Team Rocket events (Mt. Moon, Game Corner, Silph Co.)
-- [ ] Implement Key Items and HM gates (e.g., CUT for gyms, Poké Flute for Snorlax, Silph Scope)
+- [x] Rival encounters: Route 22, Cerulean, SS Anne, Pokémon Tower (4 encounters)
+- [x] Team Rocket: Mt. Moon grunt, Cerulean burglar, Saffron occupation (placeholders)
+- [x] Key Items and HM gates: CUT (Route 25 pickup + cascade badge gate), SURF (Vermilion pickup + soul badge gate), Silph Scope (Tower 2F pickup), Poké Flute (Mr. Fuji after Silph Scope)
+- [ ] Rocket Hideout boss Giovanni + Silph Co boss Giovanni
+- [ ] Elite Four NPC rooms (Lorelei, Bruno, Agatha, Lance, Champion Rival)
 
 ## Playtesting
-- [ ] Manual browser playtest of pilot + Stage 2 interiors
+- [ ] Manual browser playtest
 

@@ -1,28 +1,85 @@
 {
   "rows": [
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFKKFFFFKKFFFFFW",
-    "WFFFFFKKFFFFKKFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFMMFFFFFFFFFW",
-    "WWWWWWWWWWWWWWWWWWWW"
+    "WWWWWFFFFWWWWWW",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFW",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFDFFF",
+    "WWWWWWWWWWWWWWW"
   ],
   "warps": [
-    { "x": 1, "y": 17, "targetMap": "SILPH_CO_3F", "targetPos": { "x": 1, "y": 1 }, "targetDir": "down" },
-    { "x": 1, "y": 1, "targetMap": "SILPH_CO_5F", "targetPos": { "x": 1, "y": 17 }, "targetDir": "up" }
+    {
+      "x": 24,
+      "y": 0,
+      "targetMap": "SILPH_CO_3F",
+      "targetPos": {
+        "x": 24,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 26,
+      "y": 0,
+      "targetMap": "SILPH_CO_5F",
+      "targetPos": {
+        "x": 26,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 20,
+      "y": 0,
+      "targetMap": "SILPH_CO_ELEVATOR",
+      "targetPos": {
+        "x": 20,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 11,
+      "y": 7,
+      "targetMap": "SILPH_CO_10F",
+      "targetPos": {
+        "x": 11,
+        "y": 8
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 17,
+      "y": 3,
+      "targetMap": "SILPH_CO_6F",
+      "targetPos": {
+        "x": 17,
+        "y": 4
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 3,
+      "y": 15,
+      "targetMap": "SILPH_CO_10F",
+      "targetPos": {
+        "x": 3,
+        "y": 16
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 17,
+      "y": 11,
+      "targetMap": "SILPH_CO_10F",
+      "targetPos": {
+        "x": 17,
+        "y": 12
+      },
+      "targetDir": "down"
+    }
   ]
 }

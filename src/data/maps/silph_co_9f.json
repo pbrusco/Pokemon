@@ -1,28 +1,65 @@
 {
   "rows": [
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFKKFFFFKKFFFFFW",
-    "WFFFFFKKFFFFKKFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFKKFFFFKKFFFFFW",
-    "WFFFFFKKFFFFKKFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFMMFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WWWWWWWWWWWWWWWWWWWW"
+    "FFFFFFFWWWWWW",
+    "FFFFFFFFFFFFF",
+    "FFFFFFFFFFFFF",
+    "FFFFFFFFFDFFF",
+    "FFFFFFFFFFFFF",
+    "FFFFFFFFFFFFF",
+    "WFFFFFFFFFFFF",
+    "FFFFFFFFFFFFF",
+    "WWWWWFWWWWWWF"
   ],
   "warps": [
-    { "x": 1, "y": 17, "targetMap": "SILPH_CO_8F", "targetPos": { "x": 1, "y": 1 }, "targetDir": "down" },
-    { "x": 1, "y": 1, "targetMap": "SILPH_CO_10F", "targetPos": { "x": 1, "y": 17 }, "targetDir": "up" }
+    {
+      "x": 14,
+      "y": 0,
+      "targetMap": "SILPH_CO_10F",
+      "targetPos": {
+        "x": 14,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 16,
+      "y": 0,
+      "targetMap": "SILPH_CO_8F",
+      "targetPos": {
+        "x": 16,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 18,
+      "y": 0,
+      "targetMap": "SILPH_CO_ELEVATOR",
+      "targetPos": {
+        "x": 18,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 9,
+      "y": 3,
+      "targetMap": "SILPH_CO_3F",
+      "targetPos": {
+        "x": 9,
+        "y": 4
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 17,
+      "y": 15,
+      "targetMap": "SILPH_CO_5F",
+      "targetPos": {
+        "x": 17,
+        "y": 16
+      },
+      "targetDir": "down"
+    }
   ]
 }

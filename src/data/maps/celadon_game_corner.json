@@ -1,27 +1,45 @@
 {
   "rows": [
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFMMFFFFMMFFFFFW",
-    "WFFFFFMMFFFFMMFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFMMFFFFMMFFFFFW",
-    "WFFFFFMMFFFFMMFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFMMFFFFMMFFFFFW",
-    "WFFFFFMMFFFFMMFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WWWWWWDWWWWWWWWWWWW"
+    "FFFFFFFFFF",
+    "FFFFFFFFFF",
+    "FFFFFFFFFF",
+    "FFFFFFFFFF",
+    "FFFFFFFFFF",
+    "FFFFFFFFFF",
+    "FFFFFFFFFF",
+    "FFFFFFFFFF",
+    "FFFFFFFWWF"
   ],
   "warps": [
-    { "x": 5, "y": 19, "targetMap": "KANTO_OVERWORLD", "targetPos": { "x": 173, "y": 93 }, "targetDir": "down" }
+    {
+      "x": 15,
+      "y": 17,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 15,
+        "y": 18
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 16,
+      "y": 17,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 16,
+        "y": 18
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 17,
+      "y": 4,
+      "targetMap": "ROCKET_HIDEOUT_B1F",
+      "targetPos": {
+        "x": 17,
+        "y": 5
+      },
+      "targetDir": "down"
+    }
   ]
 }

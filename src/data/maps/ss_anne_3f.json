@@ -1,27 +1,29 @@
 {
   "rows": [
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFCCCCCCCCFFFFFW",
-    "WFFFFFCCCCCCCCFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WWWWWWWWWWWWWWWWWWWW"
+    "WWWWWWWWWW",
+    "WFFFFFFFFW",
+    "WWWWWWWWWW"
   ],
   "warps": [
-    { "x": 1, "y": 17, "targetMap": "SS_ANNE_2F", "targetPos": { "x": 1, "y": 1 }, "targetDir": "down" }
+    {
+      "x": 0,
+      "y": 3,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 0,
+        "y": 4
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 19,
+      "y": 3,
+      "targetMap": "SS_ANNE_2F",
+      "targetPos": {
+        "x": 19,
+        "y": 4
+      },
+      "targetDir": "down"
+    }
   ]
 }

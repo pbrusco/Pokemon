@@ -1,18 +1,49 @@
 {
   "rows": [
-    "WWWWWWWWWWW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WFFFFFFFFFW",
-    "WWWWWWDWWWW"
+    "FFFFFDDFFFFFW",
+    "FFFFFFFFFFFFF",
+    "FFFFFFFFFFFFF",
+    "FFFFFFFFFFFFF",
+    "FFFFFFFFFFFFF",
+    "FFFFFFFFFFFFF",
+    "FFFFFFFFFFFFF",
+    "FFFFFFFFFFFFW",
+    "FFFFFFFFFFFFW",
+    "FFFFFFFFFFFFF",
+    "FFFFFFFFFFFFF",
+    "FFFFFFFFFFFFF",
+    "FFFFFFFFFFFFF"
   ],
   "warps": [
-    { "x": 5, "y": 10, "targetMap": "INDIGO_PLATEAU_LOBBY", "targetPos": { "x": 14, "y": 11 }, "targetDir": "down" }
+    {
+      "x": 24,
+      "y": 16,
+      "targetMap": "ELITE_FOUR_AGATHA",
+      "targetPos": {
+        "x": 24,
+        "y": 17
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 5,
+      "y": 0,
+      "targetMap": "ELITE_FOUR_CHAMPION",
+      "targetPos": {
+        "x": 5,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 6,
+      "y": 0,
+      "targetMap": "ELITE_FOUR_CHAMPION",
+      "targetPos": {
+        "x": 6,
+        "y": 1
+      },
+      "targetDir": "down"
+    }
   ]
 }

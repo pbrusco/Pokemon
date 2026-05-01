@@ -1,18 +1,50 @@
 {
   "rows": [
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WCCCCCCCCCCCCCCCCCCW",
-    "WWWWWWWWDWWWWWWWWWW"
+    "WWWD",
+    "WFFW",
+    "WFFW",
+    "WWWW"
   ],
   "warps": [
-    { "x": 10, "y": 10, "targetMap": "INDIGO_PLATEAU_LOBBY", "targetPos": { "x": 10, "y": 1 }, "targetDir": "down" }
+    {
+      "x": 3,
+      "y": 7,
+      "targetMap": "ELITE_FOUR_LANCE",
+      "targetPos": {
+        "x": 3,
+        "y": 8
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "targetMap": "ELITE_FOUR_LANCE",
+      "targetPos": {
+        "x": 4,
+        "y": 8
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 3,
+      "y": 0,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 3,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 4,
+        "y": 1
+      },
+      "targetDir": "down"
+    }
   ]
 }

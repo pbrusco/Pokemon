@@ -1,27 +1,125 @@
 {
   "rows": [
-    "WWWWWWWWWWWWWWWWWWWW",
+    "FFFFFFFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFFFFFFF",
     "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WWWWWWDWWWWWWWWWWWW"
+    "FFFFFFFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFFFFFFF",
+    "FFDFFFFFFFFFFFFFFFFF",
+    "FFFFFFFFFFFFFFFFFFFF",
+    "FFWFFFFDFFFDFFFDFFFD"
   ],
   "warps": [
-    { "x": 6, "y": 19, "targetMap": "KANTO_OVERWORLD", "targetPos": { "x": 138, "y": 108 }, "targetDir": "down" },
-    { "x": 1, "y": 1, "targetMap": "SS_ANNE_2F", "targetPos": { "x": 1, "y": 17 }, "targetDir": "up" }
+    {
+      "x": 26,
+      "y": 0,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 26,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 27,
+      "y": 0,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 27,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 31,
+      "y": 8,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 31,
+        "y": 9
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 23,
+      "y": 8,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 23,
+        "y": 9
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 19,
+      "y": 8,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 19,
+        "y": 9
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 15,
+      "y": 8,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 15,
+        "y": 9
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 11,
+      "y": 8,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 11,
+        "y": 9
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 7,
+      "y": 8,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 7,
+        "y": 9
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "targetMap": "SS_ANNE_2F",
+      "targetPos": {
+        "x": 2,
+        "y": 7
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 37,
+      "y": 15,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 37,
+        "y": 16
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 3,
+      "y": 16,
+      "targetMap": "KANTO_OVERWORLD",
+      "targetPos": {
+        "x": 3,
+        "y": 17
+      },
+      "targetDir": "down"
+    }
   ]
 }

@@ -1,28 +1,115 @@
 {
   "rows": [
-    "WWWWWWWWWWWWWWWWWWWW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFKKFFFFKKFFFFFW",
-    "WFFFFFKKFFFFKKFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFXXFFFFXXFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFKKFFFFKKFFFFFW",
-    "WFFFFFKKFFFFKKFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WFFFFFFMMFFFFFFFFFW",
-    "WFFFFFFFFFFFFFFFFFFW",
-    "WWWWWWWWWWWWWWWWWWWW"
+    "WWWWWWWWWWWWWWW",
+    "WFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFW",
+    "WFFDFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFF"
   ],
   "warps": [
-    { "x": 1, "y": 17, "targetMap": "SILPH_CO_2F", "targetPos": { "x": 1, "y": 1 }, "targetDir": "down" },
-    { "x": 1, "y": 1, "targetMap": "SILPH_CO_4F", "targetPos": { "x": 1, "y": 17 }, "targetDir": "up" }
+    {
+      "x": 26,
+      "y": 0,
+      "targetMap": "SILPH_CO_2F",
+      "targetPos": {
+        "x": 26,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 24,
+      "y": 0,
+      "targetMap": "SILPH_CO_4F",
+      "targetPos": {
+        "x": 24,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 20,
+      "y": 0,
+      "targetMap": "SILPH_CO_ELEVATOR",
+      "targetPos": {
+        "x": 20,
+        "y": 1
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 23,
+      "y": 11,
+      "targetMap": "SILPH_CO_3F",
+      "targetPos": {
+        "x": 23,
+        "y": 12
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "targetMap": "SILPH_CO_5F",
+      "targetPos": {
+        "x": 3,
+        "y": 4
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 3,
+      "y": 15,
+      "targetMap": "SILPH_CO_5F",
+      "targetPos": {
+        "x": 3,
+        "y": 16
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 27,
+      "y": 3,
+      "targetMap": "SILPH_CO_2F",
+      "targetPos": {
+        "x": 27,
+        "y": 4
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "targetMap": "SILPH_CO_9F",
+      "targetPos": {
+        "x": 3,
+        "y": 12
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 11,
+      "y": 11,
+      "targetMap": "SILPH_CO_7F",
+      "targetPos": {
+        "x": 11,
+        "y": 12
+      },
+      "targetDir": "down"
+    },
+    {
+      "x": 27,
+      "y": 15,
+      "targetMap": "SILPH_CO_3F",
+      "targetPos": {
+        "x": 27,
+        "y": 16
+      },
+      "targetDir": "down"
+    }
   ]
 }
