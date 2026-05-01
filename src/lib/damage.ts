@@ -102,7 +102,7 @@ export function doesMoveHit(
   return r <= p;
 }
 
-interface DamageResult {
+export interface DamageResult {
   damage: number;
   isCritical: boolean;
   effectiveness: number;

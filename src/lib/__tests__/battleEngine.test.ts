@@ -105,6 +105,20 @@ describe('Normal attack flow', () => {
     expect(result.state.phase).toBe('ENEMY_ATTACK');
     expect(result.effects.some(e => (e.payload as string)?.includes('FORCEJEO'))).toBe(true);
   });
+
+  it('STRUGGLE deals recoil damage to the user', () => {
+    // doesMoveHit passes, damage roll hits
+    randomSpy.mockReturnValue(0.1);
+
+    const state = makeState();
+    const move = makeMove({ pp: 0 });
+    state.playerTeam[0] = { ...state.playerTeam[0], hp: 28, moves: [move] };
+
+    const result = stepBattle(state, { type: 'ATTACK', move });
+    const playerHp = result.state.playerTeam[0].hp;
+    expect(playerHp).toBeLessThan(28);
+    expect(result.effects.some(e => (e.payload as string)?.includes('rebote'))).toBe(true);
+  });
 });
 
 // ─── Scenario 2: Miss ────────────────────────────────────────────────────────

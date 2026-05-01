@@ -36,6 +36,18 @@ export interface Move {
   statusChance?: number;
   statChange?: StatChange;
   highCrit?: boolean;
+  recoil?: number;
+  drain?: number;
+  alwaysHit?: boolean;
+  confuseChance?: number;
+  multiHit?: { minHits: number; maxHits: number };
+  rampage?: { turns: number };
+  recharge?: boolean;
+  twoTurn?: { chargeMessage: string; invulnerable: boolean };
+  priority?: number;
+  fixedDmg?: number;
+  dmgEqualsLevel?: boolean;
+  faintsUser?: boolean;
 }
 
 export interface BaseStats {
@@ -76,8 +88,14 @@ export interface Pokemon {
   movesToLearn?: { level: number, move: Move }[];
   catchRate?: number;
   growthRate?: 'fast' | 'medium_fast' | 'medium_slow' | 'slow';
-  /** Gen I species-specific EXP yield when defeated (Bulbapedia values). */
   baseExp?: number;
+  confused?: { turns: number };
+  recharging?: boolean;
+  rampage?: { move: Move; remainingTurns: number };
+  charging?: boolean;
+  leechSeed?: boolean;
+  bideState?: { accumulatedDamage: number; remainingTurns: number };
+  lastPhysicalDamage?: number;
 }
 
 export interface PokemonSummary {

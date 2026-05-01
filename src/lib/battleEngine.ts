@@ -16,6 +16,7 @@ import {
   calcHp,
   ZERO_BOOSTS,
   getTypeEffectiveness,
+  type DamageResult,
 } from './damage';
 import { EVOLUTIONS, expForLevel, baseExpFor } from '../constants';
 import { applyItemToPokemon } from './itemUtils';
@@ -261,6 +262,53 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       };
       s = { ...s, playerTeam: updatedTeam, phase: 'PLAYER_ATTACK' };
 
+      // Confusion check (before sleep/para — Gen I behavior)
+      const confused = playerPkmn.confused;
+      if (confused && confused.turns > 0) {
+        const updatedConfused = { ...confused, turns: confused.turns - 1 };
+        const confusedTeam = [...s.playerTeam];
+        confusedTeam[0] = { ...confusedTeam[0], confused: updatedConfused };
+        if (Math.random() < 0.5) {
+          const selfDmg = Math.max(1, Math.floor(((((2 * playerPkmn.level / 5 + 2) * 40 * playerPkmn.baseStats.attack) / playerPkmn.baseStats.defense) / 50 + 2) * (217 + Math.floor(Math.random() * 39)) / 255));
+          const newHp = Math.max(0, playerPkmn.hp - selfDmg);
+          confusedTeam[0] = { ...confusedTeam[0], hp: newHp };
+          effects.push(log(`¡${playerPkmn.name} se golpeó a sí mismo por la confusión!`));
+          s = { ...s, playerTeam: confusedTeam, log: `¡${playerPkmn.name} se golpeó a sí mismo!`, phase: newHp === 0 ? 'PLAYER_FAINTED' : 'ENEMY_ATTACK' };
+          return { state: s, effects };
+        }
+        s = { ...s, playerTeam: confusedTeam };
+      }
+
+      // Hyper Beam recharge
+      if (playerPkmn.recharging) {
+        effects.push(log(`¡${playerPkmn.name} debe recargar!`));
+        s = { ...s, playerTeam: s.playerTeam.map((p,i) => i === 0 ? { ...p, recharging: false } : p), log: `¡${playerPkmn.name} debe recargar!`, phase: 'ENEMY_ATTACK' };
+        return { state: s, effects };
+      }
+
+      // Rampage lock (Thrash / Petal Dance)
+      if (playerPkmn.rampage) {
+        move = playerPkmn.rampage.move;
+        const newRemaining = playerPkmn.rampage.remainingTurns - 1;
+        const rampageTeam = [...s.playerTeam];
+        if (newRemaining <= 0) {
+          rampageTeam[0] = { ...rampageTeam[0], rampage: undefined, confused: { turns: 2 + Math.floor(Math.random() * 4) } };
+          effects.push(log(`¡${playerPkmn.name} se confundió de tanto atacar!`));
+        } else {
+          rampageTeam[0] = { ...rampageTeam[0], rampage: { ...playerPkmn.rampage, remainingTurns: newRemaining } };
+        }
+        s = { ...s, playerTeam: rampageTeam };
+      }
+
+      // Two-turn move: charging turn
+      if (playerPkmn.charging) {
+        if (move.twoTurn) {
+          effects.push(log(`¡${playerPkmn.name} ${move.twoTurn.chargeMessage}`));
+          s = { ...s, phase: 'ENEMY_ATTACK' };
+          return { state: s, effects };
+        }
+      }
+
       // Status check: Sleep
       if (playerPkmn.status === 'sleep') {
         const wakeUp = Math.random() > 0.3 ? false : true; // 70% stays asleep
@@ -313,6 +361,22 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         if (sc.msg) moveLog += ' ' + sc.msg;
         s = { ...s, playerTeam: sc.playerTeam, enemyPokemon: sc.enemyPokemon, badgeBoostGlitchStacks: sc.newGlitchStacks };
 
+        // Leech Seed
+        if (move.name === 'DRENADORAS') {
+          if (s.enemyPokemon.leechSeed) {
+            moveLog += ' ¡Pero ya está afectado!';
+          } else {
+            s = { ...s, enemyPokemon: { ...s.enemyPokemon, leechSeed: true } };
+            moveLog += ` ¡${s.enemyPokemon.name} fue sembrado!`;
+          }
+        }
+
+        // Confuse
+        if (move.confuseChance && Math.random() * 100 < (move.confuseChance)) {
+          s = { ...s, enemyPokemon: { ...s.enemyPokemon, confused: { turns: 2 + Math.floor(Math.random() * 4) } } };
+          moveLog += ` ¡${s.enemyPokemon.name} está confuso!`;
+        }
+
         if (move.statusEffect && Math.random() * 100 < (move.statusChance || 100)) {
           s = { ...s, enemyPokemon: { ...s.enemyPokemon, status: move.statusEffect } };
           moveLog += ` ¡${s.enemyPokemon.name} ahora está ${move.statusEffect}!`;
@@ -323,13 +387,53 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       }
 
       // Damage move
-      const attackMultiplier = s.hasBoulderBadge ? 1 + s.badgeBoostGlitchStacks * 0.125 : 1;
-      const attackerWithGlitch = attackMultiplier > 1
-        ? { ...playerPkmn, baseStats: { ...playerPkmn.baseStats, attack: Math.floor(playerPkmn.baseStats.attack * attackMultiplier) } }
-        : playerPkmn;
+      let damage: number;
+      let result: DamageResult;
 
-      const result = calculateDamage(attackerWithGlitch, s.enemyPokemon, move);
-      const damage = result.damage;
+      if (move.fixedDmg) {
+        damage = move.fixedDmg;
+        const eff = getTypeEffectiveness(move.type, s.enemyPokemon.types ?? [s.enemyPokemon.type]);
+        const effLabel = eff === 0 ? 'no_effect' : 'normal';
+        result = { damage, isCritical: false, effectiveness: eff, effectivenessLabel: effLabel };
+      } else if (move.dmgEqualsLevel) {
+        damage = playerPkmn.level;
+        const eff = getTypeEffectiveness(move.type, s.enemyPokemon.types ?? [s.enemyPokemon.type]);
+        const effLabel = eff === 0 ? 'no_effect' : 'normal';
+        result = { damage, isCritical: false, effectiveness: eff, effectivenessLabel: effLabel };
+      } else {
+        const attackMultiplier = s.hasBoulderBadge ? 1 + s.badgeBoostGlitchStacks * 0.125 : 1;
+        const attackerWithGlitch = attackMultiplier > 1
+          ? { ...playerPkmn, baseStats: { ...playerPkmn.baseStats, attack: Math.floor(playerPkmn.baseStats.attack * attackMultiplier) } }
+          : playerPkmn;
+
+        // Multi-hit: determine number of hits
+        let numHits = 1;
+        if (move.multiHit) {
+          const range = move.multiHit.maxHits - move.multiHit.minHits + 1;
+          numHits = move.multiHit.minHits + Math.floor(Math.random() * range);
+        }
+
+        // Two-turn execution: complete the charge
+        if (move.twoTurn) {
+          const unchargedTeam = [...s.playerTeam];
+          unchargedTeam[0] = { ...unchargedTeam[0], charging: undefined };
+          s = { ...s, playerTeam: unchargedTeam };
+        }
+
+        let totalDmg = 0;
+        let effLabel: string | null = 'normal';
+        let eff = 1;
+        let anyCrit = false;
+        for (let h = 0; h < numHits; h++) {
+          const hitResult = calculateDamage(attackerWithGlitch, s.enemyPokemon, move);
+          totalDmg += hitResult.damage;
+          effLabel = hitResult.effectivenessLabel ?? effLabel;
+          eff = hitResult.effectiveness;
+          if (hitResult.isCritical) anyCrit = true;
+        }
+        damage = totalDmg;
+        result = { damage, isCritical: anyCrit, effectiveness: eff, effectivenessLabel: effLabel };
+      }
       const newEnemyHP = Math.max(0, s.enemyPokemon.hp - damage);
 
       let attackLog = `¡${playerPkmn.name} usó ${move.name}!`;
@@ -350,13 +454,62 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
 
       s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: newEnemyHP } };
 
-      // Struggle recoil
-      if (move.name === 'Forcejeo') {
-        const recoil = Math.max(1, Math.floor(damage / 4));
+      // Recoil damage (Struggle, Take Down, Double-Edge)
+      if (move.name === 'FORCEJEO') {        const recoil = Math.max(1, Math.floor(damage / 4));
         const recoilTeam = [...s.playerTeam];
         recoilTeam[0] = { ...recoilTeam[0], hp: Math.max(0, recoilTeam[0].hp - recoil) };
         s = { ...s, playerTeam: recoilTeam };
         effects.push(log(`¡${playerPkmn.name} recibió daño por el rebote!`));
+        if (recoilTeam[0].hp === 0) {
+          attackLog += ` ¡${playerPkmn.name} se debilitó por el rebote!`;
+        }
+      } else if (move.recoil) {
+        const recoilDmg = Math.max(1, Math.floor(damage * move.recoil));
+        const recoilTeam = [...s.playerTeam];
+        recoilTeam[0] = { ...recoilTeam[0], hp: Math.max(0, recoilTeam[0].hp - recoilDmg) };
+        s = { ...s, playerTeam: recoilTeam };
+        effects.push(log(`¡${playerPkmn.name} recibió daño por el rebote!`));
+        if (recoilTeam[0].hp === 0) {
+          attackLog += ` ¡${playerPkmn.name} se debilitó por el rebote!`;
+        }
+      }
+
+      // HP drain (Mega Drain, Dream Eater, etc)
+      if (move.drain && result.effectivenessLabel !== 'no_effect') {
+        const drained = Math.max(1, Math.floor(damage * move.drain));
+        const drainTeam = [...s.playerTeam];
+        drainTeam[0] = { ...drainTeam[0], hp: Math.min(drainTeam[0].maxHp, drainTeam[0].hp + drained) };
+        s = { ...s, playerTeam: drainTeam };
+        effects.push(log(`¡${playerPkmn.name} absorbió vitalidad!`));
+      }
+
+      // Selfdestruct / Explosion: user faints after dealing damage
+      if (move.faintsUser) {
+        const faintTeam = [...s.playerTeam];
+        faintTeam[0] = { ...faintTeam[0], hp: 0 };
+        s = { ...s, playerTeam: faintTeam };
+        effects.push(log(`¡${playerPkmn.name} se debilitó!`));
+      }
+
+      // Hyper Beam: set recharge flag if not KO
+      if (move.recharge && newEnemyHP > 0) {
+        const reTeam = [...s.playerTeam];
+        reTeam[0] = { ...reTeam[0], recharging: true };
+        s = { ...s, playerTeam: reTeam };
+      }
+
+      // Two-turn move: set charging flag
+      if (move.twoTurn && !playerPkmn.charging) {
+        const chgTeam = [...s.playerTeam];
+        chgTeam[0] = { ...chgTeam[0], charging: true };
+        s = { ...s, playerTeam: chgTeam };
+      }
+
+      // Rampage start
+      if (move.rampage && !playerPkmn.rampage) {
+        const rmpTeam = [...s.playerTeam];
+        rmpTeam[0] = { ...rmpTeam[0], rampage: { move, remainingTurns: 2 + Math.floor(Math.random() * 2) } };
+        s = { ...s, playerTeam: rmpTeam };
       }
 
       // Apply status effect on hit
@@ -656,7 +809,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         s = { ...s, enemyPokemon: nextEnemy, log: '', phase: 'CHOOSING' };
       }
 
-      // Burn chip damage (1/16 maxHP at end of turn)
+      // Burn chip & Leech Seed damage at end of turn
       if (s.phase === 'CHOOSING') {
         if (s.playerTeam[0]?.status === 'burn' && s.playerTeam[0]?.hp > 0) {
           const chip = Math.max(1, Math.floor(s.playerTeam[0].maxHp / 16));
@@ -667,10 +820,32 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           s = { ...s, playerTeam: updated };
           if (newHp === 0) { s = { ...s, phase: 'PLAYER_FAINTED' }; }
         }
+        if (s.playerTeam[0]?.leechSeed && s.playerTeam[0]?.hp > 0) {
+          const seedChip = Math.max(1, Math.floor(s.playerTeam[0].maxHp / 16));
+          const newHp = Math.max(0, s.playerTeam[0].hp - seedChip);
+          const healedAmount = Math.min(seedChip, s.enemyPokemon.maxHp - s.enemyPokemon.hp);
+          const updated = [...s.playerTeam];
+          updated[0] = { ...updated[0], hp: newHp };
+          effects.push(log(`¡${s.playerTeam[0].name} pierde vida por DRENADORAS!`));
+          s = { ...s, playerTeam: updated, enemyPokemon: { ...s.enemyPokemon, hp: s.enemyPokemon.hp + healedAmount } };
+          if (newHp === 0) { s = { ...s, phase: 'PLAYER_FAINTED' }; }
+        }
         if (s.enemyPokemon.status === 'burn' && s.enemyPokemon.hp > 0) {
           const chip = Math.max(1, Math.floor(s.enemyPokemon.maxHp / 16));
           s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: Math.max(0, s.enemyPokemon.hp - chip) } };
           effects.push(log(`¡${s.enemyPokemon.name} recibe daño por quemaduras!`));
+        }
+        if (s.enemyPokemon.leechSeed && s.enemyPokemon.hp > 0) {
+          const seedChip = Math.max(1, Math.floor(s.enemyPokemon.maxHp / 16));
+          const newEnemyHp = Math.max(0, s.enemyPokemon.hp - seedChip);
+          const healedToPlayer = Math.min(seedChip, Math.max(0, s.playerTeam[0].maxHp - s.playerTeam[0].hp));
+          s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: newEnemyHp } };
+          if (healedToPlayer > 0) {
+            const ph = [...s.playerTeam];
+            ph[0] = { ...ph[0], hp: ph[0].hp + healedToPlayer };
+            s = { ...s, playerTeam: ph };
+          }
+          effects.push(log(`¡${s.enemyPokemon.name} pierde vida por DRENADORAS!`));
         }
       }
 

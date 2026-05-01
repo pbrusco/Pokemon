@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MapIcon, Backpack, Gamepad2, X } from 'lucide-react';
+import { MapIcon, Backpack, Gamepad2, X, Wand2 } from 'lucide-react';
 import { ITEMS_DATABASE } from '../constants';
 import { type Pokemon, type InventoryCounts } from '../types';
 import { type GamePhase, EXPLORING } from '../types/gamePhase';
@@ -15,6 +15,7 @@ interface SideMenuProps {
   setPhase: Dispatch<SetStateAction<GamePhase>>;
   setDialogue: (d: string | null) => void;
   resetGame: () => void;
+  giveDemoTeam?: () => void;
 }
 
 export const SideMenu = memo(({
@@ -26,6 +27,7 @@ export const SideMenu = memo(({
   setPhase,
   setDialogue,
   resetGame,
+  giveDemoTeam,
 }: SideMenuProps) => (
   <AnimatePresence>
     {phase.type === 'MENU' && (
@@ -45,6 +47,7 @@ export const SideMenu = memo(({
             { icon: Backpack, label: 'Mochila', color: 'bg-orange-500', action: () => { setPhase({ type: 'INVENTORY', returnTo: phase.type === 'MENU' ? (phase.returnTo || EXPLORING) : EXPLORING }); }},
             { icon: Gamepad2, label: 'PC Storage', color: 'bg-blue-500', action: () => { setPhase({ type: 'PC', returnTo: phase.type === 'MENU' ? (phase.returnTo || EXPLORING) : EXPLORING }); }},
             { icon: X, label: 'Reiniciar', color: 'bg-red-500', action: resetGame },
+            ...(giveDemoTeam ? [{ icon: Wand2, label: 'Equipo Test', color: 'bg-purple-500', action: giveDemoTeam }] : []),
           ].map((item, i) => (
             <button
               key={i}

@@ -219,7 +219,7 @@ export default function App() {
     });
   }, []);
 
-  useDebugAPI({
+  const { giveDemoTeam } = useDebugAPI({
     dispatchBattle,
     battleStateRef,
     phase,
@@ -299,6 +299,7 @@ export default function App() {
         setPhase={setPhase}
         setDialogue={setDialogue}
         resetGame={resetGame}
+        giveDemoTeam={giveDemoTeam}
       />
 
       <GameModals
