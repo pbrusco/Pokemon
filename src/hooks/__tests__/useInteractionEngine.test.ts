@@ -70,6 +70,38 @@ const EMPTY_MAPS: Record<MapID, { tiles: Tile[][] }> = {
   POKEMON_MANSION_3F: { tiles: makeGrid() },
   POKEMON_MANSION_B1F: { tiles: makeGrid() },
   SAFARI_ZONE_CENTER: { tiles: makeGrid() },
+  SILPH_CO_1F: { tiles: makeGrid() },
+  SILPH_CO_2F: { tiles: makeGrid() },
+  SILPH_CO_3F: { tiles: makeGrid() },
+  SILPH_CO_4F: { tiles: makeGrid() },
+  SILPH_CO_5F: { tiles: makeGrid() },
+  SILPH_CO_6F: { tiles: makeGrid() },
+  SILPH_CO_7F: { tiles: makeGrid() },
+  SILPH_CO_8F: { tiles: makeGrid() },
+  SILPH_CO_9F: { tiles: makeGrid() },
+  SILPH_CO_10F: { tiles: makeGrid() },
+  SILPH_CO_11F: { tiles: makeGrid() },
+  ROCKET_HIDEOUT_B1F: { tiles: makeGrid() },
+  ROCKET_HIDEOUT_B2F: { tiles: makeGrid() },
+  ROCKET_HIDEOUT_B3F: { tiles: makeGrid() },
+  ROCKET_HIDEOUT_B4F: { tiles: makeGrid() },
+  SS_ANNE_1F: { tiles: makeGrid() },
+  SS_ANNE_2F: { tiles: makeGrid() },
+  SS_ANNE_3F: { tiles: makeGrid() },
+  INDIGO_PLATEAU_LOBBY: { tiles: makeGrid() },
+  ELITE_FOUR_LORELEI: { tiles: makeGrid() },
+  ELITE_FOUR_BRUNO: { tiles: makeGrid() },
+  ELITE_FOUR_AGATHA: { tiles: makeGrid() },
+  ELITE_FOUR_LANCE: { tiles: makeGrid() },
+  ELITE_FOUR_CHAMPION: { tiles: makeGrid() },
+  CELADON_MART_1F: { tiles: makeGrid() },
+  CELADON_MART_2F: { tiles: makeGrid() },
+  CELADON_MART_3F: { tiles: makeGrid() },
+  CELADON_MART_4F: { tiles: makeGrid() },
+  CELADON_MART_5F: { tiles: makeGrid() },
+  CELADON_MART_ELEVATOR: { tiles: makeGrid() },
+  CELADON_MART_ROOF: { tiles: makeGrid() },
+  CELADON_GAME_CORNER: { tiles: makeGrid() },
 };
 
 function makeNPC(overrides: Partial<NPC> = {}): NPC {
@@ -95,15 +127,8 @@ function makeItem(overrides: Partial<Entity> = {}): Entity {
   };
 }
 
-const ALL_MAP_IDS = ['KANTO_OVERWORLD','PLAYERS_HOUSE_1F','PLAYERS_HOUSE_2F','RIVALS_HOUSE','OAKS_LAB','POKECENTER','POKEMART','PEWTER_GYM','MT_MOON','MT_MOON_B1F','MT_MOON_B2F','CERULEAN_GYM','VERMILION_GYM','ROCK_TUNNEL_1F','POKEMON_TOWER_1F'];
-
-const EMPTY_NPCS: Record<MapID, NPC[]> = Object.fromEntries(
-  ALL_MAP_IDS.map(k => [k, []])
-) as unknown as Record<MapID, NPC[]>;
-
-const EMPTY_ITEMS: Record<MapID, Entity[]> = Object.fromEntries(
-  ALL_MAP_IDS.map(k => [k, []])
-) as unknown as Record<MapID, Entity[]>;
+const EMPTY_NPCS = {} as Record<MapID, NPC[]>;
+const EMPTY_ITEMS = {} as Record<MapID, Entity[]>;
 
 // ─── Hook factory ─────────────────────────────────────────────────────────────
 // The hook now reads all state from the Zustand store, so setup() configures

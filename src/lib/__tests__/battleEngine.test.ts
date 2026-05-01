@@ -62,7 +62,7 @@ function getLogs(effects: { type: string; payload?: string | number }[]): string
 
 describe('Normal attack flow', () => {
   it('CHOOSING → player attacks → enemy survives → goes to CHOOSING', () => {
-    // 0.5: no crit (0.5 > critChance≈0.127), doesMoveHit floor(0.5*256)=128 < 255 → hit
+    // 0.5: no crit (0.5 > critChance≈0.127), doesMoveHit passes, no status
     randomSpy.mockReturnValue(0.5);
 
     const state = makeState();
@@ -73,14 +73,10 @@ describe('Normal attack flow', () => {
 
     // Enemy should have taken damage
     expect(result.state.enemyPokemon.hp).toBeLessThan(state.enemyPokemon.hp);
-    // Player turn done — engine now hands off to enemy (TICK dispatched separately)
-    expect(result.state.phase).toBe('ENEMY_ATTACK');
+    // Rattata (speed 72) is faster than Charmander (speed 65),
+    // so enemy attacks first then player → phase goes directly to CHOOSING
+    expect(result.state.phase).toBe('CHOOSING');
     expect(result.state.outcome).toBe('ongoing');
-
-    // After the enemy TICK, phase returns to CHOOSING
-    const tickResult = stepBattle(result.state, { type: 'TICK' });
-    expect(tickResult.state.phase).toBe('CHOOSING');
-    expect(tickResult.state.outcome).toBe('ongoing');
   });
 
   it('deducts PP from the used move', () => {
@@ -102,7 +98,8 @@ describe('Normal attack flow', () => {
 
     const result = stepBattle(state, { type: 'ATTACK', move });
 
-    expect(result.state.phase).toBe('ENEMY_ATTACK');
+    // Rattata is faster → enemy attacks first, then player STRUGGLEs → CHOOSING
+    expect(result.state.phase).toBe('CHOOSING');
     expect(result.effects.some(e => (e.payload as string)?.includes('FORCEJEO'))).toBe(true);
   });
 
@@ -782,12 +779,10 @@ describe('Battle text cleanup and formatting', () => {
 
     const result = stepBattle(state, { type: 'ATTACK', move });
 
-    // After ATTACK, player turn is done and engine waits for the enemy TICK
-    expect(result.state.phase).toBe('ENEMY_ATTACK');
-    // After the enemy TICK, phase is CHOOSING and log is cleared for player input
-    const tickResult = stepBattle(result.state, { type: 'TICK' });
-    expect(tickResult.state.phase).toBe('CHOOSING');
-    expect(tickResult.state.log).toBe('');
+    // Rattata (speed 72) is faster → enemy attacks first, then player → CHOOSING
+    // log is cleared for player input
+    expect(result.state.phase).toBe('CHOOSING');
+    expect(result.state.log).toBe('');
   });
 
   it('formats enemy names gracefully by stripping raw prefixes like RIVAL', () => {

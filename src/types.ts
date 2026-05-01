@@ -127,6 +127,7 @@ export interface NPC extends Entity {
   dialogue: string[];
   onInteract?: 'heal' | 'shop' | 'oak_parcel_turnin' | 'give_town_map' | 'give_poke_flute' | 'give_ss_ticket' | 'wake_snorlax';
   questId?: string;
+  requiredBadge?: string;
   isRival?: boolean;
   isTrainer?: boolean;
   trainerTeam?: Pokemon[];

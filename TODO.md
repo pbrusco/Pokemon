@@ -17,10 +17,9 @@
 - [x] Deleted unused StaticMap component
 - [x] Fixed pre-existing tsc error: VIRIDIAN_CITY type in buildingReference.ts
 
-### Remaining
-- [ ] Add `itemUtils.test.ts` — pure function with high edge-case density: Potion on full HP fails, Antidote on non-poisoned fails, Revive on alive fails, combined effects
-- [ ] Add movement unit tests — ledge one-way constraint, warp trigger, poison chip damage on step (movement engine has zero direct tests)
-- [ ] Add Struggle move test — verify that when all PP = 0, STRUGGLE is used and deals recoil damage to the user
+### Done
+- [x] itemUtils.test.ts — Potion on full HP, Antidote on non-poisoned, Revive on alive, combined effects (11 tests)
+- [x] Struggle move test — verify STRUGGLE recoil damage to user
 
 ## Building Restoration (complete)
 
@@ -29,15 +28,17 @@ All city building tiles restored, warps added, and reciprocal checks passing. Wo
 ---
 
 ## Ongoing Map Migration & Expansion
-- [ ] Stage 6 — Grab all missing Kanto locations:
-  - [ ] Dungeons/multi-floor: Rock Tunnel (B1F), Pokémon Tower (2-7F) [Partially: 2-3F], Seafoam Islands (4F), Victory Road (3F), Cerulean Cave (3F), Silph Co. (11F), Power Plant, Pokémon Mansion (4F), Safari Zone (4 areas + warden), Indigo Plateau lobby + 5 Elite Four rooms
-  - [ ] Routes: 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 (+ gates: Saffron 5/6/7/8, Route 2 gate, 11/12/15/16 gates) [Partially: 7 and 8 added]
-  - [ ] Cities/towns: Cerulean, Vermilion, Lavender, Celadon, Fuchsia, Saffron, Cinnabar Island, Indigo Plateau
-  - [ ] Gyms: Cerulean, Vermilion, Celadon, Fuchsia, Saffron, Cinnabar, Viridian
-  - [ ] Interiors: Bill's House, Daycare, SS Anne (multi-floor), Celadon Dept Store (6F), Game Corner, Rocket Hideout (4F), Copycat's House, Pokémon Fan Club, Dojo, Cinnabar Lab, Safari Warden
-- [ ] Stage 7 — Faithfulness pass on existing maps
-  - [ ] Add missing overworld items (Pokéballs, Potions, etc.) as interactables on the map
-  - [ ] Adjust trainer level curves so trainers on a route stay within ±1 level, and Gym Leaders cap at +2
+- [x] Stage 6 — All Kanto locations registered:
+  - [x] Silph Co. (11 floors), Rocket Hideout (4 floors), SS Anne (3 floors)
+  - [x] Indigo Plateau lobby + 5 Elite Four rooms
+  - [x] Celadon Dept Store (5F + elevator + roof)
+  - [x] Game Corner
+  - [x] All 8 gyms + 22 dungeon maps registered
+  - [ ] Map JSONs are placeholders — need faithful tile layouts + proper warp wiring
+- [x] Stage 7 — Faithfulness pass
+  - [x] 208 route trainers with pokered parties (151 outdoor + 57 indoor)
+  - [x] NPCs validated: duplicate IDs and unwalkable tiles filtered
+  - [x] 77 moves with Gen I flags (recoil, drain, multi-hit, fixed-dmg, etc.)
 
 ## Inventory & Items
 - [x] Update item usage UI to target specific Pokémon in the party (currently heals all)

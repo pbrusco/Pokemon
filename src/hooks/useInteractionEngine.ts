@@ -28,17 +28,20 @@ function handleStoryNPC(npc: NPC, inventory: Record<string, number>, store: Retu
   }
   // Route 23 badge check guards
   if (npc.questId === 'badge_check') {
-    const needed = ((npc.id.match(/_(\w+)$/)?.[1] || '').toUpperCase());
-    const badgeMap: Record<string, string> = {
-      CASCADE: 'CASCADE', THUNDER: 'THUNDER', RAINBOW: 'RAINBOW',
-      SOUL: 'SOUL', MARSH: 'MARSH', VOLCANO: 'VOLCANO', EARTH: 'EARTH',
-    };
-    const badge = badgeMap[needed] || needed;
-    if (store.badges.includes(badge)) {
-      store.setDialogue('GUARDIA: ¡Adelante! Veo que tienes la medalla necesaria.');
-      store.setEventFlag('PASSED_' + badge + '_CHECK');
+    const badge = npc.requiredBadge ?? '';
+    if (badge && store.badges.includes(badge)) {
+      store.setDialogue('GUARDIA: ¡Puedes pasar, entrenador!');
     } else {
-      store.setDialogue(`GUARDIA: ¡Alto! Sólo pueden pasar quienes tengan la MEDALLA ${badge}.`);
+      store.setDialogue('GUARDIA: ¡Alto! Necesitas la MEDALLA ' + badge + ' para seguir.');
+    }
+    return true;
+  }
+  // Route 22 gate check (player needs at least one Pokemon)
+  if (npc.questId === 'route22_check') {
+    if (store.playerTeam.length === 0) {
+      store.setDialogue('GUARDIA: ¡No puedes pasar sin POKÉMON! ¡Es demasiado peligroso!');
+    } else {
+      store.setDialogue('GUARDIA: ¡Puedes pasar, entrenador!');
     }
     return true;
   }

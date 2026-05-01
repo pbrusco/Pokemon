@@ -46,6 +46,38 @@ import pokemon_mansion_2f  from './pokemon_mansion_2f.json';
 import pokemon_mansion_3f  from './pokemon_mansion_3f.json';
 import pokemon_mansion_b1f from './pokemon_mansion_b1f.json';
 import safari_zone_center  from './safari_zone_center.json';
+import silph_co_1f from './silph_co_1f.json';
+import silph_co_2f from './silph_co_2f.json';
+import silph_co_3f from './silph_co_3f.json';
+import silph_co_4f from './silph_co_4f.json';
+import silph_co_5f from './silph_co_5f.json';
+import silph_co_6f from './silph_co_6f.json';
+import silph_co_7f from './silph_co_7f.json';
+import silph_co_8f from './silph_co_8f.json';
+import silph_co_9f from './silph_co_9f.json';
+import silph_co_10f from './silph_co_10f.json';
+import silph_co_11f from './silph_co_11f.json';
+import rocket_hideout_b1f from './rocket_hideout_b1f.json';
+import rocket_hideout_b2f from './rocket_hideout_b2f.json';
+import rocket_hideout_b3f from './rocket_hideout_b3f.json';
+import rocket_hideout_b4f from './rocket_hideout_b4f.json';
+import ss_anne_1f from './ss_anne_1f.json';
+import ss_anne_2f from './ss_anne_2f.json';
+import ss_anne_3f from './ss_anne_3f.json';
+import indigo_plateau_lobby from './indigo_plateau_lobby.json';
+import elite_four_lorelei from './elite_four_lorelei.json';
+import elite_four_bruno from './elite_four_bruno.json';
+import elite_four_agatha from './elite_four_agatha.json';
+import elite_four_lance from './elite_four_lance.json';
+import elite_four_champion from './elite_four_champion.json';
+import celadon_mart_1f from './celadon_mart_1f.json';
+import celadon_mart_2f from './celadon_mart_2f.json';
+import celadon_mart_3f from './celadon_mart_3f.json';
+import celadon_mart_4f from './celadon_mart_4f.json';
+import celadon_mart_5f from './celadon_mart_5f.json';
+import celadon_mart_elevator from './celadon_mart_elevator.json';
+import celadon_mart_roof from './celadon_mart_roof.json';
+import celadon_game_corner from './celadon_game_corner.json';
 
 export const MAP_KANTO_OVERWORLD  = parseTileMap(kanto_overworld);
 
@@ -94,6 +126,38 @@ export const MAP_POKEMON_MANSION_2F = parseTileMap(pokemon_mansion_2f);
 export const MAP_POKEMON_MANSION_3F = parseTileMap(pokemon_mansion_3f);
 export const MAP_POKEMON_MANSION_B1F = parseTileMap(pokemon_mansion_b1f);
 export const MAP_SAFARI_ZONE_CENTER = parseTileMap(safari_zone_center);
+export const MAP_SILPH_CO_1F = parseTileMap(silph_co_1f);
+export const MAP_SILPH_CO_2F = parseTileMap(silph_co_2f);
+export const MAP_SILPH_CO_3F = parseTileMap(silph_co_3f);
+export const MAP_SILPH_CO_4F = parseTileMap(silph_co_4f);
+export const MAP_SILPH_CO_5F = parseTileMap(silph_co_5f);
+export const MAP_SILPH_CO_6F = parseTileMap(silph_co_6f);
+export const MAP_SILPH_CO_7F = parseTileMap(silph_co_7f);
+export const MAP_SILPH_CO_8F = parseTileMap(silph_co_8f);
+export const MAP_SILPH_CO_9F = parseTileMap(silph_co_9f);
+export const MAP_SILPH_CO_10F = parseTileMap(silph_co_10f);
+export const MAP_SILPH_CO_11F = parseTileMap(silph_co_11f);
+export const MAP_ROCKET_HIDEOUT_B1F = parseTileMap(rocket_hideout_b1f);
+export const MAP_ROCKET_HIDEOUT_B2F = parseTileMap(rocket_hideout_b2f);
+export const MAP_ROCKET_HIDEOUT_B3F = parseTileMap(rocket_hideout_b3f);
+export const MAP_ROCKET_HIDEOUT_B4F = parseTileMap(rocket_hideout_b4f);
+export const MAP_SS_ANNE_1F = parseTileMap(ss_anne_1f);
+export const MAP_SS_ANNE_2F = parseTileMap(ss_anne_2f);
+export const MAP_SS_ANNE_3F = parseTileMap(ss_anne_3f);
+export const MAP_INDIGO_PLATEAU_LOBBY = parseTileMap(indigo_plateau_lobby);
+export const MAP_ELITE_FOUR_LORELEI = parseTileMap(elite_four_lorelei);
+export const MAP_ELITE_FOUR_BRUNO = parseTileMap(elite_four_bruno);
+export const MAP_ELITE_FOUR_AGATHA = parseTileMap(elite_four_agatha);
+export const MAP_ELITE_FOUR_LANCE = parseTileMap(elite_four_lance);
+export const MAP_ELITE_FOUR_CHAMPION = parseTileMap(elite_four_champion);
+export const MAP_CELADON_MART_1F = parseTileMap(celadon_mart_1f);
+export const MAP_CELADON_MART_2F = parseTileMap(celadon_mart_2f);
+export const MAP_CELADON_MART_3F = parseTileMap(celadon_mart_3f);
+export const MAP_CELADON_MART_4F = parseTileMap(celadon_mart_4f);
+export const MAP_CELADON_MART_5F = parseTileMap(celadon_mart_5f);
+export const MAP_CELADON_MART_ELEVATOR = parseTileMap(celadon_mart_elevator);
+export const MAP_CELADON_MART_ROOF = parseTileMap(celadon_mart_roof);
+export const MAP_CELADON_GAME_CORNER = parseTileMap(celadon_game_corner);
 
 
 export const worldMaps = {
@@ -145,4 +209,36 @@ export const worldMaps = {
   POKEMON_MANSION_3F: MAP_POKEMON_MANSION_3F,
   POKEMON_MANSION_B1F: MAP_POKEMON_MANSION_B1F,
   SAFARI_ZONE_CENTER: MAP_SAFARI_ZONE_CENTER,
+  SILPH_CO_1F: MAP_SILPH_CO_1F,
+  SILPH_CO_2F: MAP_SILPH_CO_2F,
+  SILPH_CO_3F: MAP_SILPH_CO_3F,
+  SILPH_CO_4F: MAP_SILPH_CO_4F,
+  SILPH_CO_5F: MAP_SILPH_CO_5F,
+  SILPH_CO_6F: MAP_SILPH_CO_6F,
+  SILPH_CO_7F: MAP_SILPH_CO_7F,
+  SILPH_CO_8F: MAP_SILPH_CO_8F,
+  SILPH_CO_9F: MAP_SILPH_CO_9F,
+  SILPH_CO_10F: MAP_SILPH_CO_10F,
+  SILPH_CO_11F: MAP_SILPH_CO_11F,
+  ROCKET_HIDEOUT_B1F: MAP_ROCKET_HIDEOUT_B1F,
+  ROCKET_HIDEOUT_B2F: MAP_ROCKET_HIDEOUT_B2F,
+  ROCKET_HIDEOUT_B3F: MAP_ROCKET_HIDEOUT_B3F,
+  ROCKET_HIDEOUT_B4F: MAP_ROCKET_HIDEOUT_B4F,
+  SS_ANNE_1F: MAP_SS_ANNE_1F,
+  SS_ANNE_2F: MAP_SS_ANNE_2F,
+  SS_ANNE_3F: MAP_SS_ANNE_3F,
+  INDIGO_PLATEAU_LOBBY: MAP_INDIGO_PLATEAU_LOBBY,
+  ELITE_FOUR_LORELEI: MAP_ELITE_FOUR_LORELEI,
+  ELITE_FOUR_BRUNO: MAP_ELITE_FOUR_BRUNO,
+  ELITE_FOUR_AGATHA: MAP_ELITE_FOUR_AGATHA,
+  ELITE_FOUR_LANCE: MAP_ELITE_FOUR_LANCE,
+  ELITE_FOUR_CHAMPION: MAP_ELITE_FOUR_CHAMPION,
+  CELADON_MART_1F: MAP_CELADON_MART_1F,
+  CELADON_MART_2F: MAP_CELADON_MART_2F,
+  CELADON_MART_3F: MAP_CELADON_MART_3F,
+  CELADON_MART_4F: MAP_CELADON_MART_4F,
+  CELADON_MART_5F: MAP_CELADON_MART_5F,
+  CELADON_MART_ELEVATOR: MAP_CELADON_MART_ELEVATOR,
+  CELADON_MART_ROOF: MAP_CELADON_MART_ROOF,
+  CELADON_GAME_CORNER: MAP_CELADON_GAME_CORNER,
 };
