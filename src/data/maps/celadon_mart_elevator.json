@@ -1,0 +1,18 @@
+{
+  "rows": [
+    "WWWWW",
+    "WFFFW",
+    "WFFFW",
+    "WDWWW",
+    "WFFFW",
+    "WFFFW",
+    "WWWWW"
+  ],
+  "warps": [
+    { "x": 1, "y": 3, "targetMap": "CELADON_MART_1F", "targetPos": { "x": 18, "y": 1 }, "targetDir": "down" },
+    { "x": 1, "y": 5, "targetMap": "CELADON_MART_2F", "targetPos": { "x": 18, "y": 2 }, "targetDir": "right" },
+    { "x": 3, "y": 5, "targetMap": "CELADON_MART_3F", "targetPos": { "x": 18, "y": 2 }, "targetDir": "left" },
+    { "x": 1, "y": 1, "targetMap": "CELADON_MART_4F", "targetPos": { "x": 18, "y": 2 }, "targetDir": "down" },
+    { "x": 3, "y": 1, "targetMap": "CELADON_MART_5F", "targetPos": { "x": 18, "y": 2 }, "targetDir": "left" }
+  ]
+}

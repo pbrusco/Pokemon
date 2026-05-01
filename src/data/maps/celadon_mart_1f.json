@@ -1,0 +1,28 @@
+{
+  "rows": [
+    "WWWWWWWWWWWWWWWWWWWW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFXXFFFFXXFFFFFW",
+    "WFFFFFXXFFFFXXFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFKKFFFFKKFFFFFW",
+    "WFFFFFKKFFFFKKFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFXXFFFFXXFFFFFW",
+    "WFFFFFXXFFFFXXFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WFFFFFFFFFFFFFFFFFFW",
+    "WWWWWWDWWWWWWWWWWWW"
+  ],
+  "warps": [
+    { "x": 5, "y": 19, "targetMap": "KANTO_OVERWORLD", "targetPos": { "x": 170, "y": 95 }, "targetDir": "down" },
+    { "x": 10, "y": 1, "targetMap": "CELADON_MART_2F", "targetPos": { "x": 10, "y": 17 }, "targetDir": "up" },
+    { "x": 18, "y": 1, "targetMap": "CELADON_MART_ELEVATOR", "targetPos": { "x": 2, "y": 3 }, "targetDir": "up" }
+  ]
+}
