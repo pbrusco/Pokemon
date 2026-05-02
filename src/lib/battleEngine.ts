@@ -18,7 +18,7 @@ import {
   getTypeEffectiveness,
   type DamageResult,
 } from './damage';
-import { EVOLUTIONS, expForLevel, baseExpFor } from '../constants';
+import { EVOLUTIONS, expForLevel, baseExpFor, LEARNSET_DATABASE } from '../constants';
 import { applyItemToPokemon } from './itemUtils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -212,6 +212,17 @@ function computeExpAndLevelUp(pkmn: Pokemon, expGain: number): {
       const evoMaxHp = calcHp(evoData.baseStats.hp, p.level);
       evolvedPkmn.hp = Math.min(p.hp + (evoMaxHp - p.maxHp), evoMaxHp);
       evolvedPkmn.maxHp = evoMaxHp;
+    }
+    const spriteMatch = evoData.sprite?.toString().match(/pokemon\/(\d+)/);
+    const dexNum = spriteMatch ? parseInt(spriteMatch[1]) : null;
+    const evoLearnset = dexNum != null ? LEARNSET_DATABASE[dexNum] : undefined;
+    if (evoLearnset) evolvedPkmn.movesToLearn = evoLearnset;
+    const evoMoveEntry = evolvedPkmn.movesToLearn?.find(m => m.level === p.level);
+    if (evoMoveEntry && !evolvedPkmn.moves.some(m => m.name === evoMoveEntry.move.name)) {
+      evolvedPkmn.moves = evolvedPkmn.moves.length < 4
+        ? [...evolvedPkmn.moves, evoMoveEntry.move]
+        : [evoMoveEntry.move, ...evolvedPkmn.moves.slice(1)];
+      learnedMove = evoMoveEntry.move;
     }
   }
 
@@ -512,11 +523,39 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         return { state: s, effects };
       }
 
+      // OHKO moves (Fissure, Guillotine, Horn Drill)
+      if (move.ohko) {
+        if (s.enemyPokemon.level > playerPkmn.level) {
+          effects.push(log('¡No afecta al POKÉMON enemigo!'));
+          s = { ...s, phase: 'ENEMY_ATTACK' };
+          return { state: s, effects };
+        }
+        let ohkoAcc = 30 + (playerPkmn.level - s.enemyPokemon.level);
+        if (ohkoAcc < 0) ohkoAcc = 0;
+        if (Math.random() * 100 >= ohkoAcc) {
+          const missLog = `¡${playerPkmn.name} usó ${move.name}! ¡Pero falló!`;
+          effects.push(log(missLog));
+          s = { ...s, log: missLog, phase: 'ENEMY_ATTACK' };
+          return { state: s, effects };
+        }
+        effects.push({ type: 'player_anim', payload: 'attack', moveName: move.name, moveType: move.type });
+        effects.push({ type: 'enemy_anim', payload: 'hit' });
+        effects.push({ type: 'screen_flash' });
+        effects.push({ type: 'battle_shake' });
+        effects.push(log(`¡${playerPkmn.name} usó ${move.name}! ¡Golpe fulminante!`));
+        s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: 0 }, phase: 'ENEMY_ATTACK' };
+        return { state: s, effects };
+      }
+
       // Damage move
       let damage: number;
       let result: DamageResult;
 
-      if (move.fixedDmg) {
+      // Super Fang: half current HP (min 1)
+      if (move.halfHp) {
+        damage = Math.max(1, Math.floor(s.enemyPokemon.hp / 2));
+        result = { damage, isCritical: false, effectiveness: 1, effectivenessLabel: 'normal' };
+      } else if (move.fixedDmg) {
         damage = move.fixedDmg;
         const eff = getTypeEffectiveness(move.type, s.enemyPokemon.types ?? [s.enemyPokemon.type]);
         const effLabel = eff === 0 ? 'no_effect' : 'normal';

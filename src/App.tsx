@@ -241,12 +241,15 @@ export default function App() {
     },
   });
 
+  const mobileDirRef = useRef<Direction | null>(null);
+
   useInputHandler({
     handleMove,
     handleAction,
     dispatchBattle,
     isTrainerBattle,
     spottedTrainerId,
+    mobileDirRef,
   });
 
   useWildPokemonEngine();
@@ -286,7 +289,7 @@ export default function App() {
 
       <Minimap />
 
-      <MobileControls onMove={handleMove} onAction={handleAction} setPhase={setPhase} />
+      <MobileControls onMove={handleMove} onDirChange={(dir) => { mobileDirRef.current = dir; }} onAction={handleAction} setPhase={setPhase} />
 
       <MenuButton phase={phase} setPhase={setPhase} />
 

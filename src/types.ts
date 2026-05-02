@@ -50,6 +50,9 @@ export interface Move {
   faintsUser?: boolean;
   healSelf?: number;
   healStatus?: boolean;
+  ohko?: boolean;
+  halfHp?: boolean;
+  trap?: { turns: number };
 }
 
 export interface BaseStats {

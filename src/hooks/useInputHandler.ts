@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { type RefObject, useEffect, useRef } from 'react';
 import { type Direction } from '../types';
 import { battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING, EDITOR } from '../types/gamePhase';
 import { type BattleAction } from '../lib/battleEngine';
@@ -21,6 +21,7 @@ interface UseInputHandlerParams {
   dispatchBattle: (action: BattleAction) => void;
   isTrainerBattle: boolean;
   spottedTrainerId: string | null;
+  mobileDirRef?: RefObject<Direction | null>;
 }
 
 export function useInputHandler({
@@ -29,6 +30,7 @@ export function useInputHandler({
   dispatchBattle,
   isTrainerBattle,
   spottedTrainerId,
+  mobileDirRef,
 }: UseInputHandlerParams): void {
   const pressedKeys = useRef<Set<Direction>>(new Set());
   const lastTurnedDir = useRef<Direction | null>(null);
@@ -223,6 +225,9 @@ export function useInputHandler({
     if (pressedKeys.current.size > 0) {
       const dir = Array.from(pressedKeys.current)[0] as Direction;
       handleMove(dir);
+      return;
     }
-  }, [isMoving, handleMove, spottedTrainerId]);
+    // Mobile joystick hold-to-walk: keep moving while the joystick is held in a direction.
+    if (mobileDirRef?.current) handleMove(mobileDirRef.current);
+  }, [isMoving, handleMove, spottedTrainerId, mobileDirRef]);
 }

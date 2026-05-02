@@ -6,13 +6,16 @@ import { type Dispatch, type SetStateAction } from 'react';
 
 interface MobileControlsProps {
   onMove: (dir: Direction) => void;
+  onDirChange: (dir: Direction | null) => void;
   onAction: () => void;
   setPhase: Dispatch<SetStateAction<GamePhase>>;
 }
 
-export const MobileControls = memo(({ onMove, onAction, setPhase }: MobileControlsProps) => (
+export const MobileControls = memo(({ onMove, onDirChange, onAction, setPhase }: MobileControlsProps) => (
   <div className="fixed bottom-0 left-0 w-full p-6 lg:hidden flex justify-between items-end z-30 pointer-events-none">
-    <Joystick onMove={(dir) => dir && onMove(dir)} />
+    <div className="pointer-events-auto">
+      <Joystick onMove={(dir) => { onDirChange(dir); if (dir) onMove(dir); }} />
+    </div>
     <div className="flex gap-4 pointer-events-auto mb-4">
       <div className="flex flex-col gap-8">
         <button
