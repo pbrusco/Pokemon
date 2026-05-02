@@ -117,7 +117,6 @@ interface GameState extends GameSaveState {
   battleLogs: BattleLogEntry[];
   catchResult: boolean | null;
   ghostMode: boolean;
-  showMinimap: boolean;
   viewMode: '2d' | '3d';
   wildPokemon: WildPokemonEntity[];
   
@@ -171,7 +170,6 @@ interface GameState extends GameSaveState {
   syncTeamStats: (battleTeam: Pokemon[]) => void;
   reorderTeam: (startIndex: number, endIndex: number) => void;
   toggleGhostMode: () => void;
-  toggleMinimap: () => void;
   setViewMode: (mode: '2d' | '3d') => void;
 
   resetGame: () => void;
@@ -207,7 +205,6 @@ export const useGameStore = create<GameState>()(
       battleLogs: [],
       catchResult: null,
       ghostMode: false,
-      showMinimap: false,
       viewMode: '2d',
       wildPokemon: [],
       
@@ -317,7 +314,6 @@ export const useGameStore = create<GameState>()(
       }),
 
       toggleGhostMode: () => set((state) => ({ ghostMode: !state.ghostMode })),
-      toggleMinimap: () => set((state) => ({ showMinimap: !state.showMinimap })),
       setViewMode: (mode) => set({ viewMode: mode }),
 
       setGrassEffect: (pos) => set({ grassEffect: pos }),
@@ -355,7 +351,6 @@ export const useGameStore = create<GameState>()(
           oakCutscenePos: null,
           oakCutsceneDir: null,
           ghostMode: false,
-          showMinimap: false,
         }));
       },
     }),

@@ -554,7 +554,7 @@ describe('Scenario 14: Brock leader battle', () => {
 
 describe('Scenario 12: No ghost re-battle after winning trainer fight', () => {
   it('cleanly exits battle and does NOT re-enter with 0 HP enemy', () => {
-    // Start in Viridian Forest near bug_catcher_forest_2 at world (142, 59) facing left
+    // Start in Viridian Forest near bugcatcher_viridian_forest_1 at world (142, 59) facing left
     // Player stands at (140, 59) — within trainer's 3-tile left vision
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
@@ -609,7 +609,7 @@ describe('Scenario 12: No ghost re-battle after winning trainer fight', () => {
     expect(sim.state.activeBattle).toBeNull();
 
     // 3. The trainer should be in defeatedTrainers
-    expect(sim.state.defeatedTrainers).toContain('bug_catcher_forest_2');
+    expect(sim.state.defeatedTrainers).toContain('bugcatcher_viridian_forest_1');
 
     // 4. Verify we don't bounce back into battle after further ticks
     sim.tick(5000);

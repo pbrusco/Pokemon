@@ -336,14 +336,16 @@ function parseObjectFile(content) {
   const trainers = [];
   const lines = content.split('\n');
   for (const line of lines) {
-    const oppMatch = line.match(/object_event\s+(\d+),\s*(\d+),\s*(\w+).*OPP_(\w+),\s*(\d+)/);
+    // object_event x, y, SPRITE, MOVEMENT, DIRECTION, TEXT, ..., OPP_CLASS, INDEX
+    const oppMatch = line.match(/object_event\s+(\d+),\s*(\d+),\s*(\w+),\s*\w+,\s*(\w+).*OPP_(\w+),\s*(\d+)/);
     if (oppMatch) {
       trainers.push({
         x: parseInt(oppMatch[1], 10),
         y: parseInt(oppMatch[2], 10),
         sprite: oppMatch[3],
-        oppClass: oppToClass(`OPP_${oppMatch[4]}`),
-        oppIndex: parseInt(oppMatch[5], 10) - 1, // 0-based
+        direction: oppMatch[4], // UP / DOWN / LEFT / RIGHT / NONE
+        oppClass: oppToClass(`OPP_${oppMatch[5]}`),
+        oppIndex: parseInt(oppMatch[6], 10) - 1, // 0-based
       });
     }
   }
@@ -367,6 +369,7 @@ function pokeredToMapID(name) {
     'PokemonTower7F': 'POKEMON_TOWER_7F',
     'PokemonMansion1F': 'POKEMON_MANSION_1F', 'PokemonMansion2F': 'POKEMON_MANSION_2F',
     'PokemonMansion3F': 'POKEMON_MANSION_3F', 'PokemonMansionB1F': 'POKEMON_MANSION_B1F',
+    'ViridianForest': 'KANTO_OVERWORLD',
     'CeruleanCity': 'KANTO_OVERWORLD',
     'VermilionCity': 'KANTO_OVERWORLD',
     'CeladonCity': 'KANTO_OVERWORLD',
@@ -518,9 +521,12 @@ for (const file of objFiles) {
     const team = classParty[opp.oppIndex];
     const teamStr = team.map(p => makePokemon(p.species, p.level)).join(', ');
 
-    // Generate id: lowercasename_mapid_index
-    const idBase = opp.oppClass.toLowerCase() + '_' + mapID.toLowerCase() + '_' + opp.oppIndex;
-    const safeId = idBase.replace(/[^a-z0-9_]/g, '_').slice(0, 50);
+    // Generate id: classname_zone_index — zone is included to avoid cross-route collisions
+    const zoneKey = mapID === 'KANTO_OVERWORLD'
+      ? (pokeredZoneToOffsetKey(basename) || mapID)
+      : mapID;
+    const idBase = opp.oppClass.toLowerCase() + '_' + zoneKey.toLowerCase() + '_' + opp.oppIndex;
+    const safeId = idBase.replace(/[^a-z0-9_]/g, '_').slice(0, 60);
 
     // Position
     let posStr;
@@ -531,7 +537,7 @@ for (const file of objFiles) {
       posStr = `{ x: ${opp.x}, y: ${opp.y} }`;
     }
 
-    const dir = DIR_MAP[opp.sprite.split('_').pop()] || 'down';
+    const dir = DIR_MAP[opp.direction] || 'down';
     const spanishName = CLASS_SPANISH[opp.oppClass] || opp.oppClass.toUpperCase();
     const tsClass = CLASS_TS[opp.oppClass] || 'youngster';
 
