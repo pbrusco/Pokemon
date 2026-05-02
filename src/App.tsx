@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
+import { useEffect, useRef, useMemo, useCallback, lazy, Suspense, useState } from 'react';
 import { type BattleState, type BattleAction } from './lib/battleEngine';
 import { battle, B_CHOOSING, B_FORCED_SWITCH, EXPLORING } from './types/gamePhase';
 import { logEvent, withoutLogging } from './lib/eventLog';
@@ -73,6 +73,17 @@ export default function App() {
 
   const windowSize = useWindowSize();
   const { overworldShake, setOverworldShake } = useOverworldVFX();
+
+  // ── Warp flash on map transition ──────────────────────────────────
+  const [warpFlash, setWarpFlash] = useState(false);
+  const prevMapRef = useRef(currentMap);
+  useEffect(() => {
+    if (prevMapRef.current === currentMap) return;
+    prevMapRef.current = currentMap;
+    setWarpFlash(true);
+    const t = setTimeout(() => setWarpFlash(false), 80);
+    return () => clearTimeout(t);
+  }, [currentMap]);
   const { playerAnim, setPlayerAnim, enemyAnim, setEnemyAnim, battleShake, setBattleShake, cinematicEvent, setCinematicEvent } = useBattleVFX();
 
   const battleStateRef = useRef<BattleState | null>(null);
@@ -334,6 +345,11 @@ export default function App() {
       />
 
       <ScreenEffects phaseType={phase.type} battlePhase={battlePhase} />
+
+      {/* Warp flash — brief white flash on map transition */}
+      {warpFlash && (
+        <div className="fixed inset-0 bg-white z-[400] pointer-events-none" />
+      )}
 
     </div>
   );

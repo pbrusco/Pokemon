@@ -67,7 +67,7 @@ export const SideMenu = memo(({
             width: 220,
             background: '#f8f8f0',
             border: '3px solid #383838',
-            borderRadius: 4,
+            borderRadius: 2,
             boxShadow: '4px 4px 0 #383838',
           }}
         >
@@ -95,15 +95,17 @@ export const SideMenu = memo(({
                     background: hov ? '#383838' : 'transparent',
                   }}
                 >
-                  <span
+                  <motion.span
                     className="font-game shrink-0"
+                    animate={{ x: hov ? [0, -4, 0] : 0 }}
+                    transition={{ duration: 0.15, ease: 'easeOut' }}
                     style={{ fontSize: '8px', color: '#d03030', opacity: hov ? 1 : 0 }}
                   >
                     ▶
-                  </span>
+                  </motion.span>
                   <span
                     className="font-sans font-semibold tracking-wide"
-                    style={{ fontSize: '15px', color: hov ? 'white' : item.danger ? '#d03030' : '#383838' }}
+                    style={{ fontSize: '16px', color: hov ? '#4878D8' : item.danger ? '#d03030' : '#383838' }}
                   >
                     {item.label}
                   </span>

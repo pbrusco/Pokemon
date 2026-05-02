@@ -64,10 +64,10 @@ const C = {
   PATH_DK:     '#A88830',
   PATH_LT:     '#E0C870',
   // Tree — deeper canopy with near-black outline
-  CANOPY:      '#50A830',
+  CANOPY:      '#50B030',
   CANOPY_DK:   '#183808',
   CANOPY_LT:   '#68C048',
-  TRUNK:       '#806030',
+  TRUNK:       '#805030',
   TRUNK_DK:    '#604020',
   // Building
   ROOF:        '#C84838',

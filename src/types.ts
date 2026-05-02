@@ -109,6 +109,10 @@ export interface PokemonSummary {
   id: string;
   name: string;
   sprite: string;
+  types?: string[];
+  height?: number;
+  weight?: number;
+  description?: string;
 }
 
 interface ItemEffect {

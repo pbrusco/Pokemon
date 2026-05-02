@@ -1,7 +1,7 @@
 import { memo, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
-const PAGE_LEN = 110;
+const PAGE_LEN = 120;
 const CHARS_PER_TICK = 2;
 const TICK_MS = 22;
 

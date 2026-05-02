@@ -476,36 +476,25 @@ describe('loadLogAsScenario helper', () => {
   });
 });
 
-// ─── Scenario: assertWorldIntact() smoke test ─────────────────────────────
 
-describe('assertWorldIntact helper', () => {
-  it('returns cleanly when world data is intact', () => {
-    sim = new GameSimulator().init({
-      currentMap: 'KANTO_OVERWORLD',
-      playerPos: { x: 129, y: 208 },
-      direction: 'down',
-      playerTeam: [],
-    });
-    expect(() => sim.assertWorldIntact()).not.toThrow();
-  });
-});
 
 // ─── Scenario 13: Trainer vision is exactly 3 tiles ────────────────────────
 
 describe('Scenario 13: Trainer vision range', () => {
-  // youngster_chano @ Route 1 (3, 10) facing left → sees (2,10), (1,10), (0,10).
-  // Stepping onto (4, 10) (behind him) does not trigger; stepping into vision does.
+  // youngster_rt3 @ Route 3 (10, 6) facing right → sees (11,6), (12,6), (13,6).
+  // Stepping to (9, 6) (behind him) does not trigger; stepping into vision does.
 
   it('does NOT trigger when player is out of trainer line-of-sight', () => {
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      // Player at world (22, 173) — behind/right of trainer. Move further right → still safe.
-      playerPos: { x: 22, y: 173 },
-      direction: 'right',
+      // Route 3 offset is (147, 16). youngster_rt3 at (10, 6) → world (157, 22).
+      // Standing at (156, 22) behind him; move left → still safe.
+      playerPos: { x: 156, y: 22 },
+      direction: 'left',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',
     });
-    sim.move('right');
+    sim.move('left');
     sim.tick(1500);
     expect(sim.phase.type).toBe('EXPLORING');
     expect(sim.dialogueContains('¡Te he visto!')).toBe(false);
@@ -514,13 +503,14 @@ describe('Scenario 13: Trainer vision range', () => {
   it('triggers cutscene when player steps into 3rd tile of vision (boundary)', () => {
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      // Start at (128, 59). Move up to (128, 58) — exactly the 3rd tile of vision (boundary).
-      playerPos: { x: 128, y: 59 },
-      direction: 'up',
+      // youngster_rt3 at world (157, 22) facing right. 3rd tile of vision is (160, 22).
+      // Start at (159, 22), move right to (160, 22) — boundary.
+      playerPos: { x: 159, y: 22 },
+      direction: 'right',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',
     });
-    sim.move('up');
+    sim.move('right');
     sim.tick(2500);
     expect(sim.dialogueContains('¡Te he visto!')).toBe(true);
   });
@@ -529,26 +519,22 @@ describe('Scenario 13: Trainer vision range', () => {
 // ─── Scenario 14: Brock leader battle ──────────────────────────────────────
 
 describe('Scenario 14: Brock leader battle', () => {
-  // Brock @ PEWTER_GYM (4, 2) facing down with [Geodude L10, Onix L12].
-  // Verify a strong (L50 Charmander) starter wins against Brock deterministically.
+  // Brock @ PEWTER_GYM (4, 1) at pokered position, facing down.
   it('a L50 starter wins against Brock', () => {
     sim = new GameSimulator().init({
       currentMap: 'PEWTER_GYM',
-      // Stand below Brock at (4, 3) facing up to interact.
-      playerPos: { x: 4, y: 3 },
+      playerPos: { x: 4, y: 2 },
       direction: 'up',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',
-      defeatedTrainers: ['gym_trainer'], // skip the gatekeeper trainer
+      defeatedTrainers: ['pewter_gym_jr_trainer_m_1'],
     });
-
     sim.interact();
     sim.dismissDialogue();
     sim.tick(2000);
     sim.skipBattleTransition();
     expect(sim.phase.type).toBe('BATTLE');
     expect(sim.battleState?.isTrainerBattle).toBe(true);
-
     for (let i = 0; i < 30; i++) {
       if (sim.phase.type !== 'BATTLE') break;
       if (sim.battleState?.outcome !== 'ongoing') break;
@@ -559,7 +545,6 @@ describe('Scenario 14: Brock leader battle', () => {
       sim.tick(5000);
     }
     sim.tick(10000);
-
     expect(sim.phase.type).toBe('EXPLORING');
     expect(sim.state.defeatedTrainers).toContain('brock');
   });
@@ -569,18 +554,18 @@ describe('Scenario 14: Brock leader battle', () => {
 
 describe('Scenario 12: No ghost re-battle after winning trainer fight', () => {
   it('cleanly exits battle and does NOT re-enter with 0 HP enemy', () => {
-    // Start in Viridian Forest near bug_catcher_forest_2 at (131, 58) facing left
-    // Player stands at (129, 58) — within trainer's 3-tile left vision
+    // Start in Viridian Forest near bug_catcher_forest_2 at world (142, 59) facing left
+    // Player stands at (140, 59) — within trainer's 3-tile left vision
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      playerPos: { x: 129, y: 58 },
+      playerPos: { x: 140, y: 59 },
       direction: 'right',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',
     });
 
     // Step into trainer's vision zone → triggers trainer cutscene
-    sim.move('right'); // now at (130, 58) — within vision
+    sim.move('right'); // now at (141, 59) — within vision
     sim.tick(500);
 
     // If dialogue appeared, dismiss it

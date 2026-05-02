@@ -77,15 +77,27 @@ export const MobileControls = memo(({ onMove, onDirChange, onAction, onBack, onS
     <div className="pointer-events-auto flex items-end shrink-0" style={{ gap: 14 }}>
       <button
         className="active:brightness-75 touch-none"
-        style={actionBtn(50)}
-        onPointerDown={(e) => { e.preventDefault(); onBack(); }}
+        style={{
+          ...actionBtn(50),
+          transform: 'none',
+          transition: 'transform 0.1s',
+        }}
+        onPointerDown={(e) => { e.preventDefault(); e.currentTarget.style.transform = 'scale(0.92)'; onBack(); }}
+        onPointerUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+        onPointerLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
       >
         B
       </button>
       <button
         className="active:brightness-75 touch-none"
-        style={actionBtn(62, 18)}
-        onPointerDown={(e) => { e.preventDefault(); onAction(); }}
+        style={{
+          ...actionBtn(62, 18),
+          transform: 'none',
+          transition: 'transform 0.1s',
+        }}
+        onPointerDown={(e) => { e.preventDefault(); e.currentTarget.style.transform = 'scale(0.92)'; onAction(); }}
+        onPointerUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+        onPointerLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
       >
         A
       </button>

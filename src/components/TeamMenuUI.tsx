@@ -55,8 +55,8 @@ function PokemonCard({
       onPointerEnter={onHover}
       className="flex items-center gap-3 rounded-sm cursor-pointer transition-colors select-none"
       style={{
-        background: isSelected ? '#304868' : '#243850',
-        border: `2px solid ${isLead ? '#f8c000' : isSelected ? '#5888b8' : '#3a5878'}`,
+        background: isSelected ? '#304868' : '#1A2840',
+        border: `2px solid ${isLead ? '#f8c000' : isSelected ? '#5888b8' : '#304060'}`,
         padding: isLead ? '10px 12px' : '7px 10px',
         opacity: fainted && !isSelectable ? 0.5 : 1,
       }}
@@ -72,7 +72,7 @@ function PokemonCard({
       {/* Sprite */}
       <div
         className="shrink-0 flex items-center justify-center"
-        style={{ width: isLead ? 56 : 44, height: isLead ? 56 : 44 }}
+        style={{ width: isLead ? 48 : 48, height: isLead ? 48 : 48 }}
       >
         <img
           src={pkmn.sprite}
@@ -176,7 +176,7 @@ export const TeamMenuUI = memo(({ team, onClose, onSwap, onUseItem, forcedSwitch
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[100] flex flex-col"
-      style={{ background: '#1a3050' }}
+      style={{ background: '#203048' }}
     >
       {/* Header bar */}
       <div
@@ -255,7 +255,7 @@ export const TeamMenuUI = memo(({ team, onClose, onSwap, onUseItem, forcedSwitch
               boxShadow: '0 3px 0 #0a0a0a',
             }}
           >
-            ← Cancelar
+            CANCELAR
           </button>
         )}
       </div>

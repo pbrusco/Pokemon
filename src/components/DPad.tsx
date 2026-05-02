@@ -67,6 +67,8 @@ export const DPad = ({ onMove, onDirChange }: DPadProps) => {
           width: center,
           height: center,
           background: '#1a1a1a',
+          boxShadow: 'inset 2px 2px 6px rgba(0,0,0,0.5), inset -1px -1px 3px rgba(255,255,255,0.06)',
+          clipPath: 'polygon(8% 32%, 32% 32%, 32% 8%, 68% 8%, 68% 32%, 92% 32%, 92% 68%, 68% 68%, 68% 92%, 32% 92%, 32% 68%, 8% 68%)',
         }}
       />
 

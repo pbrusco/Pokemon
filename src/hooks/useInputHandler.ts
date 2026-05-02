@@ -81,6 +81,8 @@ export function useInputHandler({
       if (store.phase.type === 'EXPLORING') {
         if (e.key === '1') { store.setViewMode('3d'); return; }
         if (e.key === '2') { store.setViewMode('2d'); return; }
+        if (e.key === 'Tab') { e.preventDefault(); if (store.hasPokedex) store.setPhase({ type: 'POKEDEX', returnTo: EXPLORING }); return; }
+        if (e.key === '`') { store.setPhase({ type: 'MENU', returnTo: EXPLORING }); return; }
       }
 
       if (e.key === 'E' && e.shiftKey) {

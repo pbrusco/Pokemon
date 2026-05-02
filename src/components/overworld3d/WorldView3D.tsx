@@ -2,6 +2,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import type { MapID, MapData, NPC, Entity } from '../../types';
 import { Scene3D } from './Scene3D';
+import { Hud3D } from './Hud3D';
 
 interface WorldView3DProps {
   currentMap: MapID;
@@ -46,6 +47,8 @@ export default function WorldView3D({ currentMap, maps, npcs, items }: WorldView
           <Scene3D mapData={mapData} npcs={mapNpcs} items={mapItems} />
         </Suspense>
       </Canvas>
+
+      <Hud3D />
     </div>
   );
 }

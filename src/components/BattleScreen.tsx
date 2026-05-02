@@ -423,41 +423,43 @@ function BattleLogArea({ battleLogs, battleLog }: { battleLogs: BattleLogEntry[]
 
   return (
     <div className="flex-grow border-4 border-[#f8d870] bg-[#1f3558] rounded-sm p-3 sm:p-4 relative shadow-[inset_0_0_0_2px_#0f1f38] flex flex-col justify-start overflow-hidden">
-      {battleLogs.length > 0 ? (
-        battleLogs.map((msg, i) => {
-          const isLatest = i === 0;
-          return (
-            <div key={msg.id} className={`mb-1 ${isLatest ? 'text-white' : 'text-slate-400'}`}>
-              {msg.speaker !== 'Sistema' && (
-                <span className="font-bold text-[#f8d870] mr-2">[{msg.speaker}]</span>
-              )}
-              <span className={`font-bold tracking-tight text-sm sm:text-lg leading-relaxed ${isLatest ? 'text-white' : 'text-slate-400 opacity-80'}`}>
-                {isLatest && isTyping ? (
-                  <TypewriterText text={typingText} onComplete={handleTypingDone} />
-                ) : (
-                  msg.text
-                )}
-              </span>
-              {isLatest && isTyping && (
-                <span className="inline-block w-1.5 h-4 bg-white ml-0.5 align-text-bottom animate-pulse" />
-              )}
-            </div>
-          );
-        })
-      ) : (
-        <p className="text-white font-bold tracking-tight text-base sm:text-2xl leading-relaxed mt-1">
-          {isTyping ? (
-            <TypewriterText text={typingText} onComplete={handleTypingDone} />
-          ) : (
-            battleLog
-          )}
-          {isTyping && (
-            <span className="inline-block w-1.5 h-5 bg-white ml-0.5 align-text-bottom animate-pulse" />
-          )}
-        </p>
-      )}
-      <div className="absolute bottom-2 right-3">
-        <span className="text-[8px] text-slate-500 font-mono tracking-wider">▼</span>
+      <div className="flex flex-col-reverse gap-1 overflow-y-auto">
+        {battleLogs.length > 0 ? (
+          battleLogs.map((msg, i) => {
+            const isLatest = i === 0;
+            return (
+              <div key={msg.id}>
+                {!isLatest && <hr className="border-t border-white/10 my-1" />}
+                <div className={`${isLatest ? 'text-white' : 'text-slate-400'}`}>
+                  {msg.speaker !== 'Sistema' && (
+                    <p className="font-game text-[#f8d870] text-[10px] leading-tight mb-0.5">{msg.speaker}</p>
+                  )}
+                  <p className={`font-game text-[10px] leading-relaxed ${isLatest ? 'text-white' : 'text-slate-400 opacity-80'}`}>
+                    {isLatest && isTyping ? (
+                      <TypewriterText text={typingText} onComplete={handleTypingDone} />
+                    ) : (
+                      msg.text
+                    )}
+                    {isLatest && !isTyping && (
+                      <span className="inline-block text-red-400 ml-1 animate-pulse">◆</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <p className="font-game text-white text-[10px] leading-relaxed">
+            {isTyping ? (
+              <TypewriterText text={typingText} onComplete={handleTypingDone} />
+            ) : (
+              battleLog
+            )}
+            {isTyping && (
+              <span className="inline-block w-1.5 h-3 bg-white ml-0.5 align-text-bottom animate-pulse" />
+            )}
+          </p>
+        )}
       </div>
     </div>
   );

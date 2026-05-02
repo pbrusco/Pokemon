@@ -24,7 +24,7 @@ Story = Pokémon Red. Visuals = FRLG. Medium = the web.
 | 10 | Party screen — FRLG navy background, per-slot cards | `TeamMenuUI.tsx` | ✅ done |
 | — | Remove overworld team HUD (now in menu) | `WorldView.tsx`, `App.tsx` | ✅ done |
 | — | Fix Red back sprite (64×320 spritesheet → clip first frame) | `BattleScreen.tsx` | ✅ done |
-| 11 | Pokédex — detail panel on select, proper seen/caught states | `PokedexUI.tsx` | ⬜ |
+| 11 | Pokédex — detail panel on select, proper seen/caught states | `PokedexUI.tsx` | ✅ done |
 | 12 | Battle log — pixel font, speaker label, ◆ cursor | `BattleScreen.tsx` | ⬜ |
 | 13 | Transitions — warp flash, win sequence, evolution silhouette | `BattleTransition.tsx`, `ScreenEffects.tsx` | ⬜ |
 | 14 | 3D mode HUD — compass overlay, "3D" badge, dungeon feel | `WorldView3D.tsx`, `CameraRig.tsx` | ⬜ |
