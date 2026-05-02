@@ -95,31 +95,6 @@ export function useInputHandler({
         return;
       }
 
-      if (e.key === 'm' || e.key === 'M') {
-        store.toggleMinimap();
-        return;
-      }
-
-      if (e.key === '+' || e.key === '=') {
-        store.setZoomLevel(prev => Math.min(prev + 0.05, 1.0));
-        return;
-      }
-      if (e.key === '-') {
-        store.setZoomLevel(prev => Math.max(prev - 0.05, 0.05));
-        return;
-      }
-      if (e.key === 'Home' || (e.key === 'c' || e.key === 'C')) {
-        store.resetCamera();
-        return;
-      }
-      if (e.key === ' ') {
-        if (!store.isCameraLocked) {
-          store.setIsCameraLocked(true);
-          store.setCameraOffset({ x: 0, y: 0 });
-          return;
-        }
-      }
-
       if (store.dialogue) {
         if (!e.repeat) {
           const cb = store.dialogueCallback;
@@ -148,7 +123,7 @@ export function useInputHandler({
         case 'ArrowLeft': dir = 'left'; break;
         case 'ArrowRight': dir = 'right'; break;
         case 'z': case 'Enter': handleAction(); break;
-        case ' ': if (store.isCameraLocked) handleAction(); break;
+        case ' ': handleAction(); break;
         case 'Escape': if (store.phase.type === 'MENU') store.setPhase(store.phase.returnTo ?? EXPLORING); break;
       }
 

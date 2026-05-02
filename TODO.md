@@ -61,3 +61,18 @@ All city building tiles restored, warps added, and reciprocal checks passing. Wo
 ## Playtesting
 - [ ] Manual browser playtest
 
+---
+
+## UI / UX Fixes (from review session)
+
+- [ ] **#1 — Remove lock/reset-view icons**: Remove the lock-character and reset-view buttons from the HUD (and their underlying functionality). Zoom-out removal is already in progress.
+- [ ] **#2 — Remove Team menu entry; add reorder in party screen**: The party is already shown at the bottom of the side menu — remove the redundant "Equipo" menu item. Add drag-to-reorder (or up/down swap buttons) directly in the party-screen view.
+- [ ] **#3 — Bag inline in menu, no modal**: Items are already visible in the menu; make each item row directly clickable/usable from there. Remove the separate bag/inventory modal.
+- [ ] **#4 — NPC sprite squash fix**: NPC sprites are vertically squashed ("stepped on by an elephant"). Audit sprite container dimensions and `object-fit` / `image-rendering` for all NPC sprites in `NPCComponent.tsx` and `WorldView.tsx`.
+- [ ] **#5 — Player battle sprite too small**: After the spritesheet-clip fix for Red's back sprite, the rendered sprite is tiny. Fix the wrapper/clip dimensions in `BattleScreen.tsx` so the player character appears at the correct size (matching Pokémon sprite scale).
+- [ ] **#6 — 3D view sprites wrong size/aspect**: Sprites in `WorldView3D.tsx` are incorrectly sized or stretched. Apply the same sprite-dimension fix as #4/#5 to the 3D billboard sprites.
+- [ ] **#7 — 3D signs rendered as balls**: Sign tiles appear as spheres in 3D mode. Replace the sign mesh/geometry in `WorldView3D.tsx` with a flat billboard or signpost shape matching the 2D tile art.
+- [ ] **#8 — First battle should be vs. Blue (Azul), not a blank trainer**: When the player first steps into the starter-selection area (Oak's Lab), the scripted battle must be against Blue/Azul. Currently fighting an unnamed trainer, then Blue triggers a second battle via line-of-sight. Fix the battle-init logic so only one Blue battle fires, with the correct trainer data.
+- [ ] **#9 — HP bar jumps up then down on damage**: When the opponent takes damage, the HP bar sometimes animates upward before going down (likely a color-threshold re-render resetting the `scaleX` origin). Audit the HP bar animation in `BattleScreen.tsx` — ensure the bar only ever transitions from current → new value without re-mounting or resetting transform on color change.
+- [ ] **#10 — Trainer parties are wrong**: Trainers around Kanto have incorrect Pokémon and/or levels (e.g. "Golfo" on Route 1 with a Primeape lvl 29). Audit the trainer database and verify every trainer's party matches the canonical Pokémon Red data from the pokered source. Clean up any invented or misassigned parties.
+

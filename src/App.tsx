@@ -27,7 +27,7 @@ import { HM_MOVE_MAP, MOVES } from './constants';
 export default function App() {
   // ── Granular store selectors ────────────────────────────────────
   // App MUST NOT subscribe to rapidly-changing values like playerPos,
-  // direction, isMoving, cameraOffset, zoomLevel, or wildPokemon.
+  // direction, isMoving, or wildPokemon.
   // Each selector below only triggers re-render when its value changes.
   const phase = useGameStore(s => s.phase);
   const viewMode = useGameStore(s => s.viewMode);

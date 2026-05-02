@@ -1,40 +1,40 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { type NPC } from '../types';
 
 const TILE_COLORS: Record<string, string> = {
-  tree: '#2d5a27',
-  grass: '#5a9b4d',
-  path: '#d1b894',
-  wall: '#4a4a4a',
-  door: '#a0522d',
-  floor: '#ffffff',
-  carpet: '#ff6b6b',
-  table: '#8b4513',
-  water: '#4d94ff',
-  ledge_down: '#b09a7d',
-  ledge_left: '#b09a7d',
-  ledge_right: '#b09a7d',
+  tree: '#1e3a1c',
+  grass: '#4d8b3d',
+  path: '#c4a97d',
+  wall: '#3a3a3a',
+  door: '#8b5e3c',
+  floor: '#e8e4d8',
+  carpet: '#c94f4f',
+  table: '#6b3410',
+  water: '#2563eb',
+  ledge_down: '#9a8b7a',
+  ledge_left: '#9a8b7a',
+  ledge_right: '#9a8b7a',
 };
 
-export const Minimap: React.FC = () => {
+export const Minimap = () => {
   const currentMap = useGameStore(s => s.currentMap);
   const worldMaps = useGameStore(s => s.worldMaps);
   const playerPos = useGameStore(s => s.playerPos);
-  const showMinimap = useGameStore(s => s.showMinimap);
+  const npcs = useGameStore(s => s.getNPCs());
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgCacheRef = useRef<ImageData | null>(null);
-  const cachedMapRef = useRef<string>('');
+  const cachedMapRef = useRef('');
 
-  // Rebuild background cache only when map changes
+  const mapData = worldMaps[currentMap];
+  const rows = mapData?.tiles.length ?? 0;
+  const cols = mapData?.tiles[0]?.length ?? 0;
+
+  const mapNpcs = useMemo(() => npcs[currentMap] ?? [], [npcs, currentMap]);
+
+  // Draw background tiles once per map
   useEffect(() => {
-    if (!showMinimap) return;
-    const mapData = worldMaps[currentMap];
-    if (!mapData) return;
-    const rows = mapData.tiles.length;
-    const cols = mapData.tiles[0].length;
-
-    if (cachedMapRef.current === currentMap) return;
-
+    if (!mapData || cachedMapRef.current === currentMap) return;
     const offscreen = document.createElement('canvas');
     offscreen.width = cols;
     offscreen.height = rows;
@@ -42,62 +42,76 @@ export const Minimap: React.FC = () => {
 
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < cols; x++) {
-        ctx.fillStyle = TILE_COLORS[mapData.tiles[y][x].type] || '#000000';
+        ctx.fillStyle = TILE_COLORS[mapData.tiles[y][x].type] || '#111';
         ctx.fillRect(x, y, 1, 1);
       }
     }
-
     bgCacheRef.current = ctx.getImageData(0, 0, cols, rows);
     cachedMapRef.current = currentMap;
-  }, [currentMap, worldMaps, showMinimap]);
+  }, [currentMap, mapData, cols, rows]);
 
-  // Stamp background + draw player position (runs every render)
+  // Draw player + NPCs on top of cached background
   useEffect(() => {
-    if (!showMinimap || !canvasRef.current) return;
     const canvas = canvasRef.current;
+    if (!canvas || !mapData) return;
+
     const ctx = canvas.getContext('2d')!;
-    const mapData = worldMaps[currentMap];
-    if (!mapData) return;
+    const scale = Math.min(280 / cols, 240 / rows, 3);
+    const cw = cols * scale;
+    const ch = rows * scale;
+    canvas.width = cw;
+    canvas.height = ch;
+    canvas.style.width = `${cw}px`;
+    canvas.style.height = `${ch}px`;
 
-    const rows = mapData.tiles.length;
-    const cols = mapData.tiles[0].length;
-    canvas.width = cols;
-    canvas.height = rows;
+    ctx.imageSmoothingEnabled = false;
 
-    // Fast: stamp cached background
+    // Stamp cached background, scaled
     if (bgCacheRef.current && cachedMapRef.current === currentMap) {
-      ctx.putImageData(bgCacheRef.current, 0, 0);
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = cols;
+      tempCanvas.height = rows;
+      tempCanvas.getContext('2d')!.putImageData(bgCacheRef.current, 0, 0);
+      ctx.drawImage(tempCanvas, 0, 0, cw, ch);
     }
 
-    // Draw player dot
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(playerPos.x, playerPos.y, 1, 1);
-
-    if (cols > 50 || rows > 50) {
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 0.5;
-      ctx.strokeRect(playerPos.x - 1, playerPos.y - 1, 3, 3);
+    // NPC dots
+    for (const npc of mapNpcs) {
+      const isTrainer = (npc as NPC).isTrainer;
+      ctx.fillStyle = isTrainer ? '#f8f8f8' : '#fbbf24';
+      ctx.fillRect(npc.position.x * scale, npc.position.y * scale, Math.max(2, scale), Math.max(2, scale));
     }
+
+    // Player dot with outline
+    const px = playerPos.x * scale;
+    const py = playerPos.y * scale;
+    const ps = Math.max(3, scale + 1);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(px - 1, py - 1, ps + 2, ps + 2);
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(px, py, ps, ps);
   });
 
-  if (!showMinimap) return null;
+  if (!mapData) return null;
 
   return (
-    <div className="absolute top-20 right-4 z-50 p-1 bg-black border-2 border-white shadow-lg pointer-events-none">
-      <div className="text-[10px] text-white text-center mb-1 font-mono uppercase tracking-tighter">
-        {currentMap.replace(/_/g, ' ')}
-      </div>
-      <canvas
-        ref={canvasRef}
-        style={{
-          width: '200px',
-          height: '200px',
-          imageRendering: 'pixelated',
-          backgroundColor: '#000'
-        }}
-      />
-      <div className="text-[8px] text-gray-400 text-center mt-1 font-mono">
-        {playerPos.x}, {playerPos.y}
+    <div className="fixed bottom-4 left-4 z-50 flex flex-col pointer-events-none">
+      <div className="bg-black/80 backdrop-blur-sm border-2 border-white/30 rounded-lg overflow-hidden shadow-xl">
+        <div className="px-2 py-1 border-b border-white/20">
+          <span className="text-[10px] text-white/70 font-mono uppercase tracking-wider">
+            {currentMap.replace(/_/g, ' ')}
+          </span>
+        </div>
+        <canvas
+          ref={canvasRef}
+          className="block bg-black/90"
+          style={{ imageRendering: 'pixelated' }}
+        />
+        <div className="px-2 py-0.5 border-t border-white/20 flex justify-between text-[9px] text-white/50 font-mono">
+          <span>x:{playerPos.x} y:{playerPos.y}</span>
+          <span>{cols}×{rows}</span>
+        </div>
       </div>
     </div>
   );

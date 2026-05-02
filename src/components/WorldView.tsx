@@ -1,4 +1,4 @@
-import { useState, useMemo, memo } from 'react';
+import { useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { type Position, type Entity, type MapID, TILE_SIZE, type MapData, type NPC } from '../types';
 import { WILD_POKEMON_DATABASE } from '../constants';
@@ -42,30 +42,22 @@ export const WorldView = memo(({
   inBattle,
   dialogue,
 }: WorldViewProps) => {
-  const { playerPos, direction, isMoving, currentMap, zoomLevel, cameraOffset, isCameraLocked, setZoomLevel, setCameraOffset, setIsCameraLocked, wildPokemon } = useGameStore();
-  const [isDragging, setIsDragging] = useState(false);
+  const { playerPos, direction, isMoving, currentMap, wildPokemon } = useGameStore();
   const mapData = maps[currentMap];
 
-  // Derive stable refs before hooks — safe to use in useMemo deps
   const grid = mapData?.tiles ?? [];
   const layers = mapData?.layers;
   const mapHasEncounters = currentMap in WILD_POKEMON_DATABASE;
   const rows = grid.length;
   const cols = grid[0]?.length ?? 0;
 
-  // ── Viewport culling — only render tiles visible on screen ─────────────
-  // Sized to actual pixels so no tiles are culled when the map fits entirely
-  // in the window (all interiors), and only off-screen tiles are skipped on
-  // large maps like KANTO_OVERWORLD (440K tiles — rendering all would hang).
-  const halfW = Math.ceil((windowSize.width  / 2) / (TILE_SIZE * zoomLevel)) + 2;
-  const halfH = Math.ceil((windowSize.height / 2) / (TILE_SIZE * zoomLevel)) + 2;
+  const halfW = Math.ceil((windowSize.width  / 2) / TILE_SIZE) + 2;
+  const halfH = Math.ceil((windowSize.height / 2) / TILE_SIZE) + 2;
   const minX = Math.max(0, playerPos.x - halfW);
   const maxX = Math.min(cols - 1, playerPos.x + halfW);
   const minY = Math.max(0, playerPos.y - halfH);
   const maxY = Math.min(rows - 1, playerPos.y + halfH);
 
-  // ── Build layer tile arrays ── memoized; rebuilds only when the visible
-  // tile window shifts (playerPos) or the map / zoom / window changes.
   const { groundTiles, objectTiles, overheadTiles } = useMemo(() => {
     if (!mapData || !layers) return { groundTiles: [], objectTiles: [], overheadTiles: [] };
     const groundTiles = [];
@@ -86,7 +78,6 @@ export const WorldView = memo(({
     return { groundTiles, objectTiles, overheadTiles };
   }, [mapData, mapHasEncounters, minX, maxX, minY, maxY]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Trainer vision indicators — memoized, only update when npcs/defeated changes ──
   const visionIndicators = useMemo(() =>
     (npcs[currentMap] ?? [])
       .filter(npc => (npc as NPC).isTrainer && !defeatedTrainers.includes(npc.id))
@@ -109,7 +100,6 @@ export const WorldView = memo(({
       )
   , [npcs, currentMap, defeatedTrainers, cols, rows]);
 
-  // ── Warp indicators — memoized, only update when warps change ──────────
   const warpIndicators = useMemo(() =>
     mapData?.warps?.map(warp => (
       <div
@@ -130,7 +120,6 @@ export const WorldView = memo(({
 
   if (!mapData) return null;
 
-  // ── Interaction indicator target ──────────────────────────────
   let interactTargetX = playerPos.x;
   let interactTargetY = playerPos.y;
   switch (direction) {
@@ -147,77 +136,15 @@ export const WorldView = memo(({
        ['tree', 'table', 'cut_tree', 'boulder', 'door', 'sign'].includes(mapData.tiles[interactTargetY][interactTargetX].type))
     );
 
-  const handleWheel = (e: React.WheelEvent) => {
-    if (inBattle) return;
-    const delta = e.deltaY > 0 ? -0.05 : 0.05;
-    setZoomLevel(prev => Math.min(Math.max(prev + delta, 0.5), 1.0));
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 0 || e.button === 1) { // Left or middle click to drag
-      setIsDragging(true);
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) {
-      setIsCameraLocked(false);
-      setCameraOffset(prev => ({
-        x: prev.x + e.movementX / zoomLevel,
-        y: prev.y + e.movementY / zoomLevel
-      }));
-    }
-  };
-
-  const handleMouseUp = () => setIsDragging(false);
-
-  // Calculate camera position
-  // If locked, offset is 0,0 and we follow player.
-  // We use cameraOffset in world pixels, adjusted by zoom.
-  const targetX = isCameraLocked ? 0 : cameraOffset.x;
-  const targetY = isCameraLocked ? 0 : cameraOffset.y;
-
   const playerScreenX = playerPos.x * TILE_SIZE + (TILE_SIZE / 2);
   const playerScreenY = playerPos.y * TILE_SIZE + (TILE_SIZE / 2);
-
-  const viewportCenterX = (windowSize.width / 2);
-  const viewportCenterY = (windowSize.height / 2);
-
-  // The final translation needed to center the view
-  const baseTranslateX = viewportCenterX - playerScreenX * zoomLevel;
-  const baseTranslateY = viewportCenterY - playerScreenY * zoomLevel;
-
-  const finalX = baseTranslateX + targetX * zoomLevel;
-  const finalY = baseTranslateY + targetY * zoomLevel;
+  const viewportCenterX = windowSize.width / 2;
+  const viewportCenterY = windowSize.height / 2;
+  const finalX = viewportCenterX - playerScreenX;
+  const finalY = viewportCenterY - playerScreenY;
 
   return (
-    <div 
-      className="relative flex-1 w-full overflow-hidden cursor-crosshair select-none bg-black"
-      onWheel={handleWheel}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onContextMenu={(e) => e.preventDefault()}
-    >
-      {/* Dynamic View Controls Overlay */}
-      <div className="absolute bottom-24 right-8 z-30 hidden lg:flex flex-col gap-2 pointer-events-auto">
-        <button 
-          onClick={() => setIsCameraLocked(!isCameraLocked)}
-          className={`p-3 rounded-full border-2 shadow-lg transition-all ${isCameraLocked ? 'bg-blue-600 border-blue-400 text-white' : 'bg-white border-slate-300 text-slate-600'}`}
-          title="Seguir personaje (Espacio)"
-        >
-          {isCameraLocked ? '🔒' : '🔓'}
-        </button>
-        <button 
-          onClick={() => { setZoomLevel(1.0); setCameraOffset({x:0, y:0}); setIsCameraLocked(true); }}
-          className="bg-white p-3 rounded-full border-2 border-slate-300 shadow-lg text-slate-600 hover:bg-slate-50 transition-all"
-          title="Restablecer vista"
-        >
-          🏠
-        </button>
-      </div>
-      {/* Map viewport */}
+    <div className="relative flex-1 w-full overflow-hidden select-none bg-black">
       <motion.div
         className="absolute origin-top-left"
         style={{ willChange: 'transform' }}
@@ -227,24 +154,16 @@ export const WorldView = memo(({
             ? [finalX, finalX - 8, finalX + 8, finalX]
             : finalX,
           y: finalY,
-          scale: zoomLevel
+          scale: 1
         }}
         transition={{ type: "tween", duration: 0.11, ease: "linear" }}
       >
         <div className="relative" style={{ width: cols * TILE_SIZE, height: rows * TILE_SIZE }}>
-          {/* Ground layer */}
           {groundTiles}
-
-          {/* Object layer (trunks, furniture — z-indexed by row) */}
           {objectTiles}
-
-          {/* Trainer vision indicators */}
           {visionIndicators}
-
-          {/* Warp indicators */}
           {warpIndicators}
 
-          {/* NPCs */}
           {npcs[currentMap].map(npc => (
             <NPCComponent
               key={npc.id}
@@ -254,7 +173,6 @@ export const WorldView = memo(({
             />
           ))}
 
-          {/* Items / Objects */}
           {items[currentMap].map(item => (
             <motion.div
               key={item.id}
@@ -282,7 +200,6 @@ export const WorldView = memo(({
             </motion.div>
           ))}
 
-          {/* Grass rustle effect — single overlay instead of per-tile AnimatePresence */}
           <AnimatePresence>
             {grassEffect && (
               <motion.div
@@ -299,7 +216,6 @@ export const WorldView = memo(({
             )}
           </AnimatePresence>
 
-          {/* Player */}
           {wildPokemon.map(wild => (
             <NPCComponent
               key={wild.id}
@@ -314,10 +230,8 @@ export const WorldView = memo(({
           ))}
           <PlayerSprite position={playerPos} direction={direction} />
 
-          {/* Overhead layer (tree canopies — rendered above player) */}
           {overheadTiles}
 
-          {/* Interaction indicator */}
           <AnimatePresence>
             {isInteractable && (
               <motion.div
