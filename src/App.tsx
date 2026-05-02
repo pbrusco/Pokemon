@@ -1,7 +1,6 @@
 import { useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
 import { type BattleState, type BattleAction } from './lib/battleEngine';
 import { battle, B_CHOOSING, B_FORCED_SWITCH, EXPLORING } from './types/gamePhase';
-import { RecorderButton } from './components/RecorderButton';
 import { logEvent, withoutLogging } from './lib/eventLog';
 import { type Direction } from './types';
 import { useInteractionEngine } from './hooks/useInteractionEngine';
@@ -14,7 +13,6 @@ import { useDebugAPI } from './hooks/useDebugAPI';
 import { useBattleEngine } from './hooks/useBattleEngine';
 import { useMovementEngine } from './hooks/useMovementEngine';
 import { useWildPokemonEngine } from './hooks/useWildPokemonEngine';
-import { GameHeader } from './components/GameHeader';
 import { WorldView } from './components/WorldView';
 const WorldView3D = lazy(() => import('./components/overworld3d/WorldView3D'));
 import { Minimap } from './components/Minimap';
@@ -258,7 +256,6 @@ export default function App() {
     <div className="h-screen bg-slate-900 flex flex-col items-center justify-center overflow-hidden font-sans selection:bg-red-500 selection:text-white">
       <div className="scanline" />
 
-      <GameHeader />
 
       {viewMode === '2d' ? (
         <WorldView
@@ -319,7 +316,6 @@ export default function App() {
 
       <ScreenEffects phaseType={phase.type} battlePhase={battlePhase} />
 
-      {import.meta.env.DEV && <RecorderButton />}
     </div>
   );
 }

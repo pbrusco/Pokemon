@@ -57,9 +57,9 @@ export function RecorderButton() {
   };
 
   return (
-    <div className="fixed bottom-20 right-4 z-[200] flex flex-col items-end gap-1.5">
+    <div className="flex flex-col items-start gap-1.5 w-full">
       {hasLog && (
-        <div className="bg-black/85 text-white text-[10px] px-2.5 py-1.5 rounded-lg font-mono flex items-center gap-2 max-w-[90vw]">
+        <div className="bg-black/85 text-white text-[10px] px-2.5 py-1.5 rounded-lg font-mono flex items-center gap-2 w-full flex-wrap">
           <span
             className={`w-1.5 h-1.5 rounded-full ${
               recording ? 'bg-red-500 animate-pulse' : unsaved ? 'bg-yellow-400' : 'bg-emerald-400'

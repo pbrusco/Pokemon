@@ -204,7 +204,7 @@ export const WorldView = memo(({
       onContextMenu={(e) => e.preventDefault()}
     >
       {/* Dynamic View Controls Overlay */}
-      <div className="absolute bottom-24 right-8 z-30 flex flex-col gap-2 pointer-events-auto">
+      <div className="absolute bottom-24 right-8 z-30 hidden lg:flex flex-col gap-2 pointer-events-auto">
         <button 
           onClick={() => setIsCameraLocked(!isCameraLocked)}
           className={`p-3 rounded-full border-2 shadow-lg transition-all ${isCameraLocked ? 'bg-blue-600 border-blue-400 text-white' : 'bg-white border-slate-300 text-slate-600'}`}

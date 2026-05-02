@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MapIcon, Backpack, Gamepad2, X, Wand2 } from 'lucide-react';
+import { RecorderButton } from './RecorderButton';
 import { ITEMS_DATABASE } from '../constants';
 import { type Pokemon, type InventoryCounts } from '../types';
 import { type GamePhase, EXPLORING } from '../types/gamePhase';
@@ -110,6 +111,14 @@ export const SideMenu = memo(({
           </div>
         </div>
 
+        {import.meta.env.DEV && (
+          <div className="mt-4 pt-4 border-t border-slate-200">
+            <h3 className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold mb-2 px-2">Dev Tools</h3>
+            <div className="px-2">
+              <RecorderButton />
+            </div>
+          </div>
+        )}
       </motion.div>
     )}
   </AnimatePresence>
