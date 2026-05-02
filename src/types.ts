@@ -101,6 +101,8 @@ export interface Pokemon {
   leechSeed?: boolean;
   bideState?: { accumulatedDamage: number; remainingTurns: number };
   lastPhysicalDamage?: number;
+  trapped?: { damage: number; remainingTurns: number };
+  rageActive?: boolean;
 }
 
 export interface PokemonSummary {

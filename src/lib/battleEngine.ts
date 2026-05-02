@@ -268,6 +268,36 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       let move = action.move;
       let playerPkmn = s.playerTeam[0];
 
+      // Bide check: locked during accumulation turns
+      if (playerPkmn.bideState) {
+        if (playerPkmn.bideState.remainingTurns > 1) {
+          effects.push(log(`¡${playerPkmn.name} está acumulando energía!`));
+          s = { ...s, log: `¡${playerPkmn.name} está acumulando energía!`, phase: 'ENEMY_ATTACK' };
+          return { state: s, effects };
+        }
+        // Release turn: deal 2x accumulated
+        const bideDmg = Math.max(1, playerPkmn.bideState.accumulatedDamage * 2);
+        const bideTeam = [...s.playerTeam];
+        bideTeam[0] = { ...bideTeam[0], bideState: undefined };
+        effects.push({ type: 'player_anim', payload: 'attack', moveName: 'ESPERA', moveType: 'normal' });
+        effects.push({ type: 'enemy_anim', payload: 'hit' });
+        effects.push({ type: 'screen_flash' });
+        effects.push({ type: 'battle_shake' });
+        effects.push(log(`¡${playerPkmn.name} desató la energía! Causó ${bideDmg} de daño.`));
+        const bideNewHP = Math.max(0, s.enemyPokemon.hp - bideDmg);
+        s = { ...s, playerTeam: bideTeam, enemyPokemon: { ...s.enemyPokemon, hp: bideNewHP }, log: `¡ESPERA desató ${bideDmg} de daño!`, phase: bideNewHP === 0 ? 'ENEMY_FAINTED' : 'ENEMY_ATTACK' };
+        if (bideNewHP === 0) {
+          effects.push(log(`¡${s.enemyPokemon.name} se debilitó!`));
+          effects.push({ type: 'enemy_anim', payload: 'faint' });
+        }
+        return { state: s, effects };
+      }
+
+      // Rage: auto-lock move
+      if (playerPkmn.rageActive && move.name !== 'FURIA') {
+        move = playerPkmn.moves.find(m => m.name === 'FURIA') || move;
+      }
+
       if (move.pp <= 0) {
         const totalPP = playerPkmn.moves.reduce((sum, m) => sum + m.pp, 0);
         if (totalPP <= 0) {
@@ -455,10 +485,23 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
               enemyLog += ` Causó ${enemyDmg} de daño.`;
             }
             const ut = [...s.playerTeam];
-            ut[0] = { ...ut[0], hp: newPlayerHP };
+            // Store physical damage for Counter + Rage tracking
+            if (['normal','fighting','rock','ground','ghost','bug','poison','flying','ice'].includes(enemyMove.type)) {
+              ut[0] = { ...ut[0], hp: newPlayerHP, lastPhysicalDamage: enemyDmg };
+              if (ut[0].rageActive) {
+                ut[0] = { ...ut[0], statBoosts: { ...(ut[0].statBoosts ?? ZERO_BOOSTS), attack: Math.min(6, (ut[0].statBoosts?.attack ?? 0) + 1) } };
+              }
+            } else {
+              ut[0] = { ...ut[0], hp: newPlayerHP };
+            }
             if (enemyMove.statusEffect && Math.random() * 100 < (enemyMove.statusChance || 100)) {
               ut[0].status = enemyMove.statusEffect;
               enemyLog += ` ¡${playerPkmn.name} ahora está ${enemyMove.statusEffect}!`;
+            }
+            // Track bide accumulation
+            if (ut[0].bideState) {
+              ut[0].bideState.accumulatedDamage += enemyDmg;
+              ut[0].bideState.remainingTurns -= 1;
             }
             effects.push(log(enemyLog, s.enemyPokemon.name));
             s = { ...s, playerTeam: ut, log: enemyLog };
@@ -554,6 +597,10 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       // Super Fang: half current HP (min 1)
       if (move.halfHp) {
         damage = Math.max(1, Math.floor(s.enemyPokemon.hp / 2));
+        result = { damage, isCritical: false, effectiveness: 1, effectivenessLabel: 'normal' };
+      } else if (move.name === 'CONTRAATAQUE') {
+        const physAtk = playerPkmn.lastPhysicalDamage || 0;
+        damage = physAtk * 2;
         result = { damage, isCritical: false, effectiveness: 1, effectivenessLabel: 'normal' };
       } else if (move.fixedDmg) {
         damage = move.fixedDmg;
@@ -681,6 +728,12 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       if (move.statusEffect && Math.random() * 100 < (move.statusChance || 100)) {
         s = { ...s, enemyPokemon: { ...s.enemyPokemon, status: move.statusEffect } };
         attackLog += ` ¡${s.enemyPokemon.name} ahora está ${move.statusEffect}!`;
+      }
+
+      // Trap effect (Bind, Clamp, Fire Spin, Wrap)
+      if (move.trap && !s.enemyPokemon.trapped) {
+        s = { ...s, enemyPokemon: { ...s.enemyPokemon, trapped: { damage: Math.max(1, Math.floor(s.enemyPokemon.maxHp / 16)), remainingTurns: 2 + Math.floor(Math.random() * 3) } } };
+        attackLog += ` ¡${s.enemyPokemon.name} fue atrapado!`;
       }
 
       s = { ...s, log: attackLog };
@@ -950,7 +1003,19 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         }
 
         const updatedTeam3 = [...s.playerTeam];
-        updatedTeam3[0] = { ...updatedTeam3[0], hp: newPlayerHP };
+        // Store physical damage
+        if (['normal','fighting','rock','ground','ghost','bug','poison','flying','ice'].includes(enemyMove.type)) {
+          updatedTeam3[0] = { ...updatedTeam3[0], hp: newPlayerHP, lastPhysicalDamage: enemyDamage };
+          if (updatedTeam3[0].rageActive) {
+            updatedTeam3[0] = { ...updatedTeam3[0], statBoosts: { ...(updatedTeam3[0].statBoosts ?? ZERO_BOOSTS), attack: Math.min(6, (updatedTeam3[0].statBoosts?.attack ?? 0) + 1) } };
+          }
+        } else {
+          updatedTeam3[0] = { ...updatedTeam3[0], hp: newPlayerHP };
+        }
+        if (updatedTeam3[0].bideState) {
+          updatedTeam3[0].bideState.accumulatedDamage += enemyDamage;
+          updatedTeam3[0].bideState.remainingTurns -= 1;
+        }
 
         // Apply status
         if (enemyMove.statusEffect && Math.random() * 100 < (enemyMove.statusChance || 100)) {
@@ -1032,6 +1097,26 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
             s = { ...s, playerTeam: ph };
           }
           effects.push(log(`¡${s.enemyPokemon.name} pierde vida por DRENADORAS!`));
+        }
+        // Trap end-of-turn (Bind, Clamp, Fire Spin, Wrap)
+        if (s.playerTeam[0]?.trapped && s.playerTeam[0]?.hp > 0) {
+          s.playerTeam[0].trapped.remainingTurns -= 1;
+          const trapChip = Math.max(1, Math.floor(s.playerTeam[0].maxHp / 16));
+          const newHp = Math.max(0, s.playerTeam[0].hp - trapChip);
+          const updated = [...s.playerTeam];
+          updated[0] = { ...updated[0], hp: newHp,
+            trapped: s.playerTeam[0].trapped.remainingTurns > 0 ? s.playerTeam[0].trapped : undefined };
+          effects.push(log(`¡${s.playerTeam[0].name} recibe daño por el ataque continuo!`));
+          s = { ...s, playerTeam: updated };
+          if (newHp === 0) { s = { ...s, phase: 'PLAYER_FAINTED' }; }
+        }
+        if (s.enemyPokemon.trapped && s.enemyPokemon.hp > 0) {
+          s.enemyPokemon.trapped.remainingTurns -= 1;
+          const trapChip = Math.max(1, Math.floor(s.enemyPokemon.maxHp / 16));
+          const newEnemyHp = Math.max(0, s.enemyPokemon.hp - trapChip);
+          s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: newEnemyHp,
+            trapped: s.enemyPokemon.trapped.remainingTurns > 0 ? s.enemyPokemon.trapped : undefined } };
+          effects.push(log(`¡${s.enemyPokemon.name} recibe daño por el ataque continuo!`));
         }
       }
 
