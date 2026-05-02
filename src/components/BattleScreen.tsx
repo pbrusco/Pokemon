@@ -31,6 +31,128 @@ interface BattleScreenProps {
   onCinematicDone: () => void;
 }
 
+const STATUS_INFO: Record<string, { label: string; bg: string; color: string }> = {
+  poison:    { label: 'PSN', bg: '#B060D0', color: 'white' },
+  paralysis: { label: 'PAR', bg: '#C8C000', color: 'white' },
+  burn:      { label: 'QUE', bg: '#F04000', color: 'white' },
+  freeze:    { label: 'HLO', bg: '#90C0F8', color: '#383838' },
+  sleep:     { label: 'DOR', bg: '#908090', color: 'white' },
+  confusion: { label: 'CON', bg: '#E080E0', color: '#383838' },
+};
+
+function StatusBadge({ status }: { status: string | undefined }) {
+  if (!status || status === 'none') return null;
+  const info = STATUS_INFO[status];
+  if (!info) return null;
+  return (
+    <span
+      className="font-game rounded-sm px-1 py-px shrink-0"
+      style={{ fontSize: '7px', background: info.bg, color: info.color }}
+    >
+      {info.label}
+    </span>
+  );
+}
+
+const TYPE_COLORS: Record<string, { bg: string; text: string }> = {
+  normal:   { bg: '#A8A878', text: '#383838' },
+  fire:     { bg: '#F08030', text: 'white' },
+  water:    { bg: '#6890F0', text: 'white' },
+  grass:    { bg: '#78C850', text: 'white' },
+  electric: { bg: '#F8D030', text: '#383838' },
+  ice:      { bg: '#98D8D8', text: '#383838' },
+  fighting: { bg: '#C03028', text: 'white' },
+  poison:   { bg: '#A040A0', text: 'white' },
+  ground:   { bg: '#E0C068', text: '#383838' },
+  flying:   { bg: '#A890F0', text: 'white' },
+  psychic:  { bg: '#F85888', text: 'white' },
+  bug:      { bg: '#A8B820', text: 'white' },
+  rock:     { bg: '#B8A038', text: 'white' },
+  ghost:    { bg: '#705898', text: 'white' },
+  dragon:   { bg: '#7038F8', text: 'white' },
+  dark:     { bg: '#705848', text: 'white' },
+  steel:    { bg: '#B8B8D0', text: '#383838' },
+  fairy:    { bg: '#EE99AC', text: '#383838' },
+};
+
+function TypeBadge({ type }: { type: string | undefined }) {
+  if (!type) return null;
+  const c = TYPE_COLORS[type.toLowerCase()] ?? { bg: '#A8A878', text: '#383838' };
+  return (
+    <span
+      className="font-game rounded-sm px-1.5 py-px uppercase shrink-0"
+      style={{ fontSize: '7px', background: c.bg, color: c.text }}
+    >
+      {type}
+    </span>
+  );
+}
+
+function MoveMenu({ moves, onAttack, onBack }: {
+  moves: Move[];
+  onAttack: (m: Move) => void;
+  onBack: () => void;
+}) {
+  const [hovered, setHovered] = useState<number | null>(null);
+  const allNoPP = moves.every(m => m.pp <= 0);
+  const infoMove = hovered !== null ? (moves[hovered] ?? moves[0]) : moves[0];
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* 2×2 move grid, separated by the border color */}
+      <div className="grid grid-cols-2 flex-1 gap-px bg-[#4f6e69] overflow-hidden">
+        {allNoPP ? (
+          <button
+            className="col-span-2 bg-[#f8f8f8] text-left px-3 py-2 hover:bg-[#edf4ef] flex items-center gap-1"
+            onClick={() => onAttack(STRUGGLE_MOVE)}
+          >
+            <span className="text-red-500 text-xs">▶</span>
+            <span className="font-bold text-[#2f2f2f] text-sm uppercase tracking-tight">{STRUGGLE_MOVE.name}</span>
+          </button>
+        ) : (
+          moves.map((move, i) => {
+            const noPP = move.pp <= 0;
+            const isHov = hovered === i;
+            return (
+              <button
+                key={`${move.name}-${i}`}
+                disabled={noPP}
+                className={`bg-[#f8f8f8] text-left px-2 sm:px-3 py-2 flex flex-col justify-center transition-colors ${
+                  noPP ? 'opacity-40 cursor-not-allowed' : isHov ? 'bg-[#d8ecd8]' : 'hover:bg-[#edf4ef]'
+                }`}
+                onClick={() => { if (!noPP) onAttack(move); }}
+                onMouseEnter={() => setHovered(i)}
+                onMouseLeave={() => setHovered(null)}
+              >
+                <span className="inline-flex items-center gap-1">
+                  <span className={`text-red-500 text-[10px] transition-opacity ${isHov && !noPP ? 'opacity-100' : 'opacity-0'}`}>▶</span>
+                  <span className="font-bold text-[#2f2f2f] text-xs sm:text-sm uppercase tracking-tight leading-tight">{move.name}</span>
+                </span>
+                <span className="text-[8px] text-slate-400 font-mono ml-3.5">[{i + 1}]</span>
+              </button>
+            );
+          })
+        )}
+      </div>
+
+      {/* Type / PP info strip */}
+      <div className="border-t-2 border-[#4f6e69] bg-[#edf4ef] px-2 py-1.5 flex items-center gap-2 shrink-0">
+        <TypeBadge type={infoMove?.type} />
+        <span className="font-game text-[#383838] flex-1" style={{ fontSize: '8px' }}>
+          PP&nbsp;&nbsp;{infoMove?.pp ?? '--'}&nbsp;/&nbsp;{infoMove?.maxPp ?? '--'}
+        </span>
+        <button
+          className="font-game text-slate-500 hover:text-slate-700 uppercase"
+          style={{ fontSize: '7px' }}
+          onClick={onBack}
+        >
+          ← VOLVER
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function StatBoostBadges({ boosts }: { boosts: Pokemon['statBoosts'] }) {
   if (!boosts) return null;
   const labels: Record<string, string> = { attack: 'ATQ', defense: 'DEF', special: 'ESP', speed: 'VEL' };
@@ -140,15 +262,62 @@ function PokeballAnim({ isCatching, catchResult }: { isCatching: boolean; catchR
   );
 }
 
-function BattlePlatform({ variant }: { variant: 'enemy' | 'player' }) {
+type Terrain = 'grass' | 'cave' | 'gym' | 'building' | 'water';
+
+function getTerrainFromMap(map: string): Terrain {
+  const m = map.toUpperCase();
+  if (m.includes('CAVE') || m.includes('MT_') || m.includes('TUNNEL') || m.includes('VICTORY_ROAD') || m.includes('POKEMON_TOWER')) return 'cave';
+  if (m.includes('GYM')) return 'gym';
+  if (m.includes('OCEAN') || m.includes('SEAFOAM') || m.includes('SEA')) return 'water';
+  if (!m.includes('ROUTE') && !m.includes('PALLET') && !m.includes('VIRIDIAN') && !m.includes('PEWTER') &&
+      !m.includes('CERULEAN') && !m.includes('VERMILION') && !m.includes('LAVENDER') && !m.includes('CELADON') &&
+      !m.includes('FUCHSIA') && !m.includes('SAFFRON') && !m.includes('CINNABAR') &&
+      (m.includes('MART') || m.includes('CENTER') || m.includes('LAB') || m.includes('HOUSE') ||
+       m.includes('MANSION') || m.includes('HIDEOUT') || m.includes('SILPH') || m.includes('SS_ANNE') ||
+       m.includes('ROCKET') || m.includes('FLOOR') || m.includes('CORP'))) return 'building';
+  return 'grass';
+}
+
+function getArenaStyle(terrain: Terrain): React.CSSProperties {
+  switch (terrain) {
+    case 'cave':
+      return { background: 'linear-gradient(to bottom, #141414 0%, #242018 55%, #342e26 100%)' };
+    case 'gym':
+      return {
+        backgroundColor: '#c8c0b0',
+        backgroundImage: 'repeating-conic-gradient(#d8d0c0 0% 25%, #c0b8a8 0% 50%)',
+        backgroundSize: '40px 40px',
+      };
+    case 'water':
+      return { background: 'linear-gradient(to bottom, #90c8f0 0%, #90c8f0 38%, #4870c8 38%, #3860b8 100%)' };
+    case 'building':
+      return {
+        backgroundColor: '#e0d8c8',
+        backgroundImage: 'repeating-linear-gradient(to bottom, transparent 0px, transparent 11px, rgba(0,0,0,0.07) 11px, rgba(0,0,0,0.07) 13px)',
+      };
+    case 'grass':
+    default:
+      return { background: 'linear-gradient(to bottom, #98d8f0 0%, #98d8f0 36%, #78c840 36%, #60a030 100%)' };
+  }
+}
+
+function BattlePlatform({ variant, terrain }: { variant: 'enemy' | 'player'; terrain: Terrain }) {
   const isEnemy = variant === 'enemy';
+  const platformColors: Record<Terrain, string> = {
+    grass:    'from-[#c8e890] to-[#a8d070] border-[#88b850]',
+    cave:     'from-[#706860] to-[#584e48] border-[#403830]',
+    gym:      'from-[#e0d8c8] to-[#c8c0b0] border-[#a8a098]',
+    water:    'from-[#90d0f8] to-[#70b8e8] border-[#50a0d0]',
+    building: 'from-[#e8dcc8] to-[#d0c4b0] border-[#b0a490]',
+  };
+  const colors = platformColors[terrain];
   return (
     <div className={`absolute ${isEnemy ? 'bottom-0' : 'bottom-1'} left-0 right-0 z-0`}>
       <div
-        className={`mx-auto rounded-[50%] border-2 opacity-90 ${isEnemy ? 'w-[80%] h-8 sm:h-12 bg-gradient-to-b from-white to-slate-200 border-slate-300' : 'w-[85%] h-10 sm:h-16 bg-gradient-to-b from-white to-slate-200 border-slate-300'}`}
+        className={`mx-auto rounded-[50%] border-2 opacity-90 bg-gradient-to-b ${colors} ${isEnemy ? 'w-[80%] h-8 sm:h-12' : 'w-[85%] h-10 sm:h-16'}`}
       />
       <div
-        className={`mx-auto -mt-1 rounded-[50%] blur-[1px] ${isEnemy ? 'w-[65%] h-4 sm:h-6 bg-slate-300/40' : 'w-[70%] h-5 sm:h-8 bg-slate-300/40'}`}
+        className={`mx-auto -mt-1 rounded-[50%] blur-[1px] ${isEnemy ? 'w-[65%] h-4 sm:h-6' : 'w-[70%] h-5 sm:h-8'} bg-black/20`}
       />
     </div>
   );
@@ -344,7 +513,6 @@ export const BattleScreen = memo(function BattleScreen({
   const playerPkmn = playerTeam[0];
   const trainerBattleSprite = useGameStore(s => s.trainerBattleSprite);
   const trainerName = useGameStore(s => s.activeBattle?.trainerName);
-  const [hoveredMoveIdx, setHoveredMoveIdx] = useState<number | null>(null);
   const [enemySpriteError, setEnemySpriteError] = useState(false);
   const [trainerSpriteError, setTrainerSpriteError] = useState(false);
   const [playerSpriteError, setPlayerSpriteError] = useState(false);
@@ -371,33 +539,14 @@ export const BattleScreen = memo(function BattleScreen({
     setPlayerSpriteError(false);
   }, [playerPkmn?.sprite]);
 
-  const hpColor = (hp: number, max: number) => {
+  const hpColor = (hp: number, max: number): string => {
     const ratio = hp / max;
-    if (ratio > 0.5) return 'bg-[#48d0b0] border-[#38a888]';
-    if (ratio > 0.2) return 'bg-[#f8d030] border-[#c8a020]';
-    return 'bg-[#f85838] border-[#c84028]';
+    if (ratio > 0.5) return 'bg-[#00c000]';
+    if (ratio > 0.2) return 'bg-[#f8c000]';
+    return 'bg-[#f02000]';
   };
 
-  const getBattleBackground = () => {
-    if (currentMap.includes('GYM')) return 'linear-gradient(to bottom, #e8eef4 0%, #dce4ec 100%)';
-    if (currentMap.includes('FOREST')) return 'linear-gradient(to bottom, #e8f0e0 0%, #d8e8d0 100%)';
-    if (currentMap.includes('CAVE') || currentMap.includes('MT_') || currentMap.includes('TUNNEL') || currentMap.includes('ROCK_TUNNEL')) return 'linear-gradient(to bottom, #2a2a34 0%, #1e1e28 100%)';
-    if (currentMap.includes('ROUTE')) return 'linear-gradient(to bottom, #e8f0f4 0%, #dce8ec 100%)';
-    return 'linear-gradient(to bottom, #f0f4f0 0%, #e8ece8 100%)';
-  };
-
-  const getMoveDescription = (m: Move) => {
-    if (m.power === 0) {
-      if (m.statusEffect) return `Aplica ${m.statusEffect} (${m.statusChance ?? 100}%).`;
-      if (m.statChange) {
-        const dir = m.statChange.stages > 0 ? 'sube' : 'baja';
-        const target = m.statChange.target === 'enemy' ? 'del rival' : 'propio';
-        return `${dir} ${m.statChange.stat} ${target}.`;
-      }
-      return 'Movimiento de estado.';
-    }
-    return `${m.type.toUpperCase()} · Poder ${m.power} · Precisión ${m.accuracy}%`;
-  };
+  const terrain = getTerrainFromMap(currentMap);
 
   const eHp = enemyPokemon?.hp ?? 0;
   const eMax = enemyPokemon?.maxHp ?? 1;
@@ -405,36 +554,37 @@ export const BattleScreen = memo(function BattleScreen({
   const pMax = playerPkmn?.maxHp ?? 1;
   const isAnimating = playerAnim !== 'idle' || enemyAnim !== 'idle';
 
+  const redBackSprite = `${import.meta.env.BASE_URL}sprites/battle/red_back_pic.png`;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, x: battleShake ? [0, -10, 10, -10, 10, 0] : 0 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[90] flex flex-col font-game"
-      style={{ backgroundImage: getBattleBackground() }}
+      className="fixed inset-0 z-[90] flex flex-col font-game bg-[#26343f]"
     >
       {showTrainerIntro && isTrainerBattle && (
         <TrainerIntro name={trainerName ?? ''} sprite={trainerBattleSprite} />
       )}
 
-      <div className="flex-1 relative w-full h-[65vh] overflow-hidden">
+      <div className="flex-1 relative w-full h-[65vh] overflow-hidden" style={getArenaStyle(terrain)}>
         {/* Enemy HUD */}
         <div className="absolute top-[10%] right-[6%] sm:right-[10%]">
           <div className="bg-[#f8f8f0] border-[3px] border-[#4f6e69] rounded-sm p-2 sm:p-3 w-[180px] sm:w-[260px] shadow-[3px_3px_0_rgba(0,0,0,0.15)]">
-            <div className="flex justify-between items-end border-b-2 border-slate-300 pb-1 mb-1 sm:mb-2">
+            <div className="flex justify-between items-center border-b-2 border-slate-300 pb-1 mb-1 sm:mb-2">
               <h3 className="text-[#383838] font-bold text-sm sm:text-xl uppercase tracking-tighter truncate mr-1">{enemyPokemon?.name}</h3>
-              <p className="text-[#383838] font-bold text-xs sm:text-lg shrink-0">Nv{enemyPokemon?.level}</p>
+              <div className="flex items-center gap-1 shrink-0">
+                <StatusBadge status={enemyPokemon?.status} />
+                <p className="text-[#383838] font-bold text-xs sm:text-lg">Nv{enemyPokemon?.level}</p>
+              </div>
             </div>
             <div className="flex items-center gap-1 sm:gap-2 bg-[#d8d8d8] p-1 rounded-full border-2 border-[#506860]">
               <span className="text-[8px] sm:text-[10px] font-black text-[#f8d830] tracking-widest pl-1 drop-shadow-[1px_1px_0_#c8a020]">PS</span>
-              <div className="flex-1 h-2 sm:h-3 bg-white rounded-full border border-slate-400 overflow-hidden ml-1">
+              <div className="flex-1 h-2 sm:h-3 bg-[#585858] rounded-full overflow-hidden ml-1">
                 <TickHpBar hp={eHp} maxHp={eMax} colorClasses={hpColor(eHp, eMax)} animate={!isCatching} />
               </div>
             </div>
             <StatBoostBadges boosts={enemyPokemon?.statBoosts} />
-            {enemyPokemon?.status && enemyPokemon.status !== 'none' && (
-              <div className="mt-1 text-[9px] font-bold text-orange-600 uppercase tracking-widest text-center">{enemyPokemon.status}</div>
-            )}
           </div>
         </div>
 
@@ -442,7 +592,7 @@ export const BattleScreen = memo(function BattleScreen({
         <div className="absolute top-[22%] right-[14%] sm:right-[18%] w-[180px] sm:w-[300px] flex flex-col items-center">
           <div className="relative w-full" style={{ height: '140px' }}>
             <div className="absolute bottom-12 left-0 right-0">
-              <BattlePlatform variant="enemy" />
+              <BattlePlatform variant="enemy" terrain={terrain} />
             </div>
 
             <div className="flex items-end gap-2 relative z-10 justify-center h-full">
@@ -490,10 +640,22 @@ export const BattleScreen = memo(function BattleScreen({
         <div className="absolute bottom-[18%] left-[10%] sm:left-[15%] w-[200px] sm:w-[350px] flex flex-col items-center">
           <div className="relative w-full" style={{ height: '170px' }}>
             <div className="absolute bottom-14 left-0 right-0">
-              <BattlePlatform variant="player" />
+              <BattlePlatform variant="player" terrain={terrain} />
             </div>
 
             <div className="flex items-end gap-2 relative z-10 justify-center h-full">
+              {/* Red's trainer back sprite — 64×320 spritesheet, clip to first frame */}
+              <div
+                className="shrink-0 mb-4 overflow-hidden opacity-90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]"
+                style={{ width: 48, height: 48 }}
+              >
+                <img
+                  src={redBackSprite}
+                  alt="Red"
+                  className="pixelated block"
+                  style={{ width: 48, height: 240 }}
+                />
+              </div>
               <motion.div
                 className="w-32 h-32 sm:w-56 sm:h-56"
                 variants={{
@@ -526,30 +688,29 @@ export const BattleScreen = memo(function BattleScreen({
         {/* Player HUD */}
         <div className="absolute bottom-[25%] sm:bottom-[30%] left-[3%] sm:left-[5%]">
           <div className="bg-[#f8f8f0] border-[3px] border-[#4f6e69] rounded-sm p-2 sm:p-3 pl-3 sm:pl-4 w-[180px] sm:w-[280px] shadow-[3px_3px_0_rgba(0,0,0,0.15)]">
-            <div className="flex justify-between items-end border-b-2 border-slate-300 pb-1 mb-1 sm:mb-2">
+            <div className="flex justify-between items-center border-b-2 border-slate-300 pb-1 mb-1 sm:mb-2">
               <h3 className="text-[#383838] font-bold text-sm sm:text-xl uppercase tracking-tighter truncate mr-1">{playerPkmn?.name}</h3>
-              <p className="text-[#383838] font-bold text-xs sm:text-lg shrink-0">Nv{playerPkmn?.level}</p>
+              <div className="flex items-center gap-1 shrink-0">
+                <StatusBadge status={playerPkmn?.status} />
+                <p className="text-[#383838] font-bold text-xs sm:text-lg">Nv{playerPkmn?.level}</p>
+              </div>
             </div>
 
             <div className="flex items-center gap-1 sm:gap-2 bg-[#d8d8d8] p-1 rounded-full border-2 border-[#506860]">
               <span className="text-[8px] sm:text-[10px] font-black text-[#f8d830] tracking-widest pl-1 drop-shadow-[1px_1px_0_#c8a020]">PS</span>
-              <div className="flex-1 h-2 sm:h-3 bg-white rounded-full border border-slate-400 overflow-hidden ml-1">
+              <div className="flex-1 h-2 sm:h-3 bg-[#585858] rounded-full overflow-hidden ml-1">
                 <TickHpBar hp={pHp} maxHp={pMax} colorClasses={hpColor(pHp, pMax)} animate={true} />
               </div>
+              <span className="text-[8px] sm:text-[10px] font-mono font-bold text-[#383838] shrink-0 pr-1">
+                {playerPkmn?.hp}/{playerPkmn?.maxHp}
+              </span>
             </div>
 
-            <div className="text-right mt-0.5 sm:mt-1 pr-1">
-              <span className="text-[#383838] font-bold text-sm sm:text-lg tracking-widest">{playerPkmn?.hp} / {playerPkmn?.maxHp}</span>
-            </div>
-
-            <div className="mt-1">
-              <div className="flex justify-between items-center px-1 mb-0.5">
-                <span className="text-[8px] sm:text-[10px] font-black text-[#58a8f8] italic uppercase tracking-tighter">Exp</span>
-                <span className="text-[9px] sm:text-[11px] font-mono font-bold text-slate-600">
-                  {playerPkmn?.exp || 0} / {playerPkmn?.expToNextLevel || 100}
-                </span>
+            <div className="mt-1.5">
+              <div className="flex items-center gap-1 px-1 mb-0.5">
+                <span className="text-[8px] sm:text-[10px] font-black text-[#58a8f8] uppercase tracking-tighter">EXP</span>
               </div>
-              <div className="h-1 sm:h-1.5 w-full bg-[#d8d8d8] flex border border-slate-400 overflow-hidden">
+              <div className="h-1 sm:h-1.5 w-full bg-[#585858] rounded-full overflow-hidden">
                 <motion.div
                   initial={false}
                   animate={{ width: `${((playerPkmn?.exp || 0) / (playerPkmn?.expToNextLevel || 100)) * 100}%` }}
@@ -559,9 +720,6 @@ export const BattleScreen = memo(function BattleScreen({
             </div>
 
             <StatBoostBadges boosts={playerPkmn?.statBoosts} />
-            {playerPkmn?.status && playerPkmn.status !== 'none' && (
-              <div className="mt-1 text-[9px] font-bold text-orange-600 uppercase tracking-widest text-center">{playerPkmn.status}</div>
-            )}
           </div>
         </div>
         <PokeballAnim isCatching={isCatching} catchResult={catchResult} />
@@ -606,59 +764,11 @@ export const BattleScreen = memo(function BattleScreen({
               ))}
             </div>
           ) : isPlayerTurn && showMoves ? (
-            <div className="flex flex-col h-full gap-1">
-              <div className="grid grid-cols-2 flex-1 gap-2 text-[#2f2f2f] font-bold text-sm sm:text-lg items-center tracking-tight uppercase">
-                {playerPkmn?.moves.every(m => m.pp <= 0) ? (
-                  <button
-                    className="col-span-2 text-left px-2 py-1 rounded-sm border border-transparent hover:border-[#4f6e69] hover:bg-[#edf4ef]"
-                    onClick={() => { handleAttack(STRUGGLE_MOVE); }}
-                  >
-                    <span className="inline-flex items-center gap-1">
-                      <span className="text-red-500">▶</span>
-                      {STRUGGLE_MOVE.name}
-                    </span>
-                    <span className="block text-[10px] text-slate-500 normal-case font-normal">
-                      Sin PP — usa Forcejeo [1]
-                    </span>
-                  </button>
-                ) : playerPkmn?.moves.map((move, i) => {
-                  const noPP = move.pp <= 0;
-                  return (
-                    <button
-                      key={`${move.name}-${i}`}
-                      disabled={noPP}
-                      className={`text-left px-2 py-1 rounded-sm border ${
-                        noPP
-                          ? 'opacity-35 cursor-not-allowed border-transparent'
-                          : 'border-transparent hover:border-[#4f6e69] hover:bg-[#edf4ef]'
-                      }`}
-                      onClick={() => { if (!noPP) { handleAttack(move); } }}
-                      onMouseEnter={() => setHoveredMoveIdx(i)}
-                      onMouseLeave={() => setHoveredMoveIdx(null)}
-                    >
-                      <span className="inline-flex items-center gap-1">
-                        {!noPP && <span className="text-red-500">▶</span>}
-                        {move.name}
-                      </span>
-                      <span className="block text-[10px] text-slate-500 normal-case">
-                        PP {move.pp}/{move.maxPp} <span className="text-slate-400 font-normal">[{i + 1}]</span>
-                      </span>
-                      {hoveredMoveIdx === i && (
-                        <span className="block text-[9px] text-slate-600 normal-case mt-0.5 leading-tight">
-                          {getMoveDescription(move)}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              <button
-                className="text-left px-2 py-1 text-[11px] text-slate-500 font-bold hover:text-slate-700 hover:bg-[#edf4ef] rounded-sm border border-transparent hover:border-[#4f6e69] uppercase tracking-tight"
-                onClick={() => { setShowMoves(false); }}
-              >
-                ← VOLVER <span className="font-normal normal-case">[ESC]</span>
-              </button>
-            </div>
+            <MoveMenu
+              moves={playerPkmn?.moves ?? []}
+              onAttack={handleAttack}
+              onBack={() => setShowMoves(false)}
+            />
           ) : null}
         </div>
       </div>

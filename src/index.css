@@ -8,12 +8,39 @@
 }
 
 :root {
-  --pk-grass: #88d8b0;
-  --pk-path: #e0f8d0;
-  --pk-water: #58c8f8;
-  --pk-wall: #f8f8f8;
-  --pk-roof: #f85858;
-  --pk-border: #383838;
+  /* Tile palette — mirrors tilesetGenerator.ts C{} constants */
+  --pk-grass:       #78C840;
+  --pk-path:        #C8A848;
+  --pk-water:       #4870C8;
+  --pk-wall:        #F0E8D0;
+  --pk-roof:        #C84838;
+  --pk-border:      #383838;
+
+  /* UI palette — menus, panels, modals */
+  --ui-bg:          #F8F8F0;
+  --ui-border:      #383838;
+  --ui-border-lt:   #A8A8A8;
+  --ui-accent:      #4878D8;
+  --ui-red:         #D03030;
+
+  /* Battle palette */
+  --battle-bg:      #202850;
+  --battle-panel:   #F8F8F0;
+  --battle-log-bg:  #101830;
+  --battle-log-border: #F0C830;
+
+  /* HP bar (saturated, no gradients) */
+  --hp-high:        #00C000;
+  --hp-mid:         #F8C000;
+  --hp-low:         #F02000;
+
+  /* Status condition badges */
+  --status-psn:     #B060D0;
+  --status-par:     #C8C000;
+  --status-brn:     #F04000;
+  --status-frz:     #90C0F8;
+  --status-slp:     #908090;
+  --status-con:     #E080E0;
 }
 
 body {
@@ -76,6 +103,16 @@ body {
 
 .pixelated {
   image-rendering: pixelated;
+}
+
+/* Water shimmer — alternates between WATER (tile 6) and WATER_ALT (tile 7)
+   on the spritesheet. TILE_SIZE=64, TILESET_COLS=8 → col positions are -384px and -448px. */
+@keyframes water-shimmer {
+  0%, 49.9% { background-position-x: -384px; }
+  50%, 100% { background-position-x: -448px; }
+}
+.water-shimmer {
+  animation: water-shimmer 1.2s step-end infinite;
 }
 
 @keyframes walk {

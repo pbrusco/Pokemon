@@ -1,16 +1,32 @@
 import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { type NPC, TILE_SIZE } from '../../types';
+import { type NPC, type Position, TILE_SIZE } from '../../types';
 import { NPC_SPRITE_MAP } from '../../data/npcSpriteMap';
 import { cssFrame } from '../../lib/spriteFormat';
 
-export const NPCComponent = memo(({ npc, isSpotted }: { npc: NPC, key?: string, isSpotted?: boolean }) => {
+// Generic trainer classes that aren't interesting enough to label
+const SILENT_CLASSES = new Set(['citizen', 'old_man', 'old_woman', 'man', 'woman']);
+
+export const NPCComponent = memo(({ npc, isSpotted, playerPos }: {
+  npc: NPC;
+  key?: string;
+  isSpotted?: boolean;
+  playerPos?: Position;
+}) => {
   const [spriteError, setSpriteError] = useState(false);
   const entry = npc.trainerClass ? NPC_SPRITE_MAP[npc.trainerClass] : undefined;
   const url = entry?.overworld ?? '';
   const numFrames = entry?.overworldFrames ?? 0;
   const hasSprite = url && numFrames > 0;
   const frame = hasSprite ? cssFrame(npc.direction, numFrames) : null;
+
+  // Name tag: visible only when player is within 3 tiles (Chebyshev distance).
+  // Wild Pokémon pass no playerPos so they never show a label.
+  // Silent generic classes (citizens etc.) are also skipped.
+  const isSilent = npc.trainerClass ? SILENT_CLASSES.has(npc.trainerClass) : false;
+  const isNearby = playerPos != null && !isSilent
+    ? Math.max(Math.abs(npc.position.x - playerPos.x), Math.abs(npc.position.y - playerPos.y)) <= 3
+    : false;
 
   return (
     <motion.div
@@ -23,6 +39,7 @@ export const NPCComponent = memo(({ npc, isSpotted }: { npc: NPC, key?: string, 
       style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 20 + npc.position.y }}
     >
       <div className="relative">
+        {/* Trainer spotted exclamation mark */}
         <AnimatePresence>
           {isSpotted && (
             <motion.div
@@ -39,7 +56,11 @@ export const NPCComponent = memo(({ npc, isSpotted }: { npc: NPC, key?: string, 
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Ground shadow */}
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-2 bg-black/20 rounded-full blur-sm" />
+
+        {/* Sprite */}
         {hasSprite && !spriteError ? (
           <>
             <div
@@ -82,9 +103,34 @@ export const NPCComponent = memo(({ npc, isSpotted }: { npc: NPC, key?: string, 
             <div className="w-full h-1/3 bg-[#f8f8f8]" />
           </div>
         )}
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white/90 px-3 py-1 rounded-full border-2 border-[#58c8f8] shadow-sm">
-          <span className="text-[11px] font-black text-[#383838] whitespace-nowrap uppercase tracking-wider">{npc.name}</span>
-        </div>
+
+        {/* Proximity name tag */}
+        <AnimatePresence>
+          {isNearby && (
+            <motion.div
+              key="nametag"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              transition={{ duration: 0.15 }}
+              className="absolute -top-9 left-1/2 -translate-x-1/2 pointer-events-none"
+              style={{ zIndex: 50 }}
+            >
+              <div
+                className="rounded-sm px-2 py-0.5 whitespace-nowrap"
+                style={{
+                  background: '#0d1b2a',
+                  border: '2px solid #f8f8f0',
+                  boxShadow: '0 2px 0 #000',
+                }}
+              >
+                <span className="font-game text-white uppercase" style={{ fontSize: '6px', letterSpacing: '0.05em' }}>
+                  {npc.name}
+                </span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );

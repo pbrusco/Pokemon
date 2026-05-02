@@ -14,12 +14,128 @@ interface TeamMenuUIProps {
   selectedItemId?: string;
 }
 
-const getHpColor = (hp: number, max: number) => {
-  const ratio = hp / max;
-  if (ratio > 0.5) return 'bg-green-500';
-  if (ratio > 0.2) return 'bg-yellow-500';
-  return 'bg-red-500';
+const STATUS_BADGE: Record<string, { label: string; bg: string }> = {
+  poison:    { label: 'PSN', bg: '#B060D0' },
+  paralysis: { label: 'PAR', bg: '#C8C000' },
+  burn:      { label: 'QUE', bg: '#F04000' },
+  freeze:    { label: 'HLO', bg: '#90C0F8' },
+  sleep:     { label: 'DOR', bg: '#908090' },
+  confusion: { label: 'CON', bg: '#E080E0' },
 };
+
+function hpBarColor(hp: number, max: number) {
+  const r = hp / max;
+  if (r > 0.5) return '#00c000';
+  if (r > 0.2) return '#f8c000';
+  return '#f02000';
+}
+
+function PokemonCard({
+  pkmn,
+  isLead,
+  isSelected,
+  isSelectable,
+  onHover,
+  onSelect,
+}: {
+  pkmn: Pokemon;
+  isLead: boolean;
+  isSelected: boolean;
+  isSelectable: boolean;
+  onHover: () => void;
+  onSelect: () => void;
+}) {
+  const fainted = pkmn.hp <= 0;
+  const hpPct = Math.max(0, (pkmn.hp / pkmn.maxHp) * 100);
+  const status = pkmn.status && pkmn.status !== 'none' ? STATUS_BADGE[pkmn.status] : null;
+
+  return (
+    <div
+      onClick={onSelect}
+      onPointerEnter={onHover}
+      className="flex items-center gap-3 rounded-sm cursor-pointer transition-colors select-none"
+      style={{
+        background: isSelected ? '#304868' : '#243850',
+        border: `2px solid ${isLead ? '#f8c000' : isSelected ? '#5888b8' : '#3a5878'}`,
+        padding: isLead ? '10px 12px' : '7px 10px',
+        opacity: fainted && !isSelectable ? 0.5 : 1,
+      }}
+    >
+      {/* Cursor */}
+      <span
+        className="font-game shrink-0 text-[#f8c000]"
+        style={{ fontSize: '8px', opacity: isSelected ? 1 : 0, width: 10 }}
+      >
+        ▶
+      </span>
+
+      {/* Sprite */}
+      <div
+        className="shrink-0 flex items-center justify-center"
+        style={{ width: isLead ? 56 : 44, height: isLead ? 56 : 44 }}
+      >
+        <img
+          src={pkmn.sprite}
+          alt={pkmn.name}
+          className="w-full h-full object-contain pixelated"
+          style={{ filter: fainted ? 'grayscale(1) brightness(0.5)' : 'none' }}
+        />
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        {/* Name + level row */}
+        <div className="flex justify-between items-baseline gap-1">
+          <span
+            className="font-game text-white uppercase truncate"
+            style={{ fontSize: isLead ? '9px' : '7px', letterSpacing: '0.04em' }}
+          >
+            {pkmn.name}
+          </span>
+          <span
+            className="font-game text-white/70 shrink-0"
+            style={{ fontSize: '7px' }}
+          >
+            Nv{pkmn.level}
+          </span>
+        </div>
+
+        {/* HP bar */}
+        <div className="flex items-center gap-1.5 mt-1">
+          <span className="font-game shrink-0 text-[#f8d830]" style={{ fontSize: '6px' }}>PS</span>
+          <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: '#1a1a2e' }}>
+            <div
+              className="h-full transition-all rounded-full"
+              style={{ width: `${hpPct}%`, background: hpBarColor(pkmn.hp, pkmn.maxHp) }}
+            />
+          </div>
+          <span className="font-mono text-white/80 shrink-0" style={{ fontSize: '9px' }}>
+            {pkmn.hp}/{pkmn.maxHp}
+          </span>
+        </div>
+
+        {/* Badges row */}
+        <div className="flex items-center gap-1 mt-1 flex-wrap">
+          {fainted && (
+            <span className="font-game rounded-sm px-1 py-px text-white" style={{ fontSize: '6px', background: '#606060' }}>
+              DEB
+            </span>
+          )}
+          {!fainted && status && (
+            <span className="font-game rounded-sm px-1 py-px text-white" style={{ fontSize: '6px', background: status.bg }}>
+              {status.label}
+            </span>
+          )}
+          {isLead && !fainted && (
+            <span className="font-game rounded-sm px-1 py-px" style={{ fontSize: '6px', background: '#f8c000', color: '#383838' }}>
+              EN CAMPO
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export const TeamMenuUI = memo(({ team, onClose, onSwap, onUseItem, forcedSwitch = false, mode = 'swap', selectedItemId }: TeamMenuUIProps) => {
   const [cursor, setCursor] = useState(0);
@@ -28,13 +144,9 @@ export const TeamMenuUI = memo(({ team, onClose, onSwap, onUseItem, forcedSwitch
   const canSelect = (pkmn: Pokemon, i: number) => {
     if (mode === 'use_item' && selectedItemId) {
       const result = applyItemToPokemon(pkmn, selectedItemId);
-      if (!result.success) {
-        setFeedbackMsg(result.message);
-        return false;
-      }
+      if (!result.success) { setFeedbackMsg(result.message); return false; }
       return true;
     }
-    // swap mode
     if (i === 0) return false;
     if (pkmn.hp <= 0) return false;
     return true;
@@ -43,125 +155,109 @@ export const TeamMenuUI = memo(({ team, onClose, onSwap, onUseItem, forcedSwitch
   const handleSelect = (index: number) => {
     setFeedbackMsg(null);
     if (index >= team.length) {
-      if (!forcedSwitch) {
-        onClose();
-      }
+      if (!forcedSwitch) onClose();
       return;
     }
     if (canSelect(team[index], index)) {
-      if (mode === 'use_item' && onUseItem) {
-        onUseItem(index);
-      } else if (onSwap) {
-        onSwap(index);
-      }
+      if (mode === 'use_item' && onUseItem) onUseItem(index);
+      else if (onSwap) onSwap(index);
     }
   };
 
-  const totalOptions = team.length + (forcedSwitch ? 0 : 1);
+  const headerText = mode === 'use_item' && selectedItemId
+    ? `Usar ${ITEMS_DATABASE[selectedItemId]?.name ?? 'Objeto'}`
+    : forcedSwitch ? '¡Elige un Pokémon!' : 'Equipo Pokémon';
+
+  const [lead, ...rest] = team;
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] flex flex-col"
+      style={{ background: '#1a3050' }}
     >
-      <div className="w-full max-w-md bg-white border-[4px] border-slate-800 rounded-lg shadow-[6px_6px_0_rgba(0,0,0,0.15)] flex flex-col max-h-[85vh]">
-        {/* Header */}
-        <div className="border-b-2 border-slate-300 px-4 py-2 bg-slate-50 rounded-t flex justify-between items-center">
-          <span className="font-mono font-bold text-slate-800 text-sm tracking-wide uppercase">
-            {mode === 'use_item' && selectedItemId
-              ? `Usar ${ITEMS_DATABASE[selectedItemId]?.name || 'Objeto'} en quién?`
-              : forcedSwitch ? '¡Elige un Pokémon!' : 'Equipo Pokémon'}
-          </span>
-          <span className="font-mono text-[10px] text-slate-400 uppercase">{team.length}/6</span>
-        </div>
+      {/* Header bar */}
+      <div
+        className="flex justify-between items-center px-4 py-2 shrink-0"
+        style={{ background: '#0f1e30', borderBottom: '3px solid #383838' }}
+      >
+        <span className="font-game text-white uppercase" style={{ fontSize: '9px', letterSpacing: '0.08em' }}>
+          {headerText}
+        </span>
+        <span className="font-mono text-white/50" style={{ fontSize: '10px' }}>{team.length}/6</span>
+      </div>
 
-        {/* Pokemon list */}
-        <div className="flex-1 overflow-y-auto">
-          {team.map((pkmn, i) => {
-            const fainted = pkmn.hp <= 0;
-            const isActive = i === 0;
-            const hpPercent = Math.max(0, (pkmn.hp / pkmn.maxHp) * 100);
+      {/* Party list */}
+      <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2">
+        {/* Lead slot — full width, prominent */}
+        {lead && (
+          <PokemonCard
+            pkmn={lead}
+            isLead={true}
+            isSelected={cursor === 0}
+            isSelectable={canSelect(lead, 0)}
+            onHover={() => setCursor(0)}
+            onSelect={() => { setCursor(0); handleSelect(0); }}
+          />
+        )}
 
-            return (
-              <div
-                key={i}
-                onClick={() => { setCursor(i); handleSelect(i); }}
-                onPointerEnter={() => setCursor(i)}
-                className={`flex items-center gap-3 px-3 py-2 cursor-pointer border-b border-slate-200 transition-colors ${
-                  cursor === i ? 'bg-slate-100' : ''
-                } ${fainted ? 'opacity-50' : ''} ${isActive ? 'bg-blue-50' : ''}`}
-              >
-                {/* Cursor arrow */}
-                <span className="w-4 text-slate-800 font-mono text-sm shrink-0">{cursor === i ? '▶' : ''}</span>
+        {/* Remaining slots — 2-column grid */}
+        {rest.length > 0 && (
+          <div className="grid grid-cols-2 gap-2">
+            {rest.map((pkmn, i) => {
+              const idx = i + 1;
+              return (
+                <PokemonCard
+                  key={idx}
+                  pkmn={pkmn}
+                  isLead={false}
+                  isSelected={cursor === idx}
+                  isSelectable={canSelect(pkmn, idx)}
+                  onHover={() => setCursor(idx)}
+                  onSelect={() => { setCursor(idx); handleSelect(idx); }}
+                />
+              );
+            })}
+          </div>
+        )}
+      </div>
 
-                {/* Pokemon sprite */}
-                <div className="w-10 h-10 shrink-0 flex items-center justify-center">
-                  <img src={pkmn.sprite} className="w-full h-full object-contain pixelated" alt={pkmn.name} />
-                </div>
+      {/* Footer */}
+      <div
+        className="shrink-0 px-4 py-3 flex items-center justify-between gap-3"
+        style={{ background: '#0f1e30', borderTop: '3px solid #383838' }}
+      >
+        {/* Feedback / hint */}
+        <p className="font-sans text-[11px] text-white/60 flex-1">
+          {feedbackMsg
+            ? <span className="text-[#f02000] font-semibold">{feedbackMsg}</span>
+            : mode === 'use_item'
+              ? 'Elige un Pokémon para usar el objeto.'
+              : forcedSwitch
+                ? 'Debes elegir un Pokémon con PS.'
+                : 'Elige un Pokémon para ponerlo al frente.'}
+        </p>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-center">
-                    <span className="font-mono font-bold text-slate-800 text-sm uppercase truncate">{pkmn.name}</span>
-                    <span className="font-mono font-bold text-slate-600 text-xs shrink-0 ml-2">Nv{pkmn.level}</span>
-                  </div>
-
-                  {/* HP bar */}
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <span className="font-mono font-bold text-[10px] text-slate-500 shrink-0">PS</span>
-                    <div className="flex-1 h-2 bg-slate-200 rounded-sm overflow-hidden border border-slate-300">
-                      <div
-                        className={`h-full transition-all ${getHpColor(pkmn.hp, pkmn.maxHp)}`}
-                        style={{ width: `${hpPercent}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* HP numbers + status */}
-                  <div className="flex justify-between mt-0.5">
-                    <span className="font-mono text-[10px] text-slate-500">{pkmn.hp}/{pkmn.maxHp}</span>
-                    <div className="flex gap-1">
-                      {fainted && <span className="font-mono text-[9px] font-bold bg-slate-500 px-1 rounded-sm text-white">DEB</span>}
-                      {!fainted && pkmn.status && pkmn.status !== 'none' && (
-                        <span className="font-mono text-[9px] font-bold bg-yellow-500 px-1 rounded-sm text-white uppercase">{pkmn.status}</span>
-                      )}
-                      {isActive && <span className="font-mono text-[9px] font-bold text-blue-600">EN CAMPO</span>}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-
-          {/* CERRAR option */}
-          {!forcedSwitch && (
-            <div
-              onClick={() => { setCursor(team.length); handleSelect(team.length); }}
-              onPointerEnter={() => setCursor(team.length)}
-              className={`flex items-center px-3 py-2 cursor-pointer transition-colors ${
-                cursor === totalOptions - 1 ? 'bg-slate-100' : ''
-              }`}
-            >
-              <span className="w-4 text-slate-800 font-mono text-sm shrink-0">{cursor === totalOptions - 1 ? '▶' : ''}</span>
-              <span className="font-mono font-bold text-slate-800 text-sm uppercase ml-3">Cerrar</span>
-            </div>
-          )}
-        </div>
-
-        {/* Footer description */}
-        <div className="border-t-2 border-slate-300 px-4 py-2 bg-slate-50 rounded-b">
-          <p className="font-mono text-[10px] text-slate-500">
-            {feedbackMsg 
-              ? <span className="text-red-500 font-bold">{feedbackMsg}</span>
-              : mode === 'use_item' 
-                ? 'Elige un Pokémon para usar el objeto.'
-                : forcedSwitch
-                  ? 'Debes elegir un Pokémon con PS.'
-                  : 'Elige un Pokémon para ponerlo al frente.'}
-          </p>
-        </div>
+        {/* Cancel button */}
+        {!forcedSwitch && (
+          <button
+            onClick={onClose}
+            className="font-game text-white uppercase shrink-0"
+            style={{
+              fontSize: '8px',
+              letterSpacing: '0.06em',
+              background: '#383838',
+              border: '2px solid #585858',
+              borderRadius: 3,
+              padding: '6px 14px',
+              boxShadow: '0 3px 0 #0a0a0a',
+            }}
+          >
+            ← Cancelar
+          </button>
+        )}
       </div>
     </motion.div>
   );

@@ -51,35 +51,35 @@ const TILESET_ROWS = 5; // 8×5 = 40 slots
 
 // ── Palette ───────────────────────────────────────────────────────
 const C = {
-  // Grass
-  GRASS:       '#88C858',
-  GRASS_DK:    '#70A840',
-  GRASS_LT:    '#98D868',
-  // Tall grass
-  TGRASS:      '#48A030',
+  // Grass — slightly more saturated, FRLG-accurate
+  GRASS:       '#78C840',
+  GRASS_DK:    '#60A030',
+  GRASS_LT:    '#90D858',
+  // Tall grass — richer deep green
+  TGRASS:      '#50B030',
   TGRASS_DK:   '#306820',
-  TGRASS_LT:   '#60B848',
-  // Path
-  PATH:        '#D8C078',
-  PATH_DK:     '#C0A858',
-  PATH_LT:     '#E8D898',
-  // Tree
-  CANOPY:      '#389028',
-  CANOPY_DK:   '#206818',
-  CANOPY_LT:   '#50A840',
-  TRUNK:       '#886030',
-  TRUNK_DK:    '#704820',
+  TGRASS_LT:   '#68C048',
+  // Path — warmer golden tone
+  PATH:        '#C8A848',
+  PATH_DK:     '#A88830',
+  PATH_LT:     '#E0C870',
+  // Tree — deeper canopy with near-black outline
+  CANOPY:      '#50A830',
+  CANOPY_DK:   '#183808',
+  CANOPY_LT:   '#68C048',
+  TRUNK:       '#806030',
+  TRUNK_DK:    '#604020',
   // Building
-  ROOF:        '#C05038',
+  ROOF:        '#C84838',
   ROOF_DK:     '#A03028',
-  ROOF_LT:     '#D86850',
-  WALL:        '#E8D8C0',
-  WALL_DK:     '#D0C0A0',
-  WALL_LT:     '#F8F0E0',
-  // Water
-  WATER:       '#5888C8',
-  WATER_DK:    '#4070B0',
-  WATER_LT:    '#70A8E8',
+  ROOF_LT:     '#E06050',
+  WALL:        '#F0E8D0',
+  WALL_DK:     '#D8D0B8',
+  WALL_LT:     '#F8F4E8',
+  // Water — deeper, more saturated blue
+  WATER:       '#4870C8',
+  WATER_DK:    '#3058A8',
+  WATER_LT:    '#68A0E8',
   // Interior
   FLOOR_LT:    '#F0E8D0',
   FLOOR_DK:    '#E0D0B8',
@@ -257,7 +257,7 @@ function drawWaterAlt(ctx: Ctx, ox: number, oy: number) {
 function drawTreeCanopy(ctx: Ctx, ox: number, oy: number) {
   // Dense canopy — dark green fill with light highlights and dark shadows
   fill(ctx, ox, oy, 16, 16, C.CANOPY);
-  // Dark patches
+  // Dark patches (interior depth)
   fill(ctx, ox+1, oy+2, 3, 2, C.CANOPY_DK);
   fill(ctx, ox+8, oy+1, 4, 2, C.CANOPY_DK);
   fill(ctx, ox+3, oy+7, 3, 3, C.CANOPY_DK);
@@ -265,7 +265,7 @@ function drawTreeCanopy(ctx: Ctx, ox: number, oy: number) {
   fill(ctx, ox+0, oy+11, 4, 2, C.CANOPY_DK);
   fill(ctx, ox+7, oy+10, 4, 3, C.CANOPY_DK);
   fill(ctx, ox+13, oy+12, 3, 2, C.CANOPY_DK);
-  // Light highlights
+  // Light highlights (sun-catching spots)
   fill(ctx, ox+5, oy+1, 2, 1, C.CANOPY_LT);
   fill(ctx, ox+13, oy+3, 2, 1, C.CANOPY_LT);
   fill(ctx, ox+0, oy+6, 2, 1, C.CANOPY_LT);
@@ -273,6 +273,11 @@ function drawTreeCanopy(ctx: Ctx, ox: number, oy: number) {
   fill(ctx, ox+14, oy+8, 2, 1, C.CANOPY_LT);
   fill(ctx, ox+5, oy+12, 2, 1, C.CANOPY_LT);
   fill(ctx, ox+1, oy+15, 2, 1, C.CANOPY_LT);
+  // Near-black outline ring — FRLG style border around the whole canopy tile
+  fill(ctx, ox,    oy,    16, 1,  C.CANOPY_DK); // top
+  fill(ctx, ox,    oy+15, 16, 1,  C.CANOPY_DK); // bottom
+  fill(ctx, ox,    oy,    1,  16, C.CANOPY_DK); // left
+  fill(ctx, ox+15, oy,    1,  16, C.CANOPY_DK); // right
 }
 
 function drawTreeCanopyBot(ctx: Ctx, ox: number, oy: number) {
@@ -284,14 +289,18 @@ function drawTreeCanopyBot(ctx: Ctx, ox: number, oy: number) {
   fill(ctx, ox+2, oy+11, 12, 1, C.CANOPY);
   fill(ctx, ox+3, oy+12, 10, 1, C.CANOPY);
   fill(ctx, ox+5, oy+13, 6, 1, C.CANOPY);
-  // Dark edge at bottom
-  fill(ctx, ox+1, oy+10, 1, 1, C.CANOPY_DK);
+  // Near-black outline on left/right/top edges
+  fill(ctx, ox,    oy, 1,  10, C.CANOPY_DK); // left
+  fill(ctx, ox+15, oy, 1,  10, C.CANOPY_DK); // right
+  fill(ctx, ox,    oy, 16, 1,  C.CANOPY_DK); // top
+  // Near-black curved bottom edge
+  fill(ctx, ox+1,  oy+10, 1, 1, C.CANOPY_DK);
   fill(ctx, ox+14, oy+10, 1, 1, C.CANOPY_DK);
-  fill(ctx, ox+2, oy+11, 1, 1, C.CANOPY_DK);
+  fill(ctx, ox+2,  oy+11, 1, 1, C.CANOPY_DK);
   fill(ctx, ox+13, oy+11, 1, 1, C.CANOPY_DK);
-  fill(ctx, ox+3, oy+12, 1, 1, C.CANOPY_DK);
+  fill(ctx, ox+3,  oy+12, 1, 1, C.CANOPY_DK);
   fill(ctx, ox+12, oy+12, 1, 1, C.CANOPY_DK);
-  fill(ctx, ox+5, oy+13, 1, 1, C.CANOPY_DK);
+  fill(ctx, ox+5,  oy+13, 1, 1, C.CANOPY_DK);
   fill(ctx, ox+10, oy+13, 1, 1, C.CANOPY_DK);
   // Highlights
   fill(ctx, ox+4, oy+2, 2, 1, C.CANOPY_LT);
@@ -308,18 +317,20 @@ function drawTreeTrunk(ctx: Ctx, ox: number, oy: number) {
   fill(ctx, ox, oy, 16, 16, C.GRASS);
   // Trunk — centered, 6px wide, full height (canopy above covers top)
   fill(ctx, ox+5, oy, 6, 16, C.TRUNK);
-  // Shadow on left side
+  // Shadow on left side of trunk
   fill(ctx, ox+5, oy, 2, 16, C.TRUNK_DK);
-  // Bark texture
+  // Highlight on right edge (top-lit look)
+  fill(ctx, ox+10, oy, 1, 16, C.CANOPY_LT);
+  // Bark texture knots
   px(ctx, ox+7, oy+3, C.TRUNK_DK);
   px(ctx, ox+8, oy+7, C.TRUNK_DK);
   px(ctx, ox+7, oy+11, C.TRUNK_DK);
   px(ctx, ox+9, oy+14, C.TRUNK_DK);
-  // Grass detail around trunk
-  px(ctx, ox+3, oy+2, C.GRASS_DK);
-  px(ctx, ox+12, oy+5, C.GRASS_DK);
-  px(ctx, ox+1, oy+10, C.GRASS_DK);
-  px(ctx, ox+13, oy+13, C.GRASS_DK);
+  // Grass detail around trunk base
+  px(ctx, ox+3, oy+12, C.GRASS_DK);
+  px(ctx, ox+12, oy+13, C.GRASS_DK);
+  px(ctx, ox+2, oy+14, C.GRASS_LT);
+  px(ctx, ox+13, oy+15, C.GRASS_LT);
 }
 
 function drawRoofL(ctx: Ctx, ox: number, oy: number) {

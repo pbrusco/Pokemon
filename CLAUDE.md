@@ -69,7 +69,7 @@ setPlayerTeam(newTeam);
 setTimeout(() => setPhase(EXPLORING), 1000);
 ```
 
-**NPC placement** — use `buildNPCDatabase()` in `npcDatabase.ts`, not `worldConfig.ts`.
+**NPC placement** — use `buildNPCDatabase()` in `npcDatabase.ts`, not `worldConfig.ts`. Trainer NPCs must be placed at the exact coordinates from the **pokered map script** (e.g., `pokered_dissasembly/scripts/Route9.asm` via `object_const_def` + `TrainerWalkToPlayer`). Never invent coordinates — every trainer position comes from the canonical Gen I script.
 
 ## Invariants
 

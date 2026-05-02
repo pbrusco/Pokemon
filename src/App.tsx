@@ -134,6 +134,26 @@ export default function App() {
     rawHandleAction();
   }, [rawHandleAction]);
 
+  const handleBack = useCallback(() => {
+    const s = useGameStore.getState();
+    if (s.dialogue) {
+      const cb = s.dialogueCallback;
+      s.setDialogue(null);
+      if (cb) cb();
+      return;
+    }
+    const ph = s.phase;
+    if (ph.type === 'MENU') { s.setPhase(ph.returnTo ?? EXPLORING); return; }
+    if (ph.type === 'BATTLE' && s.showMoves) { s.setShowMoves(false); }
+  }, []);
+
+  const handleSelect = useCallback(() => {
+    const s = useGameStore.getState();
+    if (!s.hasPokedex) return;
+    if (s.phase.type === 'EXPLORING') s.setPhase({ type: 'POKEDEX', returnTo: EXPLORING });
+    else if (s.phase.type === 'POKEDEX') s.setPhase(s.phase.returnTo ?? EXPLORING);
+  }, []);
+
   const handleUseItem = useCallback((itemId: string) => {
     logEvent({ k: 'item', itemId });
     withoutLogging(() => {
@@ -271,7 +291,6 @@ export default function App() {
           defeatedTrainers={defeatedTrainers}
           inBattle={inBattle}
           dialogue={dialogue}
-          playerTeam={playerTeam}
         />
       ) : (
         <Suspense fallback={<div className="absolute inset-0 bg-slate-900" />}>
@@ -286,7 +305,7 @@ export default function App() {
 
       <Minimap />
 
-      <MobileControls onMove={handleMove} onDirChange={(dir) => { mobileDirRef.current = dir; }} onAction={handleAction} setPhase={setPhase} />
+      <MobileControls onMove={handleMove} onDirChange={(dir) => { mobileDirRef.current = dir; }} onAction={handleAction} onBack={handleBack} onSelect={handleSelect} setPhase={setPhase} />
 
       <MenuButton phase={phase} setPhase={setPhase} />
 

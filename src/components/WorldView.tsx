@@ -1,6 +1,6 @@
 import { useState, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { type Position, type Entity, type Pokemon, type MapID, TILE_SIZE, type MapData, type NPC } from '../types';
+import { type Position, type Entity, type MapID, TILE_SIZE, type MapData, type NPC } from '../types';
 import { WILD_POKEMON_DATABASE } from '../constants';
 import { useGameStore } from '../store/gameStore';
 import { NPCComponent } from './overworld/NPCComponent';
@@ -27,7 +27,6 @@ interface WorldViewProps {
   defeatedTrainers: string[];
   inBattle: boolean;
   dialogue: string | null;
-  playerTeam: Pokemon[];
 }
 
 export const WorldView = memo(({
@@ -42,10 +41,8 @@ export const WorldView = memo(({
   defeatedTrainers,
   inBattle,
   dialogue,
-  playerTeam,
 }: WorldViewProps) => {
   const { playerPos, direction, isMoving, currentMap, zoomLevel, cameraOffset, isCameraLocked, setZoomLevel, setCameraOffset, setIsCameraLocked, wildPokemon } = useGameStore();
-  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const mapData = maps[currentMap];
 
@@ -220,62 +217,6 @@ export const WorldView = memo(({
           🏠
         </button>
       </div>
-      {/* Team HUD (Left Panel) with Drag & Drop */}
-      <AnimatePresence>
-        {playerTeam.length > 0 && !inBattle && (
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="fixed top-24 sm:top-24 left-4 sm:left-8 z-20 bg-white/95 backdrop-blur-md p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 border-slate-800 shadow-xl w-40 sm:w-56 pointer-events-auto flex flex-col gap-2"
-          >
-            <h3 className="text-[10px] text-slate-400 font-black uppercase tracking-widest px-1">Equipo Pokémon</h3>
-            {playerTeam.map((pkmn, idx) => (
-              <div
-                key={pkmn.uid || pkmn.id + idx}
-                draggable
-                onDragStart={(e) => {
-                  setDraggedIdx(idx);
-                  e.dataTransfer.effectAllowed = 'move';
-                }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.dataTransfer.dropEffect = 'move';
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  if (draggedIdx === null || draggedIdx === idx) return;
-                  import('../store/gameStore').then(({ useGameStore }) => {
-                    useGameStore.getState().reorderTeam(draggedIdx, idx);
-                  });
-                  setDraggedIdx(null);
-                }}
-                className={`bg-slate-50 p-2 border ${draggedIdx === idx ? 'border-dashed border-slate-500 opacity-50' : 'border-slate-300'} rounded shadow-sm hover:shadow-md hover:bg-white cursor-grab active:cursor-grabbing transition-colors`}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-[10px] sm:text-xs font-black text-slate-800 uppercase tracking-tighter truncate max-w-[70%]">{pkmn.name}</span>
-                  <span className="text-[9px] sm:text-[10px] font-mono font-bold text-slate-500">Lv{pkmn.level}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[7px] sm:text-[8px] font-black text-yellow-600">HP</span>
-                  <div className="flex-1 h-1.5 sm:h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-300">
-                    <motion.div
-                      initial={false}
-                      animate={{ scaleX: pkmn.hp / pkmn.maxHp }}
-                      style={{ originX: 0 }}
-                      className={`h-full w-full ${pkmn.hp > pkmn.maxHp / 2 ? 'bg-emerald-500' : pkmn.hp > pkmn.maxHp / 5 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                    />
-                  </div>
-                </div>
-                <div className="text-right mt-0.5 sm:mt-1">
-                  <span className="text-[8px] sm:text-[10px] font-mono font-bold text-slate-600">{pkmn.hp}/{pkmn.maxHp}</span>
-                </div>
-              </div>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Map viewport */}
       <motion.div
         className="absolute origin-top-left"
@@ -309,6 +250,7 @@ export const WorldView = memo(({
               key={npc.id}
               npc={(npc.id === spottedTrainerId && spottedTrainerPos ? { ...npc, position: spottedTrainerPos } : npc) as NPC}
               isSpotted={npc.id === spottedTrainerId}
+              playerPos={playerPos}
             />
           ))}
 
