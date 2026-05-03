@@ -32,6 +32,9 @@ interface GameSaveState {
   pickedItemIds: string[];
   pokedex: PokedexState;
   activeBattle: BattleState | null;
+
+  musicMuted: boolean;
+  musicVolume: number;
 }
 
 const safeLocalStorage = {
@@ -80,6 +83,9 @@ const INITIAL_SAVE_STATE: GameSaveState = {
   pickedItemIds: [],
   pokedex: {},
   activeBattle: null,
+
+  musicMuted: false,
+  musicVolume: 0.5,
 };
 
 interface GameState extends GameSaveState {
@@ -169,6 +175,10 @@ interface GameState extends GameSaveState {
   toggleGhostMode: () => void;
   toggleMinimap: () => void;
   setViewMode: (mode: '2d' | '3d') => void;
+
+  setMusicMuted: (muted: boolean) => void;
+  setMusicVolume: (volume: number) => void;
+  toggleMusicMute: () => void;
 
   resetGame: () => void;
 }
@@ -312,6 +322,10 @@ export const useGameStore = create<GameState>()(
       toggleMinimap: () => set((state) => ({ showMinimap: !state.showMinimap })),
       setViewMode: (mode) => set({ viewMode: mode }),
 
+      setMusicMuted: (muted) => set({ musicMuted: muted }),
+      setMusicVolume: (volume) => set({ musicVolume: volume }),
+      toggleMusicMute: () => set((state) => ({ musicMuted: !state.musicMuted })),
+
       setGrassEffect: (pos) => set({ grassEffect: pos }),
       setSpottedTrainerId: (id) => set({ spottedTrainerId: id }),
       setSpottedTrainerPos: (pos) => set((state) => ({ spottedTrainerPos: typeof pos === 'function' ? pos(state.spottedTrainerPos) : pos })),
@@ -375,6 +389,8 @@ export const useGameStore = create<GameState>()(
         pokedex: state.pokedex,
         activeBattle: state.activeBattle,
         phase: state.phase,
+        musicMuted: state.musicMuted,
+        musicVolume: state.musicVolume,
       }),
     }
   )

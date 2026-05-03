@@ -41,6 +41,8 @@ export const SideMenu = memo(({
 }: SideMenuProps) => {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const reorderTeam = useGameStore(s => s.reorderTeam);
+  const musicMuted = useGameStore(s => s.musicMuted);
+  const toggleMusicMute = useGameStore(s => s.toggleMusicMute);
   const returnTo = phase.type === 'MENU' ? (phase.returnTo || EXPLORING) : EXPLORING;
 
   const items: { label: string; action: () => void; danger?: boolean }[] = [
@@ -52,6 +54,7 @@ export const SideMenu = memo(({
       },
     },
     { label: 'PC Storage',action: () => setPhase({ type: 'PC',        returnTo }) },
+    { label: musicMuted ? 'Música: OFF' : 'Música: ON', action: toggleMusicMute },
     { label: 'Reiniciar', action: resetGame, danger: true },
     ...(giveDemoTeam ? [{ label: 'Equipo Test', action: giveDemoTeam }] : []),
   ];
