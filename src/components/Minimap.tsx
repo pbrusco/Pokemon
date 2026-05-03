@@ -21,7 +21,23 @@ export const Minimap = () => {
   const currentMap = useGameStore(s => s.currentMap);
   const worldMaps = useGameStore(s => s.worldMaps);
   const playerPos = useGameStore(s => s.playerPos);
-  const npcs = useGameStore(s => s.getNPCs());
+  // Derive NPC deps needed to rebuild the database
+  const playerTeam    = useGameStore(s => s.playerTeam);
+  const hasParcel     = useGameStore(s => s.hasParcel);
+  const hasPokedex    = useGameStore(s => s.hasPokedex);
+  const badges        = useGameStore(s => s.badges);
+  const storyStep     = useGameStore(s => s.storyStep);
+  const oakPos        = useGameStore(s => s.oakCutscenePos);
+  const oakDir        = useGameStore(s => s.oakCutsceneDir);
+  const hasSilphScope = useGameStore(s => s.hasSilphScope);
+  const hasPokeFlute  = useGameStore(s => s.hasPokeFlute);
+  const hasSsTicket   = useGameStore(s => s.hasSsTicket);
+  const clearedSnorlax = useGameStore(s => s.clearedSnorlax);
+  const npcs = useMemo(
+    () => useGameStore.getState().getNPCs(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [playerTeam, hasParcel, hasPokedex, badges, storyStep, oakPos, oakDir, hasSilphScope, hasPokeFlute, hasSsTicket, clearedSnorlax]
+  );
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgCacheRef = useRef<ImageData | null>(null);
   const cachedMapRef = useRef('');

@@ -329,6 +329,7 @@ export default function App() {
         setPhase={setPhase}
         setDialogue={setDialogue}
         resetGame={resetGame}
+        onUseItem={handleUseItem}
         giveDemoTeam={giveDemoTeam}
       />
 

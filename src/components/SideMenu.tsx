@@ -5,6 +5,7 @@ import { ITEMS_DATABASE } from '../constants';
 import { type Pokemon, type InventoryCounts } from '../types';
 import { type GamePhase, EXPLORING } from '../types/gamePhase';
 import { type Dispatch, type SetStateAction } from 'react';
+import { useGameStore } from '../store/gameStore';
 
 interface SideMenuProps {
   phase: GamePhase;
@@ -15,6 +16,7 @@ interface SideMenuProps {
   setPhase: Dispatch<SetStateAction<GamePhase>>;
   setDialogue: (d: string | null) => void;
   resetGame: () => void;
+  onUseItem?: (itemId: string) => void;
   giveDemoTeam?: () => void;
 }
 
@@ -34,9 +36,11 @@ export const SideMenu = memo(({
   setPhase,
   setDialogue,
   resetGame,
+  onUseItem,
   giveDemoTeam,
 }: SideMenuProps) => {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const reorderTeam = useGameStore(s => s.reorderTeam);
   const returnTo = phase.type === 'MENU' ? (phase.returnTo || EXPLORING) : EXPLORING;
 
   const items: { label: string; action: () => void; danger?: boolean }[] = [
@@ -47,8 +51,6 @@ export const SideMenu = memo(({
         else setDialogue('Aún no tienes una Pokédex.');
       },
     },
-    { label: 'Equipo',    action: () => setPhase({ type: 'TEAM',      returnTo }) },
-    { label: 'Mochila',   action: () => setPhase({ type: 'INVENTORY', returnTo }) },
     { label: 'PC Storage',action: () => setPhase({ type: 'PC',        returnTo }) },
     { label: 'Reiniciar', action: resetGame, danger: true },
     ...(giveDemoTeam ? [{ label: 'Equipo Test', action: giveDemoTeam }] : []),
@@ -132,29 +134,54 @@ export const SideMenu = memo(({
                 <span className="font-mono text-[11px] text-[#383838]">{playerTeam.length}/6</span>
               </div>
               {playerTeam.map((p, i) => (
-                <div key={i} className="flex flex-col gap-0.5">
-                  <div className="flex justify-between text-[10px]">
-                    <span className="font-sans font-semibold text-[#383838]">{p.name}</span>
-                    <span className="font-mono text-[#383838]">{p.hp}/{p.maxHp}</span>
+                <div key={i} className="flex items-center gap-1">
+                  {/* Reorder arrows */}
+                  <div className="flex flex-col gap-px shrink-0">
+                    <button
+                      onClick={() => i > 0 && reorderTeam(i, i - 1)}
+                      disabled={i === 0}
+                      className="leading-none text-[9px] text-[#383838] disabled:opacity-20 hover:text-[#4878D8]"
+                      style={{ lineHeight: 1, padding: '1px 2px' }}
+                    >▲</button>
+                    <button
+                      onClick={() => i < playerTeam.length - 1 && reorderTeam(i, i + 1)}
+                      disabled={i === playerTeam.length - 1}
+                      className="leading-none text-[9px] text-[#383838] disabled:opacity-20 hover:text-[#4878D8]"
+                      style={{ lineHeight: 1, padding: '1px 2px' }}
+                    >▼</button>
                   </div>
-                  <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#585858' }}>
-                    <div
-                      className="h-full transition-all"
-                      style={{ width: `${(p.hp / p.maxHp) * 100}%`, background: hpBarColor(p.hp, p.maxHp) }}
-                    />
+                  <div className="flex-1 flex flex-col gap-0.5">
+                    <div className="flex justify-between text-[10px]">
+                      <span className="font-sans font-semibold text-[#383838]">{p.name}</span>
+                      <span className="font-mono text-[#383838]">{p.hp}/{p.maxHp}</span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#585858' }}>
+                      <div
+                        className="h-full transition-all"
+                        style={{ width: `${(p.hp / p.maxHp) * 100}%`, background: hpBarColor(p.hp, p.maxHp) }}
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
               {Object.keys(inventory).length > 0 && (
                 <div className="flex flex-wrap gap-1 pt-1" style={{ borderTop: '1px solid #a8a8a8' }}>
                   {Object.entries(inventory).map(([item, qty]) => (
-                    <span
+                    <button
                       key={item}
-                      className="font-sans text-[9px] text-[#383838]"
-                      style={{ background: '#e0e0d0', border: '1px solid #a8a8a8', borderRadius: 2, padding: '1px 5px' }}
+                      onClick={() => onUseItem?.(item)}
+                      className="font-sans text-[9px] text-[#383838] text-left transition-colors"
+                      style={{
+                        background: '#e0e0d0',
+                        border: '1px solid #a8a8a8',
+                        borderRadius: 2,
+                        padding: '2px 6px',
+                        cursor: onUseItem ? 'pointer' : 'default',
+                      }}
+                      title={onUseItem ? `Usar ${ITEMS_DATABASE[item]?.name ?? item}` : undefined}
                     >
                       {ITEMS_DATABASE[item]?.name ?? item} ×{qty}
-                    </span>
+                    </button>
                   ))}
                 </div>
               )}
