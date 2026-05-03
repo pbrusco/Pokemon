@@ -56,8 +56,27 @@ export PATH="/opt/homebrew/bin:$PATH"
   - `overworld/` — `GameTile`, `PlayerSprite`, `NPCComponent`
   - `BattleScreen.tsx`, `DialogueBox.tsx`, `InventoryUI.tsx`, `TeamMenuUI.tsx`, etc.
 - `src/data/npcDatabase.ts` — `buildNPCDatabase()` + `buildItemDatabase()`
-- `src/data/maps/` — compact map sources + parser/export
+- `src/artifacts/maps/` — Fully auto-generated JSON map data (parsed from Game Boy assembly)
+- `src/data/maps/` — Map parser and exporter
 - `src/test/simulator/` — headless game simulator for integration testing
+
+## Map Generation
+
+The game's overworld maps are **100% auto-generated at build time** from the original Game Boy assembly source files in `pokered_dissasembly/`. No generated map files are committed to git.
+
+### How it works
+
+1. `scripts/generate-overworld.mjs` reads the real blockset (`overworld.bst`), collision data, and tile definitions from the pokered disassembly. It uses structural analysis (scanning all `.blk` files to identify building blocks near doors) to correctly classify each block as tree, wall, water, fence, etc. — producing individual JSON map files in `src/artifacts/maps/`.
+
+2. `scripts/stitch-kanto.mjs` stitches those individual maps into one seamless `kanto_overworld.json`.
+
+3. Both scripts run automatically via `predev` and `prebuild` npm hooks, so `npm run dev` and `npm run build` always start with fresh maps.
+
+To regenerate maps manually:
+
+```bash
+npm run generate:maps
+```
 
 ## Map Format
 

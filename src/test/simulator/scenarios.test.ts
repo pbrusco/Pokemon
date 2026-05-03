@@ -40,22 +40,22 @@ afterEach(() => {
 
 describe('Scenario 1: Oak stops player at Route 1', () => {
   it('triggers Oak cutscene after walking north through Pallet Town path', () => {
-    // Start south of the Route 1 border (y=205) and walk north.
-    // Path: x=128, y=205→197 is open (stitched overworld), stepping to y=196 triggers Oak.
+    // Start south of the Route 1 border (y=203) and walk north.
+    // Path: x=128, y=203→198 is open (stitched overworld), stepping to y=196 triggers Oak.
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      playerPos: { x: 128, y: 205 },
+      playerPos: { x: 128, y: 203 },
       direction: 'up',
       playerTeam: [],
     });
 
-    // Walk 8 tiles north — no cutscene yet (y=205 → y=197)
-    for (let i = 0; i < 8; i++) {
+    // Walk 6 tiles north — no cutscene yet (y=203 → y=197)
+    for (let i = 0; i < 6; i++) {
       expect(sim.dialogue).toBeNull();
       sim.move('up').tick(50);
     }
 
-    // 9th step: player tries to enter Route 1 (y=196), Oak intercepts
+    // 7th step: player tries to enter Route 1 (y=196), Oak intercepts
     sim.move('up');
     expect(sim.dialogueContains('OAK')).toBe(true);
     expect(sim.map).toBe('KANTO_OVERWORLD');
@@ -462,8 +462,9 @@ describe('loadLogAsScenario helper', () => {
   it('replays a hand-crafted log: move + interact', () => {
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      // local (9,8) in Pallet Town -> world (128, 206)
-      playerPos: { x: 128, y: 206 },
+      // local (9,8) in Pallet Town -> world (128, 206)... no, (128,206) is now wall
+      // Use a walkable spot: (128,203) is open path
+      playerPos: { x: 128, y: 203 },
       direction: 'down',
       playerTeam: [STARTERS[0]],
       storyStep: 'EXPLORING',
@@ -482,7 +483,7 @@ describe('loadLogAsScenario helper', () => {
       observations: [],
     };
     sim.loadLogAsScenario(log);
-    expect(sim.pos).toEqual({ x: 128, y: 205 });
+    expect(sim.pos).toEqual({ x: 128, y: 202 });
   });
 });
 

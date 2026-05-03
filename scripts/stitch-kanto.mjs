@@ -11,10 +11,17 @@ import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const MAPS_DIR  = resolve(__dirname, '../src/data/maps');
+import fs from 'fs';
+
+const MAPS_DIR  = resolve(__dirname, '../src/artifacts/maps');
+const DATA_DIR  = resolve(__dirname, '../src/data/maps');
 
 function load(name) {
-  const data = JSON.parse(readFileSync(join(MAPS_DIR, `${name}.json`), 'utf8'));
+  let p = join(MAPS_DIR, `${name}.json`);
+  if (!fs.existsSync(p)) {
+    p = join(DATA_DIR, `${name}.json`);
+  }
+  const data = JSON.parse(readFileSync(p, 'utf8'));
   const h = data.rows.length;
   const w = data.rows[0].length;
   return { name, rows: data.rows, w, h, warps: data.warps || [] };
@@ -43,31 +50,10 @@ const celadon        = load('celadon_city');
 const fuchsia        = load('fuchsia_city');
 const cinnabar       = load('cinnabar_island');
 
-// ─── Derive offsets from warp connections ─────────────────────────────────────
-// For a warp A(ax,ay) → B(bx,by):  offB.x = offA.x + ax - bx
-function from(aOff, ax, ay, bx, by) {
-  return { x: aOff.x + ax - bx, y: aOff.y + ay - by };
-}
+// ─── Hardcoded zone offsets — MUST match KANTO_ZONE_OFFSETS in src/constants.ts ─
+// Each entry is {x, y} = top-left corner of the zone in world tile coords.
+// After stitching, the printed offsets (below) will equal these values.
 
-const palletOff         = { x: 0, y: 0 };
-const route1Off         = from(palletOff,        10,   0,  10,  35);
-const viridianOff       = from(route1Off,        10,   0,  20,  35);
-const route2Off         = from(viridianOff,      20,   0,   4,  39);
-const viridianForestOff = from(route2Off,         4,   0,  16,  47);
-const pewterOff         = from(viridianForestOff,16,   0,  20,  35);
-const route3Off         = from(pewterOff,        39,  19,   0,   8);
-// Route 4 is east of Mt Moon — align so its path row matches route3's north exit
-const route4Off         = { x: route3Off.x + 30, y: route3Off.y - 4 };
-const ceruleanOff       = from(route4Off,        39,   4,   0,  16);
-const route5Off         = from(ceruleanOff,      20,  35,   4,   0);
-const saffronOff        = from(route5Off,         4,  17,  20,   1);
-const route7Off         = from(saffronOff,        0,  18,  19,   4);
-const route8Off         = from(saffronOff,       39,  18,   0,   4);
-const route6Off         = from(saffronOff,       20,  35,   4,   0);
-const vermilionOff      = from(route6Off,         4,  17,  20,   1);
-const route9Off         = from(ceruleanOff,      39,  16,   0,   4);
-const route10Off        = from(route9Off,        19,   4,   4,   0);
-const lavenderOff       = from(route10Off,        4,  23,  10,   0);
 const route11        = load('route_11');
 const route12        = load('route_12');
 const route13        = load('route_13');
@@ -85,37 +71,45 @@ const route24        = load('route_24');
 const route25        = load('route_25');
 const indigo         = load('indigo_plateau');
 
-// Offsets
-const route11Off     = from(vermilionOff, 39, 17, 0, 4);
-const route12Off     = from(lavenderOff,  10, 17, 10, 0);
-const route13Off     = from(route12Off,   10, 107, 49, 0);
-const route14Off     = from(route13Off,   0,  17, 19, 0);
-const route15Off     = from(route14Off,   0,  53, 59, 9);
-const fuchsiaOff     = from(route15Off,   0,  9,  39, 17);
-const route19Off     = from(fuchsiaOff,   20, 35, 10, 0);
-const route20Off     = from(route19Off,   0,  53, 99, 4);
-const cinnabarOff    = from(route20Off,   0,  4,  19, 4);
-const route21Off     = from(cinnabarOff,  10, 0,  10, 89);
-
-// Celadon is west of Route 7: celadon's east exit (x=49, y=8) aligns with route7's west end (x=0, y=4)
-const celadonOff     = from(route7Off,    0,  4,  49, 8);
-const route16Off     = from(celadonOff,   0,  9,  39, 4);
-const route17Off     = from(route16Off,   0,  17, 0,  0);
-const route18Off     = from(route17Off,   0,  143,0,  0);
-
-const route22Off     = { x: 500, y: 200 }; // Far away
-const route23Off     = from(route22Off,   0,  4,  10, 143);
-const indigoOff      = from(route23Off,   10, 0,  10, 17);
-
-const route24Off     = { x: 500, y: 400 }; // Far away
-const route25Off     = from(route24Off,   19, 0,  0,  0);
+const palletOff         = { x: 118, y: 196 };
+const route1Off         = { x: 118, y: 161 };
+const viridianOff       = { x: 108, y: 126 };
+const route2Off         = { x: 124, y:  87 };
+const viridianForestOff = { x: 112, y:  40 };
+const pewterOff         = { x: 108, y:   5 };
+const route3Off         = { x: 147, y:  16 };
+const route4Off         = { x: 177, y:  12 };
+const ceruleanOff       = { x: 216, y:   0 };
+const route5Off         = { x: 232, y:  35 };
+const saffronOff        = { x: 216, y:  51 };
+const route7Off         = { x: 197, y:  65 };
+const route8Off         = { x: 255, y:  65 };
+const route6Off         = { x: 232, y:  86 };
+const vermilionOff      = { x: 216, y: 102 };
+const route9Off         = { x: 255, y:  12 };
+const route10Off        = { x: 270, y:  16 };
+const lavenderOff       = { x: 264, y:  39 };
+const route11Off        = { x: 255, y: 115 };
+const route12Off        = { x: 264, y:  56 };
+const route13Off        = { x: 225, y: 163 };
+const route14Off        = { x: 206, y: 180 };
+const route15Off        = { x: 147, y: 224 };
+const fuchsiaOff        = { x: 108, y: 216 };
+const route19Off        = { x: 118, y: 251 };
+const route20Off        = { x:  19, y: 300 };
+const cinnabarOff       = { x:   0, y: 300 };
+const route21Off        = { x:   0, y: 211 };
+const celadonOff        = { x: 618, y: 196 };
+const route16Off        = { x: 579, y: 201 };
+const route17Off        = { x: 579, y: 218 };
+const route18Off        = { x: 579, y: 361 };
+const route22Off        = { x: 618, y: 396 };
+const route23Off        = { x: 608, y: 257 };
+const indigoOff         = { x: 608, y: 240 };
+const route24Off        = { x: 618, y: 596 };
+const route25Off        = { x: 637, y: 596 };
 
 const SEGMENTS = [
-  // Celadon + its routes early so route1/pallet write last and win at the east-border overlap (x=128)
-  { map: route16,         off: route16Off,         label: 'ROUTE_16'        },
-  { map: route17,         off: route17Off,         label: 'ROUTE_17'        },
-  { map: route18,         off: route18Off,         label: 'ROUTE_18'        },
-  { map: celadon,         off: celadonOff,         label: 'CELADON_CITY'    },
   { map: pallet,          off: palletOff,          label: 'PALLET_TOWN'     },
   { map: route1,          off: route1Off,          label: 'ROUTE_1'         },
   { map: viridian,        off: viridianOff,        label: 'VIRIDIAN_CITY'   },
@@ -149,6 +143,10 @@ const SEGMENTS = [
   { map: indigo,          off: indigoOff,          label: 'INDIGO_PLATEAU'  },
   { map: route24,         off: route24Off,         label: 'ROUTE_24'        },
   { map: route25,         off: route25Off,         label: 'ROUTE_25'        },
+  { map: celadon,         off: celadonOff,         label: 'CELADON_CITY'    },
+  { map: route16,         off: route16Off,         label: 'ROUTE_16'        },
+  { map: route17,         off: route17Off,         label: 'ROUTE_17'        },
+  { map: route18,         off: route18Off,         label: 'ROUTE_18'        },
 ];
 
 // ─── Compute canvas bounds ────────────────────────────────────────────────────
@@ -193,7 +191,7 @@ for (const { map, off, label } of SEGMENTS) {
 
 // ─── Output ───────────────────────────────────────────────────────────────────
 const outPath = join(MAPS_DIR, 'kanto_overworld.json');
-writeFileSync(outPath, JSON.stringify({ rows, warps: mergedWarps }, null, 2));
+writeFileSync(outPath, JSON.stringify({ _comment: 'AUTOGENERATED FILE - DO NOT EDIT BY HAND', rows, warps: mergedWarps }, null, 2));
 
 console.log(`✓ kanto_overworld.json  ${canvasW}×${canvasH} tiles  (${mergedWarps.length} indoor warps)`);
 console.log('\n// KANTO_OFFSETS — paste into npcDatabase.ts:');

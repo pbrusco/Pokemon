@@ -2,7 +2,7 @@ import { worldConfig } from '../data/worldConfig';
 import { buildNPCDatabase, buildItemDatabase, O } from '../data/npcDatabase';
 import { BUILDING_REFERENCE } from '../data/reference/buildingReference';
 import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES } from '../constants';
-import pokeredMetadata from '../data/reference/pokered_metadata.json';
+import pokeredMetadata from '../artifacts/reference/pokered_metadata.json';
 import type { MapID, Tile } from '../types';
 
 interface WorldValidationIssue {

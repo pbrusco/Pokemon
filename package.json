@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "generate:maps": "node scripts/generate-overworld.mjs && node scripts/stitch-kanto.mjs",
+    "predev": "npm run generate:maps",
+    "prebuild": "npm run generate:maps",
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
