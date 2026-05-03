@@ -20,10 +20,10 @@ export const NPCComponent = memo(({ npc, isSpotted, playerPos }: {
   const frameH = entry?.frameH ?? 32;
   const hasSprite = url && numFrames > 0;
   const frame = hasSprite ? cssFrame(npc.direction, numFrames) : null;
-  // Display dimensions: always half a tile wide; height scales with frame aspect ratio.
-  // 16×32 portrait frames → 32×64 display. 16×16 square frames → 32×32 display.
-  const dispW = TILE_SIZE / 2;          // 32px
-  const dispH = (TILE_SIZE / 2) * (frameH / 16); // 64px portrait, 32px square
+  // Display dimensions: full tile wide; height scales with frame aspect ratio.
+  // 16×32 portrait frames → 64×128 display. 16×16 square frames → 64×64 display.
+  const dispW = TILE_SIZE;                   // 64px
+  const dispH = TILE_SIZE * (frameH / 16);  // 128px portrait, 64px square
 
   // Name tag: visible only when player is within 3 tiles (Chebyshev distance).
   // Wild Pokémon pass no playerPos so they never show a label.
