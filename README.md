@@ -79,13 +79,14 @@ Notable tiles:
 ## Controls
 
 - `Arrow Keys` move
-- `Enter` / `Z` / `Space` interact
+- `Enter` / `Z` interact
 - `X` / `Shift` / `Esc` open menu
 - `Shift + E` open map editor
+- `G` toggle ghost mode (walk through walls)
 
 ## Testing
 
-131 tests covering damage math, battle engine flows, interaction engine, Gen I status rules, and integration scenarios:
+201 tests covering damage math, battle engine flows, interaction engine, Gen I status rules, and integration scenarios:
 
 ```bash
 npm run test:run   # single run (CI)

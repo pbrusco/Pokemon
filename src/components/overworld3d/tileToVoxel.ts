@@ -11,6 +11,7 @@ interface VoxelDef {
   textureKey?: string;
   emissive?: string;
   emissiveIntensity?: number;
+  signpost?: boolean;
 }
 
 export const FLOOR_FALLBACK_COLOR = '#5fa85a';
@@ -31,7 +32,8 @@ export const TILE_VOXEL: Record<Tile['type'], VoxelDef> = {
   boulder:     { kind: 'object', height: 0.8,  color: '#7a7a78' },
   machine:     { kind: 'object', height: 1.3,  color: '#4a4a78' },
   fence:       { kind: 'object', height: 0.6,  color: '#8b6a3a' },
-  sign:        { kind: 'object', height: 0.7,  color: '#a87838' },
+  sign:        { kind: 'object', height: 0.55, color: '#8b6914', signpost: true,
+                  extras: [{ kind: 'object', height: 0.22, yOffset: 0.55, color: '#d4a850', signpost: true }] },
   flower:      { kind: 'object', height: 0.15, color: '#e84a8a' },
   water:       { kind: 'water',  height: 0.05, color: '#3a78d8', textureKey: 'water' },
   ledge_down:  { kind: 'object', height: 0.25, color: '#6a8a4a' },

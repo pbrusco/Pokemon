@@ -19,6 +19,7 @@ function buildBuckets(tiles: Tile[][]) {
   const floors = new Map<string, Bucket>();
   const walls  = new Map<string, Bucket>();
   const objects = new Map<string, Bucket>();
+  const objectsSignpost = new Map<string, Bucket>();
   const waters = new Map<string, Bucket>();
   const grassBlades = new Map<string, Bucket>();
 
@@ -64,6 +65,8 @@ function buildBuckets(tiles: Tile[][]) {
           addTo(waters, d.color, d.height, yOff, x, y, tk);
         } else if (tk === 'grass_blade') {
           addTo(grassBlades, d.color, d.height, yOff, x, y, tk);
+        } else if (d.signpost) {
+          addTo(objectsSignpost, d.color, d.height, yOff, x, y, tk);
         } else {
           addTo(objects, d.color, d.height, yOff, x, y, tk);
         }
@@ -77,6 +80,7 @@ function buildBuckets(tiles: Tile[][]) {
     floors: [...floors.values()],
     walls:  [...walls.values()],
     objects: [...objects.values()],
+    objectsSignpost: [...objectsSignpost.values()],
     waters: [...waters.values()],
     grassBlades: [...grassBlades.values()],
   };
@@ -279,6 +283,39 @@ function GrassSway({ bucket }: { bucket: Bucket }) {
   );
 }
 
+function InstancedSignposts({ bucket }: InstancedBoxesProps) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const m = new THREE.Matrix4();
+    const pos = new THREE.Vector3();
+    const quat = new THREE.Quaternion();
+    const scale = new THREE.Vector3(0.6, bucket.height, 0.06);
+    for (let i = 0; i < bucket.positions.length; i++) {
+      const [x, z] = bucket.positions[i];
+      pos.set(x + 0.5, bucket.yOffset + bucket.height / 2, z + 0.5);
+      m.compose(pos, quat, scale);
+      mesh.setMatrixAt(i, m);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  }, [bucket]);
+
+  return (
+    <instancedMesh
+      ref={ref}
+      args={[undefined, undefined, bucket.positions.length]}
+      castShadow
+      frustumCulled={true}
+    >
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color={bucket.color} roughness={0.7} metalness={0.1} />
+    </instancedMesh>
+  );
+}
+
 interface MapMesh3DProps {
   tiles: Tile[][];
 }
@@ -296,6 +333,9 @@ export function MapMesh3D({ tiles }: MapMesh3DProps) {
       ))}
       {buckets.objects.map((b, i) => (
         <InstancedBoxes key={`o-${i}`} bucket={b} />
+      ))}
+      {buckets.objectsSignpost.map((b, i) => (
+        <InstancedSignposts key={`sp-${i}`} bucket={b} />
       ))}
       {buckets.waters.map((b, i) => (
         <AnimatedWater key={`wa-${i}`} bucket={b} />
