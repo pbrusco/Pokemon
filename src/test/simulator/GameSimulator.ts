@@ -96,7 +96,6 @@ export class GameSimulator {
 
       // Runtime state
       isMoving: false,
-      badgeBoostGlitchStacks: 0,
       phase: EXPLORING,
       showMoves: false,
       dialogue: null,

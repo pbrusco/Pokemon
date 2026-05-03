@@ -9,11 +9,12 @@ import { ShadowBlob } from './ShadowBlob';
 interface SpriteFrameProps {
   url: string;
   numFrames: number;
+  frameH: 16 | 32;
   npc: NPC;
   position: [number, number, number];
 }
 
-function SpriteFrame({ url, numFrames, npc, position }: SpriteFrameProps) {
+function SpriteFrame({ url, numFrames, frameH, npc, position }: SpriteFrameProps) {
   const [spriteError, setSpriteError] = useState(false);
   const baseTex = useLoader(
     THREE.TextureLoader,
@@ -36,9 +37,10 @@ function SpriteFrame({ url, numFrames, npc, position }: SpriteFrameProps) {
     return t;
   }, [baseTex, numFrames, npc.direction, spriteError]);
 
-  // GBA frames are 16×32px — sprite is square by default, so scaleX is half of scaleY
+  // Display: always 0.45 units wide; height reflects the frame's pixel aspect ratio.
+  // 16×32 portrait → scaleY = 0.9 (2× scaleX). 16×16 square → scaleY = 0.45.
   const scaleX = 0.45;
-  const scaleY = 0.9;
+  const scaleY = scaleX * (frameH / 16);
 
   return (
     <sprite position={position} scale={[scaleX, scaleY, 1]}>
@@ -60,7 +62,7 @@ export function NpcBillboard({ npc }: NpcBillboardProps) {
     <group>
       <ShadowBlob x={npc.position.x + 0.5} z={npc.position.y + 0.5} />
       {url && (entry?.overworldFrames ?? 0) > 0 ? (
-        <SpriteFrame url={url} numFrames={entry!.overworldFrames} npc={npc} position={position} />
+        <SpriteFrame url={url} numFrames={entry!.overworldFrames} frameH={entry!.frameH ?? 32} npc={npc} position={position} />
       ) : (
         <mesh position={position}>
           <boxGeometry args={[0.5, 0.9, 0.5]} />

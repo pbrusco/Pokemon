@@ -181,11 +181,14 @@ export const useInteractionEngine = ({
 
           setTimeout(() => {
             if (useGameStore.getState().playerTeam.length === 0) return;
-            useGameStore.getState().setDialogue("AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!");
             const starterIndex = STARTERS.findIndex(s => s.sprite === item.sprite);
             const rivalIndex = (starterIndex + 1) % STARTERS.length;
-            const rivalPkmn = { ...STARTERS[rivalIndex], name: 'RIVAL ' + STARTERS[rivalIndex].name };
-            initBattle(rivalPkmn, true);
+            const rivalPkmn = { ...STARTERS[rivalIndex] };
+            // Show Blue's dialogue first; battle begins only after player dismisses it.
+            useGameStore.getState().setDialogue(
+              "AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!",
+              () => initBattle(rivalPkmn, true, 'rival'),
+            );
           }, sd(1500));
         }
       } else if (item.type === 'item') {

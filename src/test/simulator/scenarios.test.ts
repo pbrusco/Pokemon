@@ -181,10 +181,15 @@ describe('Scenario 3: Rival battle after starter pick', () => {
     // Advance past the 1500ms delay (scaled by game speed)
     sim.tick(2000);
 
+    // Blue's dialogue appears before battle starts
+    expect(sim.dialogueContains('AZUL')).toBe(true);
+
+    // Dismiss Blue's dialogue — battle fires in its callback
+    sim.dismissDialogue();
+
     // Should have transitioned to BATTLE_TRANSITION
     const phases = sim.phaseHistory();
     expect(phases).toContain('BATTLE_TRANSITION');
-    expect(sim.dialogueContains('AZUL')).toBe(true);
   });
 });
 
@@ -205,6 +210,9 @@ describe('Scenario 4: Win rival battle', () => {
     sim.interact();
     sim.dismissDialogue();
     sim.tick(2000);
+
+    // Dismiss Blue's "¡Vamos a luchar!" dialogue — battle fires in its callback
+    sim.dismissDialogue();
 
     // Skip the animation-based BATTLE_TRANSITION → BATTLE(CHOOSING)
     sim.skipBattleTransition();
@@ -393,6 +401,8 @@ describe('Scenario 10: Pokéball blocked in trainer battle', () => {
     sim.interact();
     sim.dismissDialogue();
     sim.tick(2000);
+    // Dismiss Blue's dialogue — battle fires in its callback
+    sim.dismissDialogue();
     sim.skipBattleTransition();
 
     expect(sim.phase.type).toBe('BATTLE');

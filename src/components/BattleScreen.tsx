@@ -355,20 +355,22 @@ function TickHpBar({ hp, maxHp, colorClasses, animate }: {
   colorClasses: string;
   animate?: boolean;
 }) {
-  const targetPct = maxHp > 0 ? (hp / maxHp) * 100 : 0;
+  const targetPct = maxHp > 0 ? Math.max(0, (hp / maxHp) * 100) : 0;
   const [currentPct, setCurrentPct] = useState(targetPct);
-  const startRef = useRef(currentPct);
-  const onDoneRef = useRef<(() => void) | undefined>(undefined);
+  // Tracks the actual visual position so interruptions always start from there.
+  const visualRef = useRef(targetPct);
 
   useEffect(() => {
     if (!animate) {
+      visualRef.current = targetPct;
       setCurrentPct(targetPct);
       return;
     }
 
-    const start = startRef.current;
+    const start = visualRef.current; // always the current rendered position
     const diff = targetPct - start;
     if (Math.abs(diff) < 0.1) {
+      visualRef.current = targetPct;
       setCurrentPct(targetPct);
       return;
     }
@@ -379,13 +381,14 @@ function TickHpBar({ hp, maxHp, colorClasses, animate }: {
 
     const interval = setInterval(() => {
       tick++;
-      const val = start + step * tick;
-      setCurrentPct(Math.max(0, val));
+      const next = Math.max(0, start + step * tick);
+      visualRef.current = next;
+      setCurrentPct(next);
 
       if (tick >= totalTicks) {
         clearInterval(interval);
+        visualRef.current = targetPct;
         setCurrentPct(targetPct);
-        onDoneRef.current?.();
       }
     }, TICK_DURATION * 1000);
 
@@ -393,11 +396,9 @@ function TickHpBar({ hp, maxHp, colorClasses, animate }: {
   }, [hp, maxHp, animate, targetPct]);
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ width: `${currentPct}%` }}
-      transition={{ duration: TICK_DURATION, ease: 'linear' }}
+    <div
       className={`h-full border-t-2 border-white/50 ${colorClasses}`}
+      style={{ width: `${currentPct}%`, transition: `width ${TICK_DURATION}s linear` }}
     />
   );
 }
@@ -649,13 +650,13 @@ export const BattleScreen = memo(function BattleScreen({
               {/* Red's trainer back sprite — 64×320 spritesheet, clip to first frame */}
               <div
                 className="shrink-0 mb-4 overflow-hidden opacity-90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]"
-                style={{ width: 48, height: 48 }}
+                style={{ width: 96, height: 96 }}
               >
                 <img
                   src={redBackSprite}
                   alt="Red"
                   className="pixelated block"
-                  style={{ width: 48, height: 240 }}
+                  style={{ width: 96, height: 480 }}
                 />
               </div>
               <motion.div

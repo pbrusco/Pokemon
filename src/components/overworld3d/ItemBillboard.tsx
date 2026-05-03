@@ -28,6 +28,23 @@ interface ItemBillboardProps {
   item: Entity;
 }
 
+function SignPost({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x + 0.5, 0, z + 0.5]}>
+      {/* Vertical post */}
+      <mesh position={[0, 0.35, 0]}>
+        <boxGeometry args={[0.07, 0.7, 0.07]} />
+        <meshStandardMaterial color="#8b5e3c" />
+      </mesh>
+      {/* Sign board (face +Z and -Z so visible from both sides) */}
+      <mesh position={[0, 0.75, 0]}>
+        <boxGeometry args={[0.45, 0.28, 0.05]} />
+        <meshStandardMaterial color="#f0e8c8" />
+      </mesh>
+    </group>
+  );
+}
+
 export function ItemBillboard({ item }: ItemBillboardProps) {
   const ref = useRef<THREE.Mesh>(null);
   const baseY = 0.35;
@@ -37,6 +54,11 @@ export function ItemBillboard({ item }: ItemBillboardProps) {
     if (!ref.current) return;
     ref.current.position.y = baseY + Math.sin(state.clock.elapsedTime * 2 + item.position.x + item.position.y) * 0.05;
   });
+
+  // Signs and blocking objects use a signpost shape, not a floating sphere
+  if (item.type === 'object') {
+    return <SignPost x={item.position.x} z={item.position.y} />;
+  }
 
   return (
     <group>

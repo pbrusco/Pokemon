@@ -94,7 +94,6 @@ interface GameState extends GameSaveState {
   setCatchResult: (v: boolean | null) => void;
 
   isMoving: boolean;
-  badgeBoostGlitchStacks: number;
   
   phase: GamePhase;
   showMoves: boolean;
@@ -141,8 +140,6 @@ interface GameState extends GameSaveState {
   setClearedSnorlax: (ids: string[]) => void;
   setPendingSnorlaxId: (id: string | null) => void;
   setEventFlag: (flag: string) => void;
-  removeEventFlag: (flag: string) => void;
-  hasEventFlag: (flag: string) => boolean;
   setBadges: (badges: SetStateAction<string[]>) => void;
   setDefeatedTrainers: (ids: SetStateAction<string[]>) => void;
   setDialogue: (text: string | null, onComplete?: () => void) => void;
@@ -163,7 +160,6 @@ interface GameState extends GameSaveState {
   updatePokedex: (pokemonId: string, caught?: boolean) => void;
   
   setMoney: (money: SetStateAction<number>) => void;
-  setBadgeBoostGlitchStacks: (stacks: SetStateAction<number>) => void;
   setActiveBattle: (battle: BattleState | null) => void;
   setWildPokemon: (pokemon: SetStateAction<WildPokemonEntity[]>) => void;
   
@@ -183,7 +179,6 @@ export const useGameStore = create<GameState>()(
       ...INITIAL_SAVE_STATE,
       
       isMoving: false,
-      badgeBoostGlitchStacks: 0,
       
       phase: EXPLORING,
       showMoves: false,
@@ -239,8 +234,6 @@ export const useGameStore = create<GameState>()(
       setClearedSnorlax: (ids) => set({ clearedSnorlax: ids }),
       setPendingSnorlaxId: (id) => set({ pendingSnorlaxId: id }),
       setEventFlag: (flag) => set(s => ({ eventFlags: [...s.eventFlags, flag] })),
-      removeEventFlag: (flag) => set(s => ({ eventFlags: s.eventFlags.filter(f => f !== flag) })),
-      hasEventFlag: (flag) => get().eventFlags.includes(flag),
       setBadges: (badges) => set((state) => ({ badges: typeof badges === 'function' ? badges(state.badges) : badges })),
       setDefeatedTrainers: (ids) => set((state) => ({ defeatedTrainers: typeof ids === 'function' ? ids(state.defeatedTrainers) : ids })),
       setDialogue: (text, onComplete) => set({ dialogue: text, dialogueCallback: onComplete || null }),
@@ -280,7 +273,6 @@ export const useGameStore = create<GameState>()(
       })),
       
       setMoney: (money) => set((state) => ({ money: typeof money === 'function' ? money(state.money) : money })),
-      setBadgeBoostGlitchStacks: (stacks) => set((state) => ({ badgeBoostGlitchStacks: typeof stacks === 'function' ? stacks(state.badgeBoostGlitchStacks) : stacks })),
       setActiveBattle: (battle) => set({ activeBattle: battle }),
       setWildPokemon: (pokemon) => set((state) => ({ wildPokemon: typeof pokemon === 'function' ? pokemon(state.wildPokemon) : pokemon })),
       

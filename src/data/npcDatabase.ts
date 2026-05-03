@@ -392,7 +392,6 @@ export function buildNPCDatabase(
       }] : []),
       { id: 'rival', name: 'AZUL', type: 'npc', position: { x: 4, y: 3 }, direction: 'left', trainerClass: 'rival', dialogue: ["¡Abuelo! ¡Yo también quiero un POKÉMON!", "¡Ja! Mi POKÉMON es mucho más fuerte que el tuyo."], isRival: true }
     ,
-      { id: 'rival1_oaks_lab_0', name: 'AZUL', type: 'npc', position: { x: 4, y: 3 }, direction: 'down', trainerClass: 'rival', dialogue: ['\u00A1Prep\u00E1rate para luchar!'], isTrainer: true, trainerTeam: [makePokemon('squirtle', 'SQUIRTLE', 5, 'water', [MOVES.WATER_GUN, MOVES.TACKLE], 7)] },
     ],
     POKECENTER: [
       { id: 'joy', name: 'ENFERMERA JOY', type: 'npc', onInteract: 'heal', trainerClass: 'nurse', position: { x: 6, y: 2 }, direction: 'down', dialogue: ["¡Hola! Bienvenida al CENTRO POKÉMON.", "Curaremos a tus POKÉMON hasta que estén a tope."] }

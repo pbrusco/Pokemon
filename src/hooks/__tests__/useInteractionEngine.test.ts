@@ -157,7 +157,6 @@ function setup(overrides: Overrides = {}) {
   useGameStore.setState({
     // Runtime defaults
     isMoving: false,
-    badgeBoostGlitchStacks: 0,
     showMoves: false,
     isLocked: false,
     showBattleTransition: false,
@@ -460,9 +459,13 @@ describe('Starter selection', () => {
     act(() => handleAction());
     act(() => vi.advanceTimersByTime(1500));
 
+    // Blue's dialogue is now set — dismiss it to fire the initBattle callback
+    act(() => handleAction());
+
     expect(initBattle).toHaveBeenCalledWith(
-      expect.objectContaining({ name: expect.stringContaining('RIVAL') }),
+      expect.objectContaining({ name: expect.any(String) }),
       true,
+      'rival',
     );
   });
 

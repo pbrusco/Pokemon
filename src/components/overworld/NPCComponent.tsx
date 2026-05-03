@@ -17,8 +17,13 @@ export const NPCComponent = memo(({ npc, isSpotted, playerPos }: {
   const entry = npc.trainerClass ? NPC_SPRITE_MAP[npc.trainerClass] : undefined;
   const url = entry?.overworld ?? '';
   const numFrames = entry?.overworldFrames ?? 0;
+  const frameH = entry?.frameH ?? 32;
   const hasSprite = url && numFrames > 0;
   const frame = hasSprite ? cssFrame(npc.direction, numFrames) : null;
+  // Display dimensions: always half a tile wide; height scales with frame aspect ratio.
+  // 16×32 portrait frames → 32×64 display. 16×16 square frames → 32×32 display.
+  const dispW = TILE_SIZE / 2;          // 32px
+  const dispH = (TILE_SIZE / 2) * (frameH / 16); // 64px portrait, 32px square
 
   // Name tag: visible only when player is within 3 tiles (Chebyshev distance).
   // Wild Pokémon pass no playerPos so they never show a label.
@@ -64,8 +69,9 @@ export const NPCComponent = memo(({ npc, isSpotted, playerPos }: {
         {hasSprite && !spriteError ? (
           <>
             <div
-              className="w-11 h-11 pixelated"
               style={{
+                width: dispW,
+                height: dispH,
                 backgroundImage: `url('${url}')`,
                 backgroundSize: `${numFrames * 100}% 100%`,
                 backgroundRepeat: 'no-repeat',
@@ -89,8 +95,7 @@ export const NPCComponent = memo(({ npc, isSpotted, playerPos }: {
           <img
             src={npc.sprite}
             alt={npc.name}
-            className="w-11 h-11 pixelated object-contain"
-            style={{ imageRendering: 'pixelated' }}
+            style={{ width: dispW, height: dispH, imageRendering: 'pixelated', objectFit: 'contain' }}
             onError={() => setSpriteError(true)}
           />
         ) : (
