@@ -109,7 +109,8 @@ export const Minimap = () => {
     ctx.fillRect(px, py, ps, ps);
   });
 
-  if (!mapData) return null;
+  const showMinimap = useGameStore(s => s.showMinimap);
+  if (!mapData || !showMinimap) return null;
 
   return (
     <div className="fixed bottom-4 left-4 z-50 flex flex-col pointer-events-none">

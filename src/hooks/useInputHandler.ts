@@ -95,6 +95,11 @@ export function useInputHandler({
         return;
       }
 
+      if (e.key === 'm' || e.key === 'M') {
+        store.toggleMinimap();
+        return;
+      }
+
       if (store.dialogue) {
         if (!e.repeat) {
           const cb = store.dialogueCallback;
