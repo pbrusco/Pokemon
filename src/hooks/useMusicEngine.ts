@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { AudioController, type MusicTrack } from '../lib/music';
-import { getKantoRegion } from '../constants';
+import { getKantoRegion } from '../constants/world';
 import type { MapID } from '../types';
 import type { GamePhase } from '../types/gamePhase';
 

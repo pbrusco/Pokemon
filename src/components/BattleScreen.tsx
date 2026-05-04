@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef, useState, useCallback } from 'react';
 import { motion, useAnimate } from 'motion/react';
 import { type Pokemon, type Move, type BattleLogEntry } from '../types';
-import { STRUGGLE_MOVE } from '../constants';
+import { STRUGGLE_MOVE } from '../constants/moves';
 import { sd, sdur } from '../lib/gameSpeed';
 import { useGameStore } from '../store/gameStore';
 import { CinematicPanel } from './CinematicPanel';

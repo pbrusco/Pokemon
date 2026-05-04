@@ -9,7 +9,7 @@ import { useGameStore } from '../store/gameStore';
 import { type MapID } from '../types';
 import { launchBattle } from '../lib/launchBattle';
 import { logObservation } from '../lib/eventLog';
-import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES, getKantoRegion } from '../constants';
+import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES, getKantoRegion } from '../constants/world';
 import { calcHp } from '../lib/damage';
 
 // Pallet Town exit coords in the unified KANTO_OVERWORLD
@@ -246,10 +246,30 @@ export function useMovementEngine({
       const fs = useGameStore.getState();
       fs.setIsMoving(false);
       if (warp) {
-        const validLoc = getValidTeleportLocation(warp.targetMap, warp.targetPos);
-        fs.setCurrentMap(validLoc.map);
-        fs.setPlayerPos(validLoc.pos);
-        if (warp.targetDir) fs.setDirection(warp.targetDir);
+        const isEnteringInterior = warp.targetMap !== 'KANTO_OVERWORLD' && currentMap === 'KANTO_OVERWORLD';
+        if (isEnteringInterior) {
+          fs.setLastOverworldPos({ x: nextX, y: nextY }, dir);
+        }
+        if ((warp.targetMap as string) === 'LAST_MAP') {
+          const entryPos = fs.lastOverworldPos ?? { x: 123, y: 202 };
+          const entryDir = fs.lastOverworldDir ?? 'down';
+          const exitDir: Direction = entryDir === 'up' ? 'down' : entryDir === 'down' ? 'up' : entryDir === 'left' ? 'right' : 'left';
+          let exitX = entryPos.x;
+          let exitY = entryPos.y;
+          if (exitDir === 'up') exitY--;
+          else if (exitDir === 'down') exitY++;
+          else if (exitDir === 'left') exitX--;
+          else if (exitDir === 'right') exitX++;
+          const validLoc = getValidTeleportLocation('KANTO_OVERWORLD', { x: exitX, y: exitY });
+          fs.setCurrentMap(validLoc.map);
+          fs.setPlayerPos(validLoc.pos);
+          fs.setDirection(exitDir);
+        } else {
+          const validLoc = getValidTeleportLocation(warp.targetMap, warp.targetPos);
+          fs.setCurrentMap(validLoc.map);
+          fs.setPlayerPos(validLoc.pos);
+          if (warp.targetDir) fs.setDirection(warp.targetDir);
+        }
       }
     }, sd(isLedgeJump ? 260 : 110));
 

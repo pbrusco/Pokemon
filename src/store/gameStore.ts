@@ -35,6 +35,8 @@ interface GameSaveState {
 
   musicMuted: boolean;
   musicVolume: number;
+  lastOverworldPos: Position | null;
+  lastOverworldDir: Direction | null;
 }
 
 const safeLocalStorage = {
@@ -57,11 +59,10 @@ const safeLocalStorage = {
 };
 
 const INITIAL_SAVE_STATE: GameSaveState = {
-  // Pallet Town: player's house door warp sits at world (125, 203). Spawn one tile
-  // south of it, on the path strip, facing south into the town.
-  playerPos: { x: 125, y: 204 },
+  // Start upstairs in the player's house (tile 4,4 = center of the room).
+  playerPos: { x: 4, y: 4 },
   direction: 'down',
-  currentMap: 'KANTO_OVERWORLD',
+  currentMap: 'PLAYERS_HOUSE_2F',
 
   hasPokedex: false,
   hasParcel: false,
@@ -86,6 +87,8 @@ const INITIAL_SAVE_STATE: GameSaveState = {
 
   musicMuted: false,
   musicVolume: 0.5,
+  lastOverworldPos: { x: 123, y: 202 },
+  lastOverworldDir: 'up',
 };
 
 interface GameState extends GameSaveState {
@@ -179,6 +182,7 @@ interface GameState extends GameSaveState {
   setMusicMuted: (muted: boolean) => void;
   setMusicVolume: (volume: number) => void;
   toggleMusicMute: () => void;
+  setLastOverworldPos: (pos: Position | null, dir: Direction | null) => void;
 
   resetGame: () => void;
 }
@@ -325,6 +329,7 @@ export const useGameStore = create<GameState>()(
       setMusicMuted: (muted) => set({ musicMuted: muted }),
       setMusicVolume: (volume) => set({ musicVolume: volume }),
       toggleMusicMute: () => set((state) => ({ musicMuted: !state.musicMuted })),
+      setLastOverworldPos: (pos, dir) => set({ lastOverworldPos: pos, lastOverworldDir: dir }),
 
       setGrassEffect: (pos) => set({ grassEffect: pos }),
       setSpottedTrainerId: (id) => set({ spottedTrainerId: id }),

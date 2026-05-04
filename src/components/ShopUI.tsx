@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { motion } from 'motion/react';
 import { X } from 'lucide-react';
-import { ITEMS_DATABASE, SHOP_PRICES } from '../constants';
+import { ITEMS_DATABASE, SHOP_PRICES } from '../constants/items';
 
 export const ShopUI = memo(({ onBuy, onClose, money }: { onBuy: (itemId: string) => void, onClose: () => void, money: number }) => {
   const shopItems = ['POKEBALL', 'POTION', 'ANTIDOTE', 'PARALYZE_HEAL', 'BURN_HEAL'];

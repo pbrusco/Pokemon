@@ -8,7 +8,7 @@ import { DialogueBox } from './DialogueBox';
 import { InventoryUI } from './InventoryUI';
 import { TeamMenuUI } from './TeamMenuUI';
 import { ShopUI } from './ShopUI';
-import { SHOP_PRICES } from '../constants';
+import { SHOP_PRICES } from '../constants/items';
 import { PokedexUI } from './PokedexUI';
 import { PCStorageUI } from './PCStorageUI';
 import { MapEditor } from './MapEditor';

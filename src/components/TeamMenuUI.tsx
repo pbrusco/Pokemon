@@ -1,7 +1,7 @@
 import { useState, memo } from 'react';
 import { motion } from 'motion/react';
 import { type Pokemon } from '../types';
-import { ITEMS_DATABASE } from '../constants';
+import { ITEMS_DATABASE } from '../constants/items';
 import { applyItemToPokemon } from '../lib/itemUtils';
 
 interface TeamMenuUIProps {

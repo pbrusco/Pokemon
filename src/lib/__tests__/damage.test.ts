@@ -10,7 +10,7 @@ import {
   calculateDamage,
 } from '../damage';
 import type { Pokemon } from '../../types';
-import { MOVES } from '../../constants';
+import { MOVES } from '../../constants/moves';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

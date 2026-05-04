@@ -1,7 +1,7 @@
 import { worldConfig } from '../data/worldConfig';
 import { buildNPCDatabase, buildItemDatabase, O } from '../data/npcDatabase';
 import { BUILDING_REFERENCE } from '../data/reference/buildingReference';
-import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES } from '../constants';
+import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES } from '../constants/world';
 import pokeredMetadata from '../artifacts/reference/pokered_metadata.json';
 import type { MapID, Tile } from '../types';
 
@@ -172,6 +172,10 @@ export function validateWorld(): WorldValidationIssue[] {
     if (SKIP_MAPS.has(id)) continue;
     const map = maps[id];
     for (const w of map.warps) {
+      if (!w.targetPos) {
+        issues.push({ category: 'warp', message: `${id} (${w.x},${w.y}) → ${w.targetMap}: missing targetPos` });
+        continue;
+      }
       const label = `${id} (${w.x},${w.y}) → ${w.targetMap} (${w.targetPos.x},${w.targetPos.y})`;
 
       if (!inBounds(map.tiles, w.x, w.y)) {

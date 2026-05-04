@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import type { Pokemon, MapID, Position, NPC } from '../types';
-import { HM_REQUIREMENTS, STARTERS, ITEMS_DATABASE, MOVES, makePokemon } from '../constants';
+import { MOVES } from '../constants/moves';
+import { STARTERS, makePokemon } from '../constants/pokemon';
+import { HM_REQUIREMENTS, ITEMS_DATABASE } from '../constants/items';
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
 import { EXPLORING, HEALING, SHOP } from '../types/gamePhase';

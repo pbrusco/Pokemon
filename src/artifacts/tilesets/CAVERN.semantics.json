@@ -1,0 +1,198 @@
+{
+  "0": {
+    "type": "wall",
+    "walkable": false
+  },
+  "1": {
+    "type": "wall",
+    "walkable": false
+  },
+  "2": {
+    "type": "wall",
+    "walkable": false
+  },
+  "3": {
+    "type": "flower",
+    "walkable": false
+  },
+  "4": {
+    "type": "flower",
+    "walkable": false
+  },
+  "5": {
+    "type": "path",
+    "walkable": true
+  },
+  "6": {
+    "type": "wall",
+    "walkable": false
+  },
+  "7": {
+    "type": "wall",
+    "walkable": false
+  },
+  "8": {
+    "type": "wall",
+    "walkable": false
+  },
+  "9": {
+    "type": "wall",
+    "walkable": false
+  },
+  "10": {
+    "type": "wall",
+    "walkable": false
+  },
+  "11": {
+    "type": "wall",
+    "walkable": false
+  },
+  "12": {
+    "type": "wall",
+    "walkable": false
+  },
+  "13": {
+    "type": "ledge_right",
+    "walkable": false
+  },
+  "14": {
+    "type": "fence",
+    "walkable": false
+  },
+  "15": {
+    "type": "wall",
+    "walkable": false
+  },
+  "16": {
+    "type": "wall",
+    "walkable": false
+  },
+  "17": {
+    "type": "wall",
+    "walkable": false
+  },
+  "18": {
+    "type": "wall",
+    "walkable": false
+  },
+  "19": {
+    "type": "wall",
+    "walkable": false
+  },
+  "20": {
+    "type": "water",
+    "walkable": false
+  },
+  "21": {
+    "type": "path",
+    "walkable": true
+  },
+  "22": {
+    "type": "wall",
+    "walkable": false
+  },
+  "23": {
+    "type": "wall",
+    "walkable": false
+  },
+  "24": {
+    "type": "path",
+    "walkable": true
+  },
+  "25": {
+    "type": "wall",
+    "walkable": false
+  },
+  "26": {
+    "type": "path",
+    "walkable": true
+  },
+  "27": {
+    "type": "wall",
+    "walkable": false
+  },
+  "28": {
+    "type": "wall",
+    "walkable": false
+  },
+  "29": {
+    "type": "ledge_right",
+    "walkable": false
+  },
+  "30": {
+    "type": "wall",
+    "walkable": false
+  },
+  "31": {
+    "type": "wall",
+    "walkable": false
+  },
+  "32": {
+    "type": "path",
+    "walkable": true
+  },
+  "33": {
+    "type": "path",
+    "walkable": true
+  },
+  "34": {
+    "type": "path",
+    "walkable": true
+  },
+  "36": {
+    "type": "sign",
+    "walkable": false
+  },
+  "37": {
+    "type": "wall",
+    "walkable": false
+  },
+  "38": {
+    "type": "wall",
+    "walkable": false
+  },
+  "39": {
+    "type": "ledge_left",
+    "walkable": false
+  },
+  "40": {
+    "type": "wall",
+    "walkable": false
+  },
+  "41": {
+    "type": "wall",
+    "walkable": false
+  },
+  "42": {
+    "type": "tree",
+    "walkable": true
+  },
+  "43": {
+    "type": "tree",
+    "walkable": false
+  },
+  "44": {
+    "type": "wall",
+    "walkable": false
+  },
+  "45": {
+    "type": "path",
+    "walkable": true
+  },
+  "46": {
+    "type": "wall",
+    "walkable": false
+  },
+  "47": {
+    "type": "wall",
+    "walkable": false
+  },
+  "49": {
+    "type": "wall",
+    "walkable": false
+  },
+  "60": {
+    "type": "wall",
+    "walkable": false
+  }
+}

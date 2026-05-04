@@ -1,4 +1,3 @@
-import type { RenderLayers } from './data/tileset/autotiler';
 import type { worldMaps } from './data/maps';
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
@@ -12,7 +11,14 @@ export interface Position {
 export interface MapData {
   tiles: { type: string; walkable: boolean }[][];
   warps: Array<{ x: number; y: number; targetMap: MapID; targetPos: Position; targetDir?: Direction }>;
-  layers: RenderLayers;
+  /** Legacy rendering layers — optional, autotiler output. Will be removed. */
+  layers?: { ground: number[][]; objects: number[][]; overhead: number[][] };
+  /** New block-based rendering */
+  blockset?: string;
+  blocks?: number[][];
+  widthBlocks?: number;
+  heightBlocks?: number;
+  borderBlock?: number;
 }
 
 type PokedexEntry = { seen: boolean; caught: boolean };

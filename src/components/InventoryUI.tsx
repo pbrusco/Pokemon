@@ -1,6 +1,6 @@
 import { useState, memo } from 'react';
 import { motion } from 'motion/react';
-import { ITEMS_DATABASE } from '../constants';
+import { ITEMS_DATABASE } from '../constants/items';
 import type { InventoryCounts } from '../types';
 
 export const InventoryUI = memo(({ items, onClose, onUse }: { items: InventoryCounts, onClose: () => void, onUse?: (itemId: string) => void }) => {

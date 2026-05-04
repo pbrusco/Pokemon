@@ -1,6 +1,6 @@
 import { useState, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { POKEMON_LIST } from '../constants';
+import { POKEMON_LIST } from '../constants/pokemon';
 
 const TYPE_COLORS: Record<string, { bg: string; text: string }> = {
   normal:   { bg: '#A8A878', text: '#383838' },

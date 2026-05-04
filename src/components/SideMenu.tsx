@@ -1,7 +1,7 @@
 import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { RecorderButton } from './RecorderButton';
-import { ITEMS_DATABASE } from '../constants';
+import { ITEMS_DATABASE } from '../constants/items';
 import { type Pokemon, type InventoryCounts } from '../types';
 import { type GamePhase, EXPLORING } from '../types/gamePhase';
 import { type Dispatch, type SetStateAction } from 'react';

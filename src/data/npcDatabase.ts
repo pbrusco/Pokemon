@@ -1,4 +1,5 @@
-import { MOVES, STARTERS, makePokemon } from '../constants';
+import { MOVES } from '../constants/moves';
+import { STARTERS, makePokemon } from '../constants/pokemon';
 import { type NPC, type Entity, type MapID, type Direction, type Pokemon, type Position } from '../types';
 
 // ─── Kanto zone offsets in the unified KANTO_OVERWORLD map ───────────────────
@@ -28,11 +29,12 @@ export const O = {
   ROUTE_13:        { x: 225, y: 163 },
   ROUTE_14:        { x: 206, y: 180 },
   ROUTE_15:        { x: 147, y: 224 },
-  FUCHSIA_CITY:    { x: 108, y: 216 },
-  ROUTE_19:        { x: 118, y: 251 },
-  ROUTE_20:        { x:  19, y: 300 },
-  CINNABAR_ISLAND: { x:   0, y: 300 },
-  ROUTE_21:        { x:   0, y: 211 },
+  // Canonical placement (must match KANTO_ZONE_OFFSETS in src/constants/world.ts)
+  ROUTE_21:        { x: 118, y: 214 },
+  CINNABAR_ISLAND: { x: 118, y: 304 },
+  ROUTE_20:        { x: 138, y: 308 },
+  FUCHSIA_CITY:    { x: 228, y: 270 },
+  ROUTE_19:        { x: 238, y: 306 },
   CELADON_CITY:    { x: 618, y: 196 },
   ROUTE_16:        { x: 579, y: 201 },
   ROUTE_17:        { x: 579, y: 218 },

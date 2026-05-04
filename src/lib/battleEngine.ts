@@ -18,7 +18,8 @@ import {
   getTypeEffectiveness,
   type DamageResult,
 } from './damage';
-import { EVOLUTIONS, expForLevel, baseExpFor, LEARNSET_DATABASE } from '../constants';
+import { EVOLUTIONS, expForLevel, baseExpFor } from '../constants/pokemon';
+import { LEARNSET_DATABASE } from '../constants/moves';
 import { applyItemToPokemon } from './itemUtils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -136,7 +137,7 @@ function applyStatChange(
 
     if (oldVal === newVal) {
       const targetName = playerTeam[0]?.name;
-      return { playerTeam: newPlayerTeam, enemyPokemon, msg: `¡${targetName} ya no puede mejorar su ${statLabels[statName]}!`, newGlitchStacks };
+      return { playerTeam: newPlayerTeam, enemyPokemon, msg: `¡${targetName} ya no puede mejorar más su ${statLabels[statName]}!`, newGlitchStacks };
     }
   } else {
     const boosts = { ...(enemyPokemon.statBoosts ?? ZERO_BOOSTS) };
@@ -146,7 +147,7 @@ function applyStatChange(
     newEnemyPokemon = { ...enemyPokemon, statBoosts: boosts };
 
     if (oldVal === newVal) {
-      return { playerTeam, enemyPokemon: newEnemyPokemon, msg: `¡${enemyPokemon.name} ya no puede mejorar su ${statLabels[statName]}!`, newGlitchStacks: badgeBoostGlitchStacks };
+      return { playerTeam, enemyPokemon: newEnemyPokemon, msg: `¡${enemyPokemon.name} ya no puede mejorar más su ${statLabels[statName]}!`, newGlitchStacks: badgeBoostGlitchStacks };
     }
   }
 

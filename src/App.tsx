@@ -23,7 +23,8 @@ import { MenuButton } from './components/MenuButton';
 import { GameModals } from './components/GameModals';
 import { ScreenEffects } from './components/ScreenEffects';
 import { applyItemToPokemon } from './lib/itemUtils';
-import { HM_MOVE_MAP, MOVES } from './constants';
+import { HM_MOVE_MAP } from './constants/items';
+import { MOVES } from './constants/moves';
 
 export default function App() {
   // ── Granular store selectors ────────────────────────────────────

@@ -4,7 +4,7 @@ import { useInteractionEngine } from '../useInteractionEngine';
 import { useGameStore } from '../../store/gameStore';
 import type { NPC, Entity, Tile, Pokemon, Position, InventoryCounts } from '../../types';
 import type { MapID } from '../../types';
-import { STARTERS } from '../../constants';
+import { STARTERS } from '../../constants/pokemon';
 import { EXPLORING, SHOP, battle, B_CHOOSING } from '../../types/gamePhase';
 import { type worldConfig } from '../../data/worldConfig';
 

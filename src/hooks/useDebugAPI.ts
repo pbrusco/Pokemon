@@ -2,7 +2,8 @@ import { useEffect, type MutableRefObject, type Dispatch, type SetStateAction } 
 import { type Pokemon, type Direction } from '../types';
 import { type GamePhase, battle, B_CHOOSING, EXPLORING } from '../types/gamePhase';
 import { type BattleAction, type BattleState, createBattleState } from '../lib/battleEngine';
-import { MOVES, makePokemon } from '../constants';
+import { MOVES } from '../constants/moves';
+import { makePokemon } from '../constants/pokemon';
 import { useGameStore } from '../store/gameStore';
 
 interface GameStateRef {

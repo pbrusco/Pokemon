@@ -1,7 +1,7 @@
 import { useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { type Position, type Entity, type MapID, TILE_SIZE, type MapData, type NPC } from '../types';
-import { WILD_POKEMON_DATABASE } from '../constants';
+import { WILD_POKEMON_DATABASE } from '../constants/world';
 import { useGameStore } from '../store/gameStore';
 import { NPCComponent } from './overworld/NPCComponent';
 import { GameTile } from './overworld/GameTile';

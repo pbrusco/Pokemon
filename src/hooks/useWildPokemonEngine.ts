@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { WILD_POKEMON_DATABASE, getKantoRegion } from '../constants';
+import { WILD_POKEMON_DATABASE, getKantoRegion } from '../constants/world';
 import { type Position, type WildPokemonEntity, type Direction, type Pokemon } from '../types';
 import { calcHp } from '../lib/damage';
 import { launchBattle } from '../lib/launchBattle';

@@ -5,7 +5,7 @@
 - All outdoor zones live in `src/data/maps/kanto_overworld.json` as a single stitched tile grid.
   Zone offsets (top-left corner of each zone in world coords) are defined **twice** — keep them in sync:
   - `src/data/npcDatabase.ts` → `O` object (used by `w()` to place NPCs/items)
-  - `src/constants.ts` → `KANTO_ZONE_OFFSETS` (used for encounter zone lookup + minimap)
+  - `src/constants/world.ts` → `KANTO_ZONE_OFFSETS` (used for encounter zone lookup + minimap)
 - NPC data: `src/data/npcDatabase.ts` → `buildNPCDatabase()`
 - Tile characters: `T`=tree, `P`=path, `G`=grass, `W`=wall, `L`=ledge_down, `~`=water, `D`=door, `S`=sign
 - Canonical source for map layouts: `pokered_dissasembly/data/maps/objects/*.asm` + `tilesets/`
@@ -15,85 +15,333 @@
 
 ---
 
-## Repo Organization Improvements (non-blocking, add as-we-go)
+## Map Pipeline Rewrite — Block-ID Intermediate Format (HIGH PRIORITY, ~3-5 days)
 
-1. **[ ] Split `constants.ts` (1632 lines)** — Into per-domain files:
-   - `constants/pokemon.ts` — BASE_STATS, POKEMON_SUMMARY, WILD_POKEMON_DATABASE, EVOLUTIONS
-   - `constants/moves.ts` — MOVES, MOVES_BY_NAME, TYPE_CHART
-   - `constants/items.ts` — ITEMS_DATABASE, HM_MOVE_MAP
-   - `constants/world.ts` — KANTO_ZONE_OFFSETS, ZONE_WILD_POKEMON, BADGE_ORDER
-   - Update all imports; nothing imports from `constants.ts` generically anyway (CLIQUE.md reveals zero co-import cohesion).
+### Why this exists
 
-2. **[ ] Flatten `src/types/`** — `src/types/gamePhase.ts` is the only file; move it into `src/types.ts` (or rename `types.ts` to `types/index.ts`). Having both `src/types.ts` and `src/types/` is unnecessary.
+The current pipeline (canonical `.blk` → 18-char tile alphabet → autotiler → pixel art) is
+**lossy and heuristic**, which produces these recurring bugs:
 
-3. **[ ] Flatten `components/overworld/`** — It only has 3 files (`NPCComponent.tsx`, `GameTile.tsx`, `PlayerSprite.tsx`). Merge them into `src/components/` and delete the folder. 2D vs 3D distinction is already clear from component names.
+- **False-positive walls**: blocks like `0x29` (vertical fence) and `0x2c` (all-`0x11` border)
+  appear adjacent to door blocks in some pokered maps, so `generate-overworld.mjs`'s
+  building-detection heuristic flags them as buildings. Result: Viridian's left edge
+  renders as a 5-tile-wide solid wall instead of a fence/decoration.
+- **One block ID, multiple visual roles**: `0x0c` is a real wall (Oak's Lab top) in Pallet
+  AND a canonical "border block" filling the offscreen area in 11 other maps. Char-based
+  classification can't disambiguate.
+- **Autotiler re-guessing**: when the autotiler sees `W`, it rewrites neighbors into
+  roof/wall/window without knowing the canonical block — fences become walls, decorations
+  become buildings.
+- **50 hand-authored interior maps drift**: `src/data/maps/*.json` (gyms, towers, mansion,
+  caves, etc.) were authored before the pipeline existed; they have their own
+  inconsistencies that no autogen pipeline can fix.
 
-4. **[ ] Relocate `src/artifacts/maps/`** — 76 JSON map files under `src/artifacts/` are source-of-truth runtime data, not build artifacts. Move them to `src/data/maps/` and replace the current hand-authored maps (or vice-versa — pick one canonical location and stick to it).
+The rewrite replaces the 18-char alphabet with **canonical block IDs** as the data
+representation. The renderer maps each block ID directly to its canonical 4×4-tile
+graphic (extracted from pokered's tileset PNGs). No interpretation, no heuristic.
 
-5. **[ ] Move `lib/` → `engine/` or `game/`** — `lib/battleEngine.ts`, `lib/damage.ts`, `lib/cutscenes/` etc. are core game logic, not generic utilities. Rename the folder to `engine/` to signal domain importance.
+### Inventory (current state, verified 2026-05-03)
 
-6. **[ ] Move test utilities out of `src/test/`** — `src/test/simulator/` is a testing concern, not source code. Move to `tests/simulator/` (or `__tests__/simulator/`) at project root so it doesn't ship to the browser bundle.
+| What | Where | Count | How generated |
+|---|---|---|---|
+| Outdoor maps | `src/artifacts/maps/*.json` | 68 | Autogen (`generate-overworld.mjs`) — buggy classifier |
+| Interior maps | `src/data/maps/*.json` | 50 | Hand-authored — inconsistent with canonical |
+| Stitched world | `src/artifacts/maps/kanto_overworld.json` | 1 | `stitch-kanto.mjs` (now uses absolute coords) |
+| Pokered `.blk` files | `pokered_dissasembly/maps/*.blk` | 225 | Canonical (1 byte per block, block IDs 0x00-0x7F) |
+| Pokered blocksets | `pokered_dissasembly/gfx/blocksets/*.bst` | 19 | Canonical (16 bytes per block × 128 blocks) |
+| Pokered tile PNGs | `pokered_dissasembly/gfx/tilesets/*.png` | 19 | Canonical 8×8 tile graphics, 2-bit grayscale |
+| Map headers | `pokered_dissasembly/data/maps/headers/*.asm` | 223 | Declares which tileset each map uses |
+| Per-tileset collision | `pokered_dissasembly/data/tilesets/collision_tile_ids.asm` | 1 file, 19 tables | `Overworld_Coll`, `House_Coll`, etc. — list of walkable tile IDs per blockset |
 
-7. **[ ] Clean stale files** — Delete `src/data/npcDatabase.ts_new` (102 lines of orphan code). Delete `overworld_blocks.js`, `overworld_blocks.txt`, and `extract_trainers.mjs` from repo root if they're temporary scripts. Delete `metadata.json` if unused.
+The 19 blocksets (and number of maps using each, from `grep tileset headers/*.asm`):
+`OVERWORLD` (~70), `HOUSE` (~30), `POKECENTER` (~10), `MART` (~10), `GYM` (~8),
+`DOJO` (Oak's Lab + dojos), `LAB`, `FOREST` (Viridian Forest, Safari), `CAVERN` (Mt
+Moon, Diglett's, Seafoam, Cerulean Cave, Victory Road, Rock Tunnel), `MANSION`
+(Pokemon Mansion floors), `CEMETERY` (Pokemon Tower floors), `FACILITY` (Silph Co
+floors, Rocket Hideout), `LOBBY` (Indigo Plateau lobby + Elite Four rooms),
+`PLATEAU`, `INTERIOR` (generic), `SHIP` + `SHIP_PORT` (S.S. Anne), `UNDERGROUND`,
+`REDS_HOUSE`, `CLUB` (Fighting Dojo, Game Corner).
 
-8. **[ ] Add `barrel exports`** — `src/data/maps/index.ts` already exists but may not export all maps consistently. Ensure every domain folder (`data/`, `components/`, `hooks/`, `engine/`/`lib/`) has an `index.ts` so App.tsx can import from one line per domain instead of 20+ individual paths.
+### Target architecture
+
+#### New JSON format (per map)
+
+```json
+{
+  "_comment": "AUTOGENERATED FROM pokered_dissasembly/maps/PalletTown.blk",
+  "blockset": "OVERWORLD",
+  "borderBlock": 11,
+  "width": 10,
+  "height": 9,
+  "blocks": [
+    [82, 79, 82, 82, 79, 11, 80, 82, 82, 80],
+    [78, 1, 56, 57, 1, 1, 56, 57, 1, 77],
+    ...
+  ],
+  "warps": [{ "x": 5, "y": 5, "targetMap": "PLAYERS_HOUSE_1F", "targetPos": {...} }],
+  "objects": [{ "x": 13, "y": 13, "text": "PALLETTOWN_OAKSLAB_SIGN" }]
+}
+```
+
+- `blockset`: identifies which `.bst` to look up block graphics in
+- `borderBlock`: the block ID rendered outside the map's bounds (from the .asm
+  `db $X ; border block` line)
+- `width` / `height`: in **blocks** (not tiles). Pallet is 10×9 blocks = 20×18 tiles.
+- `blocks[y][x]`: block ID (0-127). Each block = 4×4 native tiles = 32×32 pixels.
+- Warp coords are in **tile units** (matches pokered .asm warp_event x,y) — pokered uses
+  per-tile warp coords even though the map is block-indexed.
+
+#### Movement & collision
+
+- Player still moves in **tile** units (16×16 = 1 quadrant of a block). 1 block = 2×2
+  walkable tiles. No change to player coord system.
+- Walkability: looked up per-tile via the blockset's collision table. Algorithm:
+  1. Player wants to step to tile `(tx, ty)`.
+  2. Block coord: `bx = tx >> 1`, `by = ty >> 1`.
+  3. Sub-tile within block: `qx = tx & 1`, `qy = ty & 1` (0 or 1).
+  4. Look up block ID: `bid = blocks[by][bx]`.
+  5. Each block has 16 native tiles. The 8×8 tile at quadrant `(qx, qy)` is the
+     bottom-right 8×8 of that 16×16 quadrant: tile index `(qy*2+1)*4 + (qx*2+1)`. (Verify
+     against pokered's `IsTilePassable` / `Func_c2c2` in `engine/overworld/`.)
+  6. Walkable iff that tile ID is in the blockset's `*_Coll` list.
+- This replaces the `walkable: bool` flag on each `Tile`. Keep the `Tile.type` semantic
+  enum (`grass`, `water`, `door`, `wall`, etc.) for game logic (encounters, ledge jumps,
+  warp-through-door) — derive it from tile ID using the existing maps in
+  `generate-overworld.mjs` (`GRASS_TILE`, `WATER_TILE`, `DOOR_TILES`, etc.).
+
+#### Renderer
+
+- Replace `src/data/tileset/tilesetGenerator.ts` (715 lines, draws Fire-Red-style art)
+  with a **canonical asset loader**:
+  - At app init, load all 19 `.png` tilesets from `pokered_dissasembly/gfx/tilesets/`.
+    Each PNG is 128×48 (or similar) = 16 cols × 6 rows of 8×8 tiles = 96 unique tiles
+    per tileset (verify per blockset). Some tilesets only define a subset; tile IDs
+    above the PNG are usually unused.
+  - Convert grayscale palette to color: pokered uses a 4-shade palette per area (look up
+    `gfx/palettes/` or just use Game Boy's classic green-tinted 4-shade DMG palette by
+    default; adjustable).
+  - For each blockset, load the `.bst` (16 bytes per block) and pre-render each block as
+    a 32×32 ImageBitmap by composing the 16 8×8 tile graphics. Cache as
+    `Map<blocksetName, Map<blockId, ImageBitmap>>`.
+- Replace `src/data/tileset/autotiler.ts` (213 lines, char→graphic interpretation):
+  - Delete it. Block IDs are direct — no neighbor-based interpretation needed.
+  - The "overhead" layer concept (tree canopy above player) can be preserved by marking
+    specific tile IDs as "overhead" (e.g. `0x05`, `0x06` for tree canopies in
+    overworld). For simplicity in v1, render everything in one layer — fix overhead
+    later if z-order looks wrong.
+- Replace `src/components/overworld/GameTile.tsx` to render blocks instead of tiles:
+  - Each map cell is now a 32×32 div with `background-image: url(blockset.png)` and
+    `background-position` derived from the cached block bitmap.
+  - OR (cleaner): switch to a single `<canvas>` for the visible map area; redraw on
+    move. Eliminates per-tile DOM nodes (currently ~hundreds of `GameTile` divs). This
+    is a larger refactor — defer if scope creeps.
+
+### Implementation phases
+
+#### Phase 1 — Pipeline rewrite (foundation, ~1.5 days)
+
+1. **[ ] Write `scripts/generate-blockmaps.mjs`**. New script that reads any `.blk` file
+   and emits the new JSON format above. For each map:
+   - Parse header (`pokered_dissasembly/data/maps/headers/<MapName>.asm`) for tileset.
+   - Parse object file (`pokered_dissasembly/data/maps/objects/<MapName>.asm`) for
+     border block, warps, signs, NPC positions.
+   - Read `.blk` raw bytes; emit as `blocks[y][x]` block IDs.
+   - Output to `src/artifacts/maps/<map_id>.json` (overwrites current files).
+   - Run with no args → generates all 225 maps. Or `--only PalletTown` for one.
+
+2. **[ ] Write `scripts/extract-tileset-assets.mjs`**. Reads all 19 PNGs +`.bst` files
+   and emits:
+   - `src/artifacts/tilesets/<blockset>.tiles.png` — re-encoded with chosen palette
+   - `src/artifacts/tilesets/<blockset>.blocks.json` — `[ [tileId×16], ... ]` per block
+   - `src/artifacts/tilesets/<blockset>.collision.json` — `Set<tileId>` walkable list
+     parsed from `pokered_dissasembly/data/tilesets/collision_tile_ids.asm`
+   - `src/artifacts/tilesets/<blockset>.semantics.json` — per-tile-ID semantic type
+     (`grass`/`water`/`door`/`ledge_*`/`sign`/`fence`/`flower`) derived from
+     `door_tile_ids.asm`, `ledge_tiles.asm`, `tileset_headers.asm` (grass tile per
+     tileset), `bookshelf_tile_ids.asm`, `warp_tile_ids.asm`.
+   - These are the runtime assets imported by the renderer.
+
+3. **[ ] Update `src/types.ts`**. New `ParsedMap` shape:
+   ```ts
+   interface ParsedMap {
+     blockset: string;       // e.g. "OVERWORLD"
+     borderBlock: number;    // block ID (0-127)
+     widthBlocks: number;    // map width in blocks
+     heightBlocks: number;   // map height in blocks
+     blocks: number[][];     // [y][x] block IDs
+     // Helpers (computed once at parse time):
+     widthTiles: number;     // = widthBlocks * 2
+     heightTiles: number;
+     tileAt: (tx: number, ty: number) => { id: number; type: TileType; walkable: boolean };
+   }
+   ```
+   Keep `TileType` as the existing semantic enum.
+
+4. **[ ] Rewrite `src/data/maps/tileParser.ts`**. Now `parseBlockMap(json)` returns the
+   new `ParsedMap`. Lookup tables for type/walkability come from the per-blockset
+   `semantics.json` + `collision.json` extracted in step 2.
+
+5. **[ ] Update `src/data/maps/index.ts`**. Switch all imports to point at the new
+   autogenerated files. Currently imports both hand-authored (`./oaks_lab.json`) and
+   autogen (`../../artifacts/maps/...`). After phase 1, every import is from
+   `../../artifacts/maps/`.
+
+#### Phase 2 — Renderer rewrite (visual swap, ~1.5 days)
+
+6. **[ ] Build canonical tileset loader** (`src/lib/tilesets.ts`):
+   - At app boot, fetch all 19 `*.tiles.png` and `*.blocks.json`.
+   - Pre-render each block to a 32×32 `ImageBitmap` (or store as canvas tile sprites).
+   - Expose `getBlockBitmap(blockset: string, blockId: number): ImageBitmap`.
+
+7. **[ ] Replace `src/data/tileset/tilesetGenerator.ts` + `autotiler.ts`** with the new
+   block-based renderer. Either:
+   - **(A) DOM**: each map cell = 32×32 div with `background-image` from the loader.
+     Simpler migration; keeps GameTile-style architecture.
+   - **(B) Canvas**: single `<canvas>` for the visible viewport; redraw blocks on
+     player move. Better perf, larger refactor.
+   - Recommend A for v1; revisit B if FPS drops.
+
+8. **[ ] Update `src/components/overworld/GameTile.tsx`** (or replace) to render at
+   block resolution. Note coordinate change: visible viewport is now indexed in blocks
+   (1 block = 32×32 px) but player walks in tile-quadrants (16×16 px each). Player
+   sprite stays at 16×16 for backward compatibility with NPC sprite size.
+
+9. **[ ] Wire up overhead layer** (optional v1): some tile IDs in `overworld.bst` are
+   "above-player" tiles (tree canopies, building roofs that overlap player). For now,
+   render flat. After v1, mark tile IDs in `semantics.json` with `layer: "overhead"`
+   and render those in a second pass.
+
+#### Phase 3 — Movement engine update (~0.5 day)
+
+10. **[ ] Update `src/hooks/useMovementEngine.ts`** (lines 100, 102, 168-266):
+    - `grid[y][x].walkable` → `parsedMap.tileAt(tx, ty).walkable`
+    - `grid[y][x].type` → `parsedMap.tileAt(tx, ty).type`
+    - Coordinate semantics unchanged (tile-level).
+    - Verify ledge-jump logic, grass-encounter trigger, warp-through-door still work.
+
+11. **[ ] Update `src/hooks/useInteractionEngine.ts`** similarly — wherever it reads
+    tile type or walkability.
+
+12. **[ ] Update `src/lib/worldValidator.ts`** — building footprint checks now read
+    block IDs instead of `W` chars. Or rewrite to validate "every door has a warp,
+    every warp lands on walkable, etc." without referencing block geometry.
+
+#### Phase 4 — Stitcher + delete legacy (~0.5 day)
+
+13. **[ ] Update `scripts/stitch-kanto.mjs`** to operate on the new block-indexed
+    format. Stitched output is one giant `blocks[y][x]` grid. Border-fill becomes a
+    single block ID (default `0x52` = trees in overworld blockset, or the first
+    segment's borderBlock). Absolute-coord placement (already done in current fix)
+    stays.
+
+14. **[ ] Delete `src/data/maps/*.json`** (50 hand-authored maps) once phase 1 has
+    produced their autogen replacements in `src/artifacts/maps/`. Keep the imports
+    pointing at `src/artifacts/maps/`.
+
+15. **[ ] Delete `src/data/tileset/tilesetGenerator.ts`** and `autotiler.ts`.
+
+16. **[ ] Delete `src/data/maps/tileParser.ts`** (replaced by `parseBlockMap` in
+    phase 1 step 4).
+
+#### Phase 5 — Tests + validation (~0.5 day)
+
+17. **[ ] Update `src/data/__tests__/kantoLayout.test.ts`** checkpoints. The tile types
+    (`tree`/`water`/`door`/etc.) are still meaningful, so most tests stay. Replace
+    `tileChar(x, y)` with `tileType(x, y)` from the new ParsedMap.
+
+18. **[ ] Update `src/data/__tests__/buildingReference.test.ts`**. Building footprints
+    were defined in chars; redefine in terms of door tile positions + walkability of
+    surrounding tiles.
+
+19. **[ ] Add `src/data/__tests__/blocksetParity.test.ts`**: for every map, verify
+    the parsed JSON's block IDs match the raw `.blk` byte-for-byte. Catches pipeline
+    regressions.
+
+20. **[ ] Visual smoke test**: load each city + interior in browser, eyeball against
+    canonical screenshots (pokered ROM screenshots, mapgenie.io, vgmaps.de WebP). At
+    minimum check Pallet, Viridian, Pewter, Cerulean, Saffron, Vermilion, Lavender,
+    Celadon, Fuchsia, Cinnabar, Indigo Plateau, all 8 gyms, Mt Moon, Pokemon Tower,
+    Silph Co.
+
+### Open decisions (block these on user input before phase 1)
+
+1. **Palette**: classic green-tinted DMG (Game Boy launch palette) vs SGB super-game-boy
+   colored vs custom palette per area? Pokered ROM uses different palettes per
+   tileset/area (`gfx/palettes/`). Default recommend: SGB palettes — looks closer to
+   how players remember the game without being grayscale.
+
+2. **Tile size**: native pokered is 8×8; current game renders at 16×16 per "char" (=
+   2×2 native). Block size: 32×32 native = 64×64 at our 2× scale, or stay at 32×32?
+   Recommend: render at native 32×32 per block (16×16 per quadrant = current size).
+   Means no zoom change, smooth migration.
+
+3. **Renderer style A vs B** (DOM divs per block vs single canvas): see step 7.
+
+4. **Hand-authored maps with intentional changes**: a few interiors may have
+   gameplay-relevant tweaks vs canonical (e.g. Spanish dialogue placements, scaled
+   NPCs). Audit `src/data/maps/*.json` git log before deleting — note any commits
+   that intentionally diverged from canonical. Likely safe but worth a 30-min review.
+
+5. **Save compatibility**: existing saves store `playerPos` in tile coords. If we
+   change nothing about tile coord semantics, saves work. If we change scale, need
+   migration. Recommend: keep tile coord semantics unchanged.
+
+### Migration / risks
+
+- **Big-bang merge** is risky. Land phase 1 + 2 together but keep old renderer alive
+  behind a `useNewRenderer` flag for a day, then flip and delete old code.
+- **Pre-commit hook** (`bash .githooks/pre-commit`) must pass at every phase boundary.
+  Add the new test files (step 19) before deleting old code.
+- **Failing tests are the spec**: don't change `kantoLayout.test.ts` expectations to
+  make them pass — fix the data instead.
+- **NPC positions**: NPCs use world tile coords (unchanged). Should "just work" after
+  the rewrite.
+
+### Files affected (summary)
+
+**New**:
+- `scripts/generate-blockmaps.mjs`
+- `scripts/extract-tileset-assets.mjs`
+- `src/lib/tilesets.ts`
+- `src/artifacts/tilesets/*` (×19 blocksets × 3 files = ~57 generated assets)
+- `src/data/__tests__/blocksetParity.test.ts`
+
+**Rewritten**:
+- `src/data/maps/tileParser.ts` → `parseBlockMap`
+- `src/types.ts` → new `ParsedMap` shape
+- `src/components/overworld/GameTile.tsx`
+- `src/hooks/useMovementEngine.ts` (tile lookup paths)
+- `src/hooks/useInteractionEngine.ts`
+- `scripts/stitch-kanto.mjs`
+- `src/lib/worldValidator.ts`
+
+**Deleted**:
+- `src/data/tileset/tilesetGenerator.ts` (715 lines)
+- `src/data/tileset/autotiler.ts` (213 lines)
+- `src/data/maps/*.json` (50 hand-authored maps)
+- `scripts/generate-overworld.mjs` (replaced by `generate-blockmaps.mjs`)
+
+### References
+
+- pokered overworld engine: `pokered_dissasembly/engine/overworld/` (tile passability,
+  warp logic) — verify collision algorithm against canonical
+- pokered tileset definitions: `pokered_dissasembly/data/tilesets/tileset_headers.asm`
+  (per-tileset grass tile, animations)
+- pokered collision tables: `pokered_dissasembly/data/tilesets/collision_tile_ids.asm`
+- pokered door tiles: `pokered_dissasembly/data/tilesets/door_tile_ids.asm`
+- pokered ledge tiles: `pokered_dissasembly/data/tilesets/ledge_tiles.asm`
+- canonical map image (visual reference):
+  `pokemon-red-green-and-blue-versions-full-overworld-and-interiors-game-boy-map.webp`
+- Existing classifier (for migration): `scripts/generate-overworld.mjs` already
+  parses border blocks, doors, ledges — copy that logic into the new pipeline.
+- Test harness pattern: `src/data/__tests__/kantoLayout.test.ts` — JSON-based
+  assertions, no simulator needed.
 
 ---
 
 ## Music Integration — READY TO WIRE
 
 58 OGG files transcoded from FLAC KHInsider rip → `public/music/` (~61 MB).
-
-### Track-to-Game Mapping (curated subset — 20 essential tracks)
-
-| # | Track | Game Context | File |
-|---|-------|--------------|------|
-| 03 | Title Screen | Title / opening | `03 Title Screen.ogg` |
-| 04 | Pallet Town | Overworld: Pallet Town | `04 Pallet Town.ogg` |
-| 05 | Professor Oak | Oak cutscene / dialogue | `05 Professor Oak.ogg` |
-| 06 | Hurry Along | General urgent dialogue | `06. Hurry Along.ogg` |
-| 07 | Pokémon Lab | Oak's Lab interior | `07. Pokémon Lab.ogg` |
-| 08 | Pokémon Obtained! | Caught a Pokémon | `08. Pokémon Obtained!.ogg` |
-| 09 | Rival Appears! | Rival encounter intro | `09. Rival Appears!.ogg` |
-| 10 | Battle! (Trainer) | Trainer battles | `10. Battle! (Trainer Battle).ogg` |
-| 11 | Level Up! | Level up fanfare | `11. Level Up!.ogg` |
-| 12 | Victory! (Trainer) | Post-trainer victory | `12. Victory! (Trainer Battle).ogg` |
-| 13 | Route 1 | Routes 1, 2, 3, etc. | `13 Route 1.ogg` |
-| 14 | Battle! (Wild) | Wild Pokémon encounters | `14 Battle! (Wild Pokémon).ogg` |
-| 15 | Victory! (Wild) | Post-wild victory | `15 Victory! (Wild Pokémon).ogg` |
-| 16 | Item Obtained! | Picked up item | `16. Item Obtained!.ogg` |
-| 17 | Viridian City | Cities (Viridian, Pewter, Cerulean, etc.) | `17 Viridian City.ogg` |
-| 18 | Pokémon Center | Pokémon Center interior | `18 Pokémon Center.ogg` |
-| 19 | Pokémon Healed | Healing jingle | `19. Pokémon Healed.ogg` |
-| 20 | Pokémon Caught! | Catch success | `20. Pokémon Caught!.ogg` |
-| 22 | Viridian Forest | Forests, caves | `22 Viridian Forest.ogg` |
-| 23 | Trainer Appears (Boy) | Boy trainer sighting | `23. A Trainer Appears (Boy Version).ogg` |
-| 26 | Evolution | Evolution scene | `26 Evolution.ogg` |
-| 27 | Pokémon Gym | Gym interior | `27 Pokémon Gym.ogg` |
-| 28 | Battle! (Gym Leader) | Gym leader battles | `28. Battle! (Gym Leader).ogg` |
-| 29 | Victory! (Gym Leader) | Post-gym victory | `29. Victory! (Gym Leader).ogg` |
-| 30 | Route 3 | Routes 3, 4, etc. | `30 Route 3.ogg` |
-| 31 | Trainer Appears (Girl) | Girl trainer sighting | `31. A Trainer Appears (Girl Version).ogg` |
-| 32 | Mt. Moon | Dungeons, Mt. Moon | `32 Mt. Moon.ogg` |
-| 33 | Trainer Appears (Bad Guy) | Rocket/Team Rocket sighting | `33. A Trainer Appears (Bad Guy Version).ogg` |
-| 34 | Cerulean City | Cities variant | `34 Cerulean City.ogg` |
-| 36 | Vermilion City | Cities variant | `36 Vermilion City.ogg` |
-| 37 | S.S. Anne | SS Anne interior | `37. S.S. Anne.ogg` |
-| 38 | Bicycle | Bicycle riding | `38. Bicycle.ogg` |
-| 40 | Lavender Town | Lavender Town, sad/mystery areas | `40 Lavender Town.ogg` |
-| 41 | Celadon City | Celadon City | `41 Celadon City.ogg` |
-| 42 | Rocket Game Corner | Game Corner | `42 Rocket Game Corner.ogg` |
-| 43 | Rocket Hideout | Rocket Hideout | `43 Rocket Hideout.ogg` |
-| 44 | Sylph Co. | Silph Co. building | `44 Sylph Co..ogg` |
-| 45 | Pokémon Tower | Pokémon Tower | `45 Pokémon Tower.ogg` |
-| 47 | Surf | Surfing | `47 Surf.ogg` |
-| 48 | Cinnabar Island | Cinnabar Island | `48 Cinnabar Island.ogg` |
-| 49 | Pokémon Mansion | Pokémon Mansion | `49 Pokémon Mansion.ogg` |
-| 50 | Victory Road | Victory Road | `50 Victory Road.ogg` |
-| 51 | Final Battle! (Rival) | Champion / final rival battle | `51 Final Battle! (Rival).ogg` |
-| 52 | Hall of Fame | Hall of Fame | `52 Hall of Fame.ogg` |
-| 53 | Ending Theme | Ending / credits | `53. Ending Theme.ogg` |
-| 57 | Trainer Appears (Rocket) | Rocket duo sighting | `57. A Trainer Appears (Rocket Duo Version).ogg` |
 
 ### Implementation Plan
 

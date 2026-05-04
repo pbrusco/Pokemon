@@ -9,7 +9,7 @@
 import { type Tile } from '../../types';
 import { T } from './tilesetGenerator';
 
-export interface RenderLayers {
+interface RenderLayers {
   ground:   number[][];
   objects:  number[][];
   overhead: number[][];

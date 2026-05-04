@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { applyItemToPokemon } from '../itemUtils';
-import { makePokemon } from '../../constants';
+import { makePokemon } from '../../constants/pokemon';
 import type { Pokemon } from '../../types';
 
 const bulbasaur = (hpVal = 28, statusVal?: Pokemon['status']): Pokemon => {
