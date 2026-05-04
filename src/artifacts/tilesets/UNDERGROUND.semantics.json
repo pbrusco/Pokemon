@@ -8,11 +8,11 @@
     "walkable": false
   },
   "3": {
-    "type": "flower",
+    "type": "wall",
     "walkable": false
   },
   "4": {
-    "type": "flower",
+    "type": "wall",
     "walkable": false
   },
   "5": {
@@ -40,11 +40,11 @@
     "walkable": false
   },
   "11": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "12": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "16": {
@@ -64,11 +64,11 @@
     "walkable": true
   },
   "20": {
-    "type": "water",
+    "type": "wall",
     "walkable": false
   },
   "21": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "22": {
@@ -80,7 +80,7 @@
     "walkable": false
   },
   "24": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   }
 }

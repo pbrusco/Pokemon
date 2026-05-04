@@ -239,15 +239,21 @@ for (const bstFile of blocksetFiles) {
     JSON.stringify([...collSet].sort((a, b) => a - b), null, 2)
   );
 
-  // Hardcoded tile IDs from generate-overworld.mjs / pokered knowledge.
-  // These tiles appear across multiple blocksets with the same visual meaning.
-  const WATER_TILE = 0x14;         // wild_encounters.asm — all tilesets
+  // Outdoor-only special tile IDs (only valid in OVERWORLD/FOREST). Inside
+  // a house/gym/cave the same tile IDs are tables/chairs/floor decals and
+  // must NOT be classified as flowers/fences/trees/ledges or the renderer
+  // draws the wrong sprite (e.g. tree inside a living room).
+  const WATER_TILE = 0x14;
   const FLOWER_TILES = new Set([0x03, 0x04]);
-  const SIGN_TILES   = new Set([0x24, 0x34]);
   const FENCE_TILES  = new Set([0x0E, 0x44, 0x45, 0x46, 0x47, 0x55, 0x56, 0x57]);
-  // Tree canopy/trunk tile IDs in overworld blockset (non-walkable but not buildings).
-  // Listed so quadrantTile in tileParser knows to render them as 'tree' not 'wall'.
   const TREE_TILES   = new Set([0x2A, 0x2B, 0x3A, 0x3B, 0x40, 0x41, 0x50, 0x51]);
+  // Sign tiles 0x24/0x34 also exist in some interior blocksets, but only the
+  // outdoor blocksets place them as standalone signs; indoors those IDs are
+  // furniture. Restrict signs to OVERWORLD/FOREST too.
+  const SIGN_TILES   = new Set([0x24, 0x34]);
+
+  const OUTDOOR_BLOCKSETS = new Set(['OVERWORLD', 'FOREST', 'PLATEAU']);
+  const isOutdoor = OUTDOOR_BLOCKSETS.has(blocksetName);
 
   // Write .semantics.json
   const semantics = {};
@@ -263,24 +269,26 @@ for (const bstFile of blocksetFiles) {
       type = 'door';
     } else if (bookshelfTiles[blocksetName]?.has(tid)) {
       type = 'bookshelf';
-    } else if (ledgeDownTiles.has(tid)) {
+    } else if (isOutdoor && ledgeDownTiles.has(tid)) {
       type = 'ledge_down';
-    } else if (ledgeLeftTiles.has(tid)) {
+    } else if (isOutdoor && ledgeLeftTiles.has(tid)) {
       type = 'ledge_left';
-    } else if (ledgeRightTiles.has(tid)) {
+    } else if (isOutdoor && ledgeRightTiles.has(tid)) {
       type = 'ledge_right';
-    } else if (tid === WATER_TILE) {
+    } else if (isOutdoor && tid === WATER_TILE) {
       type = 'water';
-    } else if (FLOWER_TILES.has(tid)) {
+    } else if (isOutdoor && FLOWER_TILES.has(tid)) {
       type = 'flower';
-    } else if (SIGN_TILES.has(tid)) {
+    } else if (isOutdoor && SIGN_TILES.has(tid)) {
       type = 'sign';
-    } else if (FENCE_TILES.has(tid)) {
+    } else if (isOutdoor && FENCE_TILES.has(tid)) {
       type = 'fence';
-    } else if (TREE_TILES.has(tid)) {
+    } else if (isOutdoor && TREE_TILES.has(tid)) {
       type = 'tree';
     } else {
-      type = walkable ? 'path' : 'wall';
+      // Indoors: walkable → 'floor' (wood/tile floor), non-walkable → 'wall'
+      // (table/bookshelf/cabinet — anything you can't walk through).
+      type = walkable ? (isOutdoor ? 'path' : 'floor') : 'wall';
     }
 
     semantics[tid] = { type, walkable };

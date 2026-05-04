@@ -32,10 +32,23 @@ export interface BuildingFootprint {
 /**
  * Per-map building expectations.
  * Add entries as maps are built out.
- *
- * TODO: Repopulate after the block-pipeline rewrite (see TODO.md) lands and
- * produces canonical Pallet Town tile output. Until then the per-tile checks
- * in worldValidator + buildingReference.test would all flag false positives
- * because the autotiler currently misclassifies many block IDs.
  */
-export const BUILDING_REFERENCE: Record<string, BuildingFootprint[]> = {};
+export const BUILDING_REFERENCE: Record<string, BuildingFootprint[]> = {
+  PALLET_TOWN: [
+    {
+      name: 'Casa de Red',
+      wallX: 4, wallY: 3, wallW: 4, wallH: 2,
+      doorX: 5, doorY: 5, targetMap: 'PLAYERS_HOUSE_1F',
+    },
+    {
+      name: 'Casa de Azul',
+      wallX: 12, wallY: 3, wallW: 4, wallH: 2,
+      doorX: 13, doorY: 5, targetMap: 'RIVALS_HOUSE',
+    },
+    {
+      name: 'Lab. Oak',
+      wallX: 10, wallY: 8, wallW: 6, wallH: 3,
+      doorX: 12, doorY: 11, targetMap: 'OAKS_LAB',
+    },
+  ],
+};

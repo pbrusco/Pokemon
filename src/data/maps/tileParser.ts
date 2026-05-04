@@ -82,12 +82,9 @@ const FALLBACK_TILE: Tile = { type: 'path', walkable: true };
 // Block-based helpers
 // ══════════════════════════════════════════════════════════════════════
 
-// Tile IDs (decimal) that visually represent tree canopy/trunk graphics in the
-// overworld tileset. These are non-walkable but must render as "tree", not "wall".
-// Hex: 0x2a,0x2b,0x3a,0x3b (tree shadows) + 0x40,0x41,0x50,0x51 (canopy).
-const TREE_TILE_IDS = new Set([42, 43, 58, 59, 64, 65, 80, 81]);
-
 // Priority order for determining a quadrant's semantic type from its 4 native tiles.
+// Tree comes from semantics for outdoor blocksets only; indoors the same tile
+// IDs encode furniture/walls so we trust the per-blockset semantics.json.
 const TYPE_PRIORITY: Tile['type'][] = [
   'door', 'water', 'grass', 'ledge_down', 'ledge_left', 'ledge_right', 'sign',
   'fence', 'flower', 'cut_tree', 'boulder', 'tree',
@@ -109,6 +106,21 @@ function getBlockId(
   return borderBlock;
 }
 
+/** Tile types that should be reported as walkable when the underlying native tiles are. */
+const WALKABLE_TYPES = new Set(['door', 'sign', 'flower', 'grass', 'path']);
+
+/**
+ * A "building block" is one whose bottom half visually represents a wall/door
+ * (house, lab, mart, gym, etc.). Pokered marks the upper half tiles as walkable
+ * so the player can pass behind the building under an overhead layer; we don't
+ * have an overhead layer yet, so we treat the whole block as wall visually +
+ * blocked for movement, except for door quadrants which keep their semantic.
+ */
+function isBuildingBlock(blockTiles: number[], semantics: Record<string, { type: string; walkable: boolean }>): boolean {
+  const bottomHalf = blockTiles.slice(8);
+  return bottomHalf.some(id => semantics[id]?.type === 'wall' || semantics[id]?.type === 'door');
+}
+
 /** Scan all 4 native tiles in a 2×2 quadrant and return the most specific semantic type. */
 function quadrantTile(blockTiles: number[], tx: number, ty: number, semantics: Record<string, { type: string; walkable: boolean }>): Tile {
   const qx = tx & 1;
@@ -121,19 +133,42 @@ function quadrantTile(blockTiles: number[], tx: number, ty: number, semantics: R
     blockTiles[(qy * 2 + 1) * 4 + (qx * 2 + 1)],
   ];
 
-  // Check priority types first (door, water, grass, ledge, etc.)
+  // Walkability for the whole quadrant: any non-walkable native tile blocks the player.
+  const quadWalkable = tileIds.every(id => semantics[id]?.walkable);
+
+  // Doors take precedence — even in upper quadrants (rare but possible).
+  if (tileIds.some(id => semantics[id]?.type === 'door')) {
+    return { type: 'door', walkable: true };
+  }
+
+  // Water tiles take precedence over the building-block heuristic so pond/lake
+  // edge blocks (which contain wall-type "shore" tiles) still render as water.
+  if (tileIds.some(id => semantics[id]?.type === 'water')) {
+    return { type: 'water', walkable: false };
+  }
+
+  // For "building blocks" (any block with wall/door in its bottom half), force
+  // the upper quadrants to render as wall so the building visually covers all
+  // four cells, not just the lower two.
+  if (isBuildingBlock(blockTiles, semantics)) {
+    return { type: 'wall', walkable: false };
+  }
+
+  // Check remaining priority types (grass, ledge, sign, fence, tree, etc.).
   for (const priority of TYPE_PRIORITY) {
-    if (priority === 'tree') {
-      if (tileIds.some(id => TREE_TILE_IDS.has(id))) return { type: 'tree', walkable: false };
-    } else {
+    if (priority !== 'door' && priority !== 'water') {
       if (tileIds.some(id => semantics[id]?.type === priority)) {
-        return { type: priority, walkable: priority === 'door' || priority === 'sign' || priority === 'flower' };
+        const walkable = WALKABLE_TYPES.has(priority) ? quadWalkable : false;
+        return { type: priority, walkable };
       }
     }
   }
 
-  // If all walkable → path; any non-walkable → wall
-  if (tileIds.every(id => semantics[id]?.walkable)) return { type: 'path', walkable: true };
+  // If all walkable → floor (interior) or path (outdoor); any non-walkable → wall.
+  if (quadWalkable) {
+    const hasFloor = tileIds.some(id => semantics[id]?.type === 'floor');
+    return { type: hasFloor ? 'floor' : 'path', walkable: true };
+  }
   return { type: 'wall', walkable: false };
 }
 
@@ -189,7 +224,8 @@ function parseBlockMap(data: BlockMapJson): ParsedMap {
     targetDir: w.targetDir as Direction,
   }));
 
-  const layers = buildRenderLayers(tiles);
+  const indoor = !OUTDOOR_BLOCKSETS.has(data.blockset);
+  const layers = buildRenderLayers(tiles, { indoor });
 
   return {
     tiles,
@@ -202,6 +238,8 @@ function parseBlockMap(data: BlockMapJson): ParsedMap {
     borderBlock: data.borderBlock,
   };
 }
+
+const OUTDOOR_BLOCKSETS = new Set(['OVERWORLD', 'FOREST', 'PLATEAU']);
 
 function parseTileMap(data: CharMapJson): ParsedMap {
   const tiles = data.rows.map(row =>

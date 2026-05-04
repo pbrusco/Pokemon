@@ -39,12 +39,25 @@ const mapHeaders = {}; // mapID → { blkName, tileset }
 const blkToMapID = {}; // blkName → mapID
 const mapIDToBlk = {}; // mapID → blkName
 
+// Several tileset constants in pokered share the same .bst file (see
+// pokered_dissasembly/gfx/tilesets.asm). Normalize aliases to a single
+// blockset name so the parser can find pre-extracted assets.
+const TILESET_ALIASES = {
+  REDS_HOUSE_1: 'REDS_HOUSE',
+  REDS_HOUSE_2: 'REDS_HOUSE',
+  DOJO: 'GYM',
+  MART: 'POKECENTER',
+  FOREST_GATE: 'GATE',
+  MUSEUM: 'GATE',
+};
+
 for (const file of fs.readdirSync(HEADERS_DIR)) {
   const content = fs.readFileSync(path.join(HEADERS_DIR, file), 'utf8');
   const match = content.match(/map_header\s+(\w+),\s*(\w+),\s*(\w+),/);
   if (!match) continue;
   const [_, blkName, mapID, tileset] = match;
-  mapHeaders[mapID] = { blkName, tileset: tileset.toUpperCase() };
+  const tilesetName = tileset.toUpperCase();
+  mapHeaders[mapID] = { blkName, tileset: TILESET_ALIASES[tilesetName] || tilesetName };
   blkToMapID[blkName] = mapID;
   mapIDToBlk[mapID] = blkName;
 }
@@ -103,7 +116,7 @@ function resolveZoneName(zone) {
   }[zone] || zone;
 }
 
-function resolveWarp(w, sourceMapID) {
+function resolveWarp(w, _sourceMapID) {
   const targetMap = resolveZoneName(w.targetMap);
   let targetPos = undefined;
 
@@ -113,7 +126,12 @@ function resolveWarp(w, sourceMapID) {
     const targetObj = parseObjectFile(targetBlk);
     if (targetObj && w.warpId <= targetObj.warps.length) {
       const tw = targetObj.warps[w.warpId - 1];
-      targetPos = { x: tw.x, y: tw.y - 1 };
+      // Land on the destination warp tile itself. Pokered's behavior: warps
+      // trigger on stepping ONTO the tile, not while stationary on it, so the
+      // player can stand on a door/staircase after teleporting and walk off
+      // without immediately re-warping. This is canonical for both door
+      // warps (interior bottom row) and stair warps (no displacement).
+      targetPos = { x: tw.x, y: tw.y };
     }
   }
 

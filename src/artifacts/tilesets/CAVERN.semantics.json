@@ -12,15 +12,15 @@
     "walkable": false
   },
   "3": {
-    "type": "flower",
+    "type": "wall",
     "walkable": false
   },
   "4": {
-    "type": "flower",
+    "type": "wall",
     "walkable": false
   },
   "5": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "6": {
@@ -52,11 +52,11 @@
     "walkable": false
   },
   "13": {
-    "type": "ledge_right",
+    "type": "wall",
     "walkable": false
   },
   "14": {
-    "type": "fence",
+    "type": "wall",
     "walkable": false
   },
   "15": {
@@ -80,11 +80,11 @@
     "walkable": false
   },
   "20": {
-    "type": "water",
+    "type": "wall",
     "walkable": false
   },
   "21": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "22": {
@@ -96,7 +96,7 @@
     "walkable": false
   },
   "24": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "25": {
@@ -104,7 +104,7 @@
     "walkable": false
   },
   "26": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "27": {
@@ -116,7 +116,7 @@
     "walkable": false
   },
   "29": {
-    "type": "ledge_right",
+    "type": "wall",
     "walkable": false
   },
   "30": {
@@ -128,19 +128,19 @@
     "walkable": false
   },
   "32": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "33": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "34": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "36": {
-    "type": "sign",
+    "type": "wall",
     "walkable": false
   },
   "37": {
@@ -152,7 +152,7 @@
     "walkable": false
   },
   "39": {
-    "type": "ledge_left",
+    "type": "wall",
     "walkable": false
   },
   "40": {
@@ -164,11 +164,11 @@
     "walkable": false
   },
   "42": {
-    "type": "tree",
+    "type": "floor",
     "walkable": true
   },
   "43": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "44": {
@@ -176,7 +176,7 @@
     "walkable": false
   },
   "45": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "46": {

@@ -738,8 +738,12 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
     ],
     PLAYERS_HOUSE_1F: [],
     PLAYERS_HOUSE_2F: [
-      { id: 'snes',         type: 'object', position: { x: 2, y: 4 }, direction: 'down', sprite: '🎮' },
-      { id: 'pc_reds_house',type: 'object', position: { x: 5, y: 5 }, direction: 'down', sprite: '💻' },
+      // Positions match the canonical pokered RedsHouse2F.blk furniture sprites:
+      //   block 13 at block-coord (1, 2) draws the SNES on its right column → tile (3, 5)
+      //   block 18 at block-coord (3, 3) draws the PC  on its left column  → tile (6, 7)
+      // Player presses A facing the sprite to interact.
+      { id: 'snes',         type: 'object', position: { x: 3, y: 5 }, direction: 'down', sprite: '🎮' },
+      { id: 'pc_reds_house',type: 'object', position: { x: 6, y: 7 }, direction: 'down', sprite: '💻' },
     ],
     RIVALS_HOUSE: [],
     POKECENTER: [],

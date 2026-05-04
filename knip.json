@@ -9,7 +9,6 @@
   "ignoreBinaries": ["knip"],
   "ignoreDependencies": ["tailwindcss"],
   "ignore": [
-    "src/lib/cutscenes/types.ts",
-    "src/data/reference/buildingReference.ts"
+    "src/lib/cutscenes/types.ts"
   ]
 }

@@ -95,17 +95,22 @@ function getValidTeleportLocation(targetMap: string, targetPos: Position): { map
     store.setTeleportError(err);
     return { map: 'PLAYERS_HOUSE_2F', pos: { x: 4, y: 4 } };
   }
-  
+
   const grid = mapData.tiles;
   const inBounds = targetPos.x >= 0 && targetPos.x < grid[0].length && targetPos.y >= 0 && targetPos.y < grid.length;
-  // Note: we might want to check for NPCs/items too, but a basic walkable check prevents hardlocks out of bounds.
-  if (!inBounds || (!grid[targetPos.y][targetPos.x].walkable && !store.ghostMode)) {
+  // Warp tiles (stairs, doors, ladders) are non-walkable in pokered's collision
+  // table — the player only steps onto them via the warp event itself. Treat
+  // landing on a warp tile as valid even though the underlying tile reports
+  // walkable=false; otherwise stairs would always fall back to the safe zone.
+  const landingIsWarp = inBounds && mapData.warps.some(w => w.x === targetPos.x && w.y === targetPos.y);
+  const cellWalkable = inBounds && (grid[targetPos.y][targetPos.x].walkable || landingIsWarp);
+  if (!inBounds || (!cellWalkable && !store.ghostMode)) {
     const err = `Teleport coordinate {x:${targetPos.x}, y:${targetPos.y}} on map '${targetMap}' is blocked or out of bounds. Falling back to safe zone.`;
     console.warn(`[Teleport] ${err}`);
     store.setTeleportError(err);
     return { map: 'PLAYERS_HOUSE_2F', pos: { x: 4, y: 4 } };
   }
-  
+
   return { map: targetMap as MapID, pos: targetPos };
 }
 
@@ -199,10 +204,16 @@ export function useMovementEngine({
     const objectAtNext = !isLedgeJump && items[currentMap]?.some(i => i.type === 'object' && i.position.x === nextX && i.position.y === nextY);
     const wildAtNext = !isLedgeJump && store.wildPokemon.find(p => p.position.x === nextX && p.position.y === nextY);
 
+    // Warp tiles are walkable by definition — pokered teleports the player onto
+    // them even if the underlying tile (stairs, door, ladder) isn't in the
+    // blockset's collision table. Look the warp up here so the walkability
+    // check below doesn't reject it.
+    const warpAtNext = mapData.warps.find(w => w.x === nextX && w.y === nextY);
+
     if (!ghostMode) {
       if (
         !inBounds(nextX, nextY) ||
-        !grid[nextY][nextX].walkable ||
+        (!grid[nextY][nextX].walkable && !warpAtNext) ||
         npcAtNext ||
         objectAtNext
       ) return;
@@ -221,7 +232,7 @@ export function useMovementEngine({
     }
 
     // Warp at the destination tile (used for both the direction guard and seamless scroll)
-    const warp = mapData.warps.find(w => w.x === nextX && w.y === nextY);
+    const warp = warpAtNext;
     if (warp && warp.targetDir && dir !== warp.targetDir && !ghostMode) return;
 
     // ── Movement accepted ──

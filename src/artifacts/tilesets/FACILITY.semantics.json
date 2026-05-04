@@ -4,7 +4,7 @@
     "walkable": false
   },
   "1": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "2": {
@@ -12,11 +12,11 @@
     "walkable": false
   },
   "3": {
-    "type": "flower",
+    "type": "wall",
     "walkable": false
   },
   "4": {
-    "type": "flower",
+    "type": "wall",
     "walkable": false
   },
   "5": {
@@ -52,11 +52,11 @@
     "walkable": false
   },
   "13": {
-    "type": "ledge_right",
+    "type": "wall",
     "walkable": false
   },
   "14": {
-    "type": "fence",
+    "type": "wall",
     "walkable": false
   },
   "15": {
@@ -64,7 +64,7 @@
     "walkable": false
   },
   "17": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "18": {
@@ -72,11 +72,11 @@
     "walkable": false
   },
   "19": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "20": {
-    "type": "water",
+    "type": "wall",
     "walkable": false
   },
   "21": {
@@ -112,7 +112,7 @@
     "walkable": false
   },
   "29": {
-    "type": "ledge_right",
+    "type": "wall",
     "walkable": false
   },
   "30": {
@@ -128,11 +128,11 @@
     "walkable": true
   },
   "33": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "34": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "35": {
@@ -140,7 +140,7 @@
     "walkable": false
   },
   "36": {
-    "type": "sign",
+    "type": "wall",
     "walkable": false
   },
   "37": {
@@ -152,7 +152,7 @@
     "walkable": false
   },
   "39": {
-    "type": "ledge_left",
+    "type": "wall",
     "walkable": false
   },
   "40": {
@@ -164,11 +164,11 @@
     "walkable": false
   },
   "42": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "43": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "44": {
@@ -188,15 +188,15 @@
     "walkable": false
   },
   "48": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "49": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "50": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "51": {
@@ -204,7 +204,7 @@
     "walkable": false
   },
   "52": {
-    "type": "sign",
+    "type": "wall",
     "walkable": false
   },
   "53": {
@@ -212,11 +212,11 @@
     "walkable": false
   },
   "54": {
-    "type": "ledge_down",
+    "type": "wall",
     "walkable": false
   },
   "55": {
-    "type": "ledge_down",
+    "type": "wall",
     "walkable": false
   },
   "56": {
@@ -228,11 +228,11 @@
     "walkable": false
   },
   "58": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "59": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "60": {
@@ -252,15 +252,15 @@
     "walkable": false
   },
   "64": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "65": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "66": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "67": {
@@ -268,23 +268,23 @@
     "walkable": true
   },
   "68": {
-    "type": "fence",
+    "type": "wall",
     "walkable": false
   },
   "69": {
-    "type": "fence",
+    "type": "wall",
     "walkable": false
   },
   "70": {
-    "type": "fence",
+    "type": "wall",
     "walkable": false
   },
   "71": {
-    "type": "fence",
+    "type": "wall",
     "walkable": false
   },
   "72": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "73": {
@@ -316,15 +316,15 @@
     "walkable": false
   },
   "80": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "81": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "82": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "83": {
@@ -336,11 +336,11 @@
     "walkable": false
   },
   "86": {
-    "type": "fence",
+    "type": "wall",
     "walkable": false
   },
   "87": {
-    "type": "fence",
+    "type": "wall",
     "walkable": false
   },
   "88": {
@@ -368,7 +368,7 @@
     "walkable": false
   },
   "94": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "95": {

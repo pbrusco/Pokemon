@@ -4,19 +4,19 @@
     "walkable": false
   },
   "1": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "2": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "3": {
-    "type": "flower",
+    "type": "floor",
     "walkable": true
   },
   "4": {
-    "type": "flower",
+    "type": "wall",
     "walkable": false
   },
   "6": {
@@ -48,11 +48,11 @@
     "walkable": false
   },
   "13": {
-    "type": "ledge_right",
+    "type": "wall",
     "walkable": false
   },
   "14": {
-    "type": "fence",
+    "type": "wall",
     "walkable": false
   },
   "15": {
@@ -64,15 +64,15 @@
     "walkable": false
   },
   "18": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "19": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "20": {
-    "type": "water",
+    "type": "floor",
     "walkable": true
   },
   "22": {
@@ -92,7 +92,7 @@
     "walkable": false
   },
   "26": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "27": {
@@ -100,11 +100,11 @@
     "walkable": false
   },
   "28": {
-    "type": "path",
+    "type": "floor",
     "walkable": true
   },
   "29": {
-    "type": "ledge_right",
+    "type": "wall",
     "walkable": false
   },
   "30": {
@@ -132,7 +132,7 @@
     "walkable": false
   },
   "36": {
-    "type": "sign",
+    "type": "wall",
     "walkable": false
   },
   "37": {
@@ -144,7 +144,7 @@
     "walkable": false
   },
   "39": {
-    "type": "ledge_left",
+    "type": "wall",
     "walkable": false
   },
   "40": {
@@ -156,11 +156,11 @@
     "walkable": false
   },
   "42": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "43": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "44": {
@@ -196,7 +196,7 @@
     "walkable": false
   },
   "52": {
-    "type": "sign",
+    "type": "wall",
     "walkable": false
   },
   "53": {
@@ -204,11 +204,11 @@
     "walkable": false
   },
   "54": {
-    "type": "ledge_down",
+    "type": "wall",
     "walkable": false
   },
   "55": {
-    "type": "ledge_down",
+    "type": "wall",
     "walkable": false
   },
   "56": {
@@ -220,11 +220,11 @@
     "walkable": false
   },
   "58": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "59": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "60": {
@@ -244,11 +244,11 @@
     "walkable": false
   },
   "64": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "65": {
-    "type": "tree",
+    "type": "wall",
     "walkable": false
   },
   "66": {
@@ -260,19 +260,19 @@
     "walkable": false
   },
   "68": {
-    "type": "fence",
+    "type": "wall",
     "walkable": false
   },
   "69": {
-    "type": "fence",
+    "type": "wall",
     "walkable": false
   },
   "70": {
-    "type": "fence",
+    "type": "wall",
     "walkable": false
   },
   "71": {
-    "type": "fence",
+    "type": "wall",
     "walkable": false
   },
   "170": {

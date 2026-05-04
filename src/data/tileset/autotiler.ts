@@ -25,8 +25,9 @@ function typeAt(grid: Tile[][], x: number, y: number): string {
   return grid[y][x].type;
 }
 
-export function buildRenderLayers(grid: Tile[][]): RenderLayers {
+export function buildRenderLayers(grid: Tile[][], opts: { indoor?: boolean } = {}): RenderLayers {
   const h = grid.length;
+  const indoor = opts.indoor === true;
 
   const ground:   number[][] = [];
   const objects:  number[][] = [];
@@ -88,34 +89,38 @@ export function buildRenderLayers(grid: Tile[][]): RenderLayers {
           break;
         }
 
-        // ── Wall (building exterior) ──────────────────────
+        // ── Wall ─────────────────────────────────────────────
         case 'wall': {
-          const aboveIsBuilding = above === 'wall' || above === 'door';
-          const belowIsBuilding = below === 'wall' || below === 'door';
-          const leftIsBuilding  = left === 'wall' || left === 'door';
-          const rightIsBuilding = right === 'wall' || right === 'door';
-
-          if (!aboveIsBuilding) {
-            // Top row of building → roof tiles
-            if (!leftIsBuilding) {
-              gid = T.ROOF_L;
-            } else if (!rightIsBuilding) {
-              gid = T.ROOF_R;
-            } else {
-              gid = T.ROOF_M;
-            }
-          } else if (!belowIsBuilding) {
-            // Bottom row (not door row) → plain wall
+          if (indoor) {
+            // Indoor walls are plain brick — no roof tiles, no window inference,
+            // since the autotiler can't distinguish a real wall from furniture
+            // (a 2×2 wall block in the middle of a room is a table, not a building).
             gid = T.WALL;
           } else {
-            // Middle row — check if this could be a window
-            // Window on middle rows of buildings wider than 2 tiles
-            const isMiddleColumn = leftIsBuilding && rightIsBuilding;
-            const isTallEnough = aboveIsBuilding && belowIsBuilding;
-            if (isMiddleColumn && isTallEnough && hash(x, y) % 3 === 0) {
-              gid = T.WALL_WINDOW;
-            } else {
+            const aboveIsBuilding = above === 'wall' || above === 'door';
+            const belowIsBuilding = below === 'wall' || below === 'door';
+            const leftIsBuilding  = left === 'wall' || left === 'door';
+            const rightIsBuilding = right === 'wall' || right === 'door';
+
+            if (!aboveIsBuilding) {
+              // Top row of building → roof tiles
+              if (!leftIsBuilding) {
+                gid = T.ROOF_L;
+              } else if (!rightIsBuilding) {
+                gid = T.ROOF_R;
+              } else {
+                gid = T.ROOF_M;
+              }
+            } else if (!belowIsBuilding) {
               gid = T.WALL;
+            } else {
+              const isMiddleColumn = leftIsBuilding && rightIsBuilding;
+              const isTallEnough = aboveIsBuilding && belowIsBuilding;
+              if (isMiddleColumn && isTallEnough && hash(x, y) % 3 === 0) {
+                gid = T.WALL_WINDOW;
+              } else {
+                gid = T.WALL;
+              }
             }
           }
           break;

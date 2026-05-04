@@ -5,9 +5,17 @@ import { WILD_POKEMON_DATABASE } from '../constants/world';
 import { useGameStore } from '../store/gameStore';
 import { NPCComponent } from './overworld/NPCComponent';
 import { GameTile } from './overworld/GameTile';
+import { NativeBlockTile } from './overworld/NativeBlockTile';
 import { PlayerSprite } from './overworld/PlayerSprite';
 
 import { T } from '../data/tileset/tilesetGenerator';
+import { blocksetBlocks } from '../lib/blocksetData';
+
+// Blocksets the autotiler can render reasonably (procedural Fire-Red art).
+// Everything else (interiors, gates, ships, caves, etc.) renders the canonical
+// pokered native tile graphics directly so furniture/stairs/props display
+// correctly instead of being squashed into "wall" sprites.
+const AUTOTILED_BLOCKSETS = new Set(['OVERWORLD', 'FOREST', 'PLATEAU']);
 
 interface WindowSize {
   width: number;
@@ -58,25 +66,54 @@ export const WorldView = memo(({
   const minY = Math.max(0, playerPos.y - halfH);
   const maxY = Math.min(rows - 1, playerPos.y + halfH);
 
+  const useNativeRenderer = mapData?.blockset !== undefined && !AUTOTILED_BLOCKSETS.has(mapData.blockset);
+
   const { groundTiles, objectTiles, overheadTiles } = useMemo(() => {
-    if (!mapData || !layers) return { groundTiles: [], objectTiles: [], overheadTiles: [] };
+    if (!mapData) return { groundTiles: [], objectTiles: [], overheadTiles: [] };
+
     const groundTiles = [];
     const objectTiles = [];
     const overheadTiles = [];
-    for (let y = minY; y <= maxY; y++) {
-      for (let x = minX; x <= maxX; x++) {
-        const tile = grid[y][x];
-        let groundId = layers.ground[y][x];
-        const objectId = layers.objects[y][x];
-        const overheadId = layers.overhead[y][x];
-        if (mapHasEncounters && tile.type === 'grass') groundId = T.TALL_GRASS;
-        groundTiles.push(<GameTile key={`g-${x}-${y}`} tileId={groundId} x={x} y={y} />);
-        if (objectId !== T.EMPTY) objectTiles.push(<GameTile key={`o-${x}-${y}`} tileId={objectId} x={x} y={y} z={15 + y} />);
-        if (overheadId !== T.EMPTY) overheadTiles.push(<GameTile key={`h-${x}-${y}`} tileId={overheadId} x={x} y={y} z={40 + y} noPointerEvents />);
+
+    if (useNativeRenderer && mapData.blocks && mapData.blockset && mapData.borderBlock !== undefined) {
+      // Render canonical pokered tile graphics directly. No autotiler.
+      const { blocks, blockset, borderBlock, widthBlocks = 0, heightBlocks = 0 } = mapData;
+      const bsBlocks = blocksetBlocks[blockset];
+      if (bsBlocks) {
+        for (let y = minY; y <= maxY; y++) {
+          for (let x = minX; x <= maxX; x++) {
+            const bx = x >> 1, by = y >> 1, qx = x & 1, qy = y & 1;
+            const blockId = (by >= 0 && by < heightBlocks && bx >= 0 && bx < widthBlocks)
+              ? blocks[by][bx] : borderBlock;
+            const blockTiles = bsBlocks[blockId];
+            if (!blockTiles) continue;
+            const tl = blockTiles[(qy * 2) * 4 + (qx * 2)];
+            const tr = blockTiles[(qy * 2) * 4 + (qx * 2 + 1)];
+            const bl = blockTiles[(qy * 2 + 1) * 4 + (qx * 2)];
+            const br = blockTiles[(qy * 2 + 1) * 4 + (qx * 2 + 1)];
+            groundTiles.push(
+              <NativeBlockTile key={`n-${x}-${y}`} blockset={blockset} tileIds={[tl, tr, bl, br]} x={x} y={y} />
+            );
+          }
+        }
+      }
+    } else if (layers) {
+      // Legacy autotiler-driven renderer (outdoor + char-grid maps).
+      for (let y = minY; y <= maxY; y++) {
+        for (let x = minX; x <= maxX; x++) {
+          const tile = grid[y][x];
+          let groundId = layers.ground[y][x];
+          const objectId = layers.objects[y][x];
+          const overheadId = layers.overhead[y][x];
+          if (mapHasEncounters && tile.type === 'grass') groundId = T.TALL_GRASS;
+          groundTiles.push(<GameTile key={`g-${x}-${y}`} tileId={groundId} x={x} y={y} />);
+          if (objectId !== T.EMPTY) objectTiles.push(<GameTile key={`o-${x}-${y}`} tileId={objectId} x={x} y={y} z={15 + y} />);
+          if (overheadId !== T.EMPTY) overheadTiles.push(<GameTile key={`h-${x}-${y}`} tileId={overheadId} x={x} y={y} z={40 + y} noPointerEvents />);
+        }
       }
     }
     return { groundTiles, objectTiles, overheadTiles };
-  }, [mapData, mapHasEncounters, minX, maxX, minY, maxY]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mapData, mapHasEncounters, useNativeRenderer, minX, maxX, minY, maxY]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const visionIndicators = useMemo(() =>
     (npcs[currentMap] ?? [])
@@ -173,32 +210,40 @@ export const WorldView = memo(({
             />
           ))}
 
-          {items[currentMap].map(item => (
-            <motion.div
-              key={item.id}
-              className="absolute top-0 left-0 flex items-center justify-center"
-              animate={{ x: item.position.x * TILE_SIZE, y: item.position.y * TILE_SIZE }}
-              style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 18 + item.position.y }}
-            >
-              {item.type === 'item' ? (
-                <div className="w-8 h-8 bg-red-500 rounded-full border-2 border-[#383838] flex items-center justify-center relative shadow-md">
-                  <div className="w-full h-0.5 bg-[#383838] absolute top-1/2 -translate-y-1/2" />
-                  <div className="w-2 h-2 bg-white border-2 border-[#383838] rounded-full z-10" />
-                  {item.sprite?.startsWith('http')
-                    ? <img src={item.sprite} className="absolute -top-10 left-1/2 -translate-x-1/2 w-16 h-16 object-contain pixelated drop-shadow-md" alt="item" />
-                    : <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-3xl font-bold text-slate-400 drop-shadow-md">{item.sprite}</div>}
-                </div>
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center relative">
-                  <div className="w-1 h-3 bg-[#a05030] border-x-2 border-[#383838] absolute bottom-2" />
-                  <div className="w-10 h-8 bg-[#d8b888] border-2 border-[#383838] rounded-sm absolute bottom-5 flex flex-col items-center justify-center gap-1">
-                    <div className="w-6 h-0.5 bg-[#383838]/20" />
-                    <div className="w-6 h-0.5 bg-[#383838]/20" />
+          {items[currentMap].map(item => {
+            // For native-rendered maps the canonical pokered block graphics
+            // already draw furniture, TVs, computers, plants, etc. The
+            // "object" overlay (brown signpost) would only duplicate them.
+            // Pickup items still render so the player sees collectable balls.
+            if (useNativeRenderer && item.type === 'object') return null;
+
+            return (
+              <motion.div
+                key={item.id}
+                className="absolute top-0 left-0 flex items-center justify-center"
+                animate={{ x: item.position.x * TILE_SIZE, y: item.position.y * TILE_SIZE }}
+                style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 18 + item.position.y }}
+              >
+                {item.type === 'item' ? (
+                  <div className="w-8 h-8 bg-red-500 rounded-full border-2 border-[#383838] flex items-center justify-center relative shadow-md">
+                    <div className="w-full h-0.5 bg-[#383838] absolute top-1/2 -translate-y-1/2" />
+                    <div className="w-2 h-2 bg-white border-2 border-[#383838] rounded-full z-10" />
+                    {item.sprite?.startsWith('http')
+                      ? <img src={item.sprite} className="absolute -top-10 left-1/2 -translate-x-1/2 w-16 h-16 object-contain pixelated drop-shadow-md" alt="item" />
+                      : <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-3xl font-bold text-slate-400 drop-shadow-md">{item.sprite}</div>}
                   </div>
-                </div>
-              )}
-            </motion.div>
-          ))}
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center relative">
+                    <div className="w-1 h-3 bg-[#a05030] border-x-2 border-[#383838] absolute bottom-2" />
+                    <div className="w-10 h-8 bg-[#d8b888] border-2 border-[#383838] rounded-sm absolute bottom-5 flex flex-col items-center justify-center gap-1">
+                      <div className="w-6 h-0.5 bg-[#383838]/20" />
+                      <div className="w-6 h-0.5 bg-[#383838]/20" />
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
 
           <AnimatePresence>
             {grassEffect && (

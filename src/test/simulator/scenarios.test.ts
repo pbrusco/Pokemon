@@ -40,10 +40,32 @@ afterEach(() => {
 // ─── Scenario 1: Oak stops player from leaving Pallet Town ─────────────────
 
 describe('Scenario 1: Oak stops player at Route 1', () => {
-  // TODO: Re-enable once Pallet Town tile pipeline (TODO.md) produces a contiguous
-  // walkable column from y=203 → y=197. Currently the autotiler-generated walls
-  // block straight-line walking at y=200,201.
-  it.todo('triggers Oak cutscene after walking north through Pallet Town path');
+  it('triggers Oak cutscene after walking north through Pallet Town path', () => {
+    // Start south of the Route 1 border (y=203) and walk north.
+    // Path: x=128 is open from y=198 (path) up through y=196 (grass) where Oak intercepts.
+    sim = new GameSimulator().init({
+      currentMap: 'KANTO_OVERWORLD',
+      playerPos: { x: 128, y: 203 },
+      direction: 'up',
+      playerTeam: [],
+    });
+
+    // Walk 6 tiles north — no cutscene yet (y=203 → y=197)
+    for (let i = 0; i < 6; i++) {
+      expect(sim.dialogue).toBeNull();
+      sim.move('up').tick(50);
+    }
+
+    // 7th step: player tries to enter Route 1 (y=196), Oak intercepts
+    sim.move('up');
+    expect(sim.dialogueContains('OAK')).toBe(true);
+    expect(sim.map).toBe('KANTO_OVERWORLD');
+
+    // Dismiss Oak's dialogues and let the cutscene walk complete
+    sim.dismissDialogue().dismissDialogue().tick(5000);
+    expect(sim.map).toBe('OAKS_LAB');
+    expect(sim.storyStep).toBe('OAK_STOPPED');
+  });
 
   it('walks player to Oak lab after dismissing Oak\'s dialogue', () => {
     sim = new GameSimulator().init({
@@ -290,8 +312,8 @@ describe('Scenario 7: Wild encounter on Route 1', () => {
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
       // Position on path next to grass. Route 1 local (8, 10) = world (118+8, 161+10) = (126, 171)
-      playerPos: { x: 126, y: 171 },
-      direction: 'left',
+      playerPos: { x: 127, y: 166 },
+      direction: 'right',
       playerTeam: [starter],
       storyStep: 'EXPLORING',
     });
@@ -300,13 +322,13 @@ describe('Scenario 7: Wild encounter on Route 1', () => {
     useGameStore.getState().setWildPokemon([{
       id: 'wild_pidgey_test',
       type: 'wild_pokemon',
-      position: { x: 125, y: 171 },
+      position: { x: 128, y: 166 },
       direction: 'down',
       pokemon: starter
     }]);
 
-    // Move left onto the wild pokemon
-    sim.move('left');
+    // Move right onto the wild pokemon (grass tile)
+    sim.move('right');
     sim.tick(1000);
 
     const phases = sim.phaseHistory();
@@ -471,30 +493,38 @@ describe('loadLogAsScenario helper', () => {
 // ─── Scenario 13: Trainer vision is exactly 3 tiles ────────────────────────
 
 describe('Scenario 13: Trainer vision range', () => {
-  // youngster_rt3 @ Route 3 (10, 6) facing right → sees (11,6), (12,6), (13,6).
-  // Stepping to (9, 6) (behind him) does not trigger; stepping into vision does.
+  // youngster_route_3_0 @ ROUTE_3 (14, 4) facing down → world (161, 20).
+  // Vision tiles: (161, 21), (161, 22), (161, 23). Tile (161, 23) is a ledge,
+  // so reachable vision squares are (161, 21) and (161, 22).
 
   it('does NOT trigger when player is out of trainer line-of-sight', () => {
     sim = new GameSimulator().init({
       currentMap: 'KANTO_OVERWORLD',
-      // Route 3 offset is (147, 16). youngster_rt3 at (10, 6) → world (157, 22).
-      // Standing at (156, 22) behind him; move left → still safe.
-      playerPos: { x: 156, y: 22 },
-      direction: 'left',
+      // Player one tile east of vision, walking further east → never crosses x=161.
+      playerPos: { x: 162, y: 22 },
+      direction: 'right',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',
     });
-    sim.move('left');
+    sim.move('right');
     sim.tick(1500);
     expect(sim.phase.type).toBe('EXPLORING');
     expect(sim.dialogueContains('¡Te he visto!')).toBe(false);
   });
 
-  // TODO: Re-enable once Route 3 tile pipeline (TODO.md) produces canonical
-  // trainer placements + walkable approach tiles. The legacy `youngster_rt3`
-  // referenced here was renamed to `youngster_route_3_0` and lives at a
-  // different world coord; the surrounding tiles aren't walkable yet either.
-  it.todo('triggers cutscene when player steps into 3rd tile of vision (boundary)');
+  it('triggers cutscene when player steps into 2nd tile of vision (boundary)', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'KANTO_OVERWORLD',
+      // Stand one tile east of (161, 22), walk left into the vision cone.
+      playerPos: { x: 162, y: 22 },
+      direction: 'left',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+    });
+    sim.move('left');
+    sim.tick(2500);
+    expect(sim.dialogueContains('¡Te he visto!')).toBe(true);
+  });
 });
 
 // ─── Scenario 14: Brock leader battle ──────────────────────────────────────
@@ -601,6 +631,53 @@ describe('Scenario 12: No ghost re-battle after winning trainer fight', () => {
     const exploringIdx = phases.lastIndexOf('EXPLORING');
     const phasesAfterExploring = phases.slice(exploringIdx + 1);
     expect(phasesAfterExploring).not.toContain('BATTLE_TRANSITION');
+  });
+});
+
+// ─── Scenario 15: Warp tiles are walkable even when the underlying tile isn't
+//
+// REGRESSION: pokered marks staircase / ladder graphics non-walkable in the
+// per-blockset collision table; the player only steps onto them via the warp
+// event. If our movement engine rejects movement onto non-walkable tiles
+// before checking warps, the player gets soft-locked one tile from the stairs.
+describe('Scenario 15: Warp tiles override collision', () => {
+  it('player can step onto the stairs warp even though the stair tile is non-walkable', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'PLAYERS_HOUSE_1F',
+      // Stairs warp at (7, 1). Stand directly below it and walk up.
+      playerPos: { x: 7, y: 2 },
+      direction: 'up',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+    });
+    sim.move('up');
+    sim.tick(2000);
+    expect(sim.map).toBe('PLAYERS_HOUSE_2F');
+  });
+
+  // REGRESSION: the warp resolver used to subtract 1 from the destination y so
+  // the player would land "above" door warps and not immediately re-warp out.
+  // For stair warps (top row of an interior) that put the landing on a wall
+  // tile and the teleport validator fell back to the safe-zone error dialog.
+  // The fix: land ON the warp tile (canonical pokered behaviour — warps only
+  // trigger on stepping onto, not while stationary).
+  it('stairs round-trip 1F → 2F → 1F lands on the staircase tile', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'PLAYERS_HOUSE_1F',
+      playerPos: { x: 7, y: 2 },
+      direction: 'up',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+    });
+    sim.move('up').tick(2000);
+    expect(sim.map).toBe('PLAYERS_HOUSE_2F');
+    expect(sim.state.playerPos).toEqual({ x: 7, y: 1 });
+
+    // Walk down off the stairs, then back up onto them — should warp back to 1F.
+    sim.move('down').tick(500);
+    sim.move('up').tick(2000);
+    expect(sim.map).toBe('PLAYERS_HOUSE_1F');
+    expect(sim.state.playerPos).toEqual({ x: 7, y: 1 });
   });
 });
 
