@@ -9,16 +9,16 @@ export interface Position {
 }
 
 export interface MapData {
-  tiles: { type: string; walkable: boolean }[][];
+  tiles: Tile[][];
   warps: Array<{ x: number; y: number; targetMap: MapID; targetPos: Position; targetDir?: Direction }>;
-  /** Legacy rendering layers — optional, autotiler output. Will be removed. */
-  layers?: { ground: number[][]; objects: number[][]; overhead: number[][] };
-  /** New block-based rendering */
-  blockset?: string;
-  blocks?: number[][];
-  widthBlocks?: number;
-  heightBlocks?: number;
-  borderBlock?: number;
+  /** All maps now flow through the FireRed pipeline. */
+  firered?: true;
+  /**
+   * FireRed layout payload (single zone or multi-zone descriptor).
+   * Typed as `unknown` to avoid a circular import via
+   * src/lib/firered/bridge.ts; consumers cast to the right shape.
+   */
+  fireredLayout?: unknown;
 }
 
 type PokedexEntry = { seen: boolean; caught: boolean };

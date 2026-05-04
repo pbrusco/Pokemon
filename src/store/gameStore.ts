@@ -75,7 +75,9 @@ const INITIAL_SAVE_STATE: GameSaveState = {
   badges: [],
   storyStep: 'START',
   defeatedTrainers: [],
-  lastHealLocation: { map: 'PLAYERS_HOUSE_1F', pos: { x: 3, y: 6 } },
+  // FireRed PalletTown_PlayersHouse_1F door is at (4,8)/(5,8); land one tile
+  // inside so the next move doesn't immediately re-warp out.
+  lastHealLocation: { map: 'PLAYERS_HOUSE_1F', pos: { x: 5, y: 7 } },
   
   inventory: { POTION: 5, POKEBALL: 10 },
   playerTeam: [],

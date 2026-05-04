@@ -9,6 +9,11 @@
   "ignoreBinaries": ["knip"],
   "ignoreDependencies": ["tailwindcss"],
   "ignore": [
-    "src/lib/cutscenes/types.ts"
+    "src/lib/cutscenes/types.ts",
+    "src/lib/firered/tilesetLoader.ts",
+    "src/lib/firered/bridge.ts",
+    "src/lib/firered/multiZoneBridge.ts",
+    "src/data/firered/kantoZoneOffsets.generated.ts",
+    "src/data/maps/index.ts"
   ]
 }

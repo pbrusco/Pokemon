@@ -13,9 +13,6 @@ const DOM_GLOBALS_RE = /\b(window|document|navigator|localStorage)\b/;
 const DOM_GLOBALS_ALLOWLIST: Record<string, string> = {
   // Will be split into pure eventLog + browser bridge in Phase 4.
   'src/lib/eventLog.ts': 'Phase 4: split replay recorder from window/DOM debug bridge',
-  // Renderer misfiled under src/data; move to src/render/ in a future cleanup.
-  'src/data/tileset/tilesetGenerator.ts':
-    'canvas-based spritesheet generator; relocate to src/render/',
 };
 
 function walk(dir: string): string[] {

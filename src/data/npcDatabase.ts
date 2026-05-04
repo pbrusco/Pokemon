@@ -2,48 +2,16 @@ import { MOVES } from '../constants/moves';
 import { STARTERS, makePokemon } from '../constants/pokemon';
 import { type NPC, type Entity, type MapID, type Direction, type Pokemon, type Position } from '../types';
 
-// ─── Kanto zone offsets in the unified KANTO_OVERWORLD map ───────────────────
-// Derived from scripts/stitch-kanto.mjs output.
-// Format: top-left corner of each segment in world tile coordinates.
-export const O = {
-  PALLET_TOWN:     { x: 118, y: 196 },
-  ROUTE_1:         { x: 118, y: 161 },
-  VIRIDIAN_CITY:   { x: 108, y: 126 },
-  ROUTE_2:         { x: 124, y:  87 },
-  VIRIDIAN_FOREST: { x: 112, y:  40 },
-  PEWTER_CITY:     { x: 108, y:   5 },
-  ROUTE_3:         { x: 147, y:  16 },
-  ROUTE_4:         { x: 177, y:  12 },
-  CERULEAN_CITY:   { x: 216, y:   0 },
-  ROUTE_5:         { x: 232, y:  35 },
-  SAFFRON_CITY:    { x: 216, y:  51 },
-  ROUTE_7:         { x: 197, y:  65 },
-  ROUTE_8:         { x: 255, y:  65 },
-  ROUTE_6:         { x: 232, y:  86 },
-  VERMILION_CITY:  { x: 216, y: 102 },
-  ROUTE_9:         { x: 255, y:  12 },
-  ROUTE_10:        { x: 270, y:  16 },
-  LAVENDER_TOWN:   { x: 264, y:  39 },
-  ROUTE_11:        { x: 255, y: 115 },
-  ROUTE_12:        { x: 264, y:  56 },
-  ROUTE_13:        { x: 225, y: 163 },
-  ROUTE_14:        { x: 206, y: 180 },
-  ROUTE_15:        { x: 147, y: 224 },
-  // Canonical placement (must match KANTO_ZONE_OFFSETS in src/constants/world.ts)
-  ROUTE_21:        { x: 118, y: 214 },
-  CINNABAR_ISLAND: { x: 118, y: 304 },
-  ROUTE_20:        { x: 138, y: 308 },
-  FUCHSIA_CITY:    { x: 228, y: 270 },
-  ROUTE_19:        { x: 238, y: 306 },
-  CELADON_CITY:    { x: 618, y: 196 },
-  ROUTE_16:        { x: 579, y: 201 },
-  ROUTE_17:        { x: 579, y: 218 },
-  ROUTE_18:        { x: 579, y: 361 },
-  ROUTE_22:        { x: 618, y: 396 },
-  ROUTE_23:        { x: 608, y: 257 },
-  INDIGO_PLATEAU:  { x: 608, y: 240 },
-  ROUTE_24:        { x: 618, y: 596 },
-  ROUTE_25:        { x: 637, y: 596 },
+// ─── Kanto zone offsets — auto-generated from FireRed connection graph ──────
+// All offsets come from scripts/stitch-firered-overworld.mjs which BFS-walks
+// pokefirered's per-map connection data starting at MAP_PALLET_TOWN.
+// VIRIDIAN_FOREST is dungeon-style (no connections) — kept here as a
+// virtual zone so legacy NPC entries that placed encounters in the forest
+// still work; it won't render on the stitched overworld.
+import { KANTO_FIRERED_ZONE_OFFSETS } from './firered/kantoZoneOffsets.generated';
+const O = {
+  ...KANTO_FIRERED_ZONE_OFFSETS,
+  VIRIDIAN_FOREST: { x: 0, y: 0, w: 54, h: 69 },
 };
 
 /** Translate a local (x,y) position within a named zone to world coords. */
@@ -349,14 +317,16 @@ export function buildNPCDatabase(
 
     // ── Indoor maps (positions unchanged — all local coords) ─────────────────
     PLAYERS_HOUSE_1F: [
+      // Position from canonical FireRed PalletTown_PlayersHouse_1F object_event:
+      // Mom is at (8, 4) facing left in the 13×10 layout.
       {
         id: 'mom',
         name: 'MAMÁ',
         type: 'npc',
         onInteract: 'heal',
         trainerClass: 'mom',
-        position: { x: 5, y: 4 },
-        direction: 'down',
+        position: { x: 8, y: 4 },
+        direction: 'left',
         dialogue: playerTeam.length === 0
           ? ["¡Todos los chicos se van de casa algún día. ¡Lo dijeron en la tele!"]
           : ["¡Red! Pareces cansado. Deja que cuide de tus POKÉMON."]
@@ -568,12 +538,16 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
   const rawItems: Record<MapID, Entity[]> = {
     KANTO_OVERWORLD: [
       // ── Pallet Town ──
-      { id: 'sign_home',  type: 'object', position: w('PALLET_TOWN', 2, 5),   direction: 'down', sprite: '🪧', dialogue: ['CASA DE RED'] },
-      { id: 'sign_rival_pallet', type: 'object', position: w('PALLET_TOWN', 12, 5), direction: 'down', sprite: '🪧', dialogue: ['CASA DE AZUL'] },
-      { id: 'sign_lab',   type: 'object', position: w('PALLET_TOWN', 18, 15),  direction: 'down', sprite: '🪧', dialogue: ['LAB. POKÉMON DEL PROF. OAK'] },
-      { id: 'sign_town',  type: 'object', position: w('PALLET_TOWN', 11, 9), direction: 'down', sprite: '🪧', dialogue: ['PUEBLO PALETA', 'Un lugar de sombra y tonos puros.'] },
+      // Sign positions auto-derived from FireRed PalletTown.json bg_events.
+      { id: 'sign_home',         type: 'object', position: w('PALLET_TOWN',  4, 7),  direction: 'down', sprite: '🪧', dialogue: ['CASA DE RED'] },
+      { id: 'sign_rival_pallet', type: 'object', position: w('PALLET_TOWN', 13, 7),  direction: 'down', sprite: '🪧', dialogue: ['CASA DE AZUL'] },
+      { id: 'sign_lab',          type: 'object', position: w('PALLET_TOWN', 16, 16), direction: 'down', sprite: '🪧', dialogue: ['LAB. POKÉMON DEL PROF. OAK'] },
+      { id: 'sign_town',         type: 'object', position: w('PALLET_TOWN',  9, 11), direction: 'down', sprite: '🪧', dialogue: ['PUEBLO PALETA', 'Un lugar de sombra y tonos puros.'] },
       ...(storyStep === 'START' ? [
-        { id: 'lab_locked', type: 'object' as const, position: w('PALLET_TOWN', 16, 14), direction: 'down' as const, sprite: '🚫', dialogue: ['Está cerrado.'] },
+        // FireRed Pallet Town: Oak's Lab door is at local (16, 13). Place
+        // the locked-door blocker ON the door tile so the player can't step
+        // through before meeting Oak.
+        { id: 'lab_locked', type: 'object' as const, position: w('PALLET_TOWN', 16, 13), direction: 'down' as const, sprite: '🚫', dialogue: ['Está cerrado.'] },
       ] : []),
       // ── Route 1 ──
       { id: 'sign_route1',    type: 'object', position: w('ROUTE_1', 9, 27), direction: 'down', sprite: '🪧', dialogue: ['RUTA 1: HACIA CIUDAD VERDE.'] },
@@ -738,12 +712,11 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
     ],
     PLAYERS_HOUSE_1F: [],
     PLAYERS_HOUSE_2F: [
-      // Positions match the canonical pokered RedsHouse2F.blk furniture sprites:
-      //   block 13 at block-coord (1, 2) draws the SNES on its right column → tile (3, 5)
-      //   block 18 at block-coord (3, 3) draws the PC  on its left column  → tile (6, 7)
-      // Player presses A facing the sprite to interact.
-      { id: 'snes',         type: 'object', position: { x: 3, y: 5 }, direction: 'down', sprite: '🎮' },
-      { id: 'pc_reds_house',type: 'object', position: { x: 6, y: 7 }, direction: 'down', sprite: '💻' },
+      // Positions from canonical FireRed PalletTown_PlayersHouse_2F bg_events
+      // (the sign tiles the player can interact with):
+      //   NES at (6, 5), PC at (1, 1).
+      { id: 'snes',         type: 'object', position: { x: 6, y: 5 }, direction: 'down', sprite: '🎮' },
+      { id: 'pc_reds_house',type: 'object', position: { x: 1, y: 1 }, direction: 'down', sprite: '💻' },
     ],
     RIVALS_HOUSE: [],
     POKECENTER: [],

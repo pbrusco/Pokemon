@@ -1,21 +1,10 @@
 import { useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { type Position, type Entity, type MapID, TILE_SIZE, type MapData, type NPC } from '../types';
-import { WILD_POKEMON_DATABASE } from '../constants/world';
 import { useGameStore } from '../store/gameStore';
 import { NPCComponent } from './overworld/NPCComponent';
-import { GameTile } from './overworld/GameTile';
-import { NativeBlockTile } from './overworld/NativeBlockTile';
+import { FireredMapView } from './overworld/FireredMapView';
 import { PlayerSprite } from './overworld/PlayerSprite';
-
-import { T } from '../data/tileset/tilesetGenerator';
-import { blocksetBlocks } from '../lib/blocksetData';
-
-// Blocksets the autotiler can render reasonably (procedural Fire-Red art).
-// Everything else (interiors, gates, ships, caves, etc.) renders the canonical
-// pokered native tile graphics directly so furniture/stairs/props display
-// correctly instead of being squashed into "wall" sprites.
-const AUTOTILED_BLOCKSETS = new Set(['OVERWORLD', 'FOREST', 'PLATEAU']);
 
 interface WindowSize {
   width: number;
@@ -54,8 +43,6 @@ export const WorldView = memo(({
   const mapData = maps[currentMap];
 
   const grid = mapData?.tiles ?? [];
-  const layers = mapData?.layers;
-  const mapHasEncounters = currentMap in WILD_POKEMON_DATABASE;
   const rows = grid.length;
   const cols = grid[0]?.length ?? 0;
 
@@ -65,55 +52,6 @@ export const WorldView = memo(({
   const maxX = Math.min(cols - 1, playerPos.x + halfW);
   const minY = Math.max(0, playerPos.y - halfH);
   const maxY = Math.min(rows - 1, playerPos.y + halfH);
-
-  const useNativeRenderer = mapData?.blockset !== undefined && !AUTOTILED_BLOCKSETS.has(mapData.blockset);
-
-  const { groundTiles, objectTiles, overheadTiles } = useMemo(() => {
-    if (!mapData) return { groundTiles: [], objectTiles: [], overheadTiles: [] };
-
-    const groundTiles = [];
-    const objectTiles = [];
-    const overheadTiles = [];
-
-    if (useNativeRenderer && mapData.blocks && mapData.blockset && mapData.borderBlock !== undefined) {
-      // Render canonical pokered tile graphics directly. No autotiler.
-      const { blocks, blockset, borderBlock, widthBlocks = 0, heightBlocks = 0 } = mapData;
-      const bsBlocks = blocksetBlocks[blockset];
-      if (bsBlocks) {
-        for (let y = minY; y <= maxY; y++) {
-          for (let x = minX; x <= maxX; x++) {
-            const bx = x >> 1, by = y >> 1, qx = x & 1, qy = y & 1;
-            const blockId = (by >= 0 && by < heightBlocks && bx >= 0 && bx < widthBlocks)
-              ? blocks[by][bx] : borderBlock;
-            const blockTiles = bsBlocks[blockId];
-            if (!blockTiles) continue;
-            const tl = blockTiles[(qy * 2) * 4 + (qx * 2)];
-            const tr = blockTiles[(qy * 2) * 4 + (qx * 2 + 1)];
-            const bl = blockTiles[(qy * 2 + 1) * 4 + (qx * 2)];
-            const br = blockTiles[(qy * 2 + 1) * 4 + (qx * 2 + 1)];
-            groundTiles.push(
-              <NativeBlockTile key={`n-${x}-${y}`} blockset={blockset} tileIds={[tl, tr, bl, br]} x={x} y={y} />
-            );
-          }
-        }
-      }
-    } else if (layers) {
-      // Legacy autotiler-driven renderer (outdoor + char-grid maps).
-      for (let y = minY; y <= maxY; y++) {
-        for (let x = minX; x <= maxX; x++) {
-          const tile = grid[y][x];
-          let groundId = layers.ground[y][x];
-          const objectId = layers.objects[y][x];
-          const overheadId = layers.overhead[y][x];
-          if (mapHasEncounters && tile.type === 'grass') groundId = T.TALL_GRASS;
-          groundTiles.push(<GameTile key={`g-${x}-${y}`} tileId={groundId} x={x} y={y} />);
-          if (objectId !== T.EMPTY) objectTiles.push(<GameTile key={`o-${x}-${y}`} tileId={objectId} x={x} y={y} z={15 + y} />);
-          if (overheadId !== T.EMPTY) overheadTiles.push(<GameTile key={`h-${x}-${y}`} tileId={overheadId} x={x} y={y} z={40 + y} noPointerEvents />);
-        }
-      }
-    }
-    return { groundTiles, objectTiles, overheadTiles };
-  }, [mapData, mapHasEncounters, useNativeRenderer, minX, maxX, minY, maxY]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const visionIndicators = useMemo(() =>
     (npcs[currentMap] ?? [])
@@ -196,8 +134,30 @@ export const WorldView = memo(({
         transition={{ type: "tween", duration: 0.11, ease: "linear" }}
       >
         <div className="relative" style={{ width: cols * TILE_SIZE, height: rows * TILE_SIZE }}>
-          {groundTiles}
-          {objectTiles}
+          {(() => {
+            // Every map is FireRed-backed now. Multi-zone (KANTO_OVERWORLD)
+            // renders each FireRed zone as its own canvas at its computed
+            // offset; single-zone (indoor) maps render one layout.
+            if (!mapData.fireredLayout) return null;
+            const fl = mapData.fireredLayout as { multiZone?: true; zones?: Array<{ mapId: string; offsetX: number; offsetY: number; layout: Parameters<typeof FireredMapView>[0]['layout'] }> };
+            if (fl.multiZone && fl.zones) {
+              return fl.zones.map(z => (
+                <FireredMapView
+                  key={z.mapId}
+                  layout={z.layout}
+                  viewport={{ minX, minY, maxX, maxY }}
+                  originX={z.offsetX}
+                  originY={z.offsetY}
+                />
+              ));
+            }
+            return (
+              <FireredMapView
+                layout={mapData.fireredLayout as Parameters<typeof FireredMapView>[0]['layout']}
+                viewport={{ minX, minY, maxX, maxY }}
+              />
+            );
+          })()}
           {visionIndicators}
           {warpIndicators}
 
@@ -215,7 +175,9 @@ export const WorldView = memo(({
             // already draw furniture, TVs, computers, plants, etc. The
             // "object" overlay (brown signpost) would only duplicate them.
             // Pickup items still render so the player sees collectable balls.
-            if (useNativeRenderer && item.type === 'object') return null;
+            // Object overlays (signs, computers, etc.) are already rendered
+            // by the FireRed canvas — skip the JS overlay so we don't double-draw.
+            if (item.type === 'object') return null;
 
             return (
               <motion.div
@@ -275,7 +237,7 @@ export const WorldView = memo(({
           ))}
           <PlayerSprite position={playerPos} direction={direction} />
 
-          {overheadTiles}
+          {/* No overhead layer — FireRed pipeline draws everything in-place. */}
 
           <AnimatePresence>
             {isInteractable && (

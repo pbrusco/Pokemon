@@ -27,6 +27,7 @@ import { HM_MOVE_MAP } from './constants/items';
 import { MOVES } from './constants/moves';
 
 export default function App() {
+
   // ── Granular store selectors ────────────────────────────────────
   // App MUST NOT subscribe to rapidly-changing values like playerPos,
   // direction, isMoving, or wildPokemon.

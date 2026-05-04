@@ -1,12 +1,10 @@
 import { worldConfig } from '../data/worldConfig';
-import { buildNPCDatabase, buildItemDatabase, O } from '../data/npcDatabase';
-import { BUILDING_REFERENCE } from '../data/reference/buildingReference';
+import { buildNPCDatabase, buildItemDatabase } from '../data/npcDatabase';
 import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES } from '../constants/world';
-import pokeredMetadata from '../artifacts/reference/pokered_metadata.json';
 import type { MapID, Tile } from '../types';
 
 interface WorldValidationIssue {
-  category: 'warp' | 'npc' | 'item' | 'encounter' | 'faithfulness' | 'building';
+  category: 'warp' | 'npc' | 'item' | 'encounter' | 'faithfulness';
   message: string;
 }
 
@@ -18,7 +16,6 @@ function tileAt(tiles: Tile[][], x: number, y: number): Tile | null {
   return inBounds(tiles, x, y) ? tiles[y][x] : null;
 }
 
-const ZONE_OFFSETS = O as Record<string, { x: number; y: number }>;
 
 /**
  * Pure validator. Returns a list of integrity issues with the current world data
@@ -52,94 +49,6 @@ export function validateWorld(): WorldValidationIssue[] {
   // Snapshots for entity checks
   const allNpcs = buildNPCDatabase([], false, false, [], 'START', null, null);
   const allItems = buildItemDatabase([], 'START');
-
-  // --- Building structure validation (must run early for entity snapshots) ---
-  // Entities live under KANTO_OVERWORLD with world coords.  We collect them all
-  // once so each building check can query with world‑space lookups.
-  const overworld = maps.KANTO_OVERWORLD;
-  const overworldEntities = [
-    ...(allNpcs.KANTO_OVERWORLD || []),
-    ...(allItems.KANTO_OVERWORLD || []),
-  ];
-
-  for (const [mapIdStr, buildings] of Object.entries(BUILDING_REFERENCE)) {
-    const off = ZONE_OFFSETS[mapIdStr] ?? { x: 0, y: 0 };
-
-    for (const b of buildings) {
-      const label = `${mapIdStr}:${b.name}`;
-      const grid = overworld?.tiles;
-      if (!grid) continue;
-
-      // 1. Wall rectangle: check KANTO_OVERWORLD tiles at world coords
-      for (let row = b.wallY; row < b.wallY + b.wallH; row++) {
-        const wy = off.y + row;
-        for (let col = b.wallX; col < b.wallX + b.wallW; col++) {
-          const wx = off.x + col;
-          const t = tileAt(grid, wx, wy);
-          if (!t) {
-            issues.push({ category: 'building', message: `${label}: out-of-bounds at world (${wx},${wy})` });
-            continue;
-          }
-          if (t.type !== 'wall') {
-            issues.push({ category: 'building', message: `${label}: tile at world (${wx},${wy}) is "${t.type}", expected wall` });
-          }
-        }
-      }
-
-      // 2. Door + warp (skipped for locked buildings)
-      if (b.doorX !== null && b.doorY !== null) {
-        const wx = off.x + b.doorX;
-        const wy = off.y + b.doorY;
-        const dt = tileAt(grid, wx, wy);
-        if (!dt) {
-          issues.push({ category: 'building', message: `${label}: door at world (${wx},${wy}) out-of-bounds` });
-        } else if (dt.type !== 'door') {
-          issues.push({ category: 'building', message: `${label}: tile at world (${wx},${wy}) is "${dt.type}", expected door` });
-        }
-
-        if (b.targetMap) {
-          const hasWarp = (overworld?.warps ?? []).some(
-            w => w.x === wx && w.y === wy && w.targetMap === b.targetMap,
-          );
-          if (!hasWarp) {
-            issues.push({ category: 'building', message: `${label}: door at world (${wx},${wy}) has no warp to ${b.targetMap}` });
-          }
-        }
-      }
-
-      // 3. Sign positions (check overworld entities at world coords)
-      for (const [sx, sy] of b.signPositions ?? []) {
-        const wx = off.x + sx;
-        const wy = off.y + sy;
-        const hasSign = overworldEntities.some(
-          e =>
-            e.type === 'object' &&
-            (e.id.startsWith('sign_') || e.sprite === '🪧') &&
-            e.position.x === wx &&
-            e.position.y === wy,
-        );
-        if (!hasSign) {
-          issues.push({ category: 'building', message: `${label}: no sign object at world (${wx},${wy})` });
-        }
-      }
-
-      // 4. Door object positions (blocking objects at world coords)
-      for (const [dx, dy] of b.doorObjectPositions ?? []) {
-        const wx = off.x + dx;
-        const wy = off.y + dy;
-        const hasObj = overworldEntities.some(
-          e =>
-            e.type === 'object' &&
-            (e.sprite === '🚪' || e.sprite === '🚫') &&
-            e.position.x === wx &&
-            e.position.y === wy,
-        );
-        if (!hasObj) {
-          issues.push({ category: 'building', message: `${label}: no blocking object at world (${wx},${wy})` });
-        }
-      }
-    }
-  }
 
   // 1. Mandatory Tile-Entity Connections (Doors/Signs)
    for (const id of mapIds) {
@@ -281,74 +190,10 @@ export function validateWorld(): WorldValidationIssue[] {
     }
   }
 
-  // 5. Faithfulness Pass (Metadata Comparison)
-  const metadataMaps = (pokeredMetadata as { maps?: Record<string, unknown> } & Record<string, unknown>).maps
-    ?? (pokeredMetadata as Record<string, unknown>);
-
-  const allBadgesFull = ['boulder', 'cascade', 'thunder', 'rainbow', 'soul', 'marsh', 'volcano', 'earth'];
-  const permissiveNpcs = buildNPCDatabase([], false, true, allBadgesFull, 'EXPLORING', null, null, true, true, true, []);
-  const permissiveItems = buildItemDatabase([], 'EXPLORING');
-
-  // Determine which maps are outdoor sub-zones (KANTO_OVERWORLD segments)
-  const outdoorZones = new Set(Object.keys(O));
-
-  for (const mapKey of Object.keys(metadataMaps)) {
-    const meta = (metadataMaps as Record<string, Record<string, unknown>>)[mapKey];
-    if (!meta) continue;
-
-    const id = mapKey as MapID;
-    const map = maps[id];
-    if (!map) continue;
-
-    const isOutdoorZone = outdoorZones.has(mapKey);
-
-    // --- NPC count (outdoor zones only — indoor maps vary too much in scope) ---
-    if (isOutdoorZone) {
-      const npcCount = (permissiveNpcs[id] || []).length;
-      const expectedNpcs = Number(meta.npcs ?? 0);
-      if (npcCount < expectedNpcs) {
-        issues.push({ category: 'faithfulness', message: `${id}: found ${npcCount} NPCs, expected ${expectedNpcs}` });
-      }
-    }
-
-    // --- Sign count (outdoor zones only) ---
-    if (isOutdoorZone) {
-      const signCount = (permissiveItems[id] || []).filter(e => e.id.startsWith('sign_')).length;
-      if (signCount < Number(meta.signs ?? 0)) {
-        issues.push({ category: 'faithfulness', message: `${id}: found ${signCount} signs, expected ${meta.signs}` });
-      }
-    }
-
-    // --- Item (ball pickup) count (outdoor zones only) ---
-    if (isOutdoorZone) {
-      const itemCount = (permissiveItems[id] || []).filter(e => e.type === 'item').length;
-      if (itemCount < Number(meta.items ?? 0)) {
-        issues.push({ category: 'faithfulness', message: `${id}: found ${itemCount} item balls, expected ${meta.items}` });
-      }
-    }
-
-    // --- Trainer count (outdoor zones only) ---
-    // TODO: refine once we parse trainer assignments per map from object file data
-
-    // --- Wild encounter species (all maps) ---
-    if (meta.wildLand) {
-      const wildMeta = meta.wildLand as Array<{ species: string }>;
-      const wildSpecies = wildMeta.map(s => s.species);
-      const encounterList = WILD_POKEMON_DATABASE[id] ?? WILD_POKEMON_DATABASE[mapKey] ?? [];
-      const foundSpecies = new Set(encounterList.map((p: { name: string }) => p.name.toUpperCase()));
-      const missingSpecies = wildSpecies.filter(s => !foundSpecies.has(s));
-      if (missingSpecies.length > 0) {
-        issues.push({ category: 'faithfulness', message: `${id}: missing wild species: ${missingSpecies.join(', ')}` });
-      }
-
-      // Wild encounter rate
-      const expectedRate = Number(meta.wildRate ?? 0);
-      const actualRate = WILD_ENCOUNTER_RATES[id] ?? WILD_ENCOUNTER_RATES[mapKey];
-      if (expectedRate > 0 && actualRate !== undefined && actualRate !== expectedRate) {
-        issues.push({ category: 'faithfulness', message: `${id}: wild encounter rate ${actualRate}, expected ${expectedRate}` });
-      }
-    }
-  }
+  // Faithfulness against pokered's metadata used to live here. With the
+  // FireRed migration the canonical reference is pokefirered's map.json
+  // events; we'll re-add a stricter comparison once NPC data is auto-derived
+  // from object_event entries instead of hand-authored.
 
   return issues;
 }

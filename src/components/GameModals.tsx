@@ -11,7 +11,6 @@ import { ShopUI } from './ShopUI';
 import { SHOP_PRICES } from '../constants/items';
 import { PokedexUI } from './PokedexUI';
 import { PCStorageUI } from './PCStorageUI';
-import { MapEditor } from './MapEditor';
 import { useGameStore } from '../store/gameStore';
 import type { CinematicEvent } from '../hooks/useBattleVFX';
 
@@ -87,9 +86,6 @@ export const GameModals = memo(({
           }} />
         )}
       </AnimatePresence>
-
-      {/* Map Editor */}
-      {phase.type === 'EDITOR' && <MapEditor onClose={() => store.setPhase(EXPLORING)} />}
 
       {/* Dialogue */}
       <AnimatePresence>

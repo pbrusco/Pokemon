@@ -15,7 +15,12 @@ import { calcHp } from '../lib/damage';
 // Pallet Town exit coords in the unified KANTO_OVERWORLD
 // Route 1 south end is at world y=196 (x=127-128). The cutscene fires when
 // the player tries to step from y=197 (Pallet's north path) into y=196 (Route 1).
-const PALLET_NORTH_EXIT_Y = 197;
+// FireRed Pallet Town top-edge gap (cols 12-13 of LAYOUT_PALLET_TOWN at
+// world (60, 260)) → world cols 72-73, world y = 260 (the row leading
+// onto Route 1).
+const PALLET_NORTH_EXIT_Y = 260;
+const PALLET_NORTH_EXIT_X_LO = 72;
+const PALLET_NORTH_EXIT_X_HI = 73;
 
 // ── Extracted helpers (pure or store-writing, no React hooks) ────────────────
 
@@ -160,7 +165,8 @@ export function useMovementEngine({
     // In KANTO_OVERWORLD, Pallet Town's northern border is at world y = PALLET_NORTH_EXIT_Y
     const isLeavingPalletNorth =
       currentMap === 'KANTO_OVERWORLD' && nextY === PALLET_NORTH_EXIT_Y - 1 &&
-      nextX >= 128 && nextX <= 129 && playerTeam.length === 0 && !ghostMode;
+      nextX >= PALLET_NORTH_EXIT_X_LO && nextX <= PALLET_NORTH_EXIT_X_HI &&
+      playerTeam.length === 0 && !ghostMode;
     if (isLeavingPalletNorth) {
       triggerOakCutscene(playerPos);
       return;

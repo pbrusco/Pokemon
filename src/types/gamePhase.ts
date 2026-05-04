@@ -29,7 +29,6 @@ export type GamePhase =
   | { type: 'SHOP' }
   | { type: 'POKEDEX'; returnTo?: GamePhase }
   | { type: 'PC'; returnTo?: GamePhase }
-  | { type: 'EDITOR' }
   | { type: 'BATTLE_TRANSITION' }
   | { type: 'BATTLE'; sub: BattlePhase }
   | { type: 'BLACKOUT' }
@@ -41,7 +40,6 @@ export type GamePhase =
 
 export const EXPLORING: GamePhase = { type: 'EXPLORING' };
 export const SHOP: GamePhase = { type: 'SHOP' };
-export const EDITOR: GamePhase = { type: 'EDITOR' };
 export const BATTLE_TRANSITION: GamePhase = { type: 'BATTLE_TRANSITION' };
 export const BLACKOUT: GamePhase = { type: 'BLACKOUT' };
 export const HEALING: GamePhase = { type: 'HEALING' };

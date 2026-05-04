@@ -8,7 +8,7 @@
 }
 
 :root {
-  /* Tile palette — mirrors tilesetGenerator.ts C{} constants */
+  /* Accent palette used by HUD, dialogue, and minimap overlays. */
   --pk-grass:       #78C840;
   --pk-path:        #C8A848;
   --pk-water:       #4870C8;
@@ -103,16 +103,6 @@ body {
 
 .pixelated {
   image-rendering: pixelated;
-}
-
-/* Water shimmer — alternates between WATER (tile 6) and WATER_ALT (tile 7)
-   on the spritesheet. TILE_SIZE=64, TILESET_COLS=8 → col positions are -384px and -448px. */
-@keyframes water-shimmer {
-  0%, 49.9% { background-position-x: -384px; }
-  50%, 100% { background-position-x: -448px; }
-}
-.water-shimmer {
-  animation: water-shimmer 1.2s step-end infinite;
 }
 
 @keyframes walk {

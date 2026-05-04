@@ -12,12 +12,13 @@ export PATH="/opt/homebrew/bin:$PATH" && cd /Users/pbrusco/projects/poke && npm 
 
 ## Reference
 
-When in doubt about map layouts, building positions, NPC placements, tile types, or any game data:
-- **pokered source** — https://github.com/pret/pokered (decompiled Pokémon Red ROM; canonical reference for maps, scripts, constants, sprite data)
+When in doubt about map layouts, NPC placements, tile attributes, warp coords, or events:
+- **pokefirered source** — https://github.com/pret/pokefirered (decompiled Pokémon FireRed; the canonical source of every layout, every metatile, and every event in this project).
+- Local mirror: `pokefirered_dissasembly/`. Edit nothing here — the build pipeline reads it.
 
 ## Vision
 
-This is a faithful recreation of Pokémon Red / Fire Red (Gen I) built with modern web tech (React 19, TypeScript, Vite, Zustand). The goal is to reproduce the original gameplay feel — turn-based battles, tile movement, Kanto story — not to clone the visuals pixel-for-pixel. Mechanics (damage formula, type chart, stat calc, status effects) follow Gen I rules. All in-game text is in Spanish. Scope is Gen I: 151 Pokémon, Kanto region, full storyline from Pallet Town through the Indigo Plateau (work-in-progress; extending map by map).
+A faithful recreation of Pokémon FireRed (Gen I/III hybrid) built with modern web tech (React 19, TypeScript, Vite, Zustand). All map data is pulled from the pokefirered disassembly at build time; no coordinates are hand-authored. Mechanics (damage, type chart, stat calc, status effects) follow Gen I rules. All in-game text is in Spanish.
 
 ## Architecture
 
@@ -25,14 +26,19 @@ All game state lives in a Zustand store (`src/store/gameStore.ts`) with `zustand
 
 `battleStateRef` holds mutable `BattleState` during fights (initialized by `initBattle`, driven by `useBattleEngine`).
 
-## Tileset Rendering
+## Map pipeline
 
-Maps are rendered via a canvas-generated pixel art tileset (`src/data/tileset/tilesetGenerator.ts`). The autotiler (`src/data/tileset/autotiler.ts`) converts the semantic `Tile[][]` grid into three rendering layers:
-- **ground** — base terrain (grass, path, floor, roof, walls)
-- **objects** — tree trunks, furniture, signs (z-indexed by row, below player/NPCs)
-- **overhead** — tree canopies (z-indexed above player for walk-behind depth)
+Three scripts run automatically via `predev`/`prebuild`:
 
-`GameTile` is a `React.memo` component that renders a single `<div>` with `background-position` on the tileset spritesheet. Tile IDs are defined in `tilesetGenerator.ts` as `T.GRASS`, `T.ROOF_M`, etc.
+1. `scripts/build-firered-pipeline.mjs` — extracts 365 layouts + 63 tilesets from `pokefirered_dissasembly/` into `src/artifacts/firered/`.
+2. `scripts/stitch-firered-overworld.mjs` — BFS-walks pokefirered's connection graph from MAP_PALLET_TOWN; emits `STITCHED_KANTO_OVERWORLD.json` + the `kantoZoneOffsets.generated.ts` TS file.
+3. `scripts/generate-indoor-maps.mjs` — emits the indoor map registry + reverse FireRed↔internal id mapping.
+
+The runtime renderer (`src/components/overworld/FireredMapView.tsx`) is a canvas-based metatile composer: it loads each tileset's PNG + palettes (16 colors per palette × 13 palettes per map), composes 16×16 metatile bitmaps from 8 tile-refs (4 background + 4 foreground layer), caches them, and blits to a single `<canvas>` per zone. Multi-zone Kanto renders as multiple `FireredMapView` instances at offsets from the stitcher.
+
+**Walkability** comes from each metatile's collision bits (FireRed `map.bin` format: `bits 0-9 metatile id | bits 10-11 collision | bits 12-15 elevation`). The bridge converts collision != 0 → `wall`, collision == 0 → `floor` for the tile-type semantic. Tile types are still used by encounter/interaction logic.
+
+**Warps** are auto-pinned: in `src/data/maps/index.ts`, every indoor map's exit warp is rewritten to land 1 tile south of the matching outdoor entry door, so round-trip transitions are symmetric. This is locked by `src/data/__tests__/warpRoundTrip.test.ts`.
 
 ## Phase FSM
 
@@ -69,7 +75,9 @@ setPlayerTeam(newTeam);
 setTimeout(() => setPhase(EXPLORING), 1000);
 ```
 
-**NPC placement** — use `buildNPCDatabase()` in `npcDatabase.ts`, not `worldConfig.ts`. Trainer NPCs must be placed at the exact coordinates from the **pokered map script** (e.g., `pokered_dissasembly/scripts/Route9.asm` via `object_const_def` + `TrainerWalkToPlayer`). Never invent coordinates — every trainer position comes from the canonical Gen I script.
+**NPC placement** — use `buildNPCDatabase()` in `npcDatabase.ts`. Coordinates come from FireRed `object_event` data in `pokefirered_dissasembly/data/maps/<MapName>/map.json`. Local zone coords use `w('ZONE_NAME', lx, ly)` which translates via the auto-generated `KANTO_FIRERED_ZONE_OFFSETS`. Never invent coordinates — every trainer/sign/object position is in the canonical FireRed map.json.
+
+**Map IDs** — internal `MapID` enum (e.g. `PALLET_TOWN`, `OAKS_LAB`) is the only id used in NPC/warp/save data. The FireRed↔internal mapping is auto-generated in `src/data/firered/mapIds.generated.ts`. To add a new map, add an entry to `MAP_ID_TO_FIRERED` in `scripts/generate-indoor-maps.mjs`.
 
 ## Invariants
 

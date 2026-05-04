@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "generate:maps": "node scripts/generate-blockmaps.mjs && node scripts/stitch-kanto.mjs",
-    "predev": "npm run generate:maps",
-    "prebuild": "npm run generate:maps",
+    "generate:firered": "node scripts/build-firered-pipeline.mjs && node scripts/stitch-firered-overworld.mjs && node scripts/generate-indoor-maps.mjs",
+    "generate:all": "npm run generate:firered",
+    "predev": "npm run generate:all",
+    "prebuild": "npm run generate:all",
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",

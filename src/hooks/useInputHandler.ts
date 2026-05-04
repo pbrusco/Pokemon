@@ -1,6 +1,6 @@
 import { type RefObject, useEffect, useRef } from 'react';
 import { type Direction } from '../types';
-import { battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING, EDITOR } from '../types/gamePhase';
+import { battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING } from '../types/gamePhase';
 import { type BattleAction } from '../lib/battleEngine';
 import { useGameStore } from '../store/gameStore';
 
@@ -83,11 +83,6 @@ export function useInputHandler({
         if (e.key === '2') { store.setViewMode('2d'); return; }
         if (e.key === 'Tab') { e.preventDefault(); if (store.hasPokedex) store.setPhase({ type: 'POKEDEX', returnTo: EXPLORING }); return; }
         if (e.key === '`') { store.setPhase({ type: 'MENU', returnTo: EXPLORING }); return; }
-      }
-
-      if (e.key === 'E' && e.shiftKey) {
-        store.setPhase(prev => prev.type === 'EDITOR' ? EXPLORING : EDITOR);
-        return;
       }
 
       if (e.key === 'g' || e.key === 'G') {

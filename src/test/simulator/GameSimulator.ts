@@ -92,7 +92,7 @@ export class GameSimulator {
       money: overrides.money ?? 3000,
       pcStorage: [],
       pokedex: {},
-      lastHealLocation: { map: 'PLAYERS_HOUSE_1F' as MapID, pos: { x: 3, y: 6 } },
+      lastHealLocation: { map: 'PLAYERS_HOUSE_1F' as MapID, pos: { x: 5, y: 7 } },
 
       // Runtime state
       isMoving: false,
