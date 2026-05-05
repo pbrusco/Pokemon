@@ -45,10 +45,14 @@ export function buildOakEscortSteps(playerPos: Position): CutsceneStep[] {
     { type: 'walk', path, npcLeadId: 'oak_escort' },
     { type: 'npc_remove' },
     { type: 'set_story', step: 'OAK_STOPPED' },
-    { type: 'warp', map: 'OAKS_LAB' as MapID, position: { x: 4, y: 10 }, direction: 'up' as Direction },
+    // Land the player just inside the lab door, directly south of Oak
+    // (canonical Oak at (6, 3) → player at (6, 11) facing up). Old (4, 10)
+    // dropped the player off-axis and Oak felt disconnected from the entry.
+    { type: 'warp', map: 'OAKS_LAB' as MapID, position: { x: 6, y: 11 }, direction: 'up' as Direction },
     { type: 'unlock' },
     { type: 'wait', ms: 500 },
-    { type: 'dialogue', text: "OAK: ¡Hola! Por fin llegas.\nToma uno de estos POKÉMON, te ayudará en tu viaje." },
+    { type: 'dialogue', text: "PROF. OAK: ¡Hola! Por fin llegas. Pasa, pasa — ven hasta la mesa." },
+    { type: 'dialogue', text: "PROF. OAK: Toma uno de estos POKÉMON, te ayudará en tu viaje." },
   ];
 }
 

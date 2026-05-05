@@ -6,8 +6,15 @@
  * MapID → FireRed layout mapping for every indoor map in the game,
  * plus its FireRed-derived entry coord (the front-door warp_event).
  *
- * Manual config = the small `MAP_ID_TO_FIRERED` table below. Everything
- * else (imports, exports, entry overrides) is mechanical.
+ * Manual config = the small `MAP_ID_TO_FIRERED` table below. Two value forms:
+ *   - String: 'LAYOUT_FOO' — layout id; FireRed map id is auto-derived as
+ *     'MAP_FOO' (swap LAYOUT_→MAP_). Used when there is exactly one FireRed
+ *     map per layout (the common case).
+ *   - Object: { layout: 'LAYOUT_X', map: 'MAP_Y' } — when a single FireRed
+ *     layout is reused across multiple maps (e.g. the shared Pokémon Center
+ *     and Mart layouts). The script reads the per-map map.json directly from
+ *     the disassembly to capture that map's events (warps, NPCs) and writes
+ *     a per-MapID overlay artifact under src/artifacts/firered/maps/MAPID_*.json.
  */
 
 import fs from 'fs';
@@ -15,22 +22,39 @@ import path from 'path';
 
 const ROOT = path.resolve('.');
 const MAPS = path.join(ROOT, 'src/artifacts/firered/maps');
+const FR_MAPS_DIR = path.join(ROOT, 'pokefirered_dissasembly/data/maps');
 const OUT  = path.join(ROOT, 'src/data/firered/indoorMaps.generated.ts');
 const ID_OUT = path.join(ROOT, 'src/data/firered/mapIds.generated.ts');
 
-// MapID (our internal enum) → FireRed layout ID.
-// Each entry maps a single canonical FireRed layout. Where multiple FireRed
-// maps share an internal MapID (e.g. POKECENTER for every city's pokémon
-// center), we pick the most-canonical (Viridian's) — per-city pokecenters
-// would be a follow-up split.
+// MapID (our internal enum) → FireRed layout/map.
 const MAP_ID_TO_FIRERED = {
   PLAYERS_HOUSE_1F:    'LAYOUT_PALLET_TOWN_PLAYERS_HOUSE_1F',
   PLAYERS_HOUSE_2F:    'LAYOUT_PALLET_TOWN_PLAYERS_HOUSE_2F',
   RIVALS_HOUSE:        'LAYOUT_PALLET_TOWN_RIVALS_HOUSE',
   OAKS_LAB:            'LAYOUT_PALLET_TOWN_PROFESSOR_OAKS_LAB',
 
-  POKECENTER:          'LAYOUT_POKEMON_CENTER_1F',
-  POKEMART:            'LAYOUT_MART',
+  // Per-city Pokémon Centers (all share LAYOUT_POKEMON_CENTER_1F).
+  POKECENTER_VIRIDIAN:  { layout: 'LAYOUT_POKEMON_CENTER_1F', map: 'MAP_VIRIDIAN_CITY_POKEMON_CENTER_1F' },
+  POKECENTER_PEWTER:    { layout: 'LAYOUT_POKEMON_CENTER_1F', map: 'MAP_PEWTER_CITY_POKEMON_CENTER_1F' },
+  POKECENTER_CERULEAN:  { layout: 'LAYOUT_POKEMON_CENTER_1F', map: 'MAP_CERULEAN_CITY_POKEMON_CENTER_1F' },
+  POKECENTER_LAVENDER:  { layout: 'LAYOUT_POKEMON_CENTER_1F', map: 'MAP_LAVENDER_TOWN_POKEMON_CENTER_1F' },
+  POKECENTER_VERMILION: { layout: 'LAYOUT_POKEMON_CENTER_1F', map: 'MAP_VERMILION_CITY_POKEMON_CENTER_1F' },
+  POKECENTER_CELADON:   { layout: 'LAYOUT_POKEMON_CENTER_1F', map: 'MAP_CELADON_CITY_POKEMON_CENTER_1F' },
+  POKECENTER_FUCHSIA:   { layout: 'LAYOUT_POKEMON_CENTER_1F', map: 'MAP_FUCHSIA_CITY_POKEMON_CENTER_1F' },
+  POKECENTER_SAFFRON:   { layout: 'LAYOUT_POKEMON_CENTER_1F', map: 'MAP_SAFFRON_CITY_POKEMON_CENTER_1F' },
+  POKECENTER_CINNABAR:  { layout: 'LAYOUT_POKEMON_CENTER_1F', map: 'MAP_CINNABAR_ISLAND_POKEMON_CENTER_1F' },
+  POKECENTER_ROUTE4:    { layout: 'LAYOUT_POKEMON_CENTER_1F', map: 'MAP_ROUTE4_POKEMON_CENTER_1F' },
+  POKECENTER_ROUTE10:   { layout: 'LAYOUT_POKEMON_CENTER_1F', map: 'MAP_ROUTE10_POKEMON_CENTER_1F' },
+
+  // Per-city Marts (all share LAYOUT_MART).
+  POKEMART_VIRIDIAN:  { layout: 'LAYOUT_MART', map: 'MAP_VIRIDIAN_CITY_MART' },
+  POKEMART_PEWTER:    { layout: 'LAYOUT_MART', map: 'MAP_PEWTER_CITY_MART' },
+  POKEMART_CERULEAN:  { layout: 'LAYOUT_MART', map: 'MAP_CERULEAN_CITY_MART' },
+  POKEMART_LAVENDER:  { layout: 'LAYOUT_MART', map: 'MAP_LAVENDER_TOWN_MART' },
+  POKEMART_VERMILION: { layout: 'LAYOUT_MART', map: 'MAP_VERMILION_CITY_MART' },
+  POKEMART_FUCHSIA:   { layout: 'LAYOUT_MART', map: 'MAP_FUCHSIA_CITY_MART' },
+  POKEMART_SAFFRON:   { layout: 'LAYOUT_MART', map: 'MAP_SAFFRON_CITY_MART' },
+  POKEMART_CINNABAR:  { layout: 'LAYOUT_MART', map: 'MAP_CINNABAR_ISLAND_MART' },
 
   MT_MOON:             'LAYOUT_MT_MOON_1F',
   MT_MOON_B1F:         'LAYOUT_MT_MOON_B1F',
@@ -118,43 +142,92 @@ const MAP_ID_TO_FIRERED = {
   CELADON_MART_ELEVATOR:  'LAYOUT_CELADON_CITY_DEPARTMENT_STORE_ELEVATOR',
   CELADON_MART_ROOF:      'LAYOUT_CELADON_CITY_DEPARTMENT_STORE_ROOF',
   CELADON_GAME_CORNER:    'LAYOUT_CELADON_CITY_GAME_CORNER',
+
+  VIRIDIAN_FOREST:        'LAYOUT_VIRIDIAN_FOREST',
 };
 
-const lines = [];
+// Index pokefirered map.json files by their `id` (e.g. MAP_PEWTER_CITY_MART)
+// so we can fetch per-map events for shared-layout overlays.
+const fireredMapById = {};
+for (const dir of fs.readdirSync(FR_MAPS_DIR)) {
+  const mapJsonPath = path.join(FR_MAPS_DIR, dir, 'map.json');
+  if (!fs.existsSync(mapJsonPath)) continue;
+  try {
+    const data = JSON.parse(fs.readFileSync(mapJsonPath, 'utf8'));
+    if (data.id) fireredMapById[data.id] = data;
+  } catch {/* ignore unparseable */}
+}
+
+function normalizeMeta(rawMap) {
+  return {
+    id: rawMap.id,
+    name: rawMap.name,
+    layout: rawMap.layout,
+    music: rawMap.music ?? null,
+    map_type: rawMap.map_type ?? null,
+    region_map_section: rawMap.region_map_section ?? null,
+    connections: rawMap.connections ?? [],
+    object_events: rawMap.object_events ?? [],
+    warp_events: rawMap.warp_events ?? [],
+    coord_events: rawMap.coord_events ?? [],
+    bg_events: rawMap.bg_events ?? [],
+  };
+}
+
 const importLines = [];
 const exportLines = [];
 const entryEntries = [];
+const reverseEntries = [];
 const issues = [];
 
-for (const [mapId, layoutId] of Object.entries(MAP_ID_TO_FIRERED)) {
+for (const [mapId, value] of Object.entries(MAP_ID_TO_FIRERED)) {
+  const layoutId = typeof value === 'string' ? value : value.layout;
+  const overrideMapId = typeof value === 'string' ? null : value.map;
+  const fireredMapId = overrideMapId ?? layoutId.replace(/^LAYOUT_/, 'MAP_');
+
   const layoutPath = path.join(MAPS, `${layoutId}.json`);
   if (!fs.existsSync(layoutPath)) {
     issues.push(`${mapId}: FireRed layout ${layoutId}.json not found`);
     continue;
   }
-  const data = JSON.parse(fs.readFileSync(layoutPath, 'utf8'));
+
   const importIdent = `firered_${mapId.toLowerCase()}`;
-  importLines.push(`import ${importIdent} from '../../artifacts/firered/maps/${layoutId}.json';`);
-  exportLines.push(`  ${mapId}: fromFirered(${importIdent}),`);
+  let artifactRel; // path used in the import statement
+  let entryCoord = null;
 
-  // Auto-derive the entry coord from FireRed warp_events: the first warp
-  // pointing OUT to the parent outdoor map is the front door — landing the
-  // player on it on entry is canonical (warp triggers on stepping ONTO,
-  // not while stationary, so no immediate re-warp).
-  const warps = data.meta?.warp_events ?? [];
-  // Pick the warp whose dest is the matching outdoor map (or just the first).
-  const entry = warps[0];
-  if (entry) {
-    entryEntries.push(`  ${mapId}: { x: ${entry.x}, y: ${entry.y} },  // FireRed warp_event[0]`);
+  if (overrideMapId) {
+    // Shared-layout: write a per-MapID overlay artifact combining the layout
+    // grid with the per-map events.
+    const fireredMap = fireredMapById[overrideMapId];
+    if (!fireredMap) {
+      issues.push(`${mapId}: pokefirered map.json with id="${overrideMapId}" not found`);
+      continue;
+    }
+    const layoutData = JSON.parse(fs.readFileSync(layoutPath, 'utf8'));
+    const overlay = {
+      ...layoutData,
+      id: overrideMapId,        // surface the map id, not the layout id
+      name: fireredMap.name,
+      meta: normalizeMeta(fireredMap),
+    };
+    const overlayName = `MAPID_${mapId}.json`;
+    fs.writeFileSync(path.join(MAPS, overlayName), JSON.stringify(overlay));
+    artifactRel = `../../artifacts/firered/maps/${overlayName}`;
+    const w = overlay.meta.warp_events?.[0];
+    if (w) entryCoord = { x: w.x, y: w.y };
+  } else {
+    artifactRel = `../../artifacts/firered/maps/${layoutId}.json`;
+    const layoutData = JSON.parse(fs.readFileSync(layoutPath, 'utf8'));
+    const w = layoutData.meta?.warp_events?.[0];
+    if (w) entryCoord = { x: w.x, y: w.y };
   }
-}
 
-// FireRed map id ↔ our internal MapID enum (both directions).
-const reverseEntries = [];
-for (const [mapId, layoutId] of Object.entries(MAP_ID_TO_FIRERED)) {
-  // The FireRed map id matches the layout id with LAYOUT_ → MAP_ swap.
-  const fireredId = layoutId.replace(/^LAYOUT_/, 'MAP_');
-  reverseEntries.push(`  ${fireredId}: '${mapId}',`);
+  importLines.push(`import ${importIdent} from '${artifactRel}';`);
+  exportLines.push(`  ${mapId}: fromFirered(${importIdent}),`);
+  if (entryCoord) {
+    entryEntries.push(`  ${mapId}: { x: ${entryCoord.x}, y: ${entryCoord.y} },  // FireRed warp_event[0]`);
+  }
+  reverseEntries.push(`  ${fireredMapId}: '${mapId}',`);
 }
 
 const generated = `// AUTOGENERATED by scripts/generate-indoor-maps.mjs — do not edit.
@@ -180,11 +253,6 @@ ${exportLines.join('\n')}
 } as const;
 `;
 
-// Standalone module for the FireRed→internal id mapping. Kept separate from
-// indoorMaps.generated.ts to avoid a circular import: bridge.ts imports the
-// id table to resolve warp targetMaps, and indoorMaps.generated.ts imports
-// bridge.ts. By splitting them the bridge depends only on this file (no
-// runtime dependency on the indoor map factory functions).
 const idsGenerated = `// AUTOGENERATED by scripts/generate-indoor-maps.mjs — do not edit.
 
 /** FireRed map id → our internal MapID enum. */

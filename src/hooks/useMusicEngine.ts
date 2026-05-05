@@ -2,8 +2,49 @@ import { useEffect, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { AudioController, type MusicTrack } from '../lib/music';
 import { getKantoRegion } from '../constants/world';
+import { worldConfig } from '../data/worldConfig';
 import type { MapID } from '../types';
 import type { GamePhase } from '../types/gamePhase';
+
+/**
+ * FireRed map.json `music` field → our MusicTrack. When a FireRed-migrated
+ * map has a `meta.music` we use this table to drive ambient music
+ * automatically; the INTERIOR_MUSIC dict below is the fallback for maps that
+ * predate the bridge.
+ */
+const FIRERED_MUS_TO_TRACK: Record<string, MusicTrack> = {
+  MUS_PALLET: 'pallet_town',
+  MUS_SLOW_PALLET: 'pallet_town',
+  MUS_OAK_LAB: 'oak_lab',
+  MUS_POKE_CENTER: 'pokecenter',
+  MUS_GYM: 'gym',
+  MUS_PEWTER: 'pewter_city',
+  MUS_CELADON: 'celadon',
+  MUS_LAVENDER: 'lavender',
+  MUS_FUCHSIA: 'route_1',
+  MUS_CINNABAR: 'cinnabar',
+  MUS_VERMILLION: 'vermilion',
+  MUS_MT_MOON: 'mt_moon',
+  MUS_VIRIDIAN_FOREST: 'viridian_forest',
+  MUS_VICTORY_ROAD: 'victory_road',
+  MUS_POKE_TOWER: 'pokemon_tower',
+  MUS_POKE_MANSION: 'mansion',
+  MUS_ROCKET_HIDEOUT: 'rocket_hideout',
+  MUS_SILPH: 'silph_co',
+  MUS_SS_ANNE: 'ss_anne',
+  MUS_GAME_CORNER: 'game_corner',
+  MUS_ROUTE1: 'route_1',
+  MUS_ROUTE3: 'route_3',
+  MUS_ROUTE11: 'route_to_lavender',
+  MUS_ROUTE24: 'intro_route_24',
+};
+
+function fireredMusicForMap(map: MapID): MusicTrack | null {
+  const m = worldConfig.maps[map];
+  const layout = (m as { fireredLayout?: { meta?: { music?: string } } } | undefined)?.fireredLayout;
+  const mus = layout?.meta?.music;
+  return mus ? (FIRERED_MUS_TO_TRACK[mus] ?? null) : null;
+}
 
 /** Map interior MapIDs to their ambient music tracks. */
 const INTERIOR_MUSIC: Record<string, MusicTrack> = {
@@ -11,8 +52,6 @@ const INTERIOR_MUSIC: Record<string, MusicTrack> = {
   PLAYERS_HOUSE_2F: 'pallet_town',
   RIVALS_HOUSE: 'pallet_town',
   OAKS_LAB: 'oak_lab',
-  POKECENTER: 'pokecenter',
-  POKEMART: 'route_1',
   MT_MOON: 'mt_moon',
   MT_MOON_B1F: 'mt_moon',
   MT_MOON_B2F: 'mt_moon',
@@ -128,7 +167,14 @@ const ZONE_MUSIC: Record<string, MusicTrack> = {
 };
 
 function getOverworldMusic(map: MapID, playerPos: { x: number; y: number }): MusicTrack {
-  if (map !== 'KANTO_OVERWORLD') return INTERIOR_MUSIC[map] ?? 'route_1';
+  if (map !== 'KANTO_OVERWORLD') {
+    // Prefer the FireRed map.json music field; fall back to the legacy
+    // hand-maintained dict for maps without a migrated layout.
+    const fromFirered = fireredMusicForMap(map);
+    if (fromFirered) return fromFirered;
+    if (map.startsWith('POKEMART')) return 'route_1';
+    return INTERIOR_MUSIC[map] ?? 'route_1';
+  }
   const zone = getKantoRegion(playerPos.x, playerPos.y);
   return ZONE_MUSIC[zone] ?? 'route_1';
 }

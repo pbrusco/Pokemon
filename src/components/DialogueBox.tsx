@@ -26,7 +26,14 @@ function parseSpeaker(text: string): { speaker: string | null; body: string } {
   return m ? { speaker: m[1].trim(), body: m[2] } : { speaker: null, body: text };
 }
 
-export const DialogueBox = memo(({ text, onComplete }: { text: string; onComplete: () => void }) => {
+interface DialogueBoxProps {
+  text: string;
+  onComplete: () => void;
+  /** When provided, the box becomes a yes/no confirm and disables click-to-advance. */
+  confirm?: { onYes: () => void; onNo: () => void };
+}
+
+export const DialogueBox = memo(({ text, onComplete, confirm }: DialogueBoxProps) => {
   const { speaker, body } = parseSpeaker(text);
   const pages = splitPages(body);
 
@@ -66,10 +73,28 @@ export const DialogueBox = memo(({ text, onComplete }: { text: string; onComplet
     }
     if (pageIdx < pages.length - 1) {
       setPageIdx(p => p + 1);
-    } else {
+    } else if (!confirm) {
+      // In confirm mode the player picks yes/no instead of advancing.
       onComplete();
     }
-  }, [done, currentPage, pageIdx, pages.length, onComplete]);
+  }, [done, currentPage, pageIdx, pages.length, onComplete, confirm]);
+
+  // Keyboard shortcuts for confirm mode: 1/Z = Sí, 2/X = No.
+  useEffect(() => {
+    if (!confirm || !done || pageIdx < pages.length - 1) return;
+    const onKey = (e: KeyboardEvent) => {
+      const k = e.key.toLowerCase();
+      if (k === 'z' || k === '1' || k === 'enter' || k === 'y') {
+        e.preventDefault();
+        confirm.onYes();
+      } else if (k === 'x' || k === '2' || k === 'escape' || k === 'n') {
+        e.preventDefault();
+        confirm.onNo();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [confirm, done, pageIdx, pages.length]);
 
   return (
     <motion.div
@@ -122,7 +147,7 @@ export const DialogueBox = memo(({ text, onComplete }: { text: string; onComplet
             )}
           </p>
 
-          {/* Footer: page counter + continue arrow */}
+          {/* Footer: page counter + continue arrow OR yes/no buttons */}
           <div className="mt-2 flex justify-between items-center">
             {pages.length > 1 ? (
               <span className="font-mono text-white/30" style={{ fontSize: '9px' }}>
@@ -132,7 +157,32 @@ export const DialogueBox = memo(({ text, onComplete }: { text: string; onComplet
               <span />
             )}
             <AnimatePresence mode="wait">
-              {done && (
+              {done && confirm && pageIdx === pages.length - 1 ? (
+                <motion.div
+                  key="confirm"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex gap-3 z-50"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    onClick={confirm.onYes}
+                    className="px-4 py-1 bg-[#f8d830] text-[#383838] font-bold rounded-sm border-2 border-[#383838] hover:bg-[#fce97a] active:translate-y-px"
+                    style={{ fontSize: '12px' }}
+                  >
+                    SÍ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirm.onNo}
+                    className="px-4 py-1 bg-white text-[#383838] font-bold rounded-sm border-2 border-[#383838] hover:bg-[#f0f0f0] active:translate-y-px"
+                    style={{ fontSize: '12px' }}
+                  >
+                    NO
+                  </button>
+                </motion.div>
+              ) : done ? (
                 <motion.div
                   key={pageIdx}
                   initial={{ opacity: 0 }}
@@ -143,7 +193,7 @@ export const DialogueBox = memo(({ text, onComplete }: { text: string; onComplet
                 >
                   <div className="w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[9px] border-t-current" />
                 </motion.div>
-              )}
+              ) : null}
             </AnimatePresence>
           </div>
         </div>

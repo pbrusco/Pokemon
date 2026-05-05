@@ -146,8 +146,9 @@ describe('Scenario 2: Pick starter in Oak\'s Lab', () => {
       storyStep: 'OAK_STOPPED',
     });
 
-    // Interact with the starter item (facing up toward y=5)
+    // Interact with the starter item (facing up toward y=5) → confirm prompt.
     sim.interact();
+    sim.confirmYes();
 
     expect(sim.team).toHaveLength(1);
     expect(sim.team[0].id).toBe(STARTERS[0].id);
@@ -169,6 +170,7 @@ describe('Scenario 3: Rival battle after starter pick', () => {
     });
 
     sim.interact();
+    sim.confirmYes();
 
     // Dismiss the "Has elegido a..." dialogue
     sim.dismissDialogue();
@@ -203,6 +205,7 @@ describe('Scenario 4: Win rival battle', () => {
 
     // Pick starter
     sim.interact();
+    sim.confirmYes();
     sim.dismissDialogue();
     sim.tick(2000);
 
@@ -336,10 +339,10 @@ describe('Scenario 7: Wild encounter on Route 1', () => {
 describe('Scenario 8: Pokémart parcel pickup', () => {
   it('gives OAK_PARCEL on first visit', () => {
     sim = new GameSimulator().init({
-      currentMap: 'POKEMART',
-      // Shop NPC at (4, 2); stand below
-      playerPos: { x: 4, y: 3 },
-      direction: 'up',
+      currentMap: 'POKEMART_VIRIDIAN',
+      // FireRed canonical: clerk at (2, 3) facing right. Stand to his right.
+      playerPos: { x: 3, y: 3 },
+      direction: 'left',
       playerTeam: [STARTERS[0]],
       hasParcel: false,
       hasPokedex: false,
@@ -360,8 +363,8 @@ describe('Scenario 9: Deliver parcel to Oak → Pokédex', () => {
   it('removes parcel and grants Pokédex', () => {
     sim = new GameSimulator().init({
       currentMap: 'OAKS_LAB',
-      // Oak NPC at (4, 2); stand below
-      playerPos: { x: 4, y: 3 },
+      // Oak NPC at (6, 3); stand directly south.
+      playerPos: { x: 6, y: 4 },
       direction: 'up',
       playerTeam: [STARTERS[0]],
       hasParcel: true,
@@ -394,6 +397,7 @@ describe('Scenario 10: Pokéball blocked in trainer battle', () => {
 
     // Pick starter → rival battle triggers
     sim.interact();
+    sim.confirmYes();
     sim.dismissDialogue();
     sim.tick(2000);
     // Dismiss Blue's dialogue — battle fires in its callback
@@ -424,9 +428,9 @@ describe('Scenario 11: Pokécenter healing', () => {
   it('heals the team through HEALING → EXPLORING', () => {
     const wounded = woundedStarter();
     sim = new GameSimulator().init({
-      currentMap: 'POKECENTER',
-      // Nurse Joy at (6, 2); stand below
-      playerPos: { x: 6, y: 3 },
+      currentMap: 'POKECENTER_VIRIDIAN',
+      // FireRed canonical: nurse at (7, 2) facing down. Stand directly below.
+      playerPos: { x: 7, y: 3 },
       direction: 'up',
       playerTeam: [wounded],
       storyStep: 'EXPLORING',
@@ -446,8 +450,8 @@ describe('Scenario 11: Pokécenter healing', () => {
     expect(sim.team[0].status).toBe('none');
     expect(sim.team[0].moves[0].pp).toBe(sim.team[0].moves[0].maxPp);
 
-    // lastHealLocation should be set to POKECENTER
-    expect(sim.state.lastHealLocation.map).toBe('POKECENTER');
+    // lastHealLocation tracks the specific city's PC (Viridian here).
+    expect(sim.state.lastHealLocation.map).toBe('POKECENTER_VIRIDIAN');
   });
 });
 
@@ -556,47 +560,33 @@ describe('Scenario 14: Brock leader battle', () => {
 // ─── Scenario 12: No re-battle after winning a trainer fight ────────────────
 
 describe('Scenario 12: No ghost re-battle after winning trainer fight', () => {
-  // TODO: re-enable once VIRIDIAN_FOREST is migrated as its own FireRed
-  // MapID. With the multi-zone Kanto stitch, Viridian Forest is a separate
-  // dungeon-style map that doesn't sit on the overworld grid.
-  it.todo('cleanly exits battle and does NOT re-enter with 0 HP enemy');
-});
-
-describe.skip('Scenario 12 (legacy)', () => {
   it('cleanly exits battle and does NOT re-enter with 0 HP enemy', () => {
-    // Start in Viridian Forest near bugcatcher_viridian_forest_1 at world (142, 59) facing left
-    // Player stands at (140, 59) — within trainer's 3-tile left vision
+    // FireRed MAP_VIRIDIAN_FOREST: TRAINER_BUG_CATCHER_RICK is at local
+    // (47, 45) facing LEFT. Our trainer vision is a hardcoded 3 tiles, so
+    // (44,45)..(46,45) are inside his sight cone. Start at (43, 45) facing
+    // right and step right onto (44, 45) to enter vision. Map is 54×69.
     sim = new GameSimulator().init({
-      currentMap: 'KANTO_OVERWORLD',
-      playerPos: { x: 140, y: 59 },
+      currentMap: 'VIRIDIAN_FOREST',
+      playerPos: { x: 43, y: 45 },
       direction: 'right',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',
     });
 
-    // Step into trainer's vision zone → triggers trainer cutscene
-    sim.move('right'); // now at (141, 59) — within vision
+    sim.move('right');
     sim.tick(500);
 
-    // If dialogue appeared, dismiss it
     if (sim.dialogue) sim.dismissDialogue();
     sim.tick(2000);
-
-    // Skip BATTLE_TRANSITION
     sim.skipBattleTransition();
 
-    // Confirm we are in battle
     expect(sim.phase.type).toBe('BATTLE');
 
-    // Override team to be very strong to guarantee a quick win
     act(() => {
       useGameStore.getState().setPlayerTeam([strongStarter()]);
-      if (sim.battleState) {
-        sim.battleState.playerTeam = [strongStarter()];
-      }
+      if (sim.battleState) sim.battleState.playerTeam = [strongStarter()];
     });
 
-    // Attack until we win (max 20 turns)
     for (let i = 0; i < 20; i++) {
       if (sim.phase.type !== 'BATTLE') break;
       if (sim.battleState?.outcome !== 'ongoing') break;
@@ -607,25 +597,18 @@ describe.skip('Scenario 12 (legacy)', () => {
       sim.tick(5000);
     }
 
-    // Wait for post-battle resolution (the 2000ms setTimeout in resolveBattleOutcome)
     sim.tick(10000);
 
-    // ── KEY ASSERTIONS: bug reproduction ──
-
-    // 1. Phase must be EXPLORING, not BATTLE
+    // Phase must be EXPLORING, activeBattle null, trainer flagged defeated.
     expect(sim.phase.type).toBe('EXPLORING');
-
-    // 2. activeBattle must be null (cleared properly)
     expect(sim.state.activeBattle).toBeNull();
+    // Trainer NPC ids are auto-generated as `npc_<MAP>_<x>_<y>` when
+    // FireRed's local_id is null. Rick is at MAP_VIRIDIAN_FOREST (47,45).
+    expect(sim.state.defeatedTrainers).toContain('npc_MAP_VIRIDIAN_FOREST_47_45');
 
-    // 3. The trainer should be in defeatedTrainers
-    expect(sim.state.defeatedTrainers).toContain('bugcatcher_viridian_forest_1');
-
-    // 4. Verify we don't bounce back into battle after further ticks
+    // Should not bounce back into battle.
     sim.tick(5000);
     expect(sim.phase.type).toBe('EXPLORING');
-
-    // 5. The phase history should NOT show a second BATTLE_TRANSITION after EXPLORING
     const phases = sim.phaseHistory();
     const exploringIdx = phases.lastIndexOf('EXPLORING');
     const phasesAfterExploring = phases.slice(exploringIdx + 1);

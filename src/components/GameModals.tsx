@@ -87,9 +87,26 @@ export const GameModals = memo(({
         )}
       </AnimatePresence>
 
-      {/* Dialogue */}
+      {/* Dialogue / yes-no confirm */}
       <AnimatePresence>
-        {store.dialogue && (
+        {store.confirm ? (
+          <DialogueBox
+            text={store.confirm.text}
+            onComplete={() => { /* no-op: confirm closes via Sí/No buttons */ }}
+            confirm={{
+              onYes: () => {
+                const c = useGameStore.getState().confirm;
+                store.setConfirm(null);
+                c?.onYes();
+              },
+              onNo: () => {
+                const c = useGameStore.getState().confirm;
+                store.setConfirm(null);
+                c?.onNo();
+              },
+            }}
+          />
+        ) : store.dialogue && (
           <DialogueBox
             text={store.dialogue}
             onComplete={() => {

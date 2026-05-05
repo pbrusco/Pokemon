@@ -137,7 +137,8 @@ function applyStatChange(
 
     if (oldVal === newVal) {
       const targetName = playerTeam[0]?.name;
-      return { playerTeam: newPlayerTeam, enemyPokemon, msg: `¡${targetName} ya no puede mejorar más su ${statLabels[statName]}!`, newGlitchStacks };
+      const verb = stages > 0 ? 'mejorar' : 'empeorar';
+      return { playerTeam: newPlayerTeam, enemyPokemon, msg: `¡${targetName} ya no puede ${verb} más su ${statLabels[statName]}!`, newGlitchStacks };
     }
   } else {
     const boosts = { ...(enemyPokemon.statBoosts ?? ZERO_BOOSTS) };
@@ -147,7 +148,8 @@ function applyStatChange(
     newEnemyPokemon = { ...enemyPokemon, statBoosts: boosts };
 
     if (oldVal === newVal) {
-      return { playerTeam, enemyPokemon: newEnemyPokemon, msg: `¡${enemyPokemon.name} ya no puede mejorar más su ${statLabels[statName]}!`, newGlitchStacks: badgeBoostGlitchStacks };
+      const verb = stages > 0 ? 'mejorar' : 'empeorar';
+      return { playerTeam, enemyPokemon: newEnemyPokemon, msg: `¡${enemyPokemon.name} ya no puede ${verb} más su ${statLabels[statName]}!`, newGlitchStacks: badgeBoostGlitchStacks };
     }
   }
 

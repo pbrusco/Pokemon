@@ -8,8 +8,25 @@ import firered_players_house_1f from '../../artifacts/firered/maps/LAYOUT_PALLET
 import firered_players_house_2f from '../../artifacts/firered/maps/LAYOUT_PALLET_TOWN_PLAYERS_HOUSE_2F.json';
 import firered_rivals_house from '../../artifacts/firered/maps/LAYOUT_PALLET_TOWN_RIVALS_HOUSE.json';
 import firered_oaks_lab from '../../artifacts/firered/maps/LAYOUT_PALLET_TOWN_PROFESSOR_OAKS_LAB.json';
-import firered_pokecenter from '../../artifacts/firered/maps/LAYOUT_POKEMON_CENTER_1F.json';
-import firered_pokemart from '../../artifacts/firered/maps/LAYOUT_MART.json';
+import firered_pokecenter_viridian from '../../artifacts/firered/maps/MAPID_POKECENTER_VIRIDIAN.json';
+import firered_pokecenter_pewter from '../../artifacts/firered/maps/MAPID_POKECENTER_PEWTER.json';
+import firered_pokecenter_cerulean from '../../artifacts/firered/maps/MAPID_POKECENTER_CERULEAN.json';
+import firered_pokecenter_lavender from '../../artifacts/firered/maps/MAPID_POKECENTER_LAVENDER.json';
+import firered_pokecenter_vermilion from '../../artifacts/firered/maps/MAPID_POKECENTER_VERMILION.json';
+import firered_pokecenter_celadon from '../../artifacts/firered/maps/MAPID_POKECENTER_CELADON.json';
+import firered_pokecenter_fuchsia from '../../artifacts/firered/maps/MAPID_POKECENTER_FUCHSIA.json';
+import firered_pokecenter_saffron from '../../artifacts/firered/maps/MAPID_POKECENTER_SAFFRON.json';
+import firered_pokecenter_cinnabar from '../../artifacts/firered/maps/MAPID_POKECENTER_CINNABAR.json';
+import firered_pokecenter_route4 from '../../artifacts/firered/maps/MAPID_POKECENTER_ROUTE4.json';
+import firered_pokecenter_route10 from '../../artifacts/firered/maps/MAPID_POKECENTER_ROUTE10.json';
+import firered_pokemart_viridian from '../../artifacts/firered/maps/MAPID_POKEMART_VIRIDIAN.json';
+import firered_pokemart_pewter from '../../artifacts/firered/maps/MAPID_POKEMART_PEWTER.json';
+import firered_pokemart_cerulean from '../../artifacts/firered/maps/MAPID_POKEMART_CERULEAN.json';
+import firered_pokemart_lavender from '../../artifacts/firered/maps/MAPID_POKEMART_LAVENDER.json';
+import firered_pokemart_vermilion from '../../artifacts/firered/maps/MAPID_POKEMART_VERMILION.json';
+import firered_pokemart_fuchsia from '../../artifacts/firered/maps/MAPID_POKEMART_FUCHSIA.json';
+import firered_pokemart_saffron from '../../artifacts/firered/maps/MAPID_POKEMART_SAFFRON.json';
+import firered_pokemart_cinnabar from '../../artifacts/firered/maps/MAPID_POKEMART_CINNABAR.json';
 import firered_mt_moon from '../../artifacts/firered/maps/LAYOUT_MT_MOON_1F.json';
 import firered_mt_moon_b1f from '../../artifacts/firered/maps/LAYOUT_MT_MOON_B1F.json';
 import firered_mt_moon_b2f from '../../artifacts/firered/maps/LAYOUT_MT_MOON_B2F.json';
@@ -81,6 +98,7 @@ import firered_celadon_mart_5f from '../../artifacts/firered/maps/LAYOUT_CELADON
 import firered_celadon_mart_elevator from '../../artifacts/firered/maps/LAYOUT_CELADON_CITY_DEPARTMENT_STORE_ELEVATOR.json';
 import firered_celadon_mart_roof from '../../artifacts/firered/maps/LAYOUT_CELADON_CITY_DEPARTMENT_STORE_ROOF.json';
 import firered_celadon_game_corner from '../../artifacts/firered/maps/LAYOUT_CELADON_CITY_GAME_CORNER.json';
+import firered_viridian_forest from '../../artifacts/firered/maps/LAYOUT_VIRIDIAN_FOREST.json';
 
 function fromFirered(json: unknown): MapData {
   const parsed = bridgeFireredLayout(json as FireredLayoutJson);
@@ -97,8 +115,25 @@ export const FIRERED_INDOOR_MAPS = {
   PLAYERS_HOUSE_2F: fromFirered(firered_players_house_2f),
   RIVALS_HOUSE: fromFirered(firered_rivals_house),
   OAKS_LAB: fromFirered(firered_oaks_lab),
-  POKECENTER: fromFirered(firered_pokecenter),
-  POKEMART: fromFirered(firered_pokemart),
+  POKECENTER_VIRIDIAN: fromFirered(firered_pokecenter_viridian),
+  POKECENTER_PEWTER: fromFirered(firered_pokecenter_pewter),
+  POKECENTER_CERULEAN: fromFirered(firered_pokecenter_cerulean),
+  POKECENTER_LAVENDER: fromFirered(firered_pokecenter_lavender),
+  POKECENTER_VERMILION: fromFirered(firered_pokecenter_vermilion),
+  POKECENTER_CELADON: fromFirered(firered_pokecenter_celadon),
+  POKECENTER_FUCHSIA: fromFirered(firered_pokecenter_fuchsia),
+  POKECENTER_SAFFRON: fromFirered(firered_pokecenter_saffron),
+  POKECENTER_CINNABAR: fromFirered(firered_pokecenter_cinnabar),
+  POKECENTER_ROUTE4: fromFirered(firered_pokecenter_route4),
+  POKECENTER_ROUTE10: fromFirered(firered_pokecenter_route10),
+  POKEMART_VIRIDIAN: fromFirered(firered_pokemart_viridian),
+  POKEMART_PEWTER: fromFirered(firered_pokemart_pewter),
+  POKEMART_CERULEAN: fromFirered(firered_pokemart_cerulean),
+  POKEMART_LAVENDER: fromFirered(firered_pokemart_lavender),
+  POKEMART_VERMILION: fromFirered(firered_pokemart_vermilion),
+  POKEMART_FUCHSIA: fromFirered(firered_pokemart_fuchsia),
+  POKEMART_SAFFRON: fromFirered(firered_pokemart_saffron),
+  POKEMART_CINNABAR: fromFirered(firered_pokemart_cinnabar),
   MT_MOON: fromFirered(firered_mt_moon),
   MT_MOON_B1F: fromFirered(firered_mt_moon_b1f),
   MT_MOON_B2F: fromFirered(firered_mt_moon_b2f),
@@ -170,4 +205,5 @@ export const FIRERED_INDOOR_MAPS = {
   CELADON_MART_ELEVATOR: fromFirered(firered_celadon_mart_elevator),
   CELADON_MART_ROOF: fromFirered(firered_celadon_mart_roof),
   CELADON_GAME_CORNER: fromFirered(firered_celadon_game_corner),
+  VIRIDIAN_FOREST: fromFirered(firered_viridian_forest),
 } as const;

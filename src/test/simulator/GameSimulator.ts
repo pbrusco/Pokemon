@@ -99,6 +99,8 @@ export class GameSimulator {
       phase: EXPLORING,
       showMoves: false,
       dialogue: null,
+      dialogueCallback: null,
+      confirm: null,
       isLocked: false,
       showBattleTransition: false,
       activeBattle: null,
@@ -212,6 +214,28 @@ export class GameSimulator {
     return this;
   }
 
+  /** Pick "Sí" on the active confirm prompt (no-op if none is open). */
+  confirmYes(): this {
+    const c = useGameStore.getState().confirm;
+    if (!c) return this;
+    act(() => {
+      useGameStore.getState().setConfirm(null);
+      c.onYes();
+    });
+    return this;
+  }
+
+  /** Pick "No" on the active confirm prompt (no-op if none is open). */
+  confirmNo(): this {
+    const c = useGameStore.getState().confirm;
+    if (!c) return this;
+    act(() => {
+      useGameStore.getState().setConfirm(null);
+      c.onNo();
+    });
+    return this;
+  }
+
   /**
    * Skip the BATTLE_TRANSITION animation (which requires DOM).
    * In the real game, BattleTransition's onAnimationComplete fires
@@ -295,6 +319,7 @@ export class GameSimulator {
   get direction(): Direction { return this.state.direction; }
   get team(): Pokemon[] { return this.state.playerTeam; }
   get dialogue(): string | null { return this.state.dialogue; }
+  get confirm() { return this.state.confirm; }
   get storyStep(): string { return this.state.storyStep; }
   get inventory(): InventoryCounts { return this.state.inventory; }
   get badges(): string[] { return this.state.badges; }

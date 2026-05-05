@@ -110,6 +110,12 @@ interface GameState extends GameSaveState {
   showMoves: boolean;
   dialogue: string | null;
   dialogueCallback: (() => void) | null;
+  /**
+   * Modal yes/no confirmation. When non-null, the DialogueBox renders Sí/No
+   * buttons (and disables the click-to-advance behaviour) so the player has
+   * to make an explicit choice before the prompt closes.
+   */
+  confirm: { text: string; onYes: () => void; onNo: () => void } | null;
   teleportError: string | null;
   oakCutscenePos: Position | null;
   oakCutsceneDir: Direction | null;
@@ -155,6 +161,7 @@ interface GameState extends GameSaveState {
   setBadges: (badges: SetStateAction<string[]>) => void;
   setDefeatedTrainers: (ids: SetStateAction<string[]>) => void;
   setDialogue: (text: string | null, onComplete?: () => void) => void;
+  setConfirm: (c: { text: string; onYes: () => void; onNo: () => void } | null) => void;
   setTeleportError: (err: string | null) => void;
   setOakCutscenePos: (pos: Position | null, dir?: Direction | null) => void;
   setIsLocked: (locked: boolean) => void;
@@ -202,6 +209,7 @@ export const useGameStore = create<GameState>()(
       showMoves: false,
       dialogue: null,
       dialogueCallback: null,
+      confirm: null,
       teleportError: null,
       oakCutscenePos: null,
       oakCutsceneDir: null,
@@ -256,6 +264,7 @@ export const useGameStore = create<GameState>()(
       setBadges: (badges) => set((state) => ({ badges: typeof badges === 'function' ? badges(state.badges) : badges })),
       setDefeatedTrainers: (ids) => set((state) => ({ defeatedTrainers: typeof ids === 'function' ? ids(state.defeatedTrainers) : ids })),
       setDialogue: (text, onComplete) => set({ dialogue: text, dialogueCallback: onComplete || null }),
+      setConfirm: (c) => set({ confirm: c }),
       setTeleportError: (err) => set({ teleportError: err }),
       setOakCutscenePos: (pos, dir) => set({ oakCutscenePos: pos, oakCutsceneDir: dir !== undefined ? dir : null }),
       setIsLocked: (locked) => set({ isLocked: locked }),
@@ -353,6 +362,7 @@ export const useGameStore = create<GameState>()(
           phase: EXPLORING,
           dialogue: null,
           dialogueCallback: null,
+          confirm: null,
           activeBattle: null,
           enemyPokemon: null,
           isTrainerBattle: false,

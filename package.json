@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "generate:firered": "node scripts/build-firered-pipeline.mjs && node scripts/stitch-firered-overworld.mjs && node scripts/generate-indoor-maps.mjs",
+    "generate:firered": "node scripts/build-firered-pipeline.mjs && node scripts/stitch-firered-overworld.mjs && node scripts/generate-indoor-maps.mjs && node scripts/extract-game-data.mjs",
     "generate:all": "npm run generate:firered",
     "predev": "npm run generate:all",
     "prebuild": "npm run generate:all",

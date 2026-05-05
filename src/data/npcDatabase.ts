@@ -1,6 +1,20 @@
 import { MOVES } from '../constants/moves';
 import { STARTERS, makePokemon } from '../constants/pokemon';
 import { type NPC, type Entity, type MapID, type Direction, type Pokemon, type Position } from '../types';
+import { buildAutoEntities } from './firered/runtime';
+
+// Merge auto-extracted FireRed entities into a hand-authored database:
+// any map where the hand-authored array is empty gets back-filled with the
+// canonical FireRed object_event content. Maps with custom entries
+// (Pallet Town story NPCs, Oak's Lab starters, etc.) keep their hand-tuned
+// content because the manual data is preferred.
+function mergeAuto<T>(manual: Record<MapID, T[]>, auto: Record<MapID, T[]>): Record<MapID, T[]> {
+  const merged = { ...manual };
+  for (const [mapId, list] of Object.entries(auto) as Array<[MapID, T[]]>) {
+    if (!merged[mapId] || merged[mapId].length === 0) merged[mapId] = list;
+  }
+  return merged;
+}
 
 // ─── Kanto zone offsets — auto-generated from FireRed connection graph ──────
 // All offsets come from scripts/stitch-firered-overworld.mjs which BFS-walks
@@ -32,7 +46,7 @@ export function buildNPCDatabase(
   hasSsTicket: boolean = false,
   clearedSnorlax: string[] = []
 ): Record<MapID, NPC[]> {
-  return {
+  const manual = {
     // ── Unified outdoor map ──────────────────────────────────────────────────
     KANTO_OVERWORLD: [
       // ── Pallet Town ──
@@ -348,13 +362,16 @@ export function buildNPCDatabase(
       }
     ],
     OAKS_LAB: [
+      // FireRed canonical: PROF_OAK stands at (6, 3), one tile north of the
+      // central starter ball at (9, 4) — i.e. right by the table — and faces
+      // down toward the player after the escort. Was (4, 2) in the old layout.
       ...(storyStep !== 'START' ? [{
         id: 'oak',
         name: 'PROF. OAK',
         type: 'npc' as const,
         onInteract: 'oak_parcel_turnin' as const,
         trainerClass: 'oak',
-        position: { x: 4, y: 2 },
+        position: { x: 6, y: 3 },
         direction: 'down' as const,
         dialogue: hasParcel
           ? ["¡Oh! ¡Es el paquete que pedí!", "¡Gracias! Como recompensa, tomad esto: ¡Una POKÉDEX!", "¡Es un inventario de alta tecnología!"]
@@ -362,25 +379,9 @@ export function buildNPCDatabase(
             ? ["¡La POKÉDEX es un gran invento!", "¡Trata de capturarlos a todos!"]
             : ["¡Hola Pablo! Por fin llegas.", "Toma uno de estos POKÉMON, te ayudará en tu viaje."]
       }] : []),
-      { id: 'rival', name: 'AZUL', type: 'npc', position: { x: 4, y: 3 }, direction: 'left', trainerClass: 'rival', dialogue: ["¡Abuelo! ¡Yo también quiero un POKÉMON!", "¡Ja! Mi POKÉMON es mucho más fuerte que el tuyo."], isRival: true }
+      // Rival waits to the left of the table (FireRed (5, 4)).
+      { id: 'rival', name: 'AZUL', type: 'npc', position: { x: 5, y: 4 }, direction: 'right', trainerClass: 'rival', dialogue: ["¡Abuelo! ¡Yo también quiero un POKÉMON!", "¡Ja! Mi POKÉMON es mucho más fuerte que el tuyo."], isRival: true }
     ,
-    ],
-    POKECENTER: [
-      { id: 'joy', name: 'ENFERMERA JOY', type: 'npc', onInteract: 'heal', trainerClass: 'nurse', position: { x: 6, y: 2 }, direction: 'down', dialogue: ["¡Hola! Bienvenida al CENTRO POKÉMON.", "Curaremos a tus POKÉMON hasta que estén a tope."] }
-    ],
-    POKEMART: [
-      {
-        id: 'clerk',
-        name: 'DEPENDIENTE',
-        type: 'npc',
-        position: { x: 4, y: 2 },
-        direction: 'down',
-        trainerClass: 'clerk',
-        onInteract: 'shop',
-        dialogue: (!hasParcel && !hasPokedex)
-          ? ["¡Ah! ¡Tú vienes de PUEBLO PALETA!", "Tengo un paquete para el PROF. OAK. ¿Se lo llevarías?", "¡Gracias! Dile que es de parte de la TIENDA."]
-          : ["¡Hola! ¿En qué puedo ayudarte hoy?"]
-      },
     ],
     MT_MOON: [
       { id: 'hiker_mtmoon', name: 'MONTAÑERO MARCOS', type: 'npc', position: { x: 16, y: 23 }, direction: 'down', trainerClass: 'hiker', dialogue: ["¡Las rocas son mis amigas!", "¡Te aplastaré!"], isTrainer: true, trainerTeam: [makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }), makePokemon('geodude', 'GEODUDE', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }), makePokemon('onix', 'ONIX', 10, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 95, { types: ['rock', 'ground'] })] },
@@ -532,10 +533,14 @@ export function buildNPCDatabase(
       },
     ],
   } as unknown as Record<MapID, NPC[]>;
+  const auto = buildAutoEntities();
+  return mergeAuto(manual, auto.npcs);
 }
 
 export function buildItemDatabase(pickedItemIds: string[], storyStep: string): Record<MapID, Entity[]> {
-  const rawItems: Record<MapID, Entity[]> = {
+  // Partial-by-design: only maps with hand-authored items are listed; the rest
+  // come from auto-extracted data via mergeAuto.
+  const rawItems = {
     KANTO_OVERWORLD: [
       // ── Pallet Town ──
       // Sign positions auto-derived from FireRed PalletTown.json bg_events.
@@ -719,8 +724,6 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'pc_reds_house',type: 'object', position: { x: 1, y: 1 }, direction: 'down', sprite: '💻' },
     ],
     RIVALS_HOUSE: [],
-    POKECENTER: [],
-    POKEMART: [],
     MT_MOON:     [
       { id: 'item_potion_mtmoon_1', type: 'item', position: { x: 14, y: 14 }, direction: 'down', sprite: '🧪', itemId: 'POTION' },
       { id: 'item_full_heal_mtmoon', type: 'item', position: { x: 3, y: 3 },  direction: 'down', sprite: '🌟', itemId: 'FULL_HEAL' },
@@ -811,8 +814,10 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
     CELADON_GAME_CORNER: [],
   };
 
+  const auto = buildAutoEntities();
+  const merged = mergeAuto(rawItems as unknown as Record<MapID, Entity[]>, auto.items);
   return Object.fromEntries(
-    Object.entries(rawItems).map(([map, entities]) => [
+    Object.entries(merged).map(([map, entities]) => [
       map, entities.filter(e => !pickedItemIds.includes(e.id))
     ])
   ) as Record<MapID, Entity[]>;

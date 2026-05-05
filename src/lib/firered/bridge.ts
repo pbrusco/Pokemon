@@ -87,6 +87,11 @@ const KANTO_OUTDOOR_MAP_IDS = [
   'MAP_ROUTE16', 'MAP_ROUTE17', 'MAP_ROUTE18', 'MAP_ROUTE19', 'MAP_ROUTE20',
   'MAP_ROUTE21_NORTH', 'MAP_ROUTE21_SOUTH', 'MAP_ROUTE22', 'MAP_ROUTE23',
   'MAP_ROUTE24', 'MAP_ROUTE25',
+  // Gate / connection rooms collapse to the outdoor map they sit on. Without
+  // this, VForest's warps to its tiny entrance gate maps don't resolve
+  // (silently dropped → "middle of nowhere" warp errors).
+  'MAP_ROUTE2_VIRIDIAN_FOREST_SOUTH_ENTRANCE',
+  'MAP_ROUTE2_VIRIDIAN_FOREST_NORTH_ENTRANCE',
 ];
 
 export const FIRERED_MAP_ID_TO_OURS: Record<string, MapIdString> = {

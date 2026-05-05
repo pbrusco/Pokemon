@@ -94,8 +94,10 @@ export const useInteractionEngine = ({
           return;
         }
         const name = npc.name.includes('JOY') ? 'JOY' : 'MAMÁ';
+        // Joy heals at whichever city's pokémon center the player is in;
+        // remember THIS map so blackouts return here. Mom heals only at home.
         const healPos: HealLocation = npc.name.includes('JOY')
-          ? { map: 'POKECENTER', pos: { x: 4, y: 2 } }
+          ? { map: currentMap, pos: { x: 4, y: 2 } }
           : { map: 'PLAYERS_HOUSE_1F', pos: { x: 3, y: 6 } };
         store.setLastHealLocation(healPos);
         store.setDialogue(`${name}: ¡Hola! Pareces cansado. Deberías descansar un poco...`);
@@ -110,7 +112,7 @@ export const useInteractionEngine = ({
             useGameStore.getState().setDialogue("... ... ... ¡Tus POKÉMON están en plena forma!");
           }, sd(1600));
         }, sd(1500));
-      } else if (npc.onInteract === 'shop' && currentMap === 'POKEMART') {
+      } else if (npc.onInteract === 'shop' && currentMap.startsWith('POKEMART')) {
         if (!hasParcel && !hasPokedex) {
           store.setHasParcel(true);
           store.addInventoryItem('OAK_PARCEL');
@@ -176,22 +178,34 @@ export const useInteractionEngine = ({
       if (item.type === 'item' && currentMap === 'OAKS_LAB' && playerTeam.length === 0) {
         const starter = STARTERS.find(s => s.sprite === item.sprite);
         if (starter) {
-          store.setPickedItemIds(prev => [...prev, item.id]);
-          store.setPlayerTeam([starter]);
-          store.setDialogue(`¡Has elegido a ${starter.name}!`);
-          store.setStoryStep('PICKED_STARTER');
+          // Confirmation prompt before locking in the starter (canonical
+          // FireRed flow). The player can back out and pick a different ball.
+          store.setConfirm({
+            text: `OAK: ¿Quieres elegir a ${starter.name} como tu primer POKÉMON?`,
+            onYes: () => {
+              const s = useGameStore.getState();
+              s.setPickedItemIds(prev => [...prev, item.id]);
+              s.setPlayerTeam([starter]);
+              s.setDialogue(`¡Has elegido a ${starter.name}!`);
+              s.setStoryStep('PICKED_STARTER');
 
-          setTimeout(() => {
-            if (useGameStore.getState().playerTeam.length === 0) return;
-            const starterIndex = STARTERS.findIndex(s => s.sprite === item.sprite);
-            const rivalIndex = (starterIndex + 1) % STARTERS.length;
-            const rivalPkmn = { ...STARTERS[rivalIndex] };
-            // Show Blue's dialogue first; battle begins only after player dismisses it.
-            useGameStore.getState().setDialogue(
-              "AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!",
-              () => initBattle(rivalPkmn, true, 'rival'),
-            );
-          }, sd(1500));
+              setTimeout(() => {
+                if (useGameStore.getState().playerTeam.length === 0) return;
+                const starterIndex = STARTERS.findIndex(p => p.sprite === item.sprite);
+                const rivalIndex = (starterIndex + 1) % STARTERS.length;
+                const rivalPkmn = { ...STARTERS[rivalIndex] };
+                useGameStore.getState().setDialogue(
+                  "AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!",
+                  () => initBattle(rivalPkmn, true, 'rival'),
+                );
+              }, sd(1500));
+            },
+            onNo: () => {
+              useGameStore.getState().setDialogue(
+                `OAK: Tómate tu tiempo. Mira los demás POKÉMON antes de decidir.`,
+              );
+            },
+          });
         }
       } else if (item.type === 'item') {
         const itemKey = item.itemId || 

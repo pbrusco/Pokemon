@@ -669,6 +669,9 @@ describe('Stat boost clamping', () => {
     const result = stepBattle(state, { type: 'ATTACK', move: swordsDance });
 
     expect(result.state.playerTeam[0].statBoosts?.attack).toBe(6); // still clamped at 6
+    // Player should be told that the stat can't go any higher.
+    const allLogs = [result.state.log, ...getLogs(result.effects)].filter(Boolean) as string[];
+    expect(allLogs.some(l => l.includes('ya no puede mejorar más') && l.includes('ATAQUE'))).toBe(true);
   });
 
   it('stat debuff cannot go below -6', () => {
@@ -694,6 +697,9 @@ describe('Stat boost clamping', () => {
     const result = stepBattle(state, { type: 'ATTACK', move: growl });
 
     expect(result.state.enemyPokemon.statBoosts?.attack).toBe(-6); // clamped at -6
+    // Enemy should be told that the stat can't drop any further.
+    const allLogs = [result.state.log, ...getLogs(result.effects)].filter(Boolean) as string[];
+    expect(allLogs.some(l => l.includes('ya no puede empeorar más') && l.includes('ATAQUE'))).toBe(true);
   });
 });
 

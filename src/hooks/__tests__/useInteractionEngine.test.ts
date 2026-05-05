@@ -23,86 +23,12 @@ function makeGrid(overrides: Partial<Record<string, Tile>> = {}): Tile[][] {
   return grid;
 }
 
-const EMPTY_MAPS: Record<MapID, { tiles: Tile[][] }> = {
-  KANTO_OVERWORLD: { tiles: makeGrid() },
-  PLAYERS_HOUSE_1F: { tiles: makeGrid() },
-  PLAYERS_HOUSE_2F: { tiles: makeGrid() },
-  RIVALS_HOUSE: { tiles: makeGrid() },
-  OAKS_LAB: { tiles: makeGrid() },
-  POKECENTER: { tiles: makeGrid() },
-  POKEMART: { tiles: makeGrid() },
-  PEWTER_GYM: { tiles: makeGrid() },
-  MT_MOON: { tiles: makeGrid() },
-  MT_MOON_B1F: { tiles: makeGrid() },
-  MT_MOON_B2F: { tiles: makeGrid() },
-  CERULEAN_GYM: { tiles: makeGrid() },
-  VERMILION_GYM: { tiles: makeGrid() },
-  ROCK_TUNNEL_1F: { tiles: makeGrid() },
-  ROCK_TUNNEL_B1F: { tiles: makeGrid() },
-  POKEMON_TOWER_1F: { tiles: makeGrid() },
-  POKEMON_TOWER_2F: { tiles: makeGrid() },
-  POKEMON_TOWER_3F: { tiles: makeGrid() },
-  BILLS_HOUSE: { tiles: makeGrid() },
-  CELADON_GYM: { tiles: makeGrid() },
-  FUCHSIA_GYM: { tiles: makeGrid() },
-  SAFFRON_GYM: { tiles: makeGrid() },
-  CINNABAR_GYM: { tiles: makeGrid() },
-  VIRIDIAN_GYM: { tiles: makeGrid() },
-  POKEMON_TOWER_4F: { tiles: makeGrid() },
-  POKEMON_TOWER_5F: { tiles: makeGrid() },
-  POKEMON_TOWER_6F: { tiles: makeGrid() },
-  POKEMON_TOWER_7F: { tiles: makeGrid() },
-  SEAFOAM_ISLANDS_1F: { tiles: makeGrid() },
-  SEAFOAM_ISLANDS_B1F: { tiles: makeGrid() },
-  SEAFOAM_ISLANDS_B2F: { tiles: makeGrid() },
-  SEAFOAM_ISLANDS_B3F: { tiles: makeGrid() },
-  SEAFOAM_ISLANDS_B4F: { tiles: makeGrid() },
-  VICTORY_ROAD_1F: { tiles: makeGrid() },
-  VICTORY_ROAD_2F: { tiles: makeGrid() },
-  VICTORY_ROAD_3F: { tiles: makeGrid() },
-  CERULEAN_CAVE_1F: { tiles: makeGrid() },
-  CERULEAN_CAVE_2F: { tiles: makeGrid() },
-  CERULEAN_CAVE_B_1F: { tiles: makeGrid() },
-  DIGLETTS_CAVE: { tiles: makeGrid() },
-  POWER_PLANT: { tiles: makeGrid() },
-  POKEMON_MANSION_1F: { tiles: makeGrid() },
-  POKEMON_MANSION_2F: { tiles: makeGrid() },
-  POKEMON_MANSION_3F: { tiles: makeGrid() },
-  POKEMON_MANSION_B1F: { tiles: makeGrid() },
-  SAFARI_ZONE_CENTER: { tiles: makeGrid() },
-  SILPH_CO_1F: { tiles: makeGrid() },
-  SILPH_CO_2F: { tiles: makeGrid() },
-  SILPH_CO_3F: { tiles: makeGrid() },
-  SILPH_CO_4F: { tiles: makeGrid() },
-  SILPH_CO_5F: { tiles: makeGrid() },
-  SILPH_CO_6F: { tiles: makeGrid() },
-  SILPH_CO_7F: { tiles: makeGrid() },
-  SILPH_CO_8F: { tiles: makeGrid() },
-  SILPH_CO_9F: { tiles: makeGrid() },
-  SILPH_CO_10F: { tiles: makeGrid() },
-  SILPH_CO_11F: { tiles: makeGrid() },
-  ROCKET_HIDEOUT_B1F: { tiles: makeGrid() },
-  ROCKET_HIDEOUT_B2F: { tiles: makeGrid() },
-  ROCKET_HIDEOUT_B3F: { tiles: makeGrid() },
-  ROCKET_HIDEOUT_B4F: { tiles: makeGrid() },
-  SS_ANNE_1F: { tiles: makeGrid() },
-  SS_ANNE_2F: { tiles: makeGrid() },
-  SS_ANNE_3F: { tiles: makeGrid() },
-  INDIGO_PLATEAU_LOBBY: { tiles: makeGrid() },
-  ELITE_FOUR_LORELEI: { tiles: makeGrid() },
-  ELITE_FOUR_BRUNO: { tiles: makeGrid() },
-  ELITE_FOUR_AGATHA: { tiles: makeGrid() },
-  ELITE_FOUR_LANCE: { tiles: makeGrid() },
-  ELITE_FOUR_CHAMPION: { tiles: makeGrid() },
-  CELADON_MART_1F: { tiles: makeGrid() },
-  CELADON_MART_2F: { tiles: makeGrid() },
-  CELADON_MART_3F: { tiles: makeGrid() },
-  CELADON_MART_4F: { tiles: makeGrid() },
-  CELADON_MART_5F: { tiles: makeGrid() },
-  CELADON_MART_ELEVATOR: { tiles: makeGrid() },
-  CELADON_MART_ROOF: { tiles: makeGrid() },
-  CELADON_GAME_CORNER: { tiles: makeGrid() },
-};
+// Build EMPTY_MAPS programmatically from the live worldConfig so the test
+// stays in sync as MapIDs are added/removed.
+import { worldConfig as _liveWorldConfig } from '../../data/worldConfig';
+const EMPTY_MAPS: Record<MapID, { tiles: Tile[][] }> = Object.fromEntries(
+  (Object.keys(_liveWorldConfig.maps) as MapID[]).map(id => [id, { tiles: makeGrid() }])
+) as Record<MapID, { tiles: Tile[][] }>;
 
 function makeNPC(overrides: Partial<NPC> = {}): NPC {
   return {
@@ -237,8 +163,8 @@ describe('Healing NPC', () => {
       position: { x: 5, y: 4 },
     });
     const { handleAction, getState } = setup({
-      currentMap: 'POKECENTER',
-      npcs: { ...EMPTY_NPCS, POKECENTER: [healNpc] },
+      currentMap: 'POKECENTER_VIRIDIAN',
+      npcs: { ...EMPTY_NPCS, POKECENTER_VIRIDIAN: [healNpc] },
     });
 
     act(() => handleAction());
@@ -253,7 +179,7 @@ describe('Healing NPC', () => {
 
     // Sets heal location for POKECENTER
     expect(getState().lastHealLocation).toEqual(
-      expect.objectContaining({ map: 'POKECENTER' }),
+      expect.objectContaining({ map: 'POKECENTER_VIRIDIAN' }),
     );
   });
 
@@ -266,9 +192,9 @@ describe('Healing NPC', () => {
       sprite: '', status: 'paralyzed',
     };
     const { handleAction, getState } = setup({
-      currentMap: 'POKECENTER',
+      currentMap: 'POKECENTER_VIRIDIAN',
       playerTeam: [woundedPkmn],
-      npcs: { ...EMPTY_NPCS, POKECENTER: [healNpc] },
+      npcs: { ...EMPTY_NPCS, POKECENTER_VIRIDIAN: [healNpc] },
     });
 
     act(() => handleAction());
@@ -283,8 +209,8 @@ describe('Healing NPC', () => {
   it('returns to EXPLORING after 1600ms inside HEALING', () => {
     const healNpc = makeNPC({ name: 'NURSE JOY', onInteract: 'heal', position: { x: 5, y: 4 } });
     const { handleAction, getState } = setup({
-      currentMap: 'POKECENTER',
-      npcs: { ...EMPTY_NPCS, POKECENTER: [healNpc] },
+      currentMap: 'POKECENTER_VIRIDIAN',
+      npcs: { ...EMPTY_NPCS, POKECENTER_VIRIDIAN: [healNpc] },
     });
 
     act(() => handleAction());
@@ -298,8 +224,8 @@ describe('Shop NPC — first visit (parcel pickup)', () => {
   it('gives parcel on first visit to POKEMART when hasParcel=false and hasPokedex=false', () => {
     const shopNpc = makeNPC({ name: 'DEPENDIENTE', onInteract: 'shop', position: { x: 5, y: 4 } });
     const { handleAction, getState } = setup({
-      currentMap: 'POKEMART',
-      npcs: { ...EMPTY_NPCS, POKEMART: [shopNpc] },
+      currentMap: 'POKEMART_VIRIDIAN',
+      npcs: { ...EMPTY_NPCS, POKEMART_VIRIDIAN: [shopNpc] },
       hasParcel: false,
       hasPokedex: false,
     });
@@ -320,8 +246,8 @@ describe('Shop NPC — returning visit', () => {
   it('opens SHOP phase when hasParcel=true', () => {
     const shopNpc = makeNPC({ name: 'DEPENDIENTE', onInteract: 'shop', position: { x: 5, y: 4 } });
     const { handleAction, getState } = setup({
-      currentMap: 'POKEMART',
-      npcs: { ...EMPTY_NPCS, POKEMART: [shopNpc] },
+      currentMap: 'POKEMART_VIRIDIAN',
+      npcs: { ...EMPTY_NPCS, POKEMART_VIRIDIAN: [shopNpc] },
       hasParcel: true,
       hasPokedex: false,
     });
@@ -436,6 +362,14 @@ describe('Starter selection', () => {
 
     act(() => handleAction());
 
+    // Confirmation prompt opens; player picks "Sí" to lock in the starter.
+    const confirmA = getState().confirm;
+    expect(confirmA, 'expected a yes/no confirm prompt').not.toBeNull();
+    act(() => {
+      getState().setConfirm(null);
+      confirmA!.onYes();
+    });
+
     expect(getState().playerTeam).toHaveLength(1);
     expect(getState().playerTeam[0]).toMatchObject(STARTERS[0]);
     expect(getState().storyStep).toBe('PICKED_STARTER');
@@ -450,13 +384,16 @@ describe('Starter selection', () => {
       direction: 'down',
       sprite: STARTERS[0].sprite,
     };
-    const { handleAction, initBattle } = setup({
+    const { handleAction, initBattle, getState } = setup({
       currentMap: 'OAKS_LAB',
       playerTeam: [],
       items: { ...EMPTY_ITEMS, OAKS_LAB: [starterItem] },
     });
 
     act(() => handleAction());
+    // Accept the confirm prompt so the starter is locked in.
+    const cb = getState().confirm;
+    act(() => { getState().setConfirm(null); cb!.onYes(); });
     act(() => vi.advanceTimersByTime(1500));
 
     // Blue's dialogue is now set — dismiss it to fire the initBattle callback

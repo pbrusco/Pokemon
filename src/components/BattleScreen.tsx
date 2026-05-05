@@ -466,6 +466,42 @@ function BattleLogArea({ battleLogs, battleLog }: { battleLogs: BattleLogEntry[]
   );
 }
 
+/**
+ * Six-slot Pokéball strip showing the trainer's remaining party (canonical
+ * Gen I/III battle UI). Filled red ball = healthy, empty/grey = fainted, no
+ * ball = the slot doesn't exist (team is shorter than 6).
+ *
+ * `team` is the canonical team (full size). Healthy when hp > 0.
+ */
+function TrainerBalls({ team, side }: { team: Pokemon[]; side: 'player' | 'enemy' }) {
+  if (!team.length) return null;
+  // Render right-to-left for the enemy so balls fill from the inside-out, the
+  // way they animate in canonical battle intros. Player side renders L→R.
+  const ordered = side === 'enemy' ? [...team].reverse() : team;
+  return (
+    <div
+      className={`flex gap-0.5 sm:gap-1 ${side === 'enemy' ? 'justify-end' : 'justify-start'}`}
+      data-testid={`${side}-trainer-balls`}
+    >
+      {ordered.map((p, i) => {
+        const fainted = (p.hp ?? 0) <= 0;
+        return (
+          <span
+            key={i}
+            aria-label={fainted ? 'fainted-ball' : 'pokeball'}
+            className={`inline-block w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 ${
+              fainted
+                ? 'bg-[#7a7a7a] border-[#3a3a3a] opacity-60'
+                : 'bg-gradient-to-b from-[#e84030] from-50% to-white to-50% border-[#1a1a1a]'
+            }`}
+            style={{ boxShadow: fainted ? 'none' : '1px 1px 0 rgba(0,0,0,0.3)' }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 function TrainerIntro({ name, sprite }: { name: string; sprite: string | null }) {
   const [scope, animate] = useAnimate();
   const [show, setShow] = useState(true);
@@ -516,6 +552,9 @@ export const BattleScreen = memo(function BattleScreen({
   const playerPkmn = playerTeam[0];
   const trainerBattleSprite = useGameStore(s => s.trainerBattleSprite);
   const trainerName = useGameStore(s => s.activeBattle?.trainerName);
+  // Enemy trainer's full party (incl. fainted) — used to render the
+  // remaining-pokémon ball strip. Wild battles have a 1-mon "team".
+  const enemyTeam = useGameStore(s => s.activeBattle?.enemyTeam) ?? [];
   const [enemySpriteError, setEnemySpriteError] = useState(false);
   const [trainerSpriteError, setTrainerSpriteError] = useState(false);
   const [playerSpriteError, setPlayerSpriteError] = useState(false);
@@ -574,6 +613,11 @@ export const BattleScreen = memo(function BattleScreen({
         {/* Enemy HUD */}
         <div className="absolute top-[10%] right-[6%] sm:right-[10%]">
           <div className="bg-[#f8f8f0] border-[3px] border-[#4f6e69] rounded-sm p-2 sm:p-3 w-[180px] sm:w-[260px] shadow-[3px_3px_0_rgba(0,0,0,0.15)]">
+            {isTrainerBattle && enemyTeam.length > 1 && (
+              <div className="mb-1 sm:mb-1.5">
+                <TrainerBalls team={enemyTeam} side="enemy" />
+              </div>
+            )}
             <div className="flex justify-between items-center border-b-2 border-slate-300 pb-1 mb-1 sm:mb-2">
               <h3 className="text-[#383838] font-bold text-sm sm:text-xl uppercase tracking-tighter truncate mr-1">{enemyPokemon?.name}</h3>
               <div className="flex items-center gap-1 shrink-0">
@@ -691,6 +735,11 @@ export const BattleScreen = memo(function BattleScreen({
         {/* Player HUD */}
         <div className="absolute bottom-[25%] sm:bottom-[30%] left-[3%] sm:left-[5%]">
           <div className="bg-[#f8f8f0] border-[3px] border-[#4f6e69] rounded-sm p-2 sm:p-3 pl-3 sm:pl-4 w-[180px] sm:w-[280px] shadow-[3px_3px_0_rgba(0,0,0,0.15)]">
+            {playerTeam.length > 1 && (
+              <div className="mb-1 sm:mb-1.5">
+                <TrainerBalls team={playerTeam} side="player" />
+              </div>
+            )}
             <div className="flex justify-between items-center border-b-2 border-slate-300 pb-1 mb-1 sm:mb-2">
               <h3 className="text-[#383838] font-bold text-sm sm:text-xl uppercase tracking-tighter truncate mr-1">{playerPkmn?.name}</h3>
               <div className="flex items-center gap-1 shrink-0">

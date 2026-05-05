@@ -75,9 +75,13 @@ setPlayerTeam(newTeam);
 setTimeout(() => setPhase(EXPLORING), 1000);
 ```
 
-**NPC placement** — use `buildNPCDatabase()` in `npcDatabase.ts`. Coordinates come from FireRed `object_event` data in `pokefirered_dissasembly/data/maps/<MapName>/map.json`. Local zone coords use `w('ZONE_NAME', lx, ly)` which translates via the auto-generated `KANTO_FIRERED_ZONE_OFFSETS`. Never invent coordinates — every trainer/sign/object position is in the canonical FireRed map.json.
+**NPC placement** — use `buildNPCDatabase()` in `npcDatabase.ts`. Most NPCs/items/trainers come from `extract-game-data.mjs` and merge in via `mergeAuto()`; only Pallet/Oak's-Lab story NPCs are hand-authored. Coordinates always come from FireRed `object_event` data in `pokefirered_dissasembly/data/maps/<MapName>/map.json`. Local zone coords use `w('ZONE_NAME', lx, ly)` which translates via the auto-generated `KANTO_FIRERED_ZONE_OFFSETS`. Never invent coordinates — every trainer/sign/object position is in the canonical FireRed map.json.
 
-**Map IDs** — internal `MapID` enum (e.g. `PALLET_TOWN`, `OAKS_LAB`) is the only id used in NPC/warp/save data. The FireRed↔internal mapping is auto-generated in `src/data/firered/mapIds.generated.ts`. To add a new map, add an entry to `MAP_ID_TO_FIRERED` in `scripts/generate-indoor-maps.mjs`.
+**Per-city Pokémon Centers / Marts** — every city has its own `POKECENTER_<CITY>` and `POKEMART_<CITY>` MapID (e.g. `POKECENTER_VIRIDIAN`, `POKEMART_PEWTER`). They all share `LAYOUT_POKEMON_CENTER_1F` / `LAYOUT_MART` for rendering, but each has its own NPCs and warp targets. The shared-layout case is handled in `MAP_ID_TO_FIRERED` via the `{ layout, map }` value form (vs. the bare-string form for 1:1 layout↔map). Heal location is set to whichever city's PC the player healed in; never to a constant.
+
+**Map IDs** — internal `MapID` enum (e.g. `PALLET_TOWN`, `OAKS_LAB`, `POKECENTER_VIRIDIAN`) is the only id used in NPC/warp/save data. The FireRed↔internal mapping is auto-generated in `src/data/firered/mapIds.generated.ts`. To add a new map, add an entry to `MAP_ID_TO_FIRERED` in `scripts/generate-indoor-maps.mjs` (string for 1:1, `{ layout, map }` for shared layouts) and re-run `npm run generate:firered`.
+
+**Confirm prompts (yes/no)** — set `store.confirm = { text, onYes, onNo }` to open the modal. `DialogueBox` renders Sí/No buttons (keyboard: 1/Z = sí, 2/X = no, Enter, Esc) and disables click-to-advance. Used by the starter-selection flow. The `confirm` slot is *not* persisted (functions can't be serialized) — `GameSimulator.init()` resets it; if you save state elsewhere, filter it out too.
 
 ## Invariants
 
@@ -102,7 +106,7 @@ When testing UX, interactions, or game logic, prioritize using the existing **Vi
 `src/test/simulator/` contains a headless `GameSimulator` that composes all three game hooks (`useMovementEngine`, `useBattleEngine`, `useInteractionEngine`) via a single `useGameLoop` hook rendered with `renderHook`. It drives the real game logic without UI, using fake timers and seeded `Math.random` for deterministic, instant execution.
 
 **Key files:**
-- `src/test/simulator/GameSimulator.ts` — Simulator class: commands (`move`, `interact`, `battleAction`, `tick`, `skipBattleTransition`), state queries (`phase`, `map`, `team`, `dialogue`), event log, random seeding
+- `src/test/simulator/GameSimulator.ts` — Simulator class: commands (`move`, `interact`, `battleAction`, `tick`, `skipBattleTransition`, `confirmYes`, `confirmNo`), state queries (`phase`, `map`, `team`, `dialogue`, `confirm`), event log, random seeding
 - `src/test/simulator/useGameLoop.ts` — Composite hook wiring all three engines with stubbed visual callbacks
 - `src/test/simulator/scenarios.test.ts` — 10 predefined scenarios from game start through mid-game
 
