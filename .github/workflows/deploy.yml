@@ -19,6 +19,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Fetch pokefirered disassembly
+        run: |
+          git init pokefirered_dissasembly
+          git -C pokefirered_dissasembly remote add origin https://github.com/pret/pokefirered.git
+          git -C pokefirered_dissasembly fetch --depth 1 origin e060ab955b5dc9ac1c4904c2cd141683615cf477
+          git -C pokefirered_dissasembly checkout FETCH_HEAD
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
