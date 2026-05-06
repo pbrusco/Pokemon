@@ -236,6 +236,42 @@ function extractLayout(layout) {
   };
 }
 
+// Resolve per-cell behavior from grid + tileset attributes.
+// Water: 0x10-0x1B | Boulder: 0x20 | Grass/cave: 0x02,0x0B,0x0C,0x21
+// Ledge: 0x38-0x3B | Signs/bookshelf: 0x81,0x84 | Machine: 0x83
+function resolveBehaviorGrid(layout) {
+  const primary = loadAttrsForTileset(layout.primaryTileset);
+  const secondary = layout.secondaryTileset ? loadAttrsForTileset(layout.secondaryTileset) : null;
+  if (!primary && !secondary) return null;
+
+  const h = layout.height, w = layout.width;
+  const behavior = Array.from({ length: h }, () => new Array(w).fill(0));
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const metaId = layout.grid[y][x];
+      if (metaId >= 640) {
+        const localId = metaId - 640;
+        if (secondary && localId < secondary.length) behavior[y][x] = secondary[localId].behavior;
+      } else {
+        if (primary && metaId < primary.length) behavior[y][x] = primary[metaId].behavior;
+      }
+    }
+  }
+  return behavior;
+}
+
+function loadAttrsForTileset(label) {
+  const slug = label
+    .replace(/^gTileset_/, '')
+    .replace(/([a-z])([A-Z])/g, '$1_$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1_$2')
+    .replace(/([A-Za-z])([0-9])/g, '$1_$2')
+    .toLowerCase();
+  const attrPath = path.join(OUT_TILESETS, slug, 'attributes.json');
+  if (!fs.existsSync(attrPath)) return null;
+  return JSON.parse(fs.readFileSync(attrPath, 'utf8'));
+}
+
 // ─── Map metadata (events / connections) ─────────────────────────────────────
 function extractMapMeta(mapName) {
   const mapJson = path.join(MAPS_DIR, mapName, 'map.json');
@@ -284,7 +320,7 @@ for (const layout of allLayouts) {
   const mapDir = mapNameByLayoutId[layout.id];
   const meta = mapDir ? extractMapMeta(mapDir) : null;
 
-  const out = { ...parsed, meta };
+  const out = { ...parsed, meta, behavior: resolveBehaviorGrid(parsed) };
   const outPath = path.join(OUT_MAPS, `${layout.id}.json`);
   fs.writeFileSync(outPath, JSON.stringify(out));
   mapCount++;

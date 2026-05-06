@@ -22,9 +22,46 @@ import path from 'path';
 
 const ROOT = path.resolve('.');
 const MAPS = path.join(ROOT, 'src/artifacts/firered/maps');
+const TILESETS_DIR = path.join(ROOT, 'src/artifacts/firered/tilesets');
 const FR_MAPS_DIR = path.join(ROOT, 'pokefirered_dissasembly/data/maps');
 const OUT  = path.join(ROOT, 'src/data/firered/indoorMaps.generated.ts');
 const ID_OUT = path.join(ROOT, 'src/data/firered/mapIds.generated.ts');
+
+function tilesetSlug(label) {
+  return label
+    .replace(/^gTileset_/, '')
+    .replace(/([a-z])([A-Z])/g, '$1_$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1_$2')
+    .replace(/([A-Za-z])([0-9])/g, '$1_$2')
+    .toLowerCase();
+}
+
+function loadAttrs(tilesetLabel) {
+  const slug = tilesetSlug(tilesetLabel);
+  const attrPath = path.join(TILESETS_DIR, slug, 'attributes.json');
+  if (!fs.existsSync(attrPath)) return null;
+  return JSON.parse(fs.readFileSync(attrPath, 'utf8'));
+}
+
+function resolveBehaviorGrid(layoutData) {
+  const primary = loadAttrs(layoutData.primaryTileset);
+  const secondary = layoutData.secondaryTileset ? loadAttrs(layoutData.secondaryTileset) : null;
+  if (!primary && !secondary) return null;
+  const h = layoutData.height, w = layoutData.width;
+  const behavior = Array.from({ length: h }, () => new Array(w).fill(0));
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const metaId = layoutData.grid[y][x];
+      if (metaId >= 640) {
+        const localId = metaId - 640;
+        if (secondary && localId < secondary.length) behavior[y][x] = secondary[localId].behavior;
+      } else {
+        if (primary && metaId < primary.length) behavior[y][x] = primary[metaId].behavior;
+      }
+    }
+  }
+  return behavior;
+}
 
 // MapID (our internal enum) → FireRed layout/map.
 const MAP_ID_TO_FIRERED = {
@@ -209,6 +246,7 @@ for (const [mapId, value] of Object.entries(MAP_ID_TO_FIRERED)) {
       id: overrideMapId,        // surface the map id, not the layout id
       name: fireredMap.name,
       meta: normalizeMeta(fireredMap),
+      behavior: layoutData.behavior ?? resolveBehaviorGrid(layoutData),
     };
     const overlayName = `MAPID_${mapId}.json`;
     fs.writeFileSync(path.join(MAPS, overlayName), JSON.stringify(overlay));

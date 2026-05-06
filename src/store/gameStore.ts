@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { type Pokemon, type Position, type Direction, type Entity, type InventoryCounts, type MapID, type PokedexState, type WildPokemonEntity, type BattleLogEntry } from '../types';
+import { type Pokemon, type Position, type Direction, type Entity, type InventoryCounts, type MapID, type PokedexState, type WildPokemonEntity, type BattleLogEntry, type Tile } from '../types';
 import { worldConfig } from '../data/worldConfig';
 import { buildNPCDatabase, buildItemDatabase } from '../data/npcDatabase';
 import { type GamePhase, EXPLORING } from '../types/gamePhase';
@@ -37,6 +37,12 @@ interface GameSaveState {
   musicVolume: number;
   lastOverworldPos: Position | null;
   lastOverworldDir: Direction | null;
+
+  isSurfing: boolean;
+  flashActive: boolean;
+  visitedTowns: string[];
+  /** Persisted tile mutations keyed by "mapId:x:y" → serialized Tile */
+  modifiedTiles: Record<string, { type: string; walkable: boolean }>;
 }
 
 const safeLocalStorage = {
@@ -91,6 +97,11 @@ const INITIAL_SAVE_STATE: GameSaveState = {
   musicVolume: 0.5,
   lastOverworldPos: { x: 123, y: 202 },
   lastOverworldDir: 'up',
+
+  isSurfing: false,
+  flashActive: false,
+  visitedTowns: ['PALLET_TOWN'],
+  modifiedTiles: {},
 };
 
 interface GameState extends GameSaveState {
@@ -192,6 +203,11 @@ interface GameState extends GameSaveState {
   setMusicVolume: (volume: number) => void;
   toggleMusicMute: () => void;
   setLastOverworldPos: (pos: Position | null, dir: Direction | null) => void;
+
+  setIsSurfing: (v: boolean) => void;
+  setFlashActive: (v: boolean) => void;
+  addVisitedTown: (town: string) => void;
+  setModifiedTile: (mapId: MapID, x: number, y: number, tile: Tile | null) => void;
 
   resetGame: () => void;
 }
@@ -341,6 +357,20 @@ export const useGameStore = create<GameState>()(
       setMusicVolume: (volume) => set({ musicVolume: volume }),
       toggleMusicMute: () => set((state) => ({ musicMuted: !state.musicMuted })),
       setLastOverworldPos: (pos, dir) => set({ lastOverworldPos: pos, lastOverworldDir: dir }),
+
+      setIsSurfing: (v) => set({ isSurfing: v }),
+      setFlashActive: (v) => set({ flashActive: v }),
+      addVisitedTown: (town) => set(s => ({ visitedTowns: s.visitedTowns.includes(town) ? s.visitedTowns : [...s.visitedTowns, town] })),
+      setModifiedTile: (mapId, x, y, tile) => set(s => {
+        const key = `${mapId}:${x}:${y}`;
+        const next = { ...s.modifiedTiles };
+        if (tile) {
+          next[key] = { type: tile.type, walkable: tile.walkable };
+        } else {
+          delete next[key];
+        }
+        return { modifiedTiles: next };
+      }),
 
       setGrassEffect: (pos) => set({ grassEffect: pos }),
       setSpottedTrainerId: (id) => set({ spottedTrainerId: id }),

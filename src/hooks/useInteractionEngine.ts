@@ -94,12 +94,14 @@ export const useInteractionEngine = ({
           return;
         }
         const name = npc.name.includes('JOY') ? 'JOY' : 'MAMÁ';
-        // Joy heals at whichever city's pokémon center the player is in;
-        // remember THIS map so blackouts return here. Mom heals only at home.
         const healPos: HealLocation = npc.name.includes('JOY')
           ? { map: currentMap, pos: { x: 4, y: 2 } }
           : { map: 'PLAYERS_HOUSE_1F', pos: { x: 3, y: 6 } };
         store.setLastHealLocation(healPos);
+        if (npc.name.includes('JOY')) {
+          const town = currentMap.replace(/^POKECENTER_/, '');
+          store.addVisitedTown(town);
+        }
         store.setDialogue(`${name}: ¡Hola! Pareces cansado. Deberías descansar un poco...`);
 
         setTimeout(() => {
@@ -245,7 +247,17 @@ export const useInteractionEngine = ({
         if (!badges.includes(surfReq.badge)) {
           store.setDialogue(`¡El agua parece profunda! Necesitas la medalla ${surfReq.badge} para navegar.`);
         } else {
-          store.setDialogue("¡Usaste SURF! ¡Ahora puedes navegar por el agua!");
+          const surfMon = playerTeam.find(p => p.moves.some(m => m.name === surfReq.move));
+          if (!surfMon) {
+            store.setDialogue(`Ningún POKÉMON sabe ${surfReq.move}.`);
+          } else if (!store.isSurfing) {
+            store.setConfirm({
+              text: `¿Usar ${surfReq.move}?`,
+              onYes: () => { store.setIsSurfing(true); store.setConfirm(null); },
+              onNo: () => { store.setConfirm(null); },
+            });
+            return;
+          }
         }
       } else if (tile.type === 'cut_tree') {
         const leadMoves = playerTeam[0]?.moves.map(m => m.name) ?? [];
@@ -254,7 +266,9 @@ export const useInteractionEngine = ({
         } else if (!leadMoves.includes(HM_REQUIREMENTS.cut.move)) {
           store.setDialogue(`Tu POKÉMON líder no conoce ${HM_REQUIREMENTS.cut.move}.`);
         } else {
-          map.tiles[targetY][targetX] = { type: 'path', walkable: true };
+          const pathTile = { type: 'path' as const, walkable: true };
+          map.tiles[targetY][targetX] = pathTile;
+          store.setModifiedTile(currentMap, targetX, targetY, pathTile);
           store.setDialogue("¡CORTAR despejó el camino!");
         }
       } else if (tile.type === 'boulder') {
@@ -264,7 +278,9 @@ export const useInteractionEngine = ({
         } else if (!leadMoves.includes(HM_REQUIREMENTS.strength.move)) {
           store.setDialogue(`Tu POKÉMON líder no conoce ${HM_REQUIREMENTS.strength.move}.`);
         } else {
-          map.tiles[targetY][targetX] = { type: 'path', walkable: true };
+          const pathTile = { type: 'path' as const, walkable: true };
+          map.tiles[targetY][targetX] = pathTile;
+          store.setModifiedTile(currentMap, targetX, targetY, pathTile);
           store.setDialogue("¡FUERZA movió el obstáculo!");
         }
       } else if (tile.type === 'table') {

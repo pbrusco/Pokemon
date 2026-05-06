@@ -333,6 +333,14 @@ export function buildAutoEntities(): { npcs: Record<MapID, NPC[]>; items: Record
 
 // ─── Wild encounter table builder ────────────────────────────────────────
 export function buildAutoWildEncounters(): Record<MapID, Pokemon[]> {
+  return buildEncountersForTable('land_mons');
+}
+
+export function buildWaterEncounters(): Record<MapID, Pokemon[]> {
+  return buildEncountersForTable('water_mons');
+}
+
+function buildEncountersForTable(tableName: string): Record<MapID, Pokemon[]> {
   const out: Record<string, Pokemon[]> = {};
   for (const [fireredMapId, tables] of Object.entries(FIRERED_WILD_ENCOUNTERS)) {
     const resolved = resolveMapAndOffset(fireredMapId);
@@ -341,18 +349,16 @@ export function buildAutoWildEncounters(): Record<MapID, Pokemon[]> {
     if (!internalId) continue;
     const all: Pokemon[] = [];
     const tablesWithMons = tables as unknown as Record<string, { encounter_rate?: number; mons: Array<{ species: string; min_level: number; max_level: number }> }>;
-    for (const table of Object.values(tablesWithMons)) {
-      if (!table?.mons) continue;
-      for (const slot of table.mons) {
-        const species = speciesIdToInternal(slot.species);
-        const dex = GEN1_DEX[species];
-        if (!dex) continue; // Skip non-Gen-I (Sevii etc.)
-        const lvl = Math.floor((slot.min_level + slot.max_level) / 2);
-        all.push(makePokemon(species, slot.species.replace(/^SPECIES_/, ''), lvl, speciesPrimaryType(species), [MOVES.TACKLE, MOVES.GROWL], dex));
-      }
+    const entry = tablesWithMons[tableName];
+    if (!entry?.mons) continue;
+    for (const slot of entry.mons) {
+      const species = speciesIdToInternal(slot.species);
+      const dex = GEN1_DEX[species];
+      if (!dex) continue;
+      const lvl = Math.floor((slot.min_level + slot.max_level) / 2);
+      all.push(makePokemon(species, slot.species.replace(/^SPECIES_/, ''), lvl, speciesPrimaryType(species), [MOVES.TACKLE, MOVES.GROWL], dex));
     }
     if (all.length > 0) {
-      // Dedupe by species name (some maps repeat species in multiple tables)
       const seen = new Set<string>();
       const deduped = all.filter(p => {
         if (seen.has(p.name)) return false;

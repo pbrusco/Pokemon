@@ -14,6 +14,7 @@
  */
 
 import type { Tile, Position, Direction } from '../../types';
+import { tileFromBehavior, WALL } from './behaviorMappings';
 
 // Avoid importing MapID from ../../types — that file's MapID is derived from
 // the worldMaps object which itself imports from this bridge, creating a
@@ -48,6 +49,7 @@ export interface FireredLayoutJson {
   grid: number[][];
   collision: number[][];
   elevation: number[][];
+  behavior?: number[][];
   meta?: {
     warp_events?: FireredEvent[];
     object_events?: FireredObjectEvent[];
@@ -118,16 +120,18 @@ export const FIRERED_EXIT_TO_KANTO_OVERWORLD: Record<string, { x: number; y: num
 };
 
 export function bridgeFireredLayout(layout: FireredLayoutJson): FireredParsedMap {
+  const behaviorGrid = layout.behavior;
   const tiles: Tile[][] = [];
   for (let y = 0; y < layout.height; y++) {
     const row: Tile[] = [];
     for (let x = 0; x < layout.width; x++) {
       const blocked = layout.collision[y][x] !== 0;
-      // FireRed's collision bit alone doesn't carry "type" info; we synthesize
-      // a coarse type so legacy game logic (encounter checks, ledge jumps,
-      // interaction prompts) keeps working until we wire up FireRed metatile
-      // attributes per-tile.
-      row.push({ type: blocked ? 'wall' : 'floor', walkable: !blocked });
+      if (blocked) {
+        row.push(WALL);
+      } else {
+        const behavior = behaviorGrid?.[y]?.[x] ?? 0;
+        row.push(tileFromBehavior(behavior, false));
+      }
     }
     tiles.push(row);
   }

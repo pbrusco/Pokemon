@@ -25,6 +25,10 @@ export type GamePhase =
   | { type: 'MENU'; returnTo?: GamePhase }
   | { type: 'INVENTORY'; returnTo?: GamePhase }
   | { type: 'ITEM_TEAM_SELECT'; itemId: string; returnTo?: GamePhase }
+  | { type: 'HM_FORGET'; itemId: string; teamIndex: number; existingMoveNames: string[] }
+  | { type: 'FLY_TOWN_SELECT' }
+  | { type: 'FLY_ANIMATING'; town: string; pokemonName: string; pokemonSprite: string }
+  | { type: 'POKEMON_SUMMARY'; teamIndex: number }
   | { type: 'TEAM'; returnTo?: GamePhase }
   | { type: 'SHOP' }
   | { type: 'POKEDEX'; returnTo?: GamePhase }

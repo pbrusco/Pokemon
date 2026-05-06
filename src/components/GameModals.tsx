@@ -8,9 +8,13 @@ import { DialogueBox } from './DialogueBox';
 import { InventoryUI } from './InventoryUI';
 import { TeamMenuUI } from './TeamMenuUI';
 import { ShopUI } from './ShopUI';
-import { SHOP_PRICES } from '../constants/items';
+import { SHOP_PRICES, ITEMS_DATABASE } from '../constants/items';
 import { PokedexUI } from './PokedexUI';
 import { PCStorageUI } from './PCStorageUI';
+import { HMForgetMenu } from './HMForgetMenu';
+import { FlyTownSelect } from './FlyTownSelect';
+import { PokemonSummary } from './PokemonSummary';
+import { FlyAnimation } from './FlyAnimation';
 import { useGameStore } from '../store/gameStore';
 import type { CinematicEvent } from '../hooks/useBattleVFX';
 
@@ -23,6 +27,9 @@ interface GameModalsProps {
   handlePCSwap: (teamIdx: number, pcIdx: number) => void;
   handleUseItem: (itemId: string) => void;
   handleApplyItemToPokemon: (index: number) => void;
+  handleHMForget: (forgetIndex: number) => void;
+  handleFlySelect: (town: string) => void;
+  onUseFieldMove: (moveName: string) => void;
   dispatchBattle: (action: BattleAction) => void;
 }
 
@@ -35,6 +42,9 @@ export const GameModals = memo(({
   handlePCSwap,
   handleUseItem,
   handleApplyItemToPokemon,
+  handleHMForget,
+  handleFlySelect,
+  onUseFieldMove,
   dispatchBattle,
 }: GameModalsProps) => {
   const store = useGameStore();
@@ -175,6 +185,54 @@ export const GameModals = memo(({
       <AnimatePresence>
         {phase.type === 'POKEDEX' && (
           <PokedexUI pokedex={store.pokedex} onClose={() => store.setPhase(inBattle ? battle(B_CHOOSING) : EXPLORING)} />
+        )}
+      </AnimatePresence>
+
+      {/* HM Forget Menu */}
+      <AnimatePresence>
+        {phase.type === 'HM_FORGET' && (
+          <HMForgetMenu
+            existingMoveNames={phase.existingMoveNames}
+            itemName={ITEMS_DATABASE[phase.itemId]?.name ?? 'Objeto'}
+            pokemonName={playerTeam[phase.teamIndex]?.name ?? '???'}
+            onForget={handleHMForget}
+            onCancel={() => store.setPhase(EXPLORING)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Fly Town Select */}
+      <AnimatePresence>
+        {phase.type === 'FLY_TOWN_SELECT' && (
+          <FlyTownSelect
+            towns={store.visitedTowns}
+            onSelect={handleFlySelect}
+            onCancel={() => store.setPhase(EXPLORING)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Pokemon Summary */}
+      <AnimatePresence>
+        {phase.type === 'POKEMON_SUMMARY' && (
+          <PokemonSummary
+            pokemon={playerTeam[phase.teamIndex]}
+            index={phase.teamIndex}
+            team={playerTeam}
+            onClose={() => store.setPhase(EXPLORING)}
+            onUseFieldMove={onUseFieldMove}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Fly Animation */}
+      <AnimatePresence>
+        {phase.type === 'FLY_ANIMATING' && (
+          <FlyAnimation
+            town={phase.town}
+            pokemonName={phase.pokemonName}
+            pokemonSprite={phase.pokemonSprite}
+          />
         )}
       </AnimatePresence>
 

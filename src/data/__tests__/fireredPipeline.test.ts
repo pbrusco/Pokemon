@@ -215,7 +215,7 @@ describe('firered pipeline output', () => {
 
   it('bridged tile type and walkable are always consistent', () => {
     const tiles = MAP_KANTO_OVERWORLD.tiles;
-    const WALKABLE_TYPES = new Set(['path', 'floor', 'grass', 'carpet', 'door', 'sand']);
+    const WALKABLE_TYPES = new Set(['path', 'floor', 'grass', 'carpet', 'door', 'cave', 'sand']);
     const BLOCKED_TYPES = new Set(['wall', 'water', 'tree', 'table', 'bookshelf', 'fence', 'flower', 'ledge_down', 'ledge_left', 'ledge_right', 'machine', 'boulder', 'cut_tree']);
     let mismatches = 0;
     for (let y = 0; y < tiles.length; y++) {

@@ -152,9 +152,11 @@ export const SideMenu = memo(({
                       style={{ lineHeight: 1, padding: '1px 2px' }}
                     >▼</button>
                   </div>
-                  <div className="flex-1 flex flex-col gap-0.5">
+                  <div className="flex-1 flex flex-col gap-0.5 cursor-pointer"
+                    onClick={() => setPhase({ type: 'POKEMON_SUMMARY', teamIndex: i })}
+                  >
                     <div className="flex justify-between text-[10px]">
-                      <span className="font-sans font-semibold text-[#383838]">{p.name}</span>
+                      <span className="font-sans font-semibold text-[#383838] hover:text-[#4878D8]">{p.name}</span>
                       <span className="font-mono text-[#383838]">{p.hp}/{p.maxHp}</span>
                     </div>
                     <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#585858' }}>

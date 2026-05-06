@@ -169,7 +169,7 @@ export interface Entity {
 }
 
 export interface Tile {
-  type: 'grass' | 'water' | 'path' | 'wall' | 'door' | 'floor' | 'carpet' | 'table' | 'tree' | 'sign' | 'cut_tree' | 'boulder' | 'bookshelf' | 'machine' | 'fence' | 'flower' | 'ledge_down' | 'ledge_left' | 'ledge_right';
+  type: 'grass' | 'water' | 'path' | 'wall' | 'door' | 'floor' | 'carpet' | 'table' | 'tree' | 'sign' | 'cut_tree' | 'boulder' | 'bookshelf' | 'machine' | 'fence' | 'flower' | 'ledge_down' | 'ledge_left' | 'ledge_right' | 'cave' | 'sand';
   walkable: boolean;
 }
 

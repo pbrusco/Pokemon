@@ -1,0 +1,3 @@
+[submodule "pokefirered_dissasembly"]
+	path = pokefirered_dissasembly
+	url = https://github.com/pret/pokefirered.git

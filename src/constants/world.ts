@@ -74,5 +74,6 @@ export function getKantoRegion(x: number, y: number): string {
 // (extracted into FIRERED_WILD_ENCOUNTERS by scripts/extract-game-data.mjs).
 // Each species' base stats, types, and catch rate come from the canonical
 // FIRERED_SPECIES table.
-import { buildAutoWildEncounters } from '../data/firered/runtime';
+import { buildAutoWildEncounters, buildWaterEncounters } from '../data/firered/runtime';
 export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = buildAutoWildEncounters();
+export const WATER_WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = buildWaterEncounters();

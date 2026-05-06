@@ -1,13 +1,18 @@
 import { type InventoryItem } from '../types';
 
 export const HM_REQUIREMENTS = {
-  cut: { badge: 'CASCADE', move: 'CORTAR' },
-  strength: { badge: 'RAINBOW', move: 'FUERZA' },
-  surf:  { badge: 'SOUL',    move: 'SURF' },
+  cut:       { badge: 'CASCADE',  move: 'CORTAR' },
+  fly:       { badge: 'THUNDER',  move: 'VUELO' },
+  surf:      { badge: 'SOUL',     move: 'SURF' },
+  strength:  { badge: 'RAINBOW',  move: 'FUERZA' },
+  flash:     { badge: 'BOULDER',  move: 'DESTELLO' },
 } as const;
 export const HM_MOVE_MAP: Record<string, string> = {
   HM01_CUT:      'CORTAR',
+  HM02_FLY:      'VUELO',
+  HM03_SURF:     'SURF',
   HM04_STRENGTH: 'FUERZA',
+  HM05_FLASH:    'DESTELLO',
 };
 export const ITEMS_DATABASE: Record<string, InventoryItem> = {
   OAK_PARCEL:    { id: 'OAK_PARCEL',    name: 'PAQUETE OAK',   description: 'Un paquete para el Prof. Oak.',        icon: '📦', type: 'key_item' },
@@ -18,6 +23,8 @@ export const ITEMS_DATABASE: Record<string, InventoryItem> = {
   POKE_FLUTE:    { id: 'POKE_FLUTE',    name: 'FLAUTA POKé',   description: 'Despierta a los POKÉMON dormidos.',     icon: '🎵', type: 'key_item' },
    SS_TICKET:     { id: 'SS_TICKET',     name: 'BILLETE SS',    description: 'Billete de embarque para el SS ANNE.',  icon: '🎫', type: 'key_item' },
    HM03_SURF:     { id: 'HM03_SURF',     name: 'MO03 SURF',     description: 'Enseña SURF a un POKÉMON.',              icon: '🌊', type: 'key_item' },
+   HM02_FLY:      { id: 'HM02_FLY',      name: 'MO02 VUELO',    description: 'Enseña VUELO a un POKÉMON.',              icon: '🕊️', type: 'key_item' },
+   HM05_FLASH:    { id: 'HM05_FLASH',    name: 'MO05 DESTELLO', description: 'Enseña DESTELLO a un POKÉMON.',           icon: '💡', type: 'key_item' },
    FRESH_WATER:   { id: 'FRESH_WATER',   name: 'AGUA FRESCA',  description: 'Agua mineral muy refrescante.',           icon: '🥤', type: 'key_item' },
    POKEBALL: { id: 'POKEBALL', name: 'POKÉ BALL', description: 'Sirve para atrapar Pokémon salvajes.', icon: '🔴', type: 'pokeball' },
   

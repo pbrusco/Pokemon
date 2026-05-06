@@ -1,5 +1,5 @@
 import { useCallback, useRef, useEffect, type MutableRefObject } from 'react';
-import { type Direction, type NPC, type Pokemon, type Position } from '../types';
+import { type Direction, type NPC, type Pokemon, type Position, type Tile } from '../types';
 import { BLACKOUT, HEALING, EXPLORING } from '../types/gamePhase';
 import { fullHeal } from '../lib/healUtils';
 import { sd } from '../lib/gameSpeed';
@@ -9,7 +9,7 @@ import { useGameStore } from '../store/gameStore';
 import { type MapID } from '../types';
 import { launchBattle } from '../lib/launchBattle';
 import { logObservation } from '../lib/eventLog';
-import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES, getKantoRegion } from '../constants/world';
+import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES, getKantoRegion, WATER_WILD_POKEMON_DATABASE } from '../constants/world';
 import { calcHp } from '../lib/damage';
 
 // Pallet Town exit coords in the unified KANTO_OVERWORLD
@@ -175,6 +175,16 @@ export function useMovementEngine({
     const mapData = worldMaps[currentMap];
     if (!mapData) return;
     const grid = mapData.tiles;
+    // Apply persisted tile mutations (Cut trees, Strength boulders)
+    for (const [key, tile] of Object.entries(store.modifiedTiles)) {
+      const [mapId, sx, sy] = key.split(':');
+      if (mapId === String(currentMap)) {
+        const mx = Number(sx), my = Number(sy);
+        if (grid[my] && grid[my][mx]) {
+          grid[my][mx] = { type: tile.type as Tile['type'], walkable: tile.walkable };
+        }
+      }
+    }
     const mapH = grid.length;
     const mapW = grid[0].length;
 
@@ -215,11 +225,13 @@ export function useMovementEngine({
     // blockset's collision table. Look the warp up here so the walkability
     // check below doesn't reject it.
     const warpAtNext = mapData.warps.find(w => w.x === nextX && w.y === nextY);
+    const tileAtNext = inBounds(nextX, nextY) ? grid[nextY][nextX] : null;
 
     if (!ghostMode) {
+      const canWalk = tileAtNext?.walkable || (tileAtNext?.type === 'water' && store.isSurfing) || !!warpAtNext;
       if (
         !inBounds(nextX, nextY) ||
-        (!grid[nextY][nextX].walkable && !warpAtNext) ||
+        !canWalk ||
         npcAtNext ||
         objectAtNext
       ) return;
@@ -253,6 +265,11 @@ export function useMovementEngine({
         store.setGrassEffect({ x: nextX, y: nextY });
         setTimeout(() => useGameStore.getState().setGrassEffect(null), sd(500));
       }
+
+      // Auto-dismount surf when stepping on non-water tile
+      if (store.isSurfing && tileAtNext && tileAtNext.type !== 'water') {
+        store.setIsSurfing(false);
+      }
     }
 
     // Seamless scroll: warps now commit immediately — the unified overworld means
@@ -264,6 +281,7 @@ export function useMovementEngine({
       fs.setIsMoving(false);
       if (warp) {
         const isEnteringInterior = warp.targetMap !== 'KANTO_OVERWORLD' && currentMap === 'KANTO_OVERWORLD';
+        if (fs.isSurfing) fs.setIsSurfing(false);
         if (isEnteringInterior) {
           fs.setLastOverworldPos({ x: nextX, y: nextY }, dir);
         }
@@ -299,20 +317,29 @@ export function useMovementEngine({
       triggerTrainerCutscene(spottedTrainer, { x: nextX, y: nextY });
     }
 
-    // Grass random encounter (coexists with overworld visible pokemon)
-    if (!warp && grid[nextY][nextX].type === 'grass' && playerTeam.length > 0) {
+    // Random encounters on appropriate terrain
+    if (!warp && playerTeam.length > 0) {
       const zone = currentMap === 'KANTO_OVERWORLD' ? getKantoRegion(nextX, nextY) : currentMap;
-      const rate = WILD_ENCOUNTER_RATES[zone] ?? WILD_ENCOUNTER_RATES[currentMap] ?? 10;
-      if (Math.random() * 100 < rate) {
-        const speciesList = WILD_POKEMON_DATABASE[zone];
-        if (speciesList && speciesList.length > 0) {
-          const base = speciesList[Math.floor(Math.random() * speciesList.length)];
-          const level = Math.max(1, base.level + Math.floor(Math.random() * 3) - 1);
-          const maxHp = calcHp(base.baseStats.hp, level);
-          const enemy = { ...base, uid: Math.random().toString(36).substring(2, 9), level, hp: maxHp, maxHp };
-          logObservation({ k: 'obs_encounter', map: currentMap, pokemon: enemy.name, level });
-          launchBattle({ enemy, isTrainer: false, battleLog: `¡Un ${enemy.name} salvaje apareció!` });
-        }
+      const t = grid[nextY][nextX].type;
+      let speciesList: Pokemon[] | undefined;
+      let rate = 0;
+      if (t === 'grass') {
+        rate = WILD_ENCOUNTER_RATES[zone] ?? WILD_ENCOUNTER_RATES[currentMap] ?? 10;
+        speciesList = WILD_POKEMON_DATABASE[zone];
+      } else if (t === 'water' && store.isSurfing) {
+        rate = WILD_ENCOUNTER_RATES[zone] ?? WILD_ENCOUNTER_RATES[currentMap] ?? 10;
+        speciesList = WATER_WILD_POKEMON_DATABASE[zone] ?? WILD_POKEMON_DATABASE[zone];
+      } else if (t === 'cave' || t === 'sand') {
+        rate = WILD_ENCOUNTER_RATES[currentMap] ?? WILD_ENCOUNTER_RATES[zone] ?? 10;
+        speciesList = WILD_POKEMON_DATABASE[currentMap] ?? WILD_POKEMON_DATABASE[zone];
+      }
+      if (speciesList && speciesList.length > 0 && Math.random() * 100 < rate) {
+        const base = speciesList[Math.floor(Math.random() * speciesList.length)];
+        const level = Math.max(1, base.level + Math.floor(Math.random() * 3) - 1);
+        const maxHp = calcHp(base.baseStats.hp, level);
+        const enemy = { ...base, uid: Math.random().toString(36).substring(2, 9), level, hp: maxHp, maxHp };
+        logObservation({ k: 'obs_encounter', map: currentMap, pokemon: enemy.name, level });
+        launchBattle({ enemy, isTrainer: false, battleLog: `¡Un ${enemy.name} salvaje apareció!` });
       }
     }
   }, [setOverworldShake]);

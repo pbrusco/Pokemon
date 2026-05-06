@@ -3,9 +3,8 @@ import { motion } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
 import { type Position, type Direction, TILE_SIZE } from '../../types';
 import { PLAYER_OVERWORLD_SPRITE } from '../../data/npcSpriteMap';
+import { useGameStore } from '../../store/gameStore';
 
-// player.png: 4-column × 3-row vertical spritesheet (256×192, each frame 64×64).
-// Columns 0-3 = walk frames. Rows: down=0%, up=50%, left/right=100%.
 const WALK_FRAMES = 4;
 
 const ROW_PCT: Record<Direction, string> = {
@@ -17,23 +16,26 @@ const ROW_PCT: Record<Direction, string> = {
 
 export const PlayerSprite = memo(({ position, direction }: { position: Position, direction: Direction }) => {
   const [walkStep, setWalkStep] = useState(0);
+  const isSurfing = useGameStore(s => s.isSurfing);
+  const playerTeam = useGameStore(s => s.playerTeam);
 
-  // Advance one walk frame each time the player lands on a new tile (no timer).
   useEffect(() => {
     setWalkStep(s => (s + 1) % WALK_FRAMES);
   }, [position.x, position.y]);
 
-  // CSS percentage for 4 frames: n/(4-1)*100 gives 0%, 33.3%, 66.7%, 100%
   const bgPosX = `${(walkStep / (WALK_FRAMES - 1)) * 100}%`;
+
+  const surfPkmn = isSurfing
+    ? playerTeam.find(p => p.moves.some(m => m.name === 'SURF'))
+    : null;
+  const spriteSrc = surfPkmn?.sprite ?? PLAYER_OVERWORLD_SPRITE;
+  const isPkmnSprite = !!surfPkmn;
 
   return (
     <motion.div
       className="absolute top-0 left-0 flex items-center justify-center"
       initial={false}
-      animate={{
-        x: position.x * TILE_SIZE,
-        y: position.y * TILE_SIZE,
-      }}
+      animate={{ x: position.x * TILE_SIZE, y: position.y * TILE_SIZE }}
       transition={{ type: "tween", duration: 0.11, ease: "linear" }}
       style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 20 + position.y }}
     >
@@ -48,17 +50,25 @@ export const PlayerSprite = memo(({ position, direction }: { position: Position,
 
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-10 h-3 bg-black/40 rounded-full blur-sm" />
 
-        <div
-          className="w-16 h-16 pointer-events-none drop-shadow-md"
-          style={{
-            backgroundImage: `url('${PLAYER_OVERWORLD_SPRITE}')`,
-            backgroundSize: '400% 300%',
-            backgroundPositionX: bgPosX,
-            backgroundPositionY: ROW_PCT[direction],
-            transform: direction === 'right' ? 'scaleX(-1)' : 'none',
-            imageRendering: 'pixelated',
-          }}
-        />
+        {isPkmnSprite ? (
+          <img
+            src={spriteSrc}
+            alt="surf"
+            className="w-16 h-16 pointer-events-none drop-shadow-md pixelated object-contain"
+          />
+        ) : (
+          <div
+            className="w-16 h-16 pointer-events-none drop-shadow-md"
+            style={{
+              backgroundImage: `url('${spriteSrc}')`,
+              backgroundSize: '400% 300%',
+              backgroundPositionX: bgPosX,
+              backgroundPositionY: ROW_PCT[direction],
+              transform: direction === 'right' ? 'scaleX(-1)' : 'none',
+              imageRendering: 'pixelated',
+            }}
+          />
+        )}
       </div>
     </motion.div>
   );

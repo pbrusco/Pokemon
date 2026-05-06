@@ -14,7 +14,7 @@ export PATH="/opt/homebrew/bin:$PATH" && cd /Users/pbrusco/projects/poke && npm 
 
 When in doubt about map layouts, NPC placements, tile attributes, warp coords, or events:
 - **pokefirered source** — https://github.com/pret/pokefirered (decompiled Pokémon FireRed; the canonical source of every layout, every metatile, and every event in this project).
-- Local mirror: `pokefirered_dissasembly/`. Edit nothing here — the build pipeline reads it.
+- Local mirror: `pokefirered_dissasembly/` (git submodule pinned to a `pret/pokefirered` commit). Edit nothing here — the build pipeline reads it. Fresh clones need `git submodule update --init`.
 
 ## Vision
 

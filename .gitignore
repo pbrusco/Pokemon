@@ -8,5 +8,6 @@ coverage/
 !.env.example
 logs/
 pokered_dissasembly/
-pokefirered_dissasembly/
 src/artifacts/maps/
+src/artifacts/firered/maps/
+src/artifacts/firered/tilesets/

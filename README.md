@@ -6,11 +6,14 @@ Pokémon FireRed–style RPG built with React, TypeScript, Vite, Tailwind, and Z
 ## Run
 
 ```bash
+git clone --recurse-submodules <this-repo>     # or after a plain clone: git submodule update --init
 npm install
 npm run dev          # → http://localhost:3000
 npm run test:run
 npm run lint
 ```
+
+The `pokefirered` disassembly is a git submodule at `pokefirered_dissasembly/`. The map pipeline reads from it on every `predev`/`prebuild`, so the submodule must be checked out before the first run.
 
 If `npm` is not found on macOS:
 

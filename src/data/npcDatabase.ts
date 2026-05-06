@@ -689,7 +689,10 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'sign_gym_cerulean', type: 'object', position: w('CERULEAN_CITY', 27, 21), direction: 'down', sprite: '🪧', dialogue: ['GIMNASIO POKÉMON DE CIUDAD CELESTE', 'LÍDER: MISTY', '¡La Sirena Marimacho!'] },
       { id: 'item_rare_candy_cerulean', type: 'item', position: w('CERULEAN_CITY', 15, 8), direction: 'down', sprite: '🍬', itemId: 'RARE_CANDY' },
       { id: 'item_hm01_cut', type: 'item', position: w('ROUTE_25', 14, 2), direction: 'down', sprite: '✂️', itemId: 'HM01_CUT' },
+      { id: 'item_hm02_fly', type: 'item', position: w('ROUTE_16', 14, 12), direction: 'down', sprite: '🕊️', itemId: 'HM02_FLY' },
       { id: 'item_hm03_surf', type: 'item', position: w('VERMILION_CITY', 31, 8), direction: 'down', sprite: '🌊', itemId: 'HM03_SURF' },
+      { id: 'item_hm04_strength', type: 'item', position: w('ROUTE_15', 20, 2), direction: 'down', sprite: '💪', itemId: 'HM04_STRENGTH' },
+      { id: 'item_hm05_flash', type: 'item', position: w('ROUTE_2', 4, 8), direction: 'down', sprite: '💡', itemId: 'HM05_FLASH' },
       // ── Vermilion City ──
       { id: 'sign_vermilion_main', type: 'object', position: w('VERMILION_CITY', 27, 3), direction: 'down', sprite: '🪧', dialogue: ['CIUDAD CARMÍN', 'El puerto de los atardeceres exquisitos.'] },
       { id: 'sign_notice_vermilion', type: 'object', position: w('VERMILION_CITY', 37, 13), direction: 'down', sprite: '🪧', dialogue: ['AVISO', '¡La RUTA 12 puede estar bloqueada por un POKÉMON dormilón!'] },

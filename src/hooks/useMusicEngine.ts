@@ -205,6 +205,7 @@ export function useMusicEngine() {
   const isTrainerBattle = useGameStore((s) => s.isTrainerBattle);
   const musicMuted = useGameStore((s) => s.musicMuted);
   const musicVolume = useGameStore((s) => s.musicVolume);
+  const isSurfing = useGameStore((s) => s.isSurfing);
 
   const lastTrackRef = useRef<MusicTrack | null>(null);
   const wasMutedRef = useRef(musicMuted);
@@ -234,7 +235,7 @@ export function useMusicEngine() {
       AudioController.stop();
       return;
     } else {
-      track = getOverworldMusic(currentMap, playerPos);
+      track = isSurfing ? 'surf' : getOverworldMusic(currentMap, playerPos);
     }
 
     if (track !== lastTrackRef.current) {
@@ -259,5 +260,5 @@ export function useMusicEngine() {
         AudioController.play(track, { loop: true });
       }
     }
-  }, [phase, currentMap, playerPos.x, playerPos.y, isTrainerBattle, musicMuted]);
+  }, [phase, currentMap, playerPos.x, playerPos.y, isTrainerBattle, musicMuted, isSurfing]);
 }

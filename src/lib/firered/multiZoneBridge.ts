@@ -15,6 +15,7 @@
 
 import type { Tile, Position, Direction } from '../../types';
 import { FIRERED_MAP_ID_TO_OURS } from './bridge';
+import { tileFromBehavior, WALL } from './behaviorMappings';
 
 interface EmbeddedLayout {
   id: string;
@@ -59,15 +60,6 @@ export interface MultiZoneFireredMap {
   warps: Array<{ x: number; y: number; targetMap: string; targetPos: Position; targetDir?: Direction }>;
 }
 
-const WALL: Tile = { type: 'wall', walkable: false };
-
-// Water behavior bytes from pokefirered/include/constants/metatile_behaviors.h
-const WATER_BEHAVIORS = new Set([0x10, 0x11, 0x12, 0x13, 0x15, 0x16, 0x17, 0x19, 0x1a, 0x1b]);
-
-function isWaterBehavior(behavior: number): boolean {
-  return WATER_BEHAVIORS.has(behavior);
-}
-
 export function bridgeStitchedKanto(stitch: StitchedDescriptor): MultiZoneFireredMap {
   // Build the world-sized walkability grid. Cells outside any zone stay 'wall'.
   const tiles: Tile[][] = Array.from({ length: stitch.height }, () =>
@@ -87,11 +79,7 @@ export function bridgeStitchedKanto(stitch: StitchedDescriptor): MultiZoneFirere
           continue;
         }
         const behavior = behaviorGrid?.[y]?.[x] ?? 0;
-        if (isWaterBehavior(behavior)) {
-          tiles[wy][wx] = { type: 'water', walkable: false };
-        } else {
-          tiles[wy][wx] = { type: 'path', walkable: true };
-        }
+        tiles[wy][wx] = tileFromBehavior(behavior, true);
       }
     }
   }

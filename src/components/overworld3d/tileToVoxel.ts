@@ -39,4 +39,6 @@ export const TILE_VOXEL: Record<Tile['type'], VoxelDef> = {
   ledge_down:  { kind: 'object', height: 0.25, color: '#6a8a4a' },
   ledge_left:  { kind: 'object', height: 0.25, color: '#6a8a4a' },
   ledge_right: { kind: 'object', height: 0.25, color: '#6a8a4a' },
+  cave:        { kind: 'floor',  height: 0,    color: '#4a4a40', textureKey: 'floor' },
+  sand:        { kind: 'floor',  height: 0,    color: '#d8c890', textureKey: 'path' },
 };

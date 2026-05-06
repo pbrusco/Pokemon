@@ -23,7 +23,7 @@ import { MenuButton } from './components/MenuButton';
 import { GameModals } from './components/GameModals';
 import { ScreenEffects } from './components/ScreenEffects';
 import { applyItemToPokemon } from './lib/itemUtils';
-import { HM_MOVE_MAP } from './constants/items';
+import { HM_MOVE_MAP, HM_REQUIREMENTS } from './constants/items';
 import { MOVES } from './constants/moves';
 
 export default function App() {
@@ -219,17 +219,29 @@ export default function App() {
           const pkmn = team[index];
           if (pkmn.moves.some(m => m.name === hmMoveName)) {
             s.setDialogue(`¡${pkmn.name} ya sabe ${hmMoveName}!`);
+            s.setPhase(EXPLORING);
           } else {
             const move = Object.values(MOVES).find(m => m.name === hmMoveName)!;
-            const newMoves = pkmn.moves.length < 4
-              ? [...pkmn.moves, move]
-              : [...pkmn.moves.slice(0, 3), move];
-            const newTeam = [...team];
-            newTeam[index] = { ...pkmn, moves: newMoves };
-            s.updateTeam(newTeam);
-            s.setDialogue(`¡${pkmn.name} aprendió ${hmMoveName}!`);
+            if (pkmn.moves.length < 4) {
+              const newTeam = [...team];
+              newTeam[index] = { ...pkmn, moves: [...pkmn.moves, move] };
+              s.updateTeam(newTeam);
+              s.setDialogue(`¡${pkmn.name} aprendió ${hmMoveName}!`);
+              s.setPhase(EXPLORING);
+            } else {
+              s.setConfirm({
+                text: `¿${pkmn.name} quiere olvidar un movimiento para aprender ${hmMoveName}?`,
+                onYes: () => {
+                  const fs2 = useGameStore.getState();
+                  const t = fs2.playerTeam;
+                  fs2.setPhase({ type: 'HM_FORGET', itemId: itemId!, teamIndex: index, existingMoveNames: t[index].moves.map(m => m.name) });
+                  fs2.setConfirm(null);
+                },
+                onNo: () => { useGameStore.getState().setConfirm(null); },
+              });
+              return;
+            }
           }
-          s.setPhase(EXPLORING);
           return;
         }
 
@@ -248,6 +260,70 @@ export default function App() {
       } else {
         dispatchBattleRef.current({ type: 'USE_ITEM', itemId, targetIndex: index });
       }
+    });
+  }, []);
+
+  const handleHMForget = useCallback((forgetIndex: number) => {
+    withoutLogging(() => {
+      const s = useGameStore.getState();
+      const ph = s.phase;
+      if (ph.type !== 'HM_FORGET') return;
+      const hmMoveName = HM_MOVE_MAP[ph.itemId];
+      if (!hmMoveName) return;
+      const move = Object.values(MOVES).find(m => m.name === hmMoveName)!;
+      const team = [...s.playerTeam];
+      const pkmn = { ...team[ph.teamIndex] };
+      const newMoves = [...pkmn.moves];
+      newMoves[forgetIndex] = move;
+      pkmn.moves = newMoves;
+      team[ph.teamIndex] = pkmn;
+      s.updateTeam(team);
+      s.setDialogue(`¡${pkmn.name} aprendió ${hmMoveName} en lugar de ${ph.existingMoveNames[forgetIndex]}!`);
+      s.setPhase(EXPLORING);
+    });
+  }, []);
+
+  const handleFlySelect = useCallback((town: string) => {
+    withoutLogging(() => {
+      const s = useGameStore.getState();
+      const flyMon = s.playerTeam.find(p => p.moves.some(m => m.name === 'VUELO'));
+      if (!flyMon) { s.setPhase(EXPLORING); return; }
+      s.setPhase({ type: 'FLY_ANIMATING', town, pokemonName: flyMon.name, pokemonSprite: flyMon.sprite });
+    });
+  }, []);
+
+  const handleFieldMove = useCallback((moveName: string) => {
+    withoutLogging(() => {
+      const s = useGameStore.getState();
+      if (moveName === HM_REQUIREMENTS.fly.move) {
+        if (!s.badges.includes(HM_REQUIREMENTS.fly.badge)) {
+          s.setDialogue(`Necesitas la medalla ${HM_REQUIREMENTS.fly.badge} para volar.`);
+          return;
+        }
+        s.setPhase({ type: 'FLY_TOWN_SELECT' });
+        return;
+      }
+      if (moveName === HM_REQUIREMENTS.surf.move) {
+        if (!s.badges.includes(HM_REQUIREMENTS.surf.badge)) {
+          s.setDialogue(`Necesitas la medalla ${HM_REQUIREMENTS.surf.badge} para surfear.`);
+          return;
+        }
+        s.setIsSurfing(true);
+        s.setPhase(EXPLORING);
+        s.setDialogue('¡Usaste SURF! ¡Ahora puedes navegar por el agua!');
+        return;
+      }
+      if (moveName === HM_REQUIREMENTS.flash.move) {
+        if (!s.badges.includes(HM_REQUIREMENTS.flash.badge)) {
+          s.setDialogue(`Necesitas la medalla ${HM_REQUIREMENTS.flash.badge} para usar DESTELLO.`);
+          return;
+        }
+        s.setFlashActive(true);
+        s.setPhase(EXPLORING);
+        s.setDialogue('¡DESTELLO iluminó la cueva!');
+        return;
+      }
+      s.setPhase(EXPLORING);
     });
   }, []);
 
@@ -347,6 +423,9 @@ export default function App() {
         handlePCSwap={handlePCSwap}
         handleUseItem={handleUseItem}
         handleApplyItemToPokemon={handleApplyItemToPokemon}
+        handleHMForget={handleHMForget}
+        handleFlySelect={handleFlySelect}
+        onUseFieldMove={handleFieldMove}
         dispatchBattle={dispatchBattle}
       />
 
