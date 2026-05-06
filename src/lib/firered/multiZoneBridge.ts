@@ -25,6 +25,7 @@ interface EmbeddedLayout {
   grid: number[][];
   collision: number[][];
   elevation: number[][];
+  behavior?: number[][];
 }
 
 interface StitchedZone {
@@ -60,6 +61,13 @@ export interface MultiZoneFireredMap {
 
 const WALL: Tile = { type: 'wall', walkable: false };
 
+// Water behavior bytes from pokefirered/include/constants/metatile_behaviors.h
+const WATER_BEHAVIORS = new Set([0x10, 0x11, 0x12, 0x13, 0x15, 0x16, 0x17, 0x19, 0x1a, 0x1b]);
+
+function isWaterBehavior(behavior: number): boolean {
+  return WATER_BEHAVIORS.has(behavior);
+}
+
 export function bridgeStitchedKanto(stitch: StitchedDescriptor): MultiZoneFireredMap {
   // Build the world-sized walkability grid. Cells outside any zone stay 'wall'.
   const tiles: Tile[][] = Array.from({ length: stitch.height }, () =>
@@ -67,16 +75,23 @@ export function bridgeStitchedKanto(stitch: StitchedDescriptor): MultiZoneFirere
   );
 
   for (const z of stitch.zones) {
+    const behaviorGrid = z.layout.behavior;
     for (let y = 0; y < z.height; y++) {
       for (let x = 0; x < z.width; x++) {
         const wx = z.offsetX + x;
         const wy = z.offsetY + y;
         if (wx < 0 || wy < 0 || wx >= stitch.width || wy >= stitch.height) continue;
         const blocked = z.layout.collision[y][x] !== 0;
-        // FireRed metatile attributes will eventually drive richer types
-        // (grass / water / ledge) — for now flag walkable cells as 'path'
-        // for outdoor and fall back to wall otherwise.
-        tiles[wy][wx] = blocked ? WALL : { type: 'path', walkable: true };
+        if (blocked) {
+          tiles[wy][wx] = WALL;
+          continue;
+        }
+        const behavior = behaviorGrid?.[y]?.[x] ?? 0;
+        if (isWaterBehavior(behavior)) {
+          tiles[wy][wx] = { type: 'water', walkable: false };
+        } else {
+          tiles[wy][wx] = { type: 'path', walkable: true };
+        }
       }
     }
   }

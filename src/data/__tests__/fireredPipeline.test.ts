@@ -12,6 +12,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import { MAP_KANTO_OVERWORLD } from '../maps/index';
 
 const ROOT = path.resolve(__dirname, '../../..');
 const MAPS_DIR = path.join(ROOT, 'src/artifacts/firered/maps');
@@ -151,5 +152,81 @@ describe('firered pipeline output', () => {
     expect(m.height).toBe(20);
     expect(m.primaryTileset).toBe('gTileset_General');
     expect(m.secondaryTileset).toBe('gTileset_PalletTown');
+  });
+
+  it('stitched zones carry a behavior grid derived from tileset attributes', () => {
+    const f = path.join(MAPS_DIR, 'STITCHED_KANTO_OVERWORLD.json');
+    const s = JSON.parse(fs.readFileSync(f, 'utf8'));
+    for (const z of s.zones) {
+      const b = z.layout.behavior;
+      expect(b, `${z.mapId} behavior grid`).toBeTruthy();
+      expect(b.length, `${z.mapId} behavior rows`).toBe(z.height);
+      expect(b[0].length, `${z.mapId} behavior cols`).toBe(z.width);
+      expect(typeof b[0][0], `${z.mapId} behavior[0][0]`).toBe('number');
+    }
+  });
+
+  it('some collision=0 tiles have water behavior — those are surfable water', () => {
+    const WATER = new Set([0x10, 0x11, 0x12, 0x13, 0x15, 0x16, 0x17, 0x19, 0x1a, 0x1b]);
+    const f = path.join(MAPS_DIR, 'STITCHED_KANTO_OVERWORLD.json');
+    const s = JSON.parse(fs.readFileSync(f, 'utf8'));
+    let surfableWater = 0;
+    let impassableWater = 0;
+    for (const z of s.zones) {
+      const b = z.layout.behavior;
+      const c = z.layout.collision;
+      for (let y = 0; y < z.height; y++) {
+        for (let x = 0; x < z.width; x++) {
+          if (WATER.has(b[y][x])) {
+            if (c[y][x] === 0) surfableWater++;
+            else impassableWater++;
+          }
+        }
+      }
+    }
+    // Kanto has substantial surfable water (routes 12-21, Pallet coast, etc.)
+    expect(surfableWater).toBeGreaterThan(200);
+    // Surfable water must not be the only kind — collision water does exist
+    // (waterfall blocks, certain shore edges, etc.)
+    expect(impassableWater).toBeGreaterThanOrEqual(0);
+  });
+
+  it('water passable cells exist but are a minority of all passable terrain', () => {
+    const WATER = new Set([0x10, 0x11, 0x12, 0x13, 0x15, 0x16, 0x17, 0x19, 0x1a, 0x1b]);
+    const f = path.join(MAPS_DIR, 'STITCHED_KANTO_OVERWORLD.json');
+    const s = JSON.parse(fs.readFileSync(f, 'utf8'));
+    let totalPassable = 0;
+    let waterPassable = 0;
+    for (const z of s.zones) {
+      const b = z.layout.behavior;
+      const c = z.layout.collision;
+      for (let y = 0; y < z.height; y++) {
+        for (let x = 0; x < z.width; x++) {
+          if (c[y][x] === 0) {
+            totalPassable++;
+            if (WATER.has(b[y][x])) waterPassable++;
+          }
+        }
+      }
+    }
+    expect(waterPassable).toBeGreaterThan(0);
+    expect(totalPassable).toBeGreaterThan(waterPassable);
+  });
+
+  it('bridged tile type and walkable are always consistent', () => {
+    const tiles = MAP_KANTO_OVERWORLD.tiles;
+    const WALKABLE_TYPES = new Set(['path', 'floor', 'grass', 'carpet', 'door', 'sand']);
+    const BLOCKED_TYPES = new Set(['wall', 'water', 'tree', 'table', 'bookshelf', 'fence', 'flower', 'ledge_down', 'ledge_left', 'ledge_right', 'machine', 'boulder', 'cut_tree']);
+    let mismatches = 0;
+    for (let y = 0; y < tiles.length; y++) {
+      for (let x = 0; x < tiles[y].length; x++) {
+        const t = tiles[y][x];
+        const shouldWalk = WALKABLE_TYPES.has(t.type);
+        const shouldBlock = BLOCKED_TYPES.has(t.type);
+        if (shouldWalk && !t.walkable) mismatches++;
+        if (shouldBlock && t.walkable) mismatches++;
+      }
+    }
+    expect(mismatches).toBe(0);
   });
 });

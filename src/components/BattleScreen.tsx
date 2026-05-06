@@ -788,9 +788,9 @@ export const BattleScreen = memo(function BattleScreen({
         <BattleLogArea battleLogs={battleLogs} battleLog={battleLog} />
 
         {/* Right: actions / moves */}
-        <div className="w-1/3 min-w-[120px] sm:min-w-[230px] border-4 border-[#4f6e69] bg-[#f8f8f8] rounded-sm p-2 sm:p-3 shadow-[inset_0_0_0_2px_rgba(0,0,0,0.06)] flex flex-col">
+        <div className="w-2/5 min-w-[150px] sm:w-1/3 sm:min-w-[230px] border-4 border-[#4f6e69] bg-[#f8f8f8] rounded-sm p-2 sm:p-3 shadow-[inset_0_0_0_2px_rgba(0,0,0,0.06)] flex flex-col">
           {isAnimating ? null : isPlayerTurn && !showMoves ? (
-            <div className="grid grid-cols-2 h-full gap-2 text-[#2f2f2f] font-bold text-sm sm:text-lg items-center tracking-tight uppercase">
+            <div className="grid grid-cols-2 h-full gap-1 sm:gap-2 text-[#2f2f2f] font-bold text-xs sm:text-lg items-center tracking-tight uppercase">
               {([
                 { label: 'LUCHAR', shortcut: '1', action: () => setShowMoves(true), disabled: false },
                 { label: 'POKÉMON', shortcut: '2', action: () => setShowTeam(true), disabled: false },

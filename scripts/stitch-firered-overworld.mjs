@@ -26,7 +26,60 @@ import path from 'path';
 
 const ROOT = path.resolve('.');
 const FIRERED_MAPS = path.join(ROOT, 'src/artifacts/firered/maps');
+const FIRERED_TILESETS = path.join(ROOT, 'src/artifacts/firered/tilesets');
 const OUT = path.join(FIRERED_MAPS, 'STITCHED_KANTO_OVERWORLD.json');
+
+// Water behavior bytes from pokefirered/include/constants/metatile_behaviors.h
+const WATER_BEHAVIORS = new Set([0x10, 0x11, 0x12, 0x13, 0x15, 0x16, 0x17, 0x19, 0x1A, 0x1B]);
+
+// Metatile split: 0-639 = primary, 640+ = secondary
+const NUM_METATILES_IN_PRIMARY = 640;
+
+function tilesetSlug(label) {
+  return label
+    .replace(/^gTileset_/, '')
+    .replace(/([a-z])([A-Z])/g, '$1_$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1_$2')
+    .replace(/([A-Za-z])([0-9])/g, '$1_$2')
+    .toLowerCase();
+}
+
+// Cache loaded attribute arrays by tileset slug
+const attrCache = new Map();
+
+function loadAttrs(tilesetLabel) {
+  const slug = tilesetSlug(tilesetLabel);
+  if (attrCache.has(slug)) return attrCache.get(slug);
+  const attrPath = path.join(FIRERED_TILESETS, slug, 'attributes.json');
+  if (!fs.existsSync(attrPath)) return null;
+  const attrs = JSON.parse(fs.readFileSync(attrPath, 'utf8'));
+  attrCache.set(slug, attrs);
+  return attrs;
+}
+
+function buildBehaviorGrid(layout) {
+  const primaryAttrs = loadAttrs(layout.primaryTileset);
+  const secondaryAttrs = loadAttrs(layout.secondaryTileset);
+  if (!primaryAttrs && !secondaryAttrs) return null;
+  const h = layout.height, w = layout.width;
+  const behavior = Array.from({ length: h }, () => new Array(w).fill(0));
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const metaId = layout.grid[y][x];
+      if (metaId >= NUM_METATILES_IN_PRIMARY) {
+        const localId = metaId - NUM_METATILES_IN_PRIMARY;
+        if (secondaryAttrs && localId < secondaryAttrs.length) {
+          behavior[y][x] = secondaryAttrs[localId].behavior;
+        }
+      } else {
+        if (primaryAttrs && metaId < primaryAttrs.length) {
+          behavior[y][x] = primaryAttrs[metaId].behavior;
+        }
+      }
+    }
+  }
+  return behavior;
+}
 
 // Outdoor map types per pokefirered/include/constants/map_types.h.
 // VIRIDIAN_FOREST is type UNDERGROUND but we still want it stitched, so
@@ -181,6 +234,7 @@ function buildZone(mapId, layout, x, y, w, h) {
       grid: layout.grid,
       collision: layout.collision,
       elevation: layout.elevation,
+      behavior: buildBehaviorGrid(layout),
     },
     warps: (layout.meta?.warp_events ?? []).map(wx => ({ ...wx, worldX: x + dx + wx.x, worldY: y + dy + wx.y })),
     objects: (layout.meta?.object_events ?? []).map(o => ({ ...o, worldX: x + dx + o.x, worldY: y + dy + o.y })),

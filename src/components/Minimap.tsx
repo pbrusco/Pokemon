@@ -113,7 +113,7 @@ export const Minimap = () => {
   if (!mapData || !showMinimap) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 flex flex-col pointer-events-none">
+    <div className="fixed top-2 left-2 lg:top-auto lg:bottom-4 lg:left-4 z-50 flex flex-col pointer-events-none">
       <div className="bg-black/80 backdrop-blur-sm border-2 border-white/30 rounded-lg overflow-hidden shadow-xl">
         <div className="px-2 py-1 border-b border-white/20">
           <span className="text-[10px] text-white/70 font-mono uppercase tracking-wider">

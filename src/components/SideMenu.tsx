@@ -67,9 +67,8 @@ export const SideMenu = memo(({
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: 280, opacity: 0 }}
           transition={{ type: 'tween', duration: 0.18, ease: 'easeOut' }}
-          className="fixed right-2 sm:right-6 top-1/2 -translate-y-1/2 z-[140] max-h-[90vh] overflow-y-auto"
+          className="fixed right-2 sm:right-6 top-2 sm:top-1/2 sm:-translate-y-1/2 z-[140] max-h-[calc(100vh-220px)] sm:max-h-[90vh] overflow-y-auto w-[min(320px,calc(100vw-1rem))] sm:w-[220px]"
           style={{
-            width: 220,
             background: '#f8f8f0',
             border: '3px solid #383838',
             borderRadius: 2,
