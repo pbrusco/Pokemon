@@ -124,11 +124,11 @@ function MoveMenu({ moves, onAttack, onBack }: {
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
               >
-                <span className="inline-flex items-center gap-1">
-                  <span className={`text-red-500 text-[10px] transition-opacity ${isHov && !noPP ? 'opacity-100' : 'opacity-0'}`}>▶</span>
-                  <span className="font-bold text-[#2f2f2f] text-xs sm:text-sm uppercase tracking-tight leading-tight">{move.name}</span>
+                <span className="inline-flex items-center gap-0.5 sm:gap-1 w-full overflow-hidden">
+                  <span className={`text-red-500 text-[10px] transition-opacity shrink-0 ${isHov && !noPP ? 'opacity-100' : 'opacity-0'}`}>▶</span>
+                  <span className="font-bold text-[#2f2f2f] text-[10px] sm:text-sm uppercase tracking-tight leading-tight truncate">{move.name}</span>
                 </span>
-                <span className="text-[8px] text-slate-400 font-mono ml-3.5">[{i + 1}]</span>
+                <span className="text-[8px] text-slate-400 font-mono ml-3.5 mt-0.5">[{i + 1}]</span>
               </button>
             );
           })
@@ -611,7 +611,7 @@ export const BattleScreen = memo(function BattleScreen({
 
       <div className="flex-1 relative w-full h-[65vh] overflow-hidden" style={getArenaStyle(terrain)}>
         {/* Enemy HUD */}
-        <div className="absolute top-[10%] right-[6%] sm:right-[10%]">
+        <div className="absolute top-[5%] sm:top-[10%] right-[3%] sm:right-[10%] scale-90 sm:scale-100 origin-top-right z-20">
           <div className="bg-[#f8f8f0] border-[3px] border-[#4f6e69] rounded-sm p-2 sm:p-3 w-[180px] sm:w-[260px] shadow-[3px_3px_0_rgba(0,0,0,0.15)]">
             {isTrainerBattle && enemyTeam.length > 1 && (
               <div className="mb-1 sm:mb-1.5">
@@ -636,7 +636,7 @@ export const BattleScreen = memo(function BattleScreen({
         </div>
 
         {/* Enemy Platform & Sprite */}
-        <div className="absolute top-[22%] right-[14%] sm:right-[18%] w-[180px] sm:w-[300px] flex flex-col items-center">
+        <div className="absolute top-[15%] sm:top-[22%] right-[5%] sm:right-[18%] w-[180px] sm:w-[300px] flex flex-col items-center scale-90 sm:scale-100 origin-bottom z-10">
           <div className="relative w-full" style={{ height: '140px' }}>
             <div className="absolute bottom-12 left-0 right-0">
               <BattlePlatform variant="enemy" terrain={terrain} />
@@ -684,7 +684,7 @@ export const BattleScreen = memo(function BattleScreen({
         </div>
 
         {/* Player Sprite & Platform */}
-        <div className="absolute bottom-[18%] left-[10%] sm:left-[15%] w-[200px] sm:w-[350px] flex flex-col items-center">
+        <div className="absolute bottom-[5%] sm:bottom-[18%] left-[-5%] sm:left-[15%] w-[200px] sm:w-[350px] flex flex-col items-center scale-90 sm:scale-100 origin-bottom z-10">
           <div className="relative w-full" style={{ height: '170px' }}>
             <div className="absolute bottom-14 left-0 right-0">
               <BattlePlatform variant="player" terrain={terrain} />
@@ -733,7 +733,7 @@ export const BattleScreen = memo(function BattleScreen({
         </div>
 
         {/* Player HUD */}
-        <div className="absolute bottom-[25%] sm:bottom-[30%] left-[3%] sm:left-[5%]">
+        <div className="absolute bottom-[5%] sm:bottom-[30%] right-[3%] sm:right-auto sm:left-[5%] scale-90 sm:scale-100 origin-bottom-right sm:origin-bottom-left z-20">
           <div className="bg-[#f8f8f0] border-[3px] border-[#4f6e69] rounded-sm p-2 sm:p-3 pl-3 sm:pl-4 w-[180px] sm:w-[280px] shadow-[3px_3px_0_rgba(0,0,0,0.15)]">
             {playerTeam.length > 1 && (
               <div className="mb-1 sm:mb-1.5">
@@ -784,11 +784,11 @@ export const BattleScreen = memo(function BattleScreen({
       </div>
 
       {/* Bottom Menu Area */}
-      <div className="h-[35vh] w-full bg-[#26343f] flex p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden border-t-4 border-[#1d2830]">
+      <div className="h-[35vh] w-full bg-[#26343f] flex flex-col sm:flex-row p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden border-t-4 border-[#1d2830]">
         <BattleLogArea battleLogs={battleLogs} battleLog={battleLog} />
 
         {/* Right: actions / moves */}
-        <div className="w-2/5 min-w-[150px] sm:w-1/3 sm:min-w-[230px] border-4 border-[#4f6e69] bg-[#f8f8f8] rounded-sm p-2 sm:p-3 shadow-[inset_0_0_0_2px_rgba(0,0,0,0.06)] flex flex-col">
+        <div className="w-full sm:w-1/3 h-[130px] sm:h-auto sm:min-w-[230px] border-4 border-[#4f6e69] bg-[#f8f8f8] rounded-sm p-2 sm:p-3 shadow-[inset_0_0_0_2px_rgba(0,0,0,0.06)] flex flex-col shrink-0">
           {isAnimating ? null : isPlayerTurn && !showMoves ? (
             <div className="grid grid-cols-2 h-full gap-1 sm:gap-2 text-[#2f2f2f] font-bold text-xs sm:text-lg items-center tracking-tight uppercase">
               {([
