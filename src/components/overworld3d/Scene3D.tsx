@@ -8,6 +8,7 @@ import { MapMesh3D } from './MapMesh3D';
 import { NpcBillboard } from './NpcBillboard';
 import { ItemBillboard } from './ItemBillboard';
 import { WildPokemonBillboard } from './WildPokemonBillboard';
+import { PlayerBillboard } from './PlayerBillboard';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 
 const skyGradientVertexShader = /* glsl */ `
@@ -108,26 +109,30 @@ export function Scene3D({ mapData, npcs, items }: Scene3DProps) {
         </>
       ) : (
         <>
-          <ambientLight intensity={0.6} />
+          <ambientLight intensity={0.5} color="#e0eaff" />
           <directionalLight
-            position={[8, 16, 8]}
-            intensity={1.0}
+            position={[10, 25, 15]}
+            intensity={1.2}
+            color="#fffae0"
             castShadow
-            shadow-mapSize={[1024, 1024]}
+            shadow-mapSize={[2048, 2048]}
             shadow-camera-near={0.5}
-            shadow-camera-far={120}
-            shadow-camera-left={-40}
-            shadow-camera-right={40}
-            shadow-camera-top={40}
-            shadow-camera-bottom={-40}
+            shadow-camera-far={150}
+            shadow-camera-left={-50}
+            shadow-camera-right={50}
+            shadow-camera-top={50}
+            shadow-camera-bottom={-50}
+            shadow-bias={-0.001}
           />
-          <hemisphereLight color="#87ceeb" groundColor="#5fa85a" intensity={0.3} />
+          <hemisphereLight color="#87ceeb" groundColor="#3e7a3e" intensity={0.5} />
         </>
       )}
 
       <CameraRig />
 
       <MapMesh3D tiles={tiles} />
+
+      <PlayerBillboard />
 
       {npcs.map((npc) => (
         <NpcBillboard key={npc.id} npc={npc} />

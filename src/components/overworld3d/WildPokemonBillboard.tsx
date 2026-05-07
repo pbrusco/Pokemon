@@ -25,7 +25,7 @@ function PokemonSprite({ url, position, proximity }: { url: string; position: [n
 
   return (
     <sprite ref={ref} position={position} scale={[0.8, 0.8, 1]}>
-      <spriteMaterial map={tex} transparent depthWrite={false} />
+      <spriteMaterial map={tex} transparent depthWrite={true} alphaTest={0.5} />
     </sprite>
   );
 }

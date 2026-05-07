@@ -44,7 +44,7 @@ function SpriteFrame({ url, numFrames, frameH, npc, position }: SpriteFrameProps
 
   return (
     <sprite position={position} scale={[scaleX, scaleY, 1]}>
-      <spriteMaterial map={tex} transparent depthWrite={false} />
+      <spriteMaterial map={tex} transparent depthWrite={true} alphaTest={0.5} />
     </sprite>
   );
 }

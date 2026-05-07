@@ -4,15 +4,12 @@ import * as THREE from 'three';
 import { useGameStore } from '../../store/gameStore';
 import type { Direction } from '../../types';
 
-const EYE_HEIGHT = 0.6;
-const POS_TAU = 0.06;
-const YAW_TAU = 0.04;
+const CAMERA_DISTANCE = 5;
+const CAMERA_HEIGHT = 4.5;
+const POS_TAU = 0.08;
+const YAW_TAU = 0.06;
 
-// Three.js camera default look direction is -Z, so:
-//   rotation.y = 0     → camera looks -Z (north / tile -y)
-//   rotation.y = π     → camera looks +Z (south / tile +y)
-//   rotation.y = +π/2  → camera looks -X (west  / tile -x)
-//   rotation.y = -π/2  → camera looks +X (east  / tile +x)
+// Three.js camera default look direction is -Z
 const DIR_TO_YAW: Record<Direction, number> = {
   up: 0,
   down: Math.PI,
@@ -24,47 +21,47 @@ export function CameraRig() {
   const camera = useThree((s) => s.camera);
   const playerPos = useGameStore((s) => s.playerPos);
   const direction = useGameStore((s) => s.direction);
-  const isMoving = useGameStore((s) => s.isMoving);
 
-  const target = useRef(new THREE.Vector3());
+  const targetFocus = useRef(new THREE.Vector3());
   const initialized = useRef(false);
-  const bobPhase = useRef(0);
 
-  target.current.set(playerPos.x + 0.5, EYE_HEIGHT, playerPos.y + 0.5);
+  // The point the camera looks at (the player)
+  targetFocus.current.set(playerPos.x + 0.5, 0.5, playerPos.y + 0.5);
   const targetYaw = DIR_TO_YAW[direction];
 
   useFrame((_, dt) => {
     camera.rotation.order = 'YXZ';
 
+    // Calculate ideal camera position (behind and above player)
+    const idealPos = new THREE.Vector3(
+      targetFocus.current.x + Math.sin(targetYaw) * CAMERA_DISTANCE,
+      targetFocus.current.y + CAMERA_HEIGHT,
+      targetFocus.current.z + Math.cos(targetYaw) * CAMERA_DISTANCE
+    );
+
     if (!initialized.current) {
-      camera.position.copy(target.current);
-      camera.rotation.set(0, targetYaw, 0);
+      camera.position.copy(idealPos);
+      camera.rotation.set(-Math.PI / 6, targetYaw, 0); // look slightly down
       initialized.current = true;
       return;
     }
 
+    // Smooth position
     const posAlpha = 1 - Math.exp(-dt / POS_TAU);
-    camera.position.lerp(target.current, posAlpha);
+    camera.position.lerp(idealPos, posAlpha);
 
-    // --- head bobbing ---
-    if (isMoving) bobPhase.current += dt * 8;
-    const bobY = isMoving ? Math.sin(bobPhase.current) * 0.025 : 0;
-    const currentBobY = camera.position.y - EYE_HEIGHT;
-    camera.position.y = EYE_HEIGHT + THREE.MathUtils.lerp(currentBobY, bobY, 0.2);
-
-    // --- yaw ---
-    const cur = camera.rotation.y;
-    let delta = ((targetYaw - cur + Math.PI) % (2 * Math.PI)) - Math.PI;
+    // Smooth yaw
+    const curYaw = camera.rotation.y;
+    let delta = ((targetYaw - curYaw + Math.PI) % (2 * Math.PI)) - Math.PI;
     if (delta < -Math.PI) delta += 2 * Math.PI;
     const yawAlpha = 1 - Math.exp(-dt / YAW_TAU);
-    camera.rotation.y = cur + delta * yawAlpha;
+    camera.rotation.y = curYaw + delta * yawAlpha;
 
-    // --- turn lean ---
-    const leanAmount = delta * 0.08;
-    camera.rotation.z = THREE.MathUtils.lerp(camera.rotation.z, -leanAmount, 0.15);
-
-    camera.rotation.x = 0;
+    // Fixed pitch (looking down) and no roll
+    camera.rotation.x = -Math.PI / 6; 
+    camera.rotation.z = 0;
   });
 
   return null;
 }
+
