@@ -146,8 +146,21 @@ function resolvePath(track: MusicTrack): string {
   return BASE_PATH + MUSIC_FILES[track];
 }
 
+const audioCache = new Map<MusicTrack, HTMLAudioElement>();
+
+function getAudioElement(track: MusicTrack): HTMLAudioElement {
+  let a = audioCache.get(track);
+  if (!a) {
+    a = new Audio(resolvePath(track));
+    a.preload = 'auto';
+    audioCache.set(track, a);
+  }
+  return a;
+}
+
 function createAudio(track: MusicTrack): HTMLAudioElement {
-  const a = new Audio(resolvePath(track));
+  const a = getAudioElement(track);
+  a.currentTime = 0;
   a.volume = state.muted ? 0 : state.volume;
   return a;
 }
@@ -200,7 +213,8 @@ export const AudioController = {
         if (step >= steps) {
           stopFade();
           prev.pause();
-          prev.src = '';
+          prev.currentTime = 0;
+          prev.onended = null;
           state.previous = null;
           state.fading = false;
           applyVolume(next);
@@ -222,6 +236,13 @@ export const AudioController = {
       const prev = state.current;
       const jingleAudio = createAudio(jingle);
       jingleAudio.loop = false;
+      
+      if (prev === jingleAudio) {
+        jingleAudio.currentTime = 0;
+        jingleAudio.play().catch(() => {});
+        return;
+      }
+
       state.current = jingleAudio;
       state.currentTrack = jingle;
       state.fading = true;
@@ -240,7 +261,8 @@ export const AudioController = {
         if (step >= steps) {
           stopFade();
           prev.pause();
-          prev.src = '';
+          prev.currentTime = 0;
+          prev.onended = null;
           state.previous = null;
           state.fading = false;
           applyVolume(jingleAudio);
@@ -249,13 +271,14 @@ export const AudioController = {
 
       jingleAudio.play().catch(() => {});
 
-      jingleAudio.addEventListener('ended', () => {
+      jingleAudio.onended = () => {
+        jingleAudio.onended = null;
         if (resumeTrack && resumeTrack !== jingle) {
           AudioController.play(resumeTrack, { loop: wasLooping });
         } else if (fallbackTrack) {
           AudioController.play(fallbackTrack, { loop: true });
         }
-      });
+      };
     } else {
       const a = createAudio(jingle);
       a.loop = false;
@@ -263,11 +286,12 @@ export const AudioController = {
       state.currentTrack = jingle;
       applyVolume(a);
       a.play().catch(() => {});
-      a.addEventListener('ended', () => {
+      a.onended = () => {
+        a.onended = null;
         if (fallbackTrack) {
           AudioController.play(fallbackTrack, { loop: true });
         }
-      });
+      };
     }
   },
 
@@ -275,12 +299,14 @@ export const AudioController = {
     stopFade();
     if (state.current) {
       state.current.pause();
-      state.current.src = '';
+      state.current.currentTime = 0;
+      state.current.onended = null;
       state.current = null;
     }
     if (state.previous) {
       state.previous.pause();
-      state.previous.src = '';
+      state.previous.currentTime = 0;
+      state.previous.onended = null;
       state.previous = null;
     }
     state.currentTrack = null;
@@ -318,3 +344,13 @@ export const AudioController = {
     return state.currentTrack;
   },
 };
+
+// Start preloading audio files in the background after a short delay
+// to ensure instant playback when requested, without blocking initial page load.
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    for (const track of Object.keys(MUSIC_FILES) as MusicTrack[]) {
+      getAudioElement(track);
+    }
+  }, 1000);
+}

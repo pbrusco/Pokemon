@@ -13,6 +13,9 @@ const DOM_GLOBALS_RE = /\b(window|document|navigator|localStorage)\b/;
 const DOM_GLOBALS_ALLOWLIST: Record<string, string> = {
   // Will be split into pure eventLog + browser bridge in Phase 4.
   'src/lib/eventLog.ts': 'Phase 4: split replay recorder from window/DOM debug bridge',
+  // Wraps HTMLAudioElement for all game music. Could be refactored into
+  // a pure interface + browser implementation.
+  'src/lib/music.ts': 'HTMLAudioElement-based audio controller; extract interface for testability',
 };
 
 function walk(dir: string): string[] {
