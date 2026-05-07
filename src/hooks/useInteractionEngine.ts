@@ -11,7 +11,7 @@ import { useGameStore } from '../store/gameStore';
 type HealLocation = { map: MapID; pos: Position };
 
 interface UseInteractionEngineParams {
-  initBattle: (enemyPokemon: Pokemon, isTrainer: boolean, trainerName?: string) => void;
+  initBattle: (enemyTeam: Pokemon[], isTrainer: boolean, trainerName?: string) => void;
 }
 
 /** Handle story-progression NPC interactions */
@@ -84,7 +84,7 @@ export const useInteractionEngine = ({
       if (handleStoryNPC(npc, inventory, store)) return;
       if (npc.isTrainer && npc.trainerTeam?.length && !store.defeatedTrainers.includes(npc.id)) {
         store.setDialogue(`${npc.name}: ${npc.dialogue[0]}`, () => {
-          initBattle(npc.trainerTeam![0], true, npc.id);
+          initBattle(npc.trainerTeam!, true, npc.id);
         });
         return;
       }
@@ -160,7 +160,7 @@ export const useInteractionEngine = ({
           store.setDialogue('¡La FLAUTA POKé despertó a SNORLAX!\n¡Quiere luchar!');
           store.setPendingSnorlaxId(npc.id);
           setTimeout(() => initBattle(
-            makePokemon('snorlax', 'SNORLAX', 30, 'normal', [MOVES.REST, MOVES.AMNESIA, MOVES.BODY_SLAM, MOVES.HEADBUTT], 143),
+            [makePokemon('snorlax', 'SNORLAX', 30, 'normal', [MOVES.REST, MOVES.AMNESIA, MOVES.BODY_SLAM, MOVES.HEADBUTT], 143)],
             false
           ), sd(800));
         }
@@ -198,7 +198,7 @@ export const useInteractionEngine = ({
                 const rivalPkmn = { ...STARTERS[rivalIndex] };
                 useGameStore.getState().setDialogue(
                   "AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!",
-                  () => initBattle(rivalPkmn, true, 'rival'),
+                  () => initBattle([rivalPkmn], true, 'rival'),
                 );
               }, sd(1500));
             },

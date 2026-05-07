@@ -34,11 +34,12 @@ export function triggerTrainerCutscene(trainer: NPC, playerPos: Position) {
   
   // 4. Start battle sound and initiate battle
   steps.push({ type: 'sound', soundId: 'BATTLE_START' });
-  steps.push({ 
-    type: 'battle', 
-    isTrainer: true, 
-    trainerId: trainer.id, 
-    enemyPokemon: trainer.trainerTeam![0] 
+  steps.push({
+    type: 'battle',
+    isTrainer: true,
+    trainerId: trainer.id,
+    enemyPokemon: trainer.trainerTeam![0],
+    enemyTeam: trainer.trainerTeam,
   });
   
   runCutscene(steps);

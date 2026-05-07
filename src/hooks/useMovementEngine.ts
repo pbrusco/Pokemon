@@ -137,8 +137,8 @@ export function useMovementEngine({
     };
   }, []);
 
-  const initBattle = useCallback((enemyPkmn: Pokemon, isTrainer: boolean, trainerName?: string) => {
-    launchBattle({ enemy: enemyPkmn, isTrainer, trainerName });
+  const initBattle = useCallback((enemyTeam: Pokemon[], isTrainer: boolean, trainerName?: string) => {
+    launchBattle({ enemy: enemyTeam[0], isTrainer, trainerName, enemyTeam: isTrainer ? enemyTeam : undefined });
   }, []);
 
   const handleMove = useCallback((dir: Direction) => {

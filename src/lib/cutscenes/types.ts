@@ -85,6 +85,8 @@ export interface BattleStep {
   isTrainer: boolean;
   trainerId?: string;
   enemyPokemon?: Pokemon;
+  /** Full enemy team for trainer battles (allows multi-Pokémon fights). */
+  enemyTeam?: Pokemon[];
 }
 
 export type CutsceneStep =

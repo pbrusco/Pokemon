@@ -202,6 +202,7 @@ function processBattle(step: Extract<CutsceneStep, { type: 'battle' }>) {
     isTrainer: step.isTrainer,
     trainerName: step.trainerId,
     battleLog: '¡Batalla iniciada!',
+    enemyTeam: step.enemyTeam,
   });
 
   // Cutscene ends here as we enter battle

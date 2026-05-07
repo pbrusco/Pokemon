@@ -400,7 +400,7 @@ describe('Starter selection', () => {
     act(() => handleAction());
 
     expect(initBattle).toHaveBeenCalledWith(
-      expect.objectContaining({ name: expect.any(String) }),
+      [expect.objectContaining({ name: expect.any(String) })],
       true,
       'rival',
     );

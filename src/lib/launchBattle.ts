@@ -9,6 +9,9 @@ interface LaunchBattleOptions {
   isTrainer: boolean;
   trainerName?: string;
   battleLog?: string;
+  /** Full enemy team for trainer battles. When set, createBattleState uses
+   *  this instead of defaulting to [enemy], enabling multi-Pokémon fights. */
+  enemyTeam?: Pokemon[];
 }
 
 export function launchBattle(options: LaunchBattleOptions): void {
@@ -19,6 +22,7 @@ export function launchBattle(options: LaunchBattleOptions): void {
     inventory: s.inventory,
     pcStorage: s.pcStorage,
     hasBoulderBadge: s.badges.includes('BOULDER'),
+    enemyTeam: options.enemyTeam,
   });
 
   s.setEnemyPokemon(options.enemy);
