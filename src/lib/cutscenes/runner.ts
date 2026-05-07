@@ -15,6 +15,7 @@
 import type { CutsceneStep } from './types';
 import type { Direction } from '../../types';
 import { useGameStore } from '../../store/gameStore';
+import { SfxController } from '../sfx';
 import { sd } from '../gameSpeed';
 
 // ── Module state ──────────────────────────────────────────────────────────────
@@ -115,6 +116,7 @@ function processNext() {
       break;
 
     case 'sound':
+      SfxController.play(step.soundId.toLowerCase());
       processNext();
       break;
 

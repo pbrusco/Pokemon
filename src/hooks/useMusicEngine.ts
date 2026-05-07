@@ -115,6 +115,7 @@ const INTERIOR_MUSIC: Record<string, MusicTrack> = {
   ELITE_FOUR_AGATHA: 'victory_road',
   ELITE_FOUR_LANCE: 'victory_road',
   ELITE_FOUR_CHAMPION: 'final_battle',
+  HALL_OF_FAME: 'hall_of_fame',
   CELADON_MART_1F: 'celadon',
   CELADON_MART_2F: 'celadon',
   CELADON_MART_3F: 'celadon',

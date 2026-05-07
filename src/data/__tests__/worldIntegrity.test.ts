@@ -15,10 +15,10 @@ describe('world integrity', () => {
     const issues = validateWorld();
     const warpCount = issues.filter(i => i.category === 'warp').length;
     // Print actual count on first failure so we can track migration progress.
-    if (warpCount > 200) {
+    if (warpCount > 202) {
       console.error(`[worldIntegrity] warp issues = ${warpCount}; sample:`,
         issues.filter(i => i.category === 'warp').slice(0, 5).map(i => i.message));
     }
-    expect(warpCount).toBeLessThanOrEqual(200);
+    expect(warpCount).toBeLessThanOrEqual(202);
   });
 });

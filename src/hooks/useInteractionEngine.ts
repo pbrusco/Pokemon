@@ -6,6 +6,7 @@ import { HM_REQUIREMENTS, ITEMS_DATABASE } from '../constants/items';
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
 import { EXPLORING, HEALING, SHOP } from '../types/gamePhase';
+import { SfxController } from '../lib/sfx';
 import { useGameStore } from '../store/gameStore';
 
 type HealLocation = { map: MapID; pos: Position };
@@ -61,6 +62,7 @@ export const useInteractionEngine = ({
     
     if (dialogue) {
       const cb = store.dialogueCallback;
+      SfxController.play('dialog_advance');
       store.setDialogue(null);
       if (cb) cb();
       return;
@@ -105,6 +107,7 @@ export const useInteractionEngine = ({
         store.setDialogue(`${name}: ¡Hola! Pareces cansado. Deberías descansar un poco...`);
 
         setTimeout(() => {
+          SfxController.play('heal');
           useGameStore.getState().setPhase(HEALING);
           setTimeout(() => {
             useGameStore.getState().setPlayerTeam(prev => prev.map(fullHeal));
@@ -118,6 +121,7 @@ export const useInteractionEngine = ({
         if (!hasParcel && !hasPokedex) {
           store.setHasParcel(true);
           store.addInventoryItem('OAK_PARCEL');
+          SfxController.play('item_get');
           store.setDialogue("DEPENDIENTE: ¡Ah! ¡Tú vienes de PUEBLO PALETA! Tengo un paquete para el PROF. OAK. ¿Se lo llevarías?");
         } else {
           store.setDialogue("DEPENDIENTE: ¡Hola! ¿Quieres comprar algo?");
@@ -133,6 +137,7 @@ export const useInteractionEngine = ({
           store.setDialogue(`MARGARITA: ${npc.dialogue[0]}`);
         } else if (!inventory['TOWN_MAP']) {
           store.addInventoryItem('TOWN_MAP');
+          SfxController.play('item_get');
           store.setDialogue("MARGARITA: ¡Aquí tienes el MAPA CIUDAD! ¡Te servirá para orientarte por KANTO!");
         } else {
           store.setDialogue(`MARGARITA: ${npc.dialogue[0]}`);
@@ -141,6 +146,7 @@ export const useInteractionEngine = ({
         if (!inventory['POKE_FLUTE']) {
           store.addInventoryItem('POKE_FLUTE');
           store.setHasPokeFlute(true);
+          SfxController.play('item_get');
           store.setDialogue('¡Recibiste la FLAUTA POKé!');
         } else {
           store.setDialogue('La FLAUTA POKé ya la tienes.');
@@ -149,6 +155,7 @@ export const useInteractionEngine = ({
         if (!inventory['SS_TICKET']) {
           store.addInventoryItem('SS_TICKET');
           store.setHasSsTicket(true);
+          SfxController.play('item_get');
           store.setDialogue('¡Recibiste el BILLETE SS!');
         } else {
           store.setDialogue('¡El barco SS ANNE está en el muelle de CIUDAD CARMÍN!');
@@ -218,6 +225,7 @@ export const useInteractionEngine = ({
           const dbItem = ITEMS_DATABASE[itemKey];
           store.setPickedItemIds(prev => [...prev, item.id]);
           store.addInventoryItem(itemKey);
+          SfxController.play('item_get');
           if (itemKey === 'SILPH_SCOPE') store.setHasSilphScope(true);
           store.setDialogue(`¡Has encontrado: ${dbItem.name}!`);
         }
@@ -226,6 +234,7 @@ export const useInteractionEngine = ({
           if (!pickedItemIds.includes('item_potion_pc')) {
             store.setPickedItemIds(prev => [...prev, 'item_potion_pc']);
             store.addInventoryItem('POTION');
+            SfxController.play('item_get');
             store.setDialogue("¡Has sacado una POCIÓN del PC!");
           } else {
             store.setDialogue("El PC está encendido.");

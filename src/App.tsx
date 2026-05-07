@@ -14,6 +14,8 @@ import { useBattleEngine } from './hooks/useBattleEngine';
 import { useMovementEngine } from './hooks/useMovementEngine';
 import { useWildPokemonEngine } from './hooks/useWildPokemonEngine';
 import { useMusicEngine } from './hooks/useMusicEngine';
+import { useSoundEngine } from './hooks/useSoundEngine';
+import { SfxController } from './lib/sfx';
 import { WorldView } from './components/WorldView';
 const WorldView3D = lazy(() => import('./components/overworld3d/WorldView3D'));
 import { Minimap } from './components/Minimap';
@@ -152,12 +154,14 @@ export default function App() {
     const s = useGameStore.getState();
     if (s.dialogue) {
       const cb = s.dialogueCallback;
+      SfxController.play('dialog_advance');
       s.setDialogue(null);
       if (cb) cb();
       return;
     }
     const ph = s.phase;
-    if (ph.type === 'MENU') { s.setPhase(ph.returnTo ?? EXPLORING); return; }
+    if (ph.type === 'MENU') { SfxController.play('menu_close'); s.setPhase(ph.returnTo ?? EXPLORING); return; }
+    if (ph.type === 'CONFIG') { SfxController.play('menu_close'); s.setPhase(ph.returnTo ?? EXPLORING); return; }
     if (ph.type === 'BATTLE' && s.showMoves) { s.setShowMoves(false); }
   }, []);
 
@@ -363,6 +367,8 @@ export default function App() {
   useWildPokemonEngine();
 
   useMusicEngine();
+
+  useSoundEngine();
 
   return (
     <div className="h-screen bg-slate-900 flex flex-col items-center justify-center overflow-hidden font-sans selection:bg-red-500 selection:text-white">

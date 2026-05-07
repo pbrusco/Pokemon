@@ -15,6 +15,8 @@ import { HMForgetMenu } from './HMForgetMenu';
 import { FlyTownSelect } from './FlyTownSelect';
 import { PokemonSummary } from './PokemonSummary';
 import { FlyAnimation } from './FlyAnimation';
+import { ConfigPanel } from './ConfigPanel';
+import { SfxController } from '../lib/sfx';
 import { useGameStore } from '../store/gameStore';
 import type { CinematicEvent } from '../hooks/useBattleVFX';
 
@@ -121,6 +123,7 @@ export const GameModals = memo(({
             text={store.dialogue}
             onComplete={() => {
               const cb = useGameStore.getState().dialogueCallback;
+              SfxController.play('dialog_advance');
               store.setDialogue(null);
               if (cb) cb();
             }}
@@ -234,6 +237,11 @@ export const GameModals = memo(({
             pokemonSprite={phase.pokemonSprite}
           />
         )}
+      </AnimatePresence>
+
+      {/* Config */}
+      <AnimatePresence>
+        {phase.type === 'CONFIG' && <ConfigPanel />}
       </AnimatePresence>
 
       {/* PC Storage */}

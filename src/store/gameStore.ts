@@ -35,6 +35,8 @@ interface GameSaveState {
 
   musicMuted: boolean;
   musicVolume: number;
+  sfxMuted: boolean;
+  sfxVolume: number;
   lastOverworldPos: Position | null;
   lastOverworldDir: Direction | null;
 
@@ -95,6 +97,8 @@ const INITIAL_SAVE_STATE: GameSaveState = {
 
   musicMuted: false,
   musicVolume: 0.5,
+  sfxMuted: false,
+  sfxVolume: 0.7,
   lastOverworldPos: { x: 123, y: 202 },
   lastOverworldDir: 'up',
 
@@ -202,6 +206,9 @@ interface GameState extends GameSaveState {
   setMusicMuted: (muted: boolean) => void;
   setMusicVolume: (volume: number) => void;
   toggleMusicMute: () => void;
+  setSfxMuted: (muted: boolean) => void;
+  setSfxVolume: (volume: number) => void;
+  toggleSfxMute: () => void;
   setLastOverworldPos: (pos: Position | null, dir: Direction | null) => void;
 
   setIsSurfing: (v: boolean) => void;
@@ -356,6 +363,9 @@ export const useGameStore = create<GameState>()(
       setMusicMuted: (muted) => set({ musicMuted: muted }),
       setMusicVolume: (volume) => set({ musicVolume: volume }),
       toggleMusicMute: () => set((state) => ({ musicMuted: !state.musicMuted })),
+      setSfxMuted: (muted) => set({ sfxMuted: muted }),
+      setSfxVolume: (volume) => set({ sfxVolume: volume }),
+      toggleSfxMute: () => set((state) => ({ sfxMuted: !state.sfxMuted })),
       setLastOverworldPos: (pos, dir) => set({ lastOverworldPos: pos, lastOverworldDir: dir }),
 
       setIsSurfing: (v) => set({ isSurfing: v }),
@@ -438,6 +448,8 @@ export const useGameStore = create<GameState>()(
         phase: state.phase,
         musicMuted: state.musicMuted,
         musicVolume: state.musicVolume,
+        sfxMuted: state.sfxMuted,
+        sfxVolume: state.sfxVolume,
       }),
     }
   )

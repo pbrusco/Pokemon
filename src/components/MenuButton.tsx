@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Menu, X } from 'lucide-react';
 import { type GamePhase, EXPLORING } from '../types/gamePhase';
+import { SfxController } from '../lib/sfx';
 import { type Dispatch, type SetStateAction } from 'react';
 
 interface MenuButtonProps {
@@ -12,8 +13,10 @@ export const MenuButton = memo(({ phase, setPhase }: MenuButtonProps) => {
   const inMenu = phase.type === 'MENU';
   const onClick = () => {
     if (inMenu) {
+      SfxController.play('menu_close');
       setPhase(phase.returnTo ?? EXPLORING);
     } else {
+      SfxController.play('menu_open');
       setPhase({ type: 'MENU', returnTo: phase });
     }
   };

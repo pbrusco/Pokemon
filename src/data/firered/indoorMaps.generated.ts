@@ -84,12 +84,13 @@ import firered_rocket_hideout_b4f from '../../artifacts/firered/maps/LAYOUT_ROCK
 import firered_ss_anne_1f from '../../artifacts/firered/maps/LAYOUT_SSANNE_1F_CORRIDOR.json';
 import firered_ss_anne_2f from '../../artifacts/firered/maps/LAYOUT_SSANNE_2F_CORRIDOR.json';
 import firered_ss_anne_3f from '../../artifacts/firered/maps/LAYOUT_SSANNE_3F_CORRIDOR.json';
-import firered_indigo_plateau_lobby from '../../artifacts/firered/maps/LAYOUT_INDIGO_PLATEAU_POKEMON_CENTER_1F.json';
-import firered_elite_four_lorelei from '../../artifacts/firered/maps/LAYOUT_POKEMON_LEAGUE_LORELEIS_ROOM.json';
-import firered_elite_four_bruno from '../../artifacts/firered/maps/LAYOUT_POKEMON_LEAGUE_BRUNOS_ROOM.json';
-import firered_elite_four_agatha from '../../artifacts/firered/maps/LAYOUT_POKEMON_LEAGUE_AGATHAS_ROOM.json';
-import firered_elite_four_lance from '../../artifacts/firered/maps/LAYOUT_POKEMON_LEAGUE_LANCES_ROOM.json';
-import firered_elite_four_champion from '../../artifacts/firered/maps/LAYOUT_POKEMON_LEAGUE_CHAMPIONS_ROOM.json';
+import firered_indigo_plateau_lobby from '../../artifacts/firered/maps/MAPID_INDIGO_PLATEAU_LOBBY.json';
+import firered_elite_four_lorelei from '../../artifacts/firered/maps/MAPID_ELITE_FOUR_LORELEI.json';
+import firered_elite_four_bruno from '../../artifacts/firered/maps/MAPID_ELITE_FOUR_BRUNO.json';
+import firered_elite_four_agatha from '../../artifacts/firered/maps/MAPID_ELITE_FOUR_AGATHA.json';
+import firered_elite_four_lance from '../../artifacts/firered/maps/MAPID_ELITE_FOUR_LANCE.json';
+import firered_elite_four_champion from '../../artifacts/firered/maps/MAPID_ELITE_FOUR_CHAMPION.json';
+import firered_hall_of_fame from '../../artifacts/firered/maps/MAPID_HALL_OF_FAME.json';
 import firered_celadon_mart_1f from '../../artifacts/firered/maps/LAYOUT_CELADON_CITY_DEPARTMENT_STORE_1F.json';
 import firered_celadon_mart_2f from '../../artifacts/firered/maps/LAYOUT_CELADON_CITY_DEPARTMENT_STORE_2F.json';
 import firered_celadon_mart_3f from '../../artifacts/firered/maps/LAYOUT_CELADON_CITY_DEPARTMENT_STORE_3F.json';
@@ -197,6 +198,7 @@ export const FIRERED_INDOOR_MAPS = {
   ELITE_FOUR_AGATHA: fromFirered(firered_elite_four_agatha),
   ELITE_FOUR_LANCE: fromFirered(firered_elite_four_lance),
   ELITE_FOUR_CHAMPION: fromFirered(firered_elite_four_champion),
+  HALL_OF_FAME: fromFirered(firered_hall_of_fame),
   CELADON_MART_1F: fromFirered(firered_celadon_mart_1f),
   CELADON_MART_2F: fromFirered(firered_celadon_mart_2f),
   CELADON_MART_3F: fromFirered(firered_celadon_mart_3f),

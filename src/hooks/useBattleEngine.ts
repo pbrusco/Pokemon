@@ -6,7 +6,9 @@ import { fullHeal } from '../lib/healUtils';
 import { useGameStore } from '../store/gameStore';
 import { logObservation } from '../lib/eventLog';
 import type { CinematicEvent } from './useBattleVFX';
+import { SfxController } from '../lib/sfx';
 import { CINEMATIC_DURATION_MS } from './useBattleVFX';
+import type { MapID } from '../types';
 
 interface UseBattleEngineParams {
   battleStateRef: MutableRefObject<BattleState | null>;
@@ -76,6 +78,9 @@ export function useBattleEngine({
           delay += sd(500);
           break;
         case 'sound':
+          if (effect.payload) {
+            setTimeout(() => SfxController.play(String(effect.payload).toLowerCase()), d);
+          }
           break;
         case 'player_anim':
           setTimeout(() => {
@@ -83,6 +88,7 @@ export function useBattleEngine({
             if (effect.payload === 'attack' && effect.moveName) {
               setCinematicEvent({ attacker: 'player', moveName: effect.moveName, moveType: effect.moveType ?? 'normal' });
             }
+            if (effect.payload === 'hit') SfxController.play('hit');
           }, d);
           if (effect.payload === 'attack') delay += sd(CINEMATIC_DURATION_MS);
           else if (effect.payload === 'hit' || effect.payload === 'faint') delay += sd(400);
@@ -93,6 +99,7 @@ export function useBattleEngine({
             if (effect.payload === 'attack' && effect.moveName) {
               setCinematicEvent({ attacker: 'enemy', moveName: effect.moveName, moveType: effect.moveType ?? 'normal' });
             }
+            if (effect.payload === 'hit') SfxController.play('hit');
           }, d);
           if (effect.payload === 'attack') delay += sd(CINEMATIC_DURATION_MS);
           else if (effect.payload === 'hit' || effect.payload === 'faint') delay += sd(400);
@@ -113,8 +120,9 @@ export function useBattleEngine({
       logObservation({ k: 'obs_battle_outcome', outcome: newState.outcome });
     }
     if (newState.outcome === 'player_win') {
+      const trainerId = newState.trainerName;
       if (newState.isTrainerBattle) {
-        const trainer = npcs[s.currentMap]?.find(n => n.id === newState.trainerName);
+        const trainer = npcs[s.currentMap]?.find(n => n.id === trainerId);
         if (trainer) {
           const moneyReward = newState.enemyPokemon.level * 20;
           s.setDefeatedTrainers(prev => [...prev, trainer.id]);
@@ -148,8 +156,32 @@ export function useBattleEngine({
         const fs = useGameStore.getState();
         fs.setInventory(newState.inventory);
         fs.setActiveBattle(null);
-        fs.setPhase(EXPLORING);
         setEnemyAnim('idle');
+
+        const e4Next: Record<string, [MapID, number, number]> = {
+          lorelei: ['ELITE_FOUR_BRUNO' as MapID, 6, 11],
+          bruno:   ['ELITE_FOUR_AGATHA' as MapID, 6, 11],
+          agatha:  ['ELITE_FOUR_LANCE' as MapID, 6, 11],
+          lance:   ['ELITE_FOUR_CHAMPION' as MapID, 6, 11],
+        };
+
+        if (trainerId && e4Next[trainerId]) {
+          const [nextMap, mx, my] = e4Next[trainerId];
+          fs.setCurrentMap(nextMap);
+          fs.setPlayerPos({ x: mx, y: my });
+          fs.setDirection('up');
+          fs.setPhase(EXPLORING);
+          fs.setDialogue(`¡Has ganado! La puerta se abre hacia la siguiente sala...`);
+        } else if (trainerId === 'rival_champion') {
+          fs.setCurrentMap('HALL_OF_FAME' as MapID);
+          fs.setPlayerPos({ x: 6, y: 9 });
+          fs.setDirection('up');
+          fs.setPhase(EXPLORING);
+          fs.setDialogue('PROF. OAK: ¡Increíble! ¡Has derrotado al campeón!');
+        } else {
+          fs.setPhase(EXPLORING);
+        }
+
         if (fs.storyStep === 'PICKED_STARTER') {
           fs.setStoryStep('RIVAL_BATTLE');
           fs.setDialogue('AZUL: ¡Maldición! ¡He perdido! Pero no volverá a pasar.');
@@ -164,7 +196,7 @@ export function useBattleEngine({
         fs.setCurrentMap(healLocation.map);
         fs.setPlayerPos(healLocation.pos);
       }, sd(1200));
-      setTimeout(() => useGameStore.getState().setPhase(HEALING), sd(2400));
+      setTimeout(() => { SfxController.play('heal'); useGameStore.getState().setPhase(HEALING); }, sd(2400));
       setTimeout(() => {
         useGameStore.getState().setPlayerTeam(t => t.map(fullHeal));
       }, sd(2400) + sd(800));
@@ -203,10 +235,11 @@ export function useBattleEngine({
     s.setPhase(battle(B_CATCHING));
     s.setCatchResult(null);
     s.setBattleLog('¡Pablo lanzó una POKÉ BALL!');
+    SfxController.play('pokeball_throw');
 
     logObservation({ k: 'obs_catch', result: newState.outcome === 'caught' ? 'caught' : 'escaped' });
     if (newState.outcome === 'caught') {
-      setTimeout(() => useGameStore.getState().setCatchResult(true), sd(2800));
+      setTimeout(() => { SfxController.play('pokeball_catch'); useGameStore.getState().setCatchResult(true); }, sd(2800));
       setTimeout(() => {
         const fs = useGameStore.getState();
         fs.setCatchResult(null);

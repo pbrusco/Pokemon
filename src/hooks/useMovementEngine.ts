@@ -9,6 +9,7 @@ import { useGameStore } from '../store/gameStore';
 import { type MapID } from '../types';
 import { launchBattle } from '../lib/launchBattle';
 import { logObservation } from '../lib/eventLog';
+import { SfxController } from '../lib/sfx';
 import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES, getKantoRegion, WATER_WILD_POKEMON_DATABASE } from '../constants/world';
 import { calcHp } from '../lib/damage';
 
@@ -79,7 +80,7 @@ function applyOverworldPoison(
       fs.setCurrentMap(validLoc.map);
       fs.setPlayerPos(validLoc.pos);
     }, sd(1200));
-    setTimeout(() => useGameStore.getState().setPhase(HEALING), sd(2400));
+    setTimeout(() => { SfxController.play('heal'); useGameStore.getState().setPhase(HEALING); }, sd(2400));
     setTimeout(() => {
       useGameStore.getState().setPlayerTeam(newTeam.map(fullHeal));
     }, sd(2400) + sd(800));
@@ -138,6 +139,7 @@ export function useMovementEngine({
   }, []);
 
   const initBattle = useCallback((enemyTeam: Pokemon[], isTrainer: boolean, trainerName?: string) => {
+    SfxController.play('battle_start');
     launchBattle({ enemy: enemyTeam[0], isTrainer, trainerName, enemyTeam: isTrainer ? enemyTeam : undefined });
   }, []);
 
@@ -234,12 +236,13 @@ export function useMovementEngine({
         !canWalk ||
         npcAtNext ||
         objectAtNext
-      ) return;
+      ) { SfxController.play('bump'); return; }
     }
 
     // ── Collision with overworld wild pokemon ──
     if (wildAtNext && !ghostMode) {
         logObservation({ k: 'obs_encounter', map: currentMap, pokemon: wildAtNext.pokemon.name, level: wildAtNext.pokemon.level });
+        SfxController.play('battle_start');
         launchBattle({
           enemy: wildAtNext.pokemon,
           isTrainer: false,
@@ -280,6 +283,7 @@ export function useMovementEngine({
       const fs = useGameStore.getState();
       fs.setIsMoving(false);
       if (warp) {
+        SfxController.play('warp');
         const isEnteringInterior = warp.targetMap !== 'KANTO_OVERWORLD' && currentMap === 'KANTO_OVERWORLD';
         if (fs.isSurfing) fs.setIsSurfing(false);
         if (isEnteringInterior) {

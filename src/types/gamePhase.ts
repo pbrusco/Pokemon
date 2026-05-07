@@ -37,6 +37,7 @@ export type GamePhase =
   | { type: 'BATTLE'; sub: BattlePhase }
   | { type: 'BLACKOUT' }
   | { type: 'HEALING' }
+  | { type: 'CONFIG'; returnTo?: GamePhase }
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -2,6 +2,7 @@ import { type RefObject, useEffect, useRef } from 'react';
 import { type Direction } from '../types';
 import { battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING } from '../types/gamePhase';
 import { type BattleAction } from '../lib/battleEngine';
+import { SfxController } from '../lib/sfx';
 import { useGameStore } from '../store/gameStore';
 
 // How long (ms) to wait after turning before walking begins if key is held.
@@ -82,7 +83,14 @@ export function useInputHandler({
         if (e.key === '1') { store.setViewMode('3d'); return; }
         if (e.key === '2') { store.setViewMode('2d'); return; }
         if (e.key === 'Tab') { e.preventDefault(); if (store.hasPokedex) store.setPhase({ type: 'POKEDEX', returnTo: EXPLORING }); return; }
-        if (e.key === '`') { store.setPhase({ type: 'MENU', returnTo: EXPLORING }); return; }
+      }
+
+      if (e.key === '`') {
+        const current = store.phase;
+        const isMenu = current.type === 'MENU';
+        SfxController.play(isMenu ? 'menu_close' : 'menu_open');
+        store.setPhase(isMenu ? (current.returnTo ?? EXPLORING) : { type: 'MENU', returnTo: current });
+        return;
       }
 
       if (e.key === 'g' || e.key === 'G') {
@@ -98,6 +106,7 @@ export function useInputHandler({
       if (store.dialogue) {
         if (!e.repeat) {
           const cb = store.dialogueCallback;
+          SfxController.play('dialog_advance');
           store.setDialogue(null);
           if (cb) cb();
         }
