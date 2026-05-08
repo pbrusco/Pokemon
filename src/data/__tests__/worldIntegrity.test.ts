@@ -40,7 +40,7 @@ describe('world integrity', () => {
     it('orphan door tiles (buildings without interior maps)', () => {
       const issues = validateWorld();
       const count = issues.filter(i => i.message.includes('door" tile')).length;
-      expect(count).toBeLessThanOrEqual(59);
+      expect(count).toBeLessThanOrEqual(0);
     });
 
     it('warps must resolve to a valid landing tile (hard 0)', () => {
@@ -73,7 +73,7 @@ describe('world integrity', () => {
       const count = issues.filter(i =>
         i.category === 'npc' && i.message.includes('unreachable')
       ).length;
-      expect(count).toBeLessThanOrEqual(55);
+      expect(count).toBeLessThanOrEqual(30);
     });
 
     it('items on non-walkable tiles', () => {

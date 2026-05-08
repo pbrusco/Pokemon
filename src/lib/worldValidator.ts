@@ -141,12 +141,15 @@ export function validateWorld(): WorldValidationIssue[] {
         issues.push({ category: 'npc', message: `out-of-bounds: ${label}` });
         continue;
       }
-      // NPCs are sprite objects layered on top of tiles. They can legitimately
-      // stand on solid metatiles (statues, behind shop counters, surfers on
-      // water). What matters is reachability: the player must be able to face
-      // them from a walkable tile, possibly across a counter (Pokémon Center
-      // / Mart NPCs sit behind a counter that passes interactions through).
+      // Reachability check: NPC must have at least one adjacent tile the
+      // player can stand on to face and interact with them.
+      // - Walkable tiles (path, floor, etc.) work directly
+      // - 'counter' tiles pass interactions through to the tile behind
+      // - Water tiles are reachable via Surf (player stands on water)
+      // - Wall/statue/table tiles work if the NPC is on them and the neighbor
+      //   is walkable (player stands next to the solid tile the NPC occupies)
       const { x, y } = npc.position;
+      const npcTile = tileAt(map.tiles, x, y);
       const dirs = [{dx:1,dy:0},{dx:-1,dy:0},{dx:0,dy:1},{dx:0,dy:-1}];
       const reachable = dirs.some(({dx, dy}) => {
         const direct = tileAt(map.tiles, x + dx, y + dy);
@@ -155,10 +158,13 @@ export function validateWorld(): WorldValidationIssue[] {
           const beyond = tileAt(map.tiles, x + dx * 2, y + dy * 2);
           return beyond?.walkable === true;
         }
+        // NPCs on water are reachable if at least one neighbor is water too
+        // (player Surfs adjacent to them)
+        if (npcTile?.type === 'water' && direct?.type === 'water') return true;
         return false;
       });
       if (!reachable) {
-        const t = tileAt(map.tiles, x, y)!;
+        const t = npcTile!;
         issues.push({ category: 'npc', message: `unreachable (${t.type}, no walkable neighbor): ${label}` });
       }
       const prev = seenNpcIds.get(npc.id);
