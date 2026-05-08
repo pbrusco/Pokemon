@@ -219,7 +219,8 @@ export function useMovementEngine({
     }
 
     const npcAtNext = !isLedgeJump && npcs[currentMap]?.some(n => n.position.x === nextX && n.position.y === nextY);
-    const objectAtNext = !isLedgeJump && items[currentMap]?.some(i => i.type === 'object' && i.position.x === nextX && i.position.y === nextY);
+    const isSignObject = (i: { id?: string; sprite?: string }) => i.id?.startsWith('sign_') || i.sprite === '🪧';
+    const objectAtNext = !isLedgeJump && items[currentMap]?.some(i => i.type === 'object' && !isSignObject(i) && i.position.x === nextX && i.position.y === nextY);
     const wildAtNext = !isLedgeJump && store.wildPokemon.find(p => p.position.x === nextX && p.position.y === nextY);
 
     // Warp tiles are walkable by definition — pokered teleports the player onto
