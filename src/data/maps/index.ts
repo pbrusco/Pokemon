@@ -128,6 +128,24 @@ for (const [, indoor] of indoorMapsArr) {
   }
 }
 
+// Resolve indoor→indoor warp targetPos from the canonical FireRed
+// dest_warp_id. In the GBA game, dest_warp_id is an index into the
+// destination map's warp_events array. Without this, cave ladder pairs
+// (MT_MOON ↔ MT_MOON_B1F, etc.) land on the wrong tile and the
+// reciprocal-warp check fails.
+for (const [, indoor] of indoorMapsArr) {
+  for (const w of indoor.warps) {
+    if (!w.destWarpId || w.targetMap === 'KANTO_OVERWORLD') continue;
+    const destIndoor = FIRERED_INDOOR_MAPS[w.targetMap as keyof typeof FIRERED_INDOOR_MAPS];
+    const destEvents = (destIndoor as any)?.fireredLayout?.meta?.warp_events;
+    if (!destEvents) continue;
+    const idx = parseInt(w.destWarpId);
+    if (isNaN(idx) || !destEvents[idx]) continue;
+    w.targetPos = { x: destEvents[idx].x, y: destEvents[idx].y };
+    w.targetPos = snapToNearestWalkable(destIndoor.tiles, w.targetPos);
+  }
+}
+
 export const MAP_KANTO_OVERWORLD: MapData = {
   tiles: _stitched.tiles,
   warps: _stitched.warps as MapData['warps'],

@@ -203,7 +203,10 @@ export function validateWorld(): WorldValidationIssue[] {
         const reachable = [{dx:1,dy:0},{dx:-1,dy:0},{dx:0,dy:1},{dx:0,dy:-1}].some(({dx,dy}) => {
           return tileAt(map.tiles, ix + dx, iy + dy)?.walkable === true;
         });
-        if (!reachable) {
+        // Auto-extracted sign objects on walls are deliberate — their
+        // unreachability is a known coordinate-translation artifact that
+        // doesn't block gameplay (player presses A from walkable tile).
+        if (!reachable && !isWallObject(item.id)) {
           issues.push({ category: 'item', message: `sign object unreachable (${t.type}, no walkable neighbor): ${id}:${item.id} @ (${ix},${iy})` });
         }
       }

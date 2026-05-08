@@ -66,7 +66,7 @@ export interface FireredParsedMap {
   /** Per-tile semantics derived from FireRed collision bits + metatile behavior. */
   tiles: Tile[][];
   /** Resolved warps in our coord space. `targetMap` is validated against MapID at the call site. */
-  warps: Array<{ x: number; y: number; targetMap: MapIdString; targetPos: Position; targetDir?: Direction }>;
+  warps: Array<{ x: number; y: number; targetMap: MapIdString; targetPos: Position; targetDir?: Direction; destWarpId?: string }>;
 }
 
 /**
@@ -154,7 +154,7 @@ export function bridgeFireredLayout(layout: FireredLayoutJson): FireredParsedMap
         ? exitPos
         : { x: w.x, y: w.y };
 
-      return { x: w.x, y: w.y, targetMap, targetPos };
+      return { x: w.x, y: w.y, targetMap, targetPos, destWarpId: w.dest_warp_id };
     })
     .filter((w): w is NonNullable<typeof w> => w !== null);
 

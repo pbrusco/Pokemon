@@ -34,13 +34,13 @@ describe('world integrity', () => {
       const count = issues.filter(i =>
         i.category === 'warp' && !i.message.includes('"door" tile')
       ).length;
-      expect(count).toBeLessThanOrEqual(73);
+      expect(count).toBeLessThanOrEqual(4);
     });
 
-    it('orphan door tiles (buildings without interior maps)', () => {
+    it('orphan door tiles (hard 0)', () => {
       const issues = validateWorld();
       const count = issues.filter(i => i.message.includes('door" tile')).length;
-      expect(count).toBeLessThanOrEqual(0);
+      expect(count).toBe(0);
     });
 
     it('warps must resolve to a valid landing tile (hard 0)', () => {
@@ -62,26 +62,26 @@ describe('world integrity', () => {
       expect(count).toBe(0);
     });
 
-    it('unreachable sign objects', () => {
+    it('unreachable sign objects (hard 0)', () => {
       const issues = validateWorld();
       const count = issues.filter(i => i.message.includes('sign object unreachable')).length;
-      expect(count).toBeLessThanOrEqual(2);
+      expect(count).toBe(0);
     });
 
-    it('unreachable NPCs', () => {
+    it('unreachable NPCs (hard 0)', () => {
       const issues = validateWorld();
       const count = issues.filter(i =>
         i.category === 'npc' && i.message.includes('unreachable')
       ).length;
-      expect(count).toBeLessThanOrEqual(30);
+      expect(count).toBe(0);
     });
 
-    it('items on non-walkable tiles', () => {
+    it('items on non-walkable tiles (hard 0)', () => {
       const issues = validateWorld();
       const count = issues.filter(i =>
         i.category === 'item' && i.message.includes('on non-walkable')
       ).length;
-      expect(count).toBeLessThanOrEqual(0);
+      expect(count).toBe(0);
     });
   });
 

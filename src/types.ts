@@ -10,7 +10,7 @@ export interface Position {
 
 export interface MapData {
   tiles: Tile[][];
-  warps: Array<{ x: number; y: number; targetMap: MapID; targetPos: Position; targetDir?: Direction }>;
+  warps: Array<{ x: number; y: number; targetMap: MapID; targetPos: Position; targetDir?: Direction; destWarpId?: string }>;
   /** All maps now flow through the FireRed pipeline. */
   firered?: true;
   /**
