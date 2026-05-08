@@ -34,7 +34,9 @@ function resolveMapAndOffset(fireredMapId: string): { mapId: MapID; offsetX: num
   const zoneName = fireredMapId
     .replace(/^MAP_/, '')
     .replace(/^ROUTE(\d)/, 'ROUTE_$1')
-    .replace(/^ROUTE21_NORTH$/, 'ROUTE_21')
+    // ROUTE_21 is split in FireRed into NORTH and SOUTH halves; the stitched
+    // overworld merges them under one zone offset.
+    .replace(/^ROUTE_21_(NORTH|SOUTH)$/, 'ROUTE_21')
     .replace(/^INDIGO_PLATEAU_EXTERIOR$/, 'INDIGO_PLATEAU')
     .replace(/^SAFFRON_CITY_CONNECTION$/, 'SAFFRON_CITY');
   const zone = (KANTO_FIRERED_ZONE_OFFSETS as Record<string, { x: number; y: number }>)[zoneName];
@@ -422,8 +424,7 @@ function resolveWildMapId(fireredMapId: string, mapId: MapID): string | null {
   const zoneName = fireredMapId
     .replace(/^MAP_/, '')
     .replace(/^ROUTE(\d)/, 'ROUTE_$1')
-    .replace(/^ROUTE21_NORTH$/, 'ROUTE_21')
-    .replace(/^ROUTE21_SOUTH$/, 'ROUTE_21')
+    .replace(/^ROUTE_21_(NORTH|SOUTH)$/, 'ROUTE_21')
     .replace(/^INDIGO_PLATEAU_EXTERIOR$/, 'INDIGO_PLATEAU');
   return (KANTO_FIRERED_ZONE_OFFSETS as Record<string, unknown>)[zoneName] ? zoneName : null;
 }

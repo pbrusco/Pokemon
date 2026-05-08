@@ -62,6 +62,72 @@ for (const w of _stitched.warps) {
   if (entry) w.targetPos = { x: entry.x, y: entry.y };
 }
 
+// Special-case: VIRIDIAN_FOREST is an indoor map but its outdoor entrances
+// in Route 2 are tiny gate buildings (MAP_ROUTE2_VIRIDIAN_FOREST_*_ENTRANCE)
+// that collapse to KANTO_OVERWORLD. The auto-pin loop above can't see those,
+// so the forest's exit warps are left at raw forest-local coords (which land
+// on KANTO_OVERWORLD wall tiles). Hand-pin them to the Route 2 entrance
+// tiles, then add the matching outdoor → forest warps so the round-trip
+// works (Route 2 north & south entrances). Numbers come from FireRed.
+const FOREST_NORTH_ENTRY = { x: 65, y: 114 };
+const FOREST_SOUTH_ENTRY = { x: 65, y: 152 };
+const forest = FIRERED_INDOOR_MAPS.VIRIDIAN_FOREST;
+if (forest) {
+  for (const w of forest.warps) {
+    if (w.targetMap !== 'KANTO_OVERWORLD') continue;
+    // Forest top (y < 30) → Route 2 north entrance; forest bottom → south.
+    w.targetPos = w.y < 30 ? FOREST_NORTH_ENTRY : FOREST_SOUTH_ENTRY;
+  }
+}
+// Outdoor → forest warps. Route 2 north gate at world (65–66, 113); south
+// gate at (65–66, 151). Player walks onto the gate tile and lands inside
+// the forest at the matching exit position (top of forest for north entry,
+// bottom for south entry).
+_stitched.warps.push(
+  { x: 65, y: 113, targetMap: 'VIRIDIAN_FOREST', targetPos: { x: 5, y: 10 } },
+  { x: 66, y: 113, targetMap: 'VIRIDIAN_FOREST', targetPos: { x: 5, y: 10 } },
+  { x: 65, y: 151, targetMap: 'VIRIDIAN_FOREST', targetPos: { x: 29, y: 61 } },
+  { x: 66, y: 151, targetMap: 'VIRIDIAN_FOREST', targetPos: { x: 29, y: 61 } },
+);
+
+// Snap any warp whose target landed on a non-walkable tile to the nearest
+// walkable tile (BFS, max radius 6). The runtime's getValidTeleportLocation
+// otherwise crashes the player back to PLAYERS_HOUSE_2F with a SYSTEM ERROR
+// overlay — which is much worse than landing one tile next to the door.
+function snapToNearestWalkable(tiles: MapData['tiles'], pos: { x: number; y: number }): { x: number; y: number } {
+  const inB = (x: number, y: number) => y >= 0 && y < tiles.length && x >= 0 && x < tiles[0].length;
+  if (inB(pos.x, pos.y) && tiles[pos.y][pos.x].walkable) return pos;
+  const seen = new Set<string>();
+  const queue: Array<{ x: number; y: number; d: number }> = [{ ...pos, d: 0 }];
+  while (queue.length) {
+    const c = queue.shift()!;
+    const k = `${c.x},${c.y}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    if (c.d > 15) continue;
+    if (inB(c.x, c.y) && tiles[c.y][c.x].walkable) return { x: c.x, y: c.y };
+    for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+      queue.push({ x: c.x + dx, y: c.y + dy, d: c.d + 1 });
+    }
+  }
+  return pos; // give up — caller's getValidTeleportLocation will fall back
+}
+
+const indoorMapsArr = Object.entries(FIRERED_INDOOR_MAPS) as Array<[string, MapData]>;
+for (const w of _stitched.warps) {
+  const target = FIRERED_INDOOR_MAPS[w.targetMap as keyof typeof FIRERED_INDOOR_MAPS];
+  if (!target || !w.targetPos) continue;
+  w.targetPos = snapToNearestWalkable(target.tiles, w.targetPos);
+}
+for (const [, indoor] of indoorMapsArr) {
+  for (const w of indoor.warps) {
+    if (!w.targetPos) continue;
+    const target = w.targetMap === 'KANTO_OVERWORLD' ? _stitched : FIRERED_INDOOR_MAPS[w.targetMap as keyof typeof FIRERED_INDOOR_MAPS];
+    if (!target) continue;
+    w.targetPos = snapToNearestWalkable(target.tiles, w.targetPos);
+  }
+}
+
 export const MAP_KANTO_OVERWORLD: MapData = {
   tiles: _stitched.tiles,
   warps: _stitched.warps as MapData['warps'],

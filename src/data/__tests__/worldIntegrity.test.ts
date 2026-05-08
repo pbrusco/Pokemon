@@ -34,21 +34,16 @@ describe('world integrity', () => {
       const count = issues.filter(i =>
         i.category === 'warp' && !i.message.includes('"door" tile')
       ).length;
-      expect(count).toBeLessThanOrEqual(158);
+      expect(count).toBeLessThanOrEqual(73);
     });
 
     it('orphan door tiles (buildings without interior maps)', () => {
       const issues = validateWorld();
       const count = issues.filter(i => i.message.includes('door" tile')).length;
-      expect(count).toBeLessThanOrEqual(61);
+      expect(count).toBeLessThanOrEqual(59);
     });
 
-    // Hard ratchet (no baseline drift allowed): warps that would crash the
-    // game with the SYSTEM ERROR overlay because their target is unknown,
-    // out-of-bounds, missing, or lands on a non-walkable tile. The runtime
-    // falls back to PLAYERS_HOUSE_2F when this happens — which is much worse
-    // than catching it here.
-    it('warps must resolve to a valid landing tile', () => {
+    it('warps must resolve to a valid landing tile (hard 0)', () => {
       const issues = validateWorld();
       const crashable = issues.filter(i =>
         i.category === 'warp' && (
@@ -58,31 +53,22 @@ describe('world integrity', () => {
           i.message.includes('missing targetPos')
         )
       );
-      expect(crashable.length).toBeLessThanOrEqual(60);
+      expect(crashable.length).toBe(0);
     });
 
-    // Sign tiles always have either a custom object (Spanish dialogue) or a
-    // FireRed-extracted auto-sign object. Any orphan would fall back to
-    // "Es un cartel." which is OK but not great — we keep this at 0.
     it('sign tiles always have an interaction object (hard 0)', () => {
       const issues = validateWorld();
       const count = issues.filter(i => i.message.includes('sign" tile')).length;
       expect(count).toBe(0);
     });
 
-    // Sign objects (sprite 🪧 / id "sign_*") must sit on actual sign tiles —
-    // otherwise the player can't interact with them at the canonical FireRed
-    // signpost position.
-    it('sign objects on non-sign tiles', () => {
+    it('unreachable sign objects', () => {
       const issues = validateWorld();
-      const count = issues.filter(i => i.message.includes('sign object on non-sign')).length;
-      expect(count).toBeLessThanOrEqual(123);
+      const count = issues.filter(i => i.message.includes('sign object unreachable')).length;
+      expect(count).toBeLessThanOrEqual(2);
     });
 
-    // NPCs on solid tiles (counters, statues, water) are fine as long as the
-    // player can face them from a walkable neighbor. We only flag NPCs with
-    // no walkable adjacent tile — those are truly stranded and need coord fixes.
-    it('unreachable NPCs (no walkable neighbor, even across counters)', () => {
+    it('unreachable NPCs', () => {
       const issues = validateWorld();
       const count = issues.filter(i =>
         i.category === 'npc' && i.message.includes('unreachable')
@@ -95,7 +81,7 @@ describe('world integrity', () => {
       const count = issues.filter(i =>
         i.category === 'item' && i.message.includes('on non-walkable')
       ).length;
-      expect(count).toBeLessThanOrEqual(1);
+      expect(count).toBeLessThanOrEqual(0);
     });
   });
 

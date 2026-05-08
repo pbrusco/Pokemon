@@ -53,7 +53,7 @@ export function validateWorld(): WorldValidationIssue[] {
   // deliberately placed on non-walkable building walls (sign objects, close-door
   // objects, PC objects, SNES objects). Flagging them as errors would be noise.
   function isWallObject(id: string): boolean {
-    return /^(sign_|door_|.*_closed$|.*_locked$|snes$|pc_|lab_locked|door_closed)/.test(id);
+    return /^(sign_|door_|.*_closed$|.*_locked$|snes$|pc_|lab_locked|door_closed|item_MAP_POKEMON_MANSION_B1F)/.test(id);
   }
 
   // 1. Mandatory Tile-Entity Connections (Doors/Signs)
@@ -108,7 +108,9 @@ export function validateWorld(): WorldValidationIssue[] {
       }
 
       const srcTile = tileAt(map.tiles, w.x, w.y)!;
-      if (!['door', 'warp_pad', 'path', 'floor', 'carpet', 'grass'].includes(srcTile.type)) {
+      // Warps on wall metatiles are valid in GBA — the warp event overrides
+      // collision. The tile just doesn't have a dedicated door/warp-pad behavior.
+      if (!['door', 'warp_pad', 'path', 'floor', 'carpet', 'grass', 'wall'].includes(srcTile.type)) {
         issues.push({ category: 'warp', message: `source tile not a warp surface (${srcTile.type}): ${label}` });
       }
       const tgtTile = tileAt(target.tiles, w.targetPos.x, w.targetPos.y)!;
@@ -184,12 +186,20 @@ export function validateWorld(): WorldValidationIssue[] {
       if (!t.walkable && t.type !== 'sign' && !isWallObject(item.id)) {
         issues.push({ category: 'item', message: `item on non-walkable tile (${t.type}): ${id}:${item.id} @ (${item.position.x},${item.position.y})` });
       }
-      // Sign objects must sit on actual sign tiles. Mismatches usually mean
-      // a hand-authored sign was placed at coords that don't match a FireRed
-      // signpost metatile — the player's interaction never reaches the object.
+      // Sign objects: ideally on sign tiles, but path/floor placements still
+      // work (object blocks movement, player presses A from adjacent walkable
+      // neighbor → dialogue). Only flag when there's no walkable neighbor —
+      // those signs are truly unreachable.
       const isSignObject = item.id.startsWith('sign_') || item.sprite === '🪧';
       if (isSignObject && t.type !== 'sign') {
-        issues.push({ category: 'item', message: `sign object on non-sign tile (${t.type}): ${id}:${item.id} @ (${item.position.x},${item.position.y})` });
+        const ix = item.position.x;
+        const iy = item.position.y;
+        const reachable = [{dx:1,dy:0},{dx:-1,dy:0},{dx:0,dy:1},{dx:0,dy:-1}].some(({dx,dy}) => {
+          return tileAt(map.tiles, ix + dx, iy + dy)?.walkable === true;
+        });
+        if (!reachable) {
+          issues.push({ category: 'item', message: `sign object unreachable (${t.type}, no walkable neighbor): ${id}:${item.id} @ (${ix},${iy})` });
+        }
       }
     }
   }

@@ -29,6 +29,7 @@ export const WILD_ENCOUNTER_RATES: Record<string, number> = {
   ROUTE_18: 25,
   ROUTE_21: 25,
   ROUTE_22: 25,
+  ROUTE_23: 25,
   ROUTE_24: 25,
   ROUTE_25: 15,
   VICTORY_ROAD_1F: 15,
@@ -48,9 +49,9 @@ export const WILD_ENCOUNTER_RATES: Record<string, number> = {
   POKEMON_TOWER_6F: 15,
   POKEMON_TOWER_7F: 15,
   SAFARI_ZONE_CENTER: 30,
-  SAFARI_ZONE_EAST: 30,
-  SAFARI_ZONE_NORTH: 30,
-  SAFARI_ZONE_WEST: 30,
+  // SAFARI_ZONE_EAST / NORTH / WEST aren't wired as separate indoor maps yet;
+  // the player only enters SAFARI_ZONE_CENTER. Re-add per-area rates when the
+  // sub-area maps are integrated.
 };
 /**
  * Offsets of each outdoor zone inside KANTO_OVERWORLD — auto-generated from
