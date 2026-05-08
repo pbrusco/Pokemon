@@ -41,4 +41,6 @@ export const TILE_VOXEL: Record<Tile['type'], VoxelDef> = {
   ledge_right: { kind: 'object', height: 0.25, color: '#6a8a4a' },
   cave:        { kind: 'floor',  height: 0,    color: '#4a4a40', textureKey: 'floor' },
   sand:        { kind: 'floor',  height: 0,    color: '#d8c890', textureKey: 'path' },
+  warp_pad:    { kind: 'floor',  height: 0,    color: '#6060a0', emissive: '#2a2a80', emissiveIntensity: 0.3 },
+  counter:     { kind: 'object', height: 0.6,  color: '#a0683a' },
 };

@@ -73,13 +73,15 @@ export function bridgeStitchedKanto(stitch: StitchedDescriptor): MultiZoneFirere
         const wx = z.offsetX + x;
         const wy = z.offsetY + y;
         if (wx < 0 || wy < 0 || wx >= stitch.width || wy >= stitch.height) continue;
-        const blocked = z.layout.collision[y][x] !== 0;
-        if (blocked) {
-          tiles[wy][wx] = WALL;
-          continue;
-        }
         const behavior = behaviorGrid?.[y]?.[x] ?? 0;
         tiles[wy][wx] = tileFromBehavior(behavior, true);
+
+        // Override with WALL if this metatile has collision AND isn't a
+        // known "solid but functional" tile (door, sign, warp_pad, boulder, counter).
+        const blocked = z.layout.collision[y][x] !== 0;
+        if (blocked && tiles[wy][wx].type !== 'door' && tiles[wy][wx].type !== 'sign' && tiles[wy][wx].type !== 'warp_pad' && tiles[wy][wx].type !== 'boulder' && tiles[wy][wx].type !== 'counter' && !tiles[wy][wx].blockFrom) {
+          tiles[wy][wx] = WALL;
+        }
       }
     }
   }
@@ -96,6 +98,11 @@ export function bridgeStitchedKanto(stitch: StitchedDescriptor): MultiZoneFirere
       if (!w.dest_map || stitchedMapIds.has(w.dest_map)) continue;
       const targetMap = FIRERED_MAP_ID_TO_OURS[w.dest_map];
       if (!targetMap) continue;
+      // Skip warps that resolve to KANTO_OVERWORLD itself — these are gate /
+      // connection rooms (e.g., MAP_ROUTE2_VIRIDIAN_FOREST_*_ENTRANCE) that
+      // got collapsed onto the outdoor map. They can't carry a meaningful
+      // targetPos and otherwise produce a (0,0) → safe-zone runtime crash.
+      if (targetMap === 'KANTO_OVERWORLD') continue;
       // Use FireRed's canonical destination warp coord (the destination's
       // warp_event at dest_warp_id resolves at runtime via the per-map
       // exit-override table in bridge.ts).

@@ -29,20 +29,79 @@ const ENCOUNTER_BEHAVIORS = new Set([
   0x0b, // MB_INDOOR_ENCOUNTER (cave floors)
 ]);
 
-const IMPASSABLE_DIRECTIONAL = new Set([
-  0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
+// MB_IMPASSABLE_<DIR> metatiles aren't full walls — they block movement only
+// from the named direction(s). E.g. MB_IMPASSABLE_EAST blocks the player
+// trying to walk east INTO this tile, but they can enter it from the north,
+// south, or west. This produces ledge-style barriers like fence corners.
+const IMPASSABLE_DIRECTIONAL: Record<number, Tile['blockFrom']> = {
+  0x30: ['right'],            // MB_IMPASSABLE_EAST  → can't enter walking east
+  0x31: ['left'],             // MB_IMPASSABLE_WEST
+  0x32: ['up'],               // MB_IMPASSABLE_NORTH
+  0x33: ['down'],             // MB_IMPASSABLE_SOUTH
+  0x34: ['up', 'right'],      // MB_IMPASSABLE_NORTHEAST
+  0x35: ['up', 'left'],       // MB_IMPASSABLE_NORTHWEST
+  0x36: ['down', 'right'],    // MB_IMPASSABLE_SOUTHEAST
+  0x37: ['down', 'left'],     // MB_IMPASSABLE_SOUTHWEST
+};
+
+// Only MB_SIGNPOST is a true interactive sign post — its dialogue comes from
+// a bg_event in FIRERED_SIGNS. The MB_POKEMON_CENTER_SIGN / MB_POKEMART_SIGN /
+// MB_INDIGO_PLATEAU_SIGN_* metatiles are awnings on the buildings themselves;
+// they have no bg_event (the engine hardcodes their text) so we let them fall
+// through to the wall classification — they're decorative parts of the
+// building, not standalone interactive entities.
+const SIGN_BEHAVIORS = new Set([
+  0x84, // MB_SIGNPOST
+]);
+
+const DOOR_BEHAVIORS = new Set([
+  0x60, // MB_CAVE_DOOR
+  0x69, // MB_WARP_DOOR
+]);
+
+/** @summary MB behaviors that are warp pads (no door graphic, just walk-onto teleport). */
+const WARP_PAD_BEHAVIORS = new Set([
+  0x62, // MB_EAST_ARROW_WARP
+  0x63, // MB_WEST_ARROW_WARP
+  0x64, // MB_NORTH_ARROW_WARP
+  0x65, // MB_SOUTH_ARROW_WARP
+  0x66, // MB_FALL_WARP
+  0x67, // MB_REGULAR_WARP
+  0x68, // MB_LAVARIDGE_1F_WARP
+  0x6A, // MB_UP_ESCALATOR
+  0x6B, // MB_DOWN_ESCALATOR
+  0x6C, // MB_UP_RIGHT_STAIR_WARP
+  0x6D, // MB_UP_LEFT_STAIR_WARP
+  0x6E, // MB_DOWN_RIGHT_STAIR_WARP
+  0x6F, // MB_DOWN_LEFT_STAIR_WARP
+  0x71, // MB_UNION_ROOM_WARP
 ]);
 
 const FLOOR_LIKE = new Set([0x00, 0x08, 0x0a, 0x2a, 0x2b, 0x28]);
+
+// MB_COUNTER (0x80) — shop/center counter. Blocks movement but interactions
+// pass through to whatever is one tile beyond (the nurse / mart clerk).
+const COUNTER_BEHAVIOR = 0x80;
 
 /**
  * Resolves a metatile behavior byte + collision bit into a {@link Tile}.
  * `outdoor` toggles between `'path'` (outdoor walkable) and `'floor'` (indoor walkable).
  */
 export function tileFromBehavior(behavior: number, outdoor: boolean): Tile {
-  if (IMPASSABLE_DIRECTIONAL.has(behavior)) return WALL;
+  const directional = IMPASSABLE_DIRECTIONAL[behavior];
+  if (directional) {
+    return { type: outdoor ? 'path' : 'floor', walkable: true, blockFrom: directional };
+  }
 
   if (WATER_BEHAVIORS.has(behavior)) return { type: 'water', walkable: false };
+
+  if (DOOR_BEHAVIORS.has(behavior)) return { type: 'door', walkable: true };
+
+  if (SIGN_BEHAVIORS.has(behavior)) return { type: 'sign', walkable: false };
+
+  if (WARP_PAD_BEHAVIORS.has(behavior)) return { type: 'warp_pad', walkable: true };
+
+  if (behavior === COUNTER_BEHAVIOR) return { type: 'counter', walkable: false };
 
   if (behavior === 0x20) return { type: 'boulder', walkable: false }; // MB_STRENGTH_BUTTON
 

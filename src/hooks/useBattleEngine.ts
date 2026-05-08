@@ -320,6 +320,12 @@ export function useBattleEngine({
     s.setEnemyPokemon(newState.enemyPokemon);
     s.syncTeamStats(newState.playerTeam);
 
+    // When a trainer sends out their next Pokémon, reset the enemy animation
+    // immediately so the new sprite renders fresh instead of stuck in faint/idle.
+    if (prevPhase === 'TRAINER_NEXT_POKEMON') {
+      setEnemyAnim('idle');
+    }
+
     const aDuration = playBattleEffects(effects);
     const aDelay = Math.max(aDuration + sd(300), sd(800));
 

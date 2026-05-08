@@ -169,8 +169,16 @@ export interface Entity {
 }
 
 export interface Tile {
-  type: 'grass' | 'water' | 'path' | 'wall' | 'door' | 'floor' | 'carpet' | 'table' | 'tree' | 'sign' | 'cut_tree' | 'boulder' | 'bookshelf' | 'machine' | 'fence' | 'flower' | 'ledge_down' | 'ledge_left' | 'ledge_right' | 'cave' | 'sand';
+  type: 'grass' | 'water' | 'path' | 'wall' | 'door' | 'floor' | 'carpet' | 'table' | 'tree' | 'sign' | 'cut_tree' | 'boulder' | 'bookshelf' | 'machine' | 'fence' | 'flower' | 'ledge_down' | 'ledge_left' | 'ledge_right' | 'cave' | 'sand' | 'warp_pad' | 'counter';
   walkable: boolean;
+  /**
+   * Movement directions the player CANNOT use to enter this tile. Used for
+   * FireRed's MB_IMPASSABLE_<DIR> metatiles (e.g. fence corners that you can
+   * step around but not through). When unset, walkability is purely governed
+   * by `walkable`. Multiple directions block multiple entries (the diagonal
+   * MB_IMPASSABLE_NE etc. map to two-direction blocks).
+   */
+  blockFrom?: Direction[];
 }
 
 export const TILE_SIZE = 64;

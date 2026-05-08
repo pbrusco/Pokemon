@@ -230,13 +230,25 @@ export function useMovementEngine({
     const tileAtNext = inBounds(nextX, nextY) ? grid[nextY][nextX] : null;
 
     if (!ghostMode) {
-      const canWalk = tileAtNext?.walkable || (tileAtNext?.type === 'water' && store.isSurfing) || !!warpAtNext;
+      // Doors and warp pads are walkable=true so warps can fire on step-on.
+      // But if there's no warp wired up, stepping onto them silently does
+      // nothing — the player just stands on a door, which feels broken.
+      // Treat orphan doors/warp-pads as bumps with a "closed" dialogue.
+      const isOrphanWarpTile = (tileAtNext?.type === 'door' || tileAtNext?.type === 'warp_pad') && !warpAtNext;
+      // FireRed MB_IMPASSABLE_<DIR> metatiles: passable in some directions
+      // only. The tile carries blockFrom listing the blocked entry directions.
+      const blockedByDirection = tileAtNext?.blockFrom?.includes(dir) ?? false;
+      const canWalk = !isOrphanWarpTile && !blockedByDirection && (tileAtNext?.walkable || (tileAtNext?.type === 'water' && store.isSurfing) || !!warpAtNext);
       if (
         !inBounds(nextX, nextY) ||
         !canWalk ||
         npcAtNext ||
         objectAtNext
-      ) { SfxController.play('bump'); return; }
+      ) {
+        SfxController.play('bump');
+        if (isOrphanWarpTile && !store.dialogue) store.setDialogue('Está cerrado con llave.');
+        return;
+      }
     }
 
     // ── Collision with overworld wild pokemon ──

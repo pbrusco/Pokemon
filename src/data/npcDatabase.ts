@@ -572,18 +572,17 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'door_closed_rt2',type: 'object', position: w('ROUTE_2', 3, 35), direction: 'up',   sprite: '🚪', dialogue: ['Está cerrado.'] },
       { id: 'item_potion_rt2', type: 'item',  position: w('ROUTE_2', 7, 5),  direction: 'down', sprite: '🧪', itemId: 'POTION' },
       // ── Viridian Forest ──
-      { id: 'item_pokeball_forest_1', type: 'item', position: w('VIRIDIAN_FOREST', 10, 11), direction: 'down', sprite: '🔴', itemId: 'POKEBALL' },
-      { id: 'item_potion_forest_1',   type: 'item', position: w('VIRIDIAN_FOREST', 20, 21), direction: 'down', sprite: '🧪', itemId: 'POTION' },
-      { id: 'item_antidote_forest_1', type: 'item', position: w('VIRIDIAN_FOREST', 2, 21),  direction: 'down', sprite: '💊', itemId: 'ANTIDOTE' },
-      { id: 'item_potion_forest_2',   type: 'item', position: w('VIRIDIAN_FOREST', 3, 40),  direction: 'down', sprite: '🧪', itemId: 'POTION' },
-      { id: 'item_pokeball_forest_2', type: 'item', position: w('VIRIDIAN_FOREST', 33, 40), direction: 'down', sprite: '🔴', itemId: 'POKEBALL' },
+      // VIRIDIAN_FOREST is not yet wired up as its own indoor map (no entry in
+      // MAP_ID_TO_FIRERED), so its zone offset is (0,0) and these items would
+      // land in the dead Indigo-Plateau wall area. Re-add when the forest is
+      // a proper interior with its own MapID.
       // ── Route 3 ──
       { id: 'item_awakening_rt3', type: 'item', position: w('ROUTE_3', 25, 6), direction: 'down', sprite: '☕', itemId: 'AWAKENING' },
       // ── Route 4 ──
-      { id: 'item_potion_rt4', type: 'item', position: w('ROUTE_4', 33, 4), direction: 'down', sprite: '🧪', itemId: 'POTION' },
-      { id: 'item_tm_whirlwind_rt4', type: 'item', position: w('ROUTE_4', 17, 3), direction: 'down', sprite: '📀', itemId: 'FULL_HEAL' },
+      { id: 'item_potion_rt4', type: 'item', position: w('ROUTE_4', 32, 5), direction: 'down', sprite: '🧪', itemId: 'POTION' },
+      { id: 'item_tm_whirlwind_rt4', type: 'item', position: w('ROUTE_4', 17, 6), direction: 'down', sprite: '📀', itemId: 'FULL_HEAL' },
       // ── Route 9 ──
-      { id: 'item_tm_teleport_rt9', type: 'item', position: w('ROUTE_9', 10, 15), direction: 'down', sprite: '📀', itemId: 'FULL_HEAL' },
+      { id: 'item_tm_teleport_rt9', type: 'item', position: w('ROUTE_9', 11, 16), direction: 'down', sprite: '📀', itemId: 'FULL_HEAL' },
       // ── Route 24 ──
       { id: 'item_tm_thunderwave_rt24', type: 'item', position: w('ROUTE_24', 10, 5), direction: 'down', sprite: '📀', itemId: 'FULL_HEAL' },
       // ── Route 25 ──
@@ -688,11 +687,11 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'sign_center_cerulean', type: 'object', position: w('CERULEAN_CITY', 20, 17), direction: 'down', sprite: '🪧', dialogue: ['CENTRO POKÉMON'] },
       { id: 'sign_bikeshop_cerulean', type: 'object', position: w('CERULEAN_CITY', 11, 25), direction: 'down', sprite: '🪧', dialogue: ['TIENDA DE BICIS', '¡Consigue una y viaja a toda velocidad!'] },
       { id: 'sign_gym_cerulean', type: 'object', position: w('CERULEAN_CITY', 27, 21), direction: 'down', sprite: '🪧', dialogue: ['GIMNASIO POKÉMON DE CIUDAD CELESTE', 'LÍDER: MISTY', '¡La Sirena Marimacho!'] },
-      { id: 'item_rare_candy_cerulean', type: 'item', position: w('CERULEAN_CITY', 15, 8), direction: 'down', sprite: '🍬', itemId: 'RARE_CANDY' },
+      { id: 'item_rare_candy_cerulean', type: 'item', position: w('CERULEAN_CITY', 15, 7), direction: 'down', sprite: '🍬', itemId: 'RARE_CANDY' },
       { id: 'item_hm01_cut', type: 'item', position: w('ROUTE_25', 14, 2), direction: 'down', sprite: '✂️', itemId: 'HM01_CUT' },
       { id: 'item_hm02_fly', type: 'item', position: w('ROUTE_16', 14, 12), direction: 'down', sprite: '🕊️', itemId: 'HM02_FLY' },
       { id: 'item_hm03_surf', type: 'item', position: w('VERMILION_CITY', 31, 8), direction: 'down', sprite: '🌊', itemId: 'HM03_SURF' },
-      { id: 'item_hm04_strength', type: 'item', position: w('ROUTE_15', 20, 2), direction: 'down', sprite: '💪', itemId: 'HM04_STRENGTH' },
+      { id: 'item_hm04_strength', type: 'item', position: w('ROUTE_15', 20, 5), direction: 'down', sprite: '💪', itemId: 'HM04_STRENGTH' },
       { id: 'item_hm05_flash', type: 'item', position: w('ROUTE_2', 4, 8), direction: 'down', sprite: '💡', itemId: 'HM05_FLASH' },
       // ── Vermilion City ──
       { id: 'sign_vermilion_main', type: 'object', position: w('VERMILION_CITY', 27, 3), direction: 'down', sprite: '🪧', dialogue: ['CIUDAD CARMÍN', 'El puerto de los atardeceres exquisitos.'] },
@@ -729,13 +728,13 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
     ],
     RIVALS_HOUSE: [],
     MT_MOON:     [
-      { id: 'item_potion_mtmoon_1', type: 'item', position: { x: 14, y: 14 }, direction: 'down', sprite: '🧪', itemId: 'POTION' },
+      { id: 'item_potion_mtmoon_1', type: 'item', position: { x: 16, y: 14 }, direction: 'down', sprite: '🧪', itemId: 'POTION' },
       { id: 'item_full_heal_mtmoon', type: 'item', position: { x: 3, y: 3 },  direction: 'down', sprite: '🌟', itemId: 'FULL_HEAL' },
       { id: 'item_revive_mtmoon',   type: 'item', position: { x: 17, y: 14 }, direction: 'down', sprite: '💎', itemId: 'REVIVE' },
       { id: 'item_pokeball_mtmoon', type: 'item', position: { x: 2, y: 10 },  direction: 'down', sprite: '🔴', itemId: 'POKEBALL' },
     ],
     MT_MOON_B1F: [
-      { id: 'item_potion_mtmoon_b1f', type: 'item', position: { x: 14, y: 14 }, direction: 'down', sprite: '🧪', itemId: 'POTION' }
+      { id: 'item_potion_mtmoon_b1f', type: 'item', position: { x: 14, y: 16 }, direction: 'down', sprite: '🧪', itemId: 'POTION' }
     ],
     MT_MOON_B2F: [
       { id: 'item_moonstone_mtmoon',  type: 'item', position: { x: 10, y: 10 }, direction: 'down', sprite: '🌙', itemId: 'FULL_RESTORE' } // Using Full Restore for Moon Stone for now
@@ -751,7 +750,7 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
     ],
     POKEMON_TOWER_1F: [],
     POKEMON_TOWER_2F: [
-      { id: 'item_silph_scope', type: 'item', position: { x: 5, y: 3 }, direction: 'down', sprite: '🔭', itemId: 'SILPH_SCOPE' },
+      { id: 'item_silph_scope', type: 'item', position: { x: 5, y: 6 }, direction: 'down', sprite: '🔭', itemId: 'SILPH_SCOPE' },
     ],
     POKEMON_TOWER_3F: [
       { id: 'item_pokeball_tower_1', type: 'item', position: { x: 5, y: 5 }, direction: 'down', sprite: '🔴', itemId: 'POKEBALL' },
@@ -820,6 +819,15 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
 
   const auto = buildAutoEntities();
   const merged = mergeAuto(rawItems as unknown as Record<MapID, Entity[]>, auto.items);
+  // Sign objects are merged additively: every FireRed sign tile gets a
+  // matching interaction object, except where a manual entry already
+  // exists at the same coords (so hand-authored Spanish dialogue wins).
+  for (const [mapId, signs] of Object.entries(auto.signs) as Array<[MapID, Entity[]]>) {
+    const existing = merged[mapId] ?? [];
+    const occupied = new Set(existing.map(e => `${e.position.x},${e.position.y}`));
+    const additions = signs.filter(s => !occupied.has(`${s.position.x},${s.position.y}`));
+    merged[mapId] = [...existing, ...additions];
+  }
   return Object.fromEntries(
     Object.entries(merged).map(([map, entities]) => [
       map, entities.filter(e => !pickedItemIds.includes(e.id))

@@ -81,6 +81,20 @@ export const useInteractionEngine = ({
     const npcs = store.getNPCs();
     const items = store.getItems();
 
+    // Pokemon Center / Mart counters block movement, but FireRed lets the player
+    // talk to the NPC standing on the other side. If the player faces a counter
+    // tile, pass the interaction through one more tile in the same direction.
+    const currentMapData = worldMaps[currentMap];
+    const facedTile = currentMapData?.tiles[targetY]?.[targetX];
+    if (facedTile?.type === 'counter') {
+      switch (direction) {
+        case 'up': targetY--; break;
+        case 'down': targetY++; break;
+        case 'left': targetX--; break;
+        case 'right': targetX++; break;
+      }
+    }
+
     const npc = npcs[currentMap]?.find(n => n.position.x === targetX && n.position.y === targetY) as NPC | undefined;
     if (npc) {
       if (handleStoryNPC(npc, inventory, store)) return;

@@ -13,6 +13,7 @@ import { FIRERED_NPCS, type FireredNpc } from './firedNpcs.generated';
 import { FIRERED_TRAINERS, FIRERED_TRAINER_PARTIES } from './firedTrainers.generated';
 import { FIRERED_WILD_ENCOUNTERS } from './firedWildEncounters.generated';
 import { FIRERED_SPECIES } from './firedSpecies.generated';
+import { FIRERED_SIGNS } from './firedSigns.generated';
 import { FIRERED_MAP_ID_TO_INTERNAL } from './mapIds.generated';
 import { KANTO_FIRERED_ZONE_OFFSETS } from './kantoZoneOffsets.generated';
 import { makePokemon } from '../../constants/pokemon';
@@ -125,6 +126,8 @@ const GFX_TO_TRAINER_CLASS: Record<string, string> = {
   POKEFAN_F: 'lass',
   WAITRESS: 'lass',
   BIRD_KEEPER: 'birdkeeper',
+  NURSE: 'nurse',
+  CLERK: 'clerk',
 };
 
 function gfxToTrainerClass(gfx: string | null): string {
@@ -267,7 +270,12 @@ function fireredNpcToEntity(
       : npc.localId.endsWith('_MART_CLERK') || npc.localId.endsWith('_CLERK') ? NPC_OVERRIDES.LOCALID_POKEMART_CLERK
       : undefined)
     : undefined;
-  const override = exactOverride ?? patternOverride;
+  const gfxOverride = !exactOverride && !patternOverride
+    ? (npc.gfx === 'NURSE' ? NPC_OVERRIDES.LOCALID_NURSE
+      : npc.gfx === 'CLERK' ? NPC_OVERRIDES.LOCALID_POKEMART_CLERK
+      : undefined)
+    : undefined;
+  const override = exactOverride ?? patternOverride ?? gfxOverride;
   const trainerClass = gfxToTrainerClass(npc.gfx);
 
   const id = npc.localId
@@ -304,10 +312,21 @@ function scriptToItemId(script: string | null): string | null {
   return camel.replace(/([A-Z])/g, '_$1').replace(/^_/, '').toUpperCase();
 }
 
+// FireRed sign script → Spanish dialogue. Translated incrementally; missing
+// scripts fall through to a generic "Es un cartel." message and the validator
+// will still consider the sign tile wired-up.
+const SIGN_DIALOGUE: Record<string, string[]> = {};
+
+function dialogueForSign(script: string | null): string[] {
+  if (script && SIGN_DIALOGUE[script]) return SIGN_DIALOGUE[script];
+  return ['Es un cartel.'];
+}
+
 // ─── Public builders ─────────────────────────────────────────────────────
-export function buildAutoEntities(): { npcs: Record<MapID, NPC[]>; items: Record<MapID, Entity[]> } {
+export function buildAutoEntities(): { npcs: Record<MapID, NPC[]>; items: Record<MapID, Entity[]>; signs: Record<MapID, Entity[]> } {
   const npcsOut: Record<string, NPC[]> = {};
   const itemsOut: Record<string, Entity[]> = {};
+  const signsOut: Record<string, Entity[]> = {};
 
   for (const [fireredMapId, list] of Object.entries(FIRERED_NPCS)) {
     const resolved = resolveMapAndOffset(fireredMapId);
@@ -325,9 +344,33 @@ export function buildAutoEntities(): { npcs: Record<MapID, NPC[]>; items: Record
     }
   }
 
+  // Auto-generate sign objects from FireRed bg_events. These are merged
+  // additively (deduped by position) into the items table downstream so each
+  // sign tile has an interaction object instead of relying on the engine's
+  // generic "Es un cartel." fallback. Hidden_item bg_events are skipped here
+  // (they belong to the item-finder feature, not implemented yet).
+  for (const [fireredMapId, list] of Object.entries(FIRERED_SIGNS)) {
+    const resolved = resolveMapAndOffset(fireredMapId);
+    if (!resolved) continue;
+    const { mapId, offsetX, offsetY } = resolved;
+    signsOut[mapId] ??= [];
+    for (const sign of list) {
+      if (sign.type !== 'sign') continue;
+      signsOut[mapId].push({
+        id: `sign_${fireredMapId}_${sign.x}_${sign.y}`,
+        type: 'object',
+        position: { x: offsetX + sign.x, y: offsetY + sign.y },
+        direction: 'down',
+        sprite: '🪧',
+        dialogue: dialogueForSign(sign.script),
+      });
+    }
+  }
+
   return {
     npcs: npcsOut as Record<MapID, NPC[]>,
     items: itemsOut as Record<MapID, Entity[]>,
+    signs: signsOut as Record<MapID, Entity[]>,
   };
 }
 

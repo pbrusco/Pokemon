@@ -45,13 +45,20 @@ export function validateWorld(): WorldValidationIssue[] {
     'CELADON_GAME_CORNER',
   ]);
 
-  // Snapshots for entity checks
+  // Snapshot for entity checks
   const allNpcs = buildNPCDatabase([], false, false, [], 'START', null, null);
   const allItems = buildItemDatabase([], 'START');
 
+  // Heuristic: items whose ids match common blocking-object patterns are
+  // deliberately placed on non-walkable building walls (sign objects, close-door
+  // objects, PC objects, SNES objects). Flagging them as errors would be noise.
+  function isWallObject(id: string): boolean {
+    return /^(sign_|door_|.*_closed$|.*_locked$|snes$|pc_|lab_locked|door_closed)/.test(id);
+  }
+
   // 1. Mandatory Tile-Entity Connections (Doors/Signs)
-   for (const id of mapIds) {
-    if (SKIP_MAPS.has(id)) continue; // placeholder maps, skip validation
+  for (const id of mapIds) {
+    if (SKIP_MAPS.has(id)) continue;
     const map = maps[id];
     const grid = map.tiles;
     const mapEntities = [...(allNpcs[id] || []), ...(allItems[id] || [])];
@@ -60,8 +67,8 @@ export function validateWorld(): WorldValidationIssue[] {
       for (let x = 0; x < grid[y].length; x++) {
         if (grid[y][x].type === 'door') {
           const hasWarp = map.warps.some(w => w.x === x && w.y === y);
-          const hasObject = mapEntities.some(e => e.type === 'object' && e.position.x === x && e.position.y === y);
-          if (!hasWarp && !hasObject) {
+          const hasBlockingObject = mapEntities.some(e => e.type === 'object' && e.position.x === x && e.position.y === y);
+          if (!hasWarp && !hasBlockingObject) {
             issues.push({ category: 'warp', message: `map ${id} has a "door" tile at (${x},${y}) with no warp and no blocking object.` });
           }
         }
@@ -101,7 +108,7 @@ export function validateWorld(): WorldValidationIssue[] {
       }
 
       const srcTile = tileAt(map.tiles, w.x, w.y)!;
-      if (!['door', 'path', 'floor', 'carpet', 'grass'].includes(srcTile.type)) {
+      if (!['door', 'warp_pad', 'path', 'floor', 'carpet', 'grass'].includes(srcTile.type)) {
         issues.push({ category: 'warp', message: `source tile not a warp surface (${srcTile.type}): ${label}` });
       }
       const tgtTile = tileAt(target.tiles, w.targetPos.x, w.targetPos.y)!;
@@ -132,9 +139,25 @@ export function validateWorld(): WorldValidationIssue[] {
         issues.push({ category: 'npc', message: `out-of-bounds: ${label}` });
         continue;
       }
-      const t = tileAt(map.tiles, npc.position.x, npc.position.y)!;
-      if (!t.walkable) {
-        issues.push({ category: 'npc', message: `on non-walkable tile (${t.type}): ${label}` });
+      // NPCs are sprite objects layered on top of tiles. They can legitimately
+      // stand on solid metatiles (statues, behind shop counters, surfers on
+      // water). What matters is reachability: the player must be able to face
+      // them from a walkable tile, possibly across a counter (Pokémon Center
+      // / Mart NPCs sit behind a counter that passes interactions through).
+      const { x, y } = npc.position;
+      const dirs = [{dx:1,dy:0},{dx:-1,dy:0},{dx:0,dy:1},{dx:0,dy:-1}];
+      const reachable = dirs.some(({dx, dy}) => {
+        const direct = tileAt(map.tiles, x + dx, y + dy);
+        if (direct?.walkable === true) return true;
+        if (direct?.type === 'counter') {
+          const beyond = tileAt(map.tiles, x + dx * 2, y + dy * 2);
+          return beyond?.walkable === true;
+        }
+        return false;
+      });
+      if (!reachable) {
+        const t = tileAt(map.tiles, x, y)!;
+        issues.push({ category: 'npc', message: `unreachable (${t.type}, no walkable neighbor): ${label}` });
       }
       const prev = seenNpcIds.get(npc.id);
       if (prev) {
@@ -145,7 +168,8 @@ export function validateWorld(): WorldValidationIssue[] {
     }
   }
 
-  // 3. Items
+  // 3. Items / Sign objects — wall-placed objects (signs, doors, PCs, SNES)
+  // are legitimate. Only flag items that should be pickups but are on walls.
   const items = buildItemDatabase([], 'START');
   for (const id of mapIds) {
     if (SKIP_MAPS.has(id)) continue;
@@ -153,6 +177,19 @@ export function validateWorld(): WorldValidationIssue[] {
     for (const item of items[id] || []) {
       if (!inBounds(map.tiles, item.position.x, item.position.y)) {
         issues.push({ category: 'item', message: `out-of-bounds: ${id}:${item.id} @ (${item.position.x},${item.position.y})` });
+        continue;
+      }
+      const t = tileAt(map.tiles, item.position.x, item.position.y)!;
+      // Wall-placed objects (signs, close-doors, PCs, SNES) are deliberate.
+      if (!t.walkable && t.type !== 'sign' && !isWallObject(item.id)) {
+        issues.push({ category: 'item', message: `item on non-walkable tile (${t.type}): ${id}:${item.id} @ (${item.position.x},${item.position.y})` });
+      }
+      // Sign objects must sit on actual sign tiles. Mismatches usually mean
+      // a hand-authored sign was placed at coords that don't match a FireRed
+      // signpost metatile — the player's interaction never reaches the object.
+      const isSignObject = item.id.startsWith('sign_') || item.sprite === '🪧';
+      if (isSignObject && t.type !== 'sign') {
+        issues.push({ category: 'item', message: `sign object on non-sign tile (${t.type}): ${id}:${item.id} @ (${item.position.x},${item.position.y})` });
       }
     }
   }
