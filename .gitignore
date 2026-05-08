@@ -11,3 +11,8 @@ pokered_dissasembly/
 src/artifacts/maps/
 src/artifacts/firered/maps/
 src/artifacts/firered/tilesets/
+
+# graphify: keep the report + graph data, ignore caches and local state
+graphify-out/cache/
+graphify-out/.graphify_python
+graphify-out/cost.json
