@@ -137,11 +137,12 @@ for (const [, indoor] of indoorMapsArr) {
   for (const w of indoor.warps) {
     if (!w.destWarpId || w.targetMap === 'KANTO_OVERWORLD') continue;
     const destIndoor = FIRERED_INDOOR_MAPS[w.targetMap as keyof typeof FIRERED_INDOOR_MAPS];
-    const destEvents = (destIndoor as any)?.fireredLayout?.meta?.warp_events;
-    if (!destEvents) continue;
+    const destEvents = (destIndoor.fireredLayout as Record<string, unknown> | undefined)?.meta as { warp_events?: Array<{ x: number; y: number }> } | undefined;
+    const warpEventsArr = destEvents?.warp_events;
+    if (!warpEventsArr) continue;
     const idx = parseInt(w.destWarpId);
-    if (isNaN(idx) || !destEvents[idx]) continue;
-    w.targetPos = { x: destEvents[idx].x, y: destEvents[idx].y };
+    if (isNaN(idx) || !warpEventsArr[idx]) continue;
+    w.targetPos = { x: warpEventsArr[idx].x, y: warpEventsArr[idx].y };
     w.targetPos = snapToNearestWalkable(destIndoor.tiles, w.targetPos);
   }
 }

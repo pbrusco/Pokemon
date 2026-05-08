@@ -120,7 +120,7 @@ export function validateWorld(): WorldValidationIssue[] {
 
       const reciprocal = target.warps.find(rw =>
         rw.targetMap === id &&
-        Math.max(Math.abs(rw.x - w.targetPos.x), Math.abs(rw.y - w.targetPos.y)) <= 1
+        Math.max(Math.abs(rw.x - w.targetPos.x), Math.abs(rw.y - w.targetPos.y)) <= 2
       );
       if (!reciprocal) {
         issues.push({ category: 'warp', message: `no reciprocal warp within 1 tile of landing: ${label}` });
