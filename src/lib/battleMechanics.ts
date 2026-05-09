@@ -196,9 +196,10 @@ export function handleEnemyFainted(
   const expGain = Math.max(1, Math.floor((trainerMult * baseExp * s.enemyPokemon.level) / (7 * denom)));
   const { pkmn: leveledPkmn, didLevelUp, learnedMove, willEvolve, evolvedPkmn } = computeExpAndLevelUp(playerPkmn, expGain);
 
+  // Order: log "fainted!" → FAINT sound (parallel) → faint anim (HP sync) → EXP log.
   effects.push(log(`¡${s.enemyPokemon.name} se debilitó!`));
-  effects.push({ type: 'enemy_anim', payload: 'faint' });
   effects.push({ type: 'sound', payload: 'FAINT' });
+  effects.push({ type: 'enemy_anim', payload: 'faint' });
   effects.push(log(`¡${playerPkmn.name} ganó ${expGain} puntos de EXP!`));
 
   const updatedTeamWithExp = [...s.playerTeam];

@@ -69,12 +69,16 @@ export function useBattleEngine({
       case 'log': {
         const text = effect.payload as string;
         useGameStore.getState().setBattleLog(text);
-        if (text.trim() !== '') {
-          useGameStore.getState().setBattleLogs(prev => {
-            const newMsg = { text, speaker: effect.speaker || 'Sistema', id: nextLogId.current++ };
-            return [newMsg, ...prev].slice(0, 5);
-          });
+        // Empty logs are turn-separators that just clear the text — don't
+        // burn 500ms of dead air on them.
+        if (text.trim() === '') {
+          next();
+          return;
         }
+        useGameStore.getState().setBattleLogs(prev => {
+          const newMsg = { text, speaker: effect.speaker || 'Sistema', id: nextLogId.current++ };
+          return [newMsg, ...prev].slice(0, 5);
+        });
         setTimeout(next, sd(500));
         return;
       }

@@ -141,13 +141,16 @@ function checkEnemyStatus(pkmn: Pokemon): StatusResult {
 
 function handlePlayerFaint(s: BattleState, effects: BattleEffect[], pkmn: Pokemon): BattleState {
   const anyAlive = s.playerTeam.slice(1).some(p => p.hp > 0);
-  effects.push({ type: 'player_anim', payload: 'faint' });
+  // Order: log "X fainted!" → FAINT sound (parallel) → faint anim (HP sync).
+  const msg = anyAlive
+    ? `¡${pkmn.name} se debilitó! ¡Elige tu siguiente POKÉMON!`
+    : `¡${pkmn.name} se debilitó! ¡No te quedan POKÉMON sanos!`;
+  effects.push(log(msg));
   effects.push({ type: 'sound', payload: 'FAINT' });
+  effects.push({ type: 'player_anim', payload: 'faint' });
   if (!anyAlive) {
-    effects.push(log(`¡${pkmn.name} se debilitó! ¡No te quedan POKÉMON sanos!`));
     return { ...s, outcome: 'player_blackout', phase: 'PLAYER_FAINTED' };
   }
-  effects.push(log(`¡${pkmn.name} se debilitó! ¡Elige tu siguiente POKÉMON!`));
   return { ...s, phase: 'FORCED_SWITCH' };
 }
 
@@ -218,16 +221,24 @@ function formatEffectiveness(moveName: string, result: DamageResult, targetName:
   return text + ` Causó ${damage} de daño.`;
 }
 
-function pushAttackEffects(effects: BattleEffect[], move: Move, isPlayer: boolean, moveNameOverride?: string): void {
+/** Attacker swing animation only — no hit/flash/shake. Pair with
+ *  `pushDefenderHit` and a log entry between them so the sequence reads
+ *  swing → text → defender flinch + HP sync. */
+function pushAttackerSwing(effects: BattleEffect[], move: Move, isPlayer: boolean, moveNameOverride?: string): void {
   const mn = moveNameOverride ?? move.name;
   const mt = move.type;
-  if (isPlayer) {
-    effects.push({ type: 'player_anim', payload: 'attack', moveName: mn, moveType: mt });
-    effects.push({ type: 'enemy_anim', payload: 'hit' });
-  } else {
-    effects.push({ type: 'enemy_anim', payload: 'attack', moveName: mn, moveType: mt });
-    effects.push({ type: 'player_anim', payload: 'hit' });
-  }
+  effects.push({
+    type: isPlayer ? 'player_anim' : 'enemy_anim',
+    payload: 'attack',
+    moveName: mn,
+    moveType: mt,
+  });
+}
+
+/** Defender recoil + screen flash + shake. Skip this when an attack does
+ *  no damage (no_effect / miss) — there's nothing to flinch from. */
+function pushDefenderHit(effects: BattleEffect[], isPlayer: boolean): void {
+  effects.push({ type: isPlayer ? 'enemy_anim' : 'player_anim', payload: 'hit' });
   effects.push({ type: 'screen_flash' });
   effects.push({ type: 'battle_shake' });
 }
@@ -255,12 +266,14 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         const bideDmg = Math.max(1, playerPkmn.bideState.accumulatedDamage * 2);
         const bideTeam = [...s.playerTeam];
         bideTeam[0] = { ...bideTeam[0], bideState: undefined };
-        pushAttackEffects(effects, { name: 'ESPERA', type: 'normal' } as Move, true, 'ESPERA');
+        pushAttackerSwing(effects, { name: 'ESPERA', type: 'normal' } as Move, true, 'ESPERA');
         effects.push(log(`¡${playerPkmn.name} desató la energía! Causó ${bideDmg} de daño.`));
+        pushDefenderHit(effects, true);
         const bideNewHP = Math.max(0, s.enemyPokemon.hp - bideDmg);
         s = { ...s, playerTeam: bideTeam, enemyPokemon: { ...s.enemyPokemon, hp: bideNewHP }, phase: bideNewHP === 0 ? 'ENEMY_FAINTED' : 'ENEMY_ATTACK' };
         if (bideNewHP === 0) {
           effects.push(log(`¡${s.enemyPokemon.name} se debilitó!`));
+          effects.push({ type: 'sound', payload: 'FAINT' });
           effects.push({ type: 'enemy_anim', payload: 'faint' });
         }
         return { state: s, effects };
@@ -400,12 +413,6 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
             const enemyDmg = enemyResult.damage;
             const newPlayerHP = Math.max(0, playerPkmn.hp - enemyDmg);
 
-            effects.push({ type: 'player_anim', payload: 'hit' });
-            effects.push({ type: 'screen_flash' });
-            effects.push({ type: 'battle_shake' });
-
-            pushAttackEffects(effects, enemyMove, false);
-
             const eName = enemyNameDisplay(s.enemyPokemon);
             let enemyLog = `¡${eName} usó ${enemyMove.name}!`;
             if (enemyResult.effectivenessLabel === 'no_effect') {
@@ -433,7 +440,11 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
               ut[0].bideState.accumulatedDamage += enemyDmg;
               ut[0].bideState.remainingTurns -= 1;
             }
+            // Order: swing already pushed above → log → defender hit (HP sync).
             effects.push(log(enemyLog, s.enemyPokemon.name));
+            if (enemyResult.effectivenessLabel !== 'no_effect') {
+              pushDefenderHit(effects, false);
+            }
             s = { ...s, playerTeam: ut };
           }
         }
@@ -489,11 +500,9 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           effects.push(log(`¡${playerPkmn.name} usó ${move.name}! ¡Pero falló!`));
           return { state: { ...s, phase: 'ENEMY_ATTACK' }, effects };
         }
-        effects.push({ type: 'player_anim', payload: 'attack', moveName: move.name, moveType: move.type });
-        effects.push({ type: 'enemy_anim', payload: 'hit' });
-        effects.push({ type: 'screen_flash' });
-        effects.push({ type: 'battle_shake' });
+        pushAttackerSwing(effects, move, true);
         effects.push(log(`¡${playerPkmn.name} usó ${move.name}! ¡Golpe fulminante!`));
+        pushDefenderHit(effects, true);
         s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: 0 }, phase: 'ENEMY_ATTACK' };
         return { state: s, effects };
       }
@@ -511,8 +520,11 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       const newEnemyHP = Math.max(0, s.enemyPokemon.hp - damage);
       const attackLog = formatEffectiveness(playerPkmn.name + ' usó ' + move.name, result, s.enemyPokemon.name, damage);
 
-      pushAttackEffects(effects, move, true);
+      pushAttackerSwing(effects, move, true);
       effects.push(log(attackLog, playerPkmn.name));
+      if (result.effectivenessLabel !== 'no_effect') {
+        pushDefenderHit(effects, true);
+      }
 
       s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: newEnemyHP }, log: attackLog };
 
@@ -602,10 +614,8 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       if (s.phase !== 'CHOOSING') return { state, effects };
       const playerPkmn = s.playerTeam[0];
       effects.push({ type: 'player_anim', payload: 'attack', moveName: 'ATAQUE FULMINANTE', moveType: 'normal' });
-      effects.push({ type: 'enemy_anim', payload: 'hit' });
-      effects.push({ type: 'screen_flash' });
-      effects.push({ type: 'battle_shake' });
       effects.push(log(`¡ATAQUE FULMINANTE! Causó ${s.enemyPokemon.hp} de daño.`, playerPkmn.name));
+      pushDefenderHit(effects, true);
       s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: 0 } };
       const result2 = handleEnemyFainted(s, playerPkmn, effects);
       return { state: result2.s, effects: result2.effects };
@@ -668,10 +678,6 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         const enemyDamage = enemyResult.damage;
         const newPlayerHP = Math.max(0, playerPkmn.hp - enemyDamage);
 
-        effects.push({ type: 'player_anim', payload: 'hit' });
-        effects.push({ type: 'screen_flash' });
-        effects.push({ type: 'battle_shake' });
-
         const eName = enemyNameDisplay(s.enemyPokemon);
         let enemyLog = `¡${eName} usó ${enemyMove.name}!`;
         if (enemyResult.effectivenessLabel === 'no_effect') {
@@ -701,7 +707,11 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           enemyLog += ` ¡${playerPkmn.name} ahora está ${enemyMove.statusEffect}!`;
         }
 
+        // Order: swing already pushed above → log → defender hit (HP sync).
         effects.push(log(enemyLog, s.enemyPokemon.name));
+        if (enemyResult.effectivenessLabel !== 'no_effect') {
+          pushDefenderHit(effects, false);
+        }
         s = { ...s, playerTeam: ut3 };
 
         if (newPlayerHP === 0) {
