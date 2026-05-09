@@ -127,7 +127,10 @@ export const BattleScreen = memo(function BattleScreen({
               <motion.div
                 className="w-24 h-24 sm:w-40 sm:h-40 relative z-10"
                 variants={{
-                  idle: { y: [0, -4, 0], transition: { repeat: Infinity, duration: 1.5, ease: "easeInOut" } },
+                  // idle resets opacity/x/scale so the next enemy in a
+                  // trainer battle isn't stuck at opacity:0/y:100 from the
+                  // previous Pokémon's faint animation.
+                  idle: { y: [0, -4, 0], opacity: 1, x: 0, scale: 1, transition: { repeat: Infinity, duration: 1.5, ease: "easeInOut" } },
                   attack: { x: [0, -40, 0], scale: [1, 1.1, 1], transition: { duration: sdur(0.3) } },
                   hit: { x: [0, -10, 10, -10, 10, 0], filter: ["brightness(1)", "invert(1)", "brightness(1)"], transition: { duration: sdur(0.4) } },
                   faint: { y: [0, 100], opacity: [1, 0], transition: { duration: sdur(0.6), ease: "easeIn" } }
