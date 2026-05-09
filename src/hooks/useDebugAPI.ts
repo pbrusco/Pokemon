@@ -90,7 +90,7 @@ export function useDebugAPI({
 
   useEffect(() => {
     if (import.meta.env.DEV) {
-      (window as any).__game = {
+      (window as Window & { __game?: unknown }).__game = {
         dispatchBattle,
         battleStateRef,
         getPhase: () => phase,

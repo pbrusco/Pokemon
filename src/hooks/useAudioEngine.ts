@@ -38,12 +38,16 @@ export function useAudioEngine() {
     SfxController.setVolume(sfxVolume);
   }, [sfxMuted, sfxVolume]);
 
-  // React to phase / map / position changes
+  // React to phase / map / position changes. Depend on playerPos.x/y rather
+  // than the playerPos object so the effect doesn't re-run on every step's
+  // new object identity when the coords haven't changed.
+  const { x: playerX, y: playerY } = playerPos;
   useEffect(() => {
     if (musicMuted) return;
 
     let track: MusicTrack;
     const ph = phase;
+    const pos = { x: playerX, y: playerY };
 
     if (ph.type === 'BATTLE' || ph.type === 'BATTLE_TRANSITION') {
       track = getBattleMusic(ph, isTrainerBattle);
@@ -53,17 +57,17 @@ export function useAudioEngine() {
       AudioController.stop();
       return;
     } else {
-      track = isSurfing ? 'surf' : getOverworldMusic(currentMap, playerPos);
+      track = isSurfing ? 'surf' : getOverworldMusic(currentMap, pos);
     }
 
     if (track !== lastTrackRef.current) {
       lastTrackRef.current = track;
       if (JINGLES.has(track)) {
-        const fallback = getOverworldMusic(currentMap, playerPos);
+        const fallback = getOverworldMusic(currentMap, pos);
         AudioController.playJingle(track, fallback);
       } else {
         AudioController.play(track, { loop: true });
       }
     }
-  }, [phase, currentMap, playerPos.x, playerPos.y, isTrainerBattle, musicMuted, isSurfing]);
+  }, [phase, currentMap, playerX, playerY, isTrainerBattle, musicMuted, isSurfing]);
 }
