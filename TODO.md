@@ -39,7 +39,7 @@
 
 ### P3 — Technical Debt & DX
 
-- [ ] **Use FireRed metatile attributes for richer `Tile.type`** — today everything walkable is `floor`/`path`; FireRed metatile attrs distinguish grass / water / ledge_down|left|right / warp surfaces. Pipeline change: surface the attribute byte from each metatile through the bridge.
+- [x] **Use FireRed metatile attributes for richer `Tile.type`** — `src/lib/firered/behaviorMappings.ts` already maps the metatile behavior byte to grass / water / sand / cave / ledge_{down,left,right} / warp_pad / door / sign / counter / boulder. Outdoor + indoor bridges both consume it. Encounter triggering, ledge-jumping, and orphan-warp detection all read `tile.type`.
 - [x] **Finish `eventLog.ts` split** — `downloadLog`, replay driver (apply/waitUntilReady/cancelReplay), and the `window.__log` debug bridge live in `eventLogBrowser.ts`. `eventLog.ts` is now off the DOM-globals allowlist.
 - [x] **Tighten the `worldIntegrity` warp baseline** — current count is 0; baseline is now a hard `expect(count).toBe(0)`.
 - [ ] **Browser smoke tests for UI flows** — A checklist or lightweight script for starter selection flow, healing flow, and shop flow.
