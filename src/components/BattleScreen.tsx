@@ -3,8 +3,6 @@ import { motion } from 'motion/react';
 import type { Pokemon, Move, BattleLogEntry } from '../types';
 import { sdur } from '../lib/gameSpeed';
 import { useGameStore } from '../store/gameStore';
-import { CinematicPanel } from './CinematicPanel';
-import type { CinematicEvent } from '../hooks/useBattleVFX';
 import { StatusBadge, StatBoostBadges, TrainerBalls, TickHpBar, hpColor } from './battle/BattleHUD';
 import { PokeballAnim } from './battle/PokeballAnim';
 import { MoveMenu } from './battle/MoveMenu';
@@ -32,8 +30,6 @@ interface BattleScreenProps {
   setShowInventory: (show: boolean) => void;
   setShowTeam: (show: boolean) => void;
   handleAttack: (move: Move) => void;
-  cinematicEvent: CinematicEvent;
-  onCinematicDone: () => void;
 }
 
 export const BattleScreen = memo(function BattleScreen({
@@ -41,7 +37,6 @@ export const BattleScreen = memo(function BattleScreen({
   battleShake, enemyPokemon, enemyAnim, isCatching, catchResult,
   playerTeam, playerAnim, battleLog, battleLogs, isTrainerBattle, isPlayerTurn,
   setShowInventory, setShowTeam, handleAttack, showMoves, setShowMoves, onFlee,
-  cinematicEvent, onCinematicDone,
 }: BattleScreenProps) {
 
   const playerPkmn = playerTeam[0];
@@ -74,7 +69,6 @@ export const BattleScreen = memo(function BattleScreen({
   const eMax = enemyPokemon?.maxHp ?? 1;
   const pHp = playerPkmn?.hp ?? 0;
   const pMax = playerPkmn?.maxHp ?? 1;
-  const isAnimating = playerAnim !== 'idle' || enemyAnim !== 'idle';
 
   const redBackSprite = `${import.meta.env.BASE_URL}sprites/battle/red_back_pic.png`;
 
@@ -249,12 +243,6 @@ export const BattleScreen = memo(function BattleScreen({
           </div>
         </div>
         <PokeballAnim isCatching={isCatching} catchResult={catchResult} />
-        <CinematicPanel
-          event={cinematicEvent}
-          playerBackSprite={playerPkmn?.sprite.replace('pokemon/', 'pokemon/back/') ?? ''}
-          enemySprite={enemyPokemon?.sprite ?? ''}
-          onDone={onCinematicDone}
-        />
       </div>
 
       {/* Bottom Menu Area */}
@@ -262,7 +250,7 @@ export const BattleScreen = memo(function BattleScreen({
         <BattleLogArea battleLogs={battleLogs} battleLog={battleLog} />
 
         <div className="w-full sm:w-1/3 h-[130px] sm:h-auto sm:min-w-[230px] border-4 border-[#4f6e69] bg-[#f8f8f8] rounded-sm p-2 sm:p-3 shadow-[inset_0_0_0_2px_rgba(0,0,0,0.06)] flex flex-col shrink-0">
-          {isAnimating ? null : isPlayerTurn && !showMoves ? (
+          {isPlayerTurn && !showMoves ? (
             <div className="grid grid-cols-2 h-full gap-1 sm:gap-2 text-[#2f2f2f] font-bold text-xs sm:text-lg items-center tracking-tight uppercase">
               {([
                 { label: 'LUCHAR', shortcut: '1', action: () => setShowMoves(true), disabled: false },

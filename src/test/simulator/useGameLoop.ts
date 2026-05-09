@@ -22,7 +22,6 @@ export function useGameLoop() {
     setPlayerAnim: noop as (anim: 'idle' | 'attack' | 'hit' | 'faint') => void,
     setEnemyAnim: noop as (anim: 'idle' | 'attack' | 'hit' | 'faint') => void,
     setBattleShake: noop,
-    setCinematicEvent: noop,
   });
 
   const { handleMove, initBattle } = useMovementEngine({
