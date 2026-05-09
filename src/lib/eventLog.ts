@@ -46,13 +46,13 @@ function prng(): number {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
 
-function installPRNG(seed: number) {
+export function installPRNG(seed: number) {
   prngState = seed | 0;
   if (originalRandom === null) originalRandom = Math.random;
   Math.random = prng;
 }
 
-function restorePRNG() {
+export function restorePRNG() {
   if (originalRandom) Math.random = originalRandom;
   originalRandom = null;
 }
@@ -68,7 +68,7 @@ function snapshotState(): Record<string, unknown> {
   return structuredClone(out);
 }
 
-function restoreState(snap: Record<string, unknown>) {
+export function restoreState(snap: Record<string, unknown>) {
   useGameStore.setState(structuredClone(snap) as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
@@ -127,17 +127,6 @@ export function exportLog(): string {
   return JSON.stringify(current);
 }
 
-export function downloadLog(): void {
-  if (!current) return;
-  const blob = new Blob([exportLog()], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `session-${current.startedAt}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 /** Write the current log to `./logs/session-<ts>.json` via the Vite dev
  *  middleware. Only works in `vite dev`. */
 export async function saveLogToDisk(name?: string): Promise<string | null> {
@@ -164,69 +153,7 @@ export async function loadLogFromDisk(name: string): Promise<RecLog> {
   return res.json();
 }
 
-/* ---------- Replay ---------- */
-let replayCancelled = false;
-
-async function waitUntilReady(e: RecEvent, timeoutMs = 8000): Promise<void> {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    if (replayCancelled) return;
-    const phase = useGameStore.getState().phase;
-    const sub = phase.type === 'BATTLE' ? phase.sub.type : null;
-    const ok =
-      e.k === 'move' || e.k === 'action'
-        ? phase.type === 'EXPLORING' && !useGameStore.getState().isMoving && !useGameStore.getState().dialogue
-        : e.k === 'battle'
-          ? phase.type === 'BATTLE' && (sub === 'CHOOSING' || sub === 'FORCED_SWITCH' || sub === 'BATTLE_INVENTORY' || sub === 'BATTLE_TEAM')
-          : e.k === 'item'
-            ? phase.type === 'EXPLORING' || phase.type === 'INVENTORY' || (phase.type === 'BATTLE' && sub === 'BATTLE_INVENTORY')
-            : e.k === 'pcSwap'
-              ? phase.type === 'PC'
-              : true;
-    if (ok) return;
-    await new Promise(r => setTimeout(r, 50));
-  }
-}
-
-function apply(e: RecEvent): void {
-  const g = (window as any).__game; // eslint-disable-line @typescript-eslint/no-explicit-any
-  if (!g) return;
-  switch (e.k) {
-    case 'move': g.handleMove(e.dir); break;
-    case 'action': g.handleAction(); break;
-    case 'battle': g.dispatchBattle(e.action); break;
-    case 'item': g.handleUseItem?.(e.itemId); break;
-    case 'pcSwap': g.handlePCSwap?.(e.teamIdx, e.pcIdx); break;
-  }
-}
-
-export async function replay(
-  log: RecLog,
-  opts: { upToStep?: number; onProgress?: (i: number, total: number) => void } = {}
-): Promise<void> {
-  stopRecord();
-  replayCancelled = false;
-  restoreState(log.snapshot);
-  installPRNG(log.seed);
-
-  // Let React flush the snapshot before we start dispatching.
-  await new Promise(r => setTimeout(r, 100));
-
-  const end = Math.min(opts.upToStep ?? log.events.length, log.events.length);
-  for (let i = 0; i < end; i++) {
-    if (replayCancelled) break;
-    await waitUntilReady(log.events[i]);
-    if (replayCancelled) break;
-    apply(log.events[i]);
-    opts.onProgress?.(i + 1, log.events.length);
-  }
-}
-
-export function cancelReplay(): void {
-  replayCancelled = true;
-  restorePRNG();
-}
-
-// Browser-only side effects (window listeners, window.__log bridge) live in
-// `eventLogBrowser.ts`. Import that module once from the app entry to install
-// the dev-time crash auto-save and console helpers.
+// Browser-only side effects (window listeners, window.__log bridge,
+// downloadLog via <a> click, replay-driver wired to window.__game) live in
+// `eventLogBrowser.ts`. Import that module once from the app entry to
+// install the dev-time crash auto-save and console helpers.

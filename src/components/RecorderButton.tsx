@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { startRecord, stopRecord, downloadLog, isRecording, getLog, saveLogToDisk } from '../lib/eventLog';
+import { startRecord, stopRecord, isRecording, getLog, saveLogToDisk } from '../lib/eventLog';
+import { downloadLog } from '../lib/eventLogBrowser';
 
 export function RecorderButton() {
   const [recording, setRecording] = useState(isRecording);

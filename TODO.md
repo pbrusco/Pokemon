@@ -40,7 +40,7 @@
 ### P3 — Technical Debt & DX
 
 - [ ] **Use FireRed metatile attributes for richer `Tile.type`** — today everything walkable is `floor`/`path`; FireRed metatile attrs distinguish grass / water / ledge_down|left|right / warp surfaces. Pipeline change: surface the attribute byte from each metatile through the bridge.
-- [ ] **Finish `eventLog.ts` split** — crash auto-save + `window.__log` helpers moved to `eventLogBrowser.ts` (browser bridge). Still pending: relocate `downloadLog` / `saveLogToDisk` / `loadLogFromDisk` / `replay` so the recorder becomes fully pure.
+- [x] **Finish `eventLog.ts` split** — `downloadLog`, replay driver (apply/waitUntilReady/cancelReplay), and the `window.__log` debug bridge live in `eventLogBrowser.ts`. `eventLog.ts` is now off the DOM-globals allowlist.
 - [x] **Tighten the `worldIntegrity` warp baseline** — current count is 0; baseline is now a hard `expect(count).toBe(0)`.
 - [ ] **Browser smoke tests for UI flows** — A checklist or lightweight script for starter selection flow, healing flow, and shop flow.
 

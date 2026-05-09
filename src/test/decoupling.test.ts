@@ -11,12 +11,9 @@ const DOM_GLOBALS_RE = /\b(window|document|navigator|localStorage)\b/;
 // pure+browser pairs. New violations must NOT be added — fix the offender or
 // move it out of src/lib and src/data.
 const DOM_GLOBALS_ALLOWLIST: Record<string, string> = {
-  // Crash auto-save + window.__log helpers live in eventLogBrowser.ts now,
-  // but downloadLog/saveLogToDisk/replay still touch document/window directly.
-  // Future: move those into the bridge too and make eventLog.ts fully pure.
-  'src/lib/eventLog.ts': 'Mixed pure recorder + browser-only download/replay paths; further split TBD',
   // Intentional browser bridge for the pure eventLog.ts recorder. Wires
-  // window error/rejection listeners and the window.__log debug helpers.
+  // window error/rejection listeners, the window.__log debug helpers,
+  // download-as-file (anchor click), and replay → window.__game.
   'src/lib/eventLogBrowser.ts': 'Browser bridge for eventLog.ts; side-effect import from main.tsx',
   // Wraps HTMLAudioElement for all game music. Could be refactored into
   // a pure interface + browser implementation.
