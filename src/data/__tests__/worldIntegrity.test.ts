@@ -29,12 +29,12 @@ describe('world integrity', () => {
   });
 
   describe('baselines track migration progress', () => {
-    it('warp issues (excl. orphan doors)', () => {
+    it('warp issues (excl. orphan doors) — hard 0', () => {
       const issues = validateWorld();
       const count = issues.filter(i =>
         i.category === 'warp' && !i.message.includes('"door" tile')
       ).length;
-      expect(count).toBeLessThanOrEqual(4);
+      expect(count).toBe(0);
     });
 
     it('orphan door tiles (hard 0)', () => {

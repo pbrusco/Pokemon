@@ -14,8 +14,8 @@
 
 ### P0 — Critical Path (Unblock Main Story)
 
-- [ ] **Post-Lab Story Progression** — After `RIVAL_BATTLE`, advance narrative: Oak gives Pokédex (wire `oak_parcel_turnin`), Viridian PokéMart errand (get Oak's Parcel → deliver → receive Pokédex), Daisy gives Town Map (already gated on `hasPokedex`).
-- [ ] **Gym Leaders & Badge Rewards** — Pewter (Brock), Cascade (Misty), Thunder (Lt. Surge), etc. On victory: add badge to `badges`, trigger victory jingle, update `defeatedTrainers`. Badges gate HMs (e.g., `CASCADE` for `cut`).
+- [x] **Post-Lab Story Progression** — Parcel pickup at Viridian PokéMart, turn-in to Oak grants Pokédex, Daisy gives Town Map gated on `hasPokedex`. After turn-in, `storyStep` advances to `EXPLORING` and an `item_get` SFX plays. Scenarios 8/9 cover the flow.
+- [x] **Gym Leaders & Badge Rewards** — All 8 gym leaders auto-placed via FireRed extraction; `useBattleEngine` already maps `trainerClass → badge`. Verified by Scenario 18 (Brock placement, full 8-gym audit). Badges gate HMs via `HM_REQUIREMENTS` in `useInteractionEngine`.
 - [x] **Starter-ball alignment** — balls in `OAKS_LAB` moved to canonical FireRed positions (8,4)/(9,4)/(10,4) with Oak at (6,3). Added 4th "mystery" ball at (11,2) that gives a random Gen I Pokémon (Pikachu/Meowth/Machop/Abra/Geodude/Gastly/Eevee). Rival always picks Charmander when player chooses mystery. Sign NPC at (11,3) with Spanish hint dialogue.
 - [x] **Trainer Database Placement & Defeat Persistence** — `mergeAuto` now dedups by position: auto-extracted FireRed NPCs replace hand-authored entries at the same tile (canonical coords win). This eliminates duplicates across all 50+ migrated indoor maps. `isUnderground` is now correctly propagated from `bridgeFireredLayout` through `fromFirered` into `MapData`, fixing Flash cave detection. Story-critical manual NPCs (Oak `oak_parcel_turnin`, Mom `heal`) are wired through `firedDialogue.ts` so auto-extracted versions keep their `onInteract` behaviors.
 
@@ -40,8 +40,8 @@
 ### P3 — Technical Debt & DX
 
 - [ ] **Use FireRed metatile attributes for richer `Tile.type`** — today everything walkable is `floor`/`path`; FireRed metatile attrs distinguish grass / water / ledge_down|left|right / warp surfaces. Pipeline change: surface the attribute byte from each metatile through the bridge.
-- [ ] **Drop `eventLog.ts` from the DOM-globals decoupling allowlist** — split into a pure recorder + browser bridge.
-- [ ] **Tighten the `worldIntegrity` warp baseline** — currently allows ≤4 warp issues; aim for 0, then delete the threshold and assert zero.
+- [ ] **Finish `eventLog.ts` split** — crash auto-save + `window.__log` helpers moved to `eventLogBrowser.ts` (browser bridge). Still pending: relocate `downloadLog` / `saveLogToDisk` / `loadLogFromDisk` / `replay` so the recorder becomes fully pure.
+- [x] **Tighten the `worldIntegrity` warp baseline** — current count is 0; baseline is now a hard `expect(count).toBe(0)`.
 - [ ] **Browser smoke tests for UI flows** — A checklist or lightweight script for starter selection flow, healing flow, and shop flow.
 
 ---

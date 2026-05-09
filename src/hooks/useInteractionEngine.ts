@@ -162,6 +162,8 @@ export const useInteractionEngine = ({
         store.setHasParcel(false);
         store.setHasPokedex(true);
         store.removeInventoryItem('OAK_PARCEL');
+        store.setStoryStep('EXPLORING');
+        SfxController.play('item_get');
         store.setDialogue("PROF. OAK: ¡Oh! ¡Es el paquete que pedí! ¡Gracias! Como recompensa, tomad esto: ¡Una POKÉDEX!");
       } else if (npc.onInteract === 'give_town_map') {
         if (!hasPokedex) {
@@ -219,16 +221,24 @@ export const useInteractionEngine = ({
         const canonicalStarter = STARTERS.find(s => s.sprite === item.sprite);
         const isMystery = item.id === 'starter_4';
         if (canonicalStarter || isMystery) {
-          const starter = canonicalStarter ?? randomStarter();
-          // Confirmation prompt before locking in the starter (canonical
-          // FireRed flow). The player can back out and pick a different ball.
+          // For mystery ball: keep the species hidden until the player confirms,
+          // then roll & reveal. For canonical balls: name is already visible
+          // (the sprite gives it away).
+          const promptText = isMystery
+            ? `OAK: ¿Quieres llevarte el POKÉMON misterioso?`
+            : `OAK: ¿Quieres elegir a ${canonicalStarter!.name} como tu primer POKÉMON?`;
           store.setConfirm({
-            text: `OAK: ¿Quieres elegir a ${starter.name} como tu primer POKÉMON?`,
+            text: promptText,
             onYes: () => {
+              const starter = canonicalStarter ?? randomStarter();
               const s = useGameStore.getState();
               s.setPickedItemIds(prev => [...prev, item.id]);
               s.setPlayerTeam([starter]);
-              s.setDialogue(`¡Has elegido a ${starter.name}!`);
+              s.setDialogue(
+                isMystery
+                  ? `¡Es un ${starter.name}! ¡Has elegido a ${starter.name}!`
+                  : `¡Has elegido a ${starter.name}!`,
+              );
               s.setStoryStep('PICKED_STARTER');
 
               setTimeout(() => {

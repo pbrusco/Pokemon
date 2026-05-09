@@ -380,6 +380,8 @@ describe('Scenario 9: Deliver parcel to Oak → Pokédex', () => {
     expect(sim.hasPokedex).toBe(true);
     expect(sim.inventory['OAK_PARCEL']).toBeUndefined();
     expect(sim.dialogueContains('POKÉDEX')).toBe(true);
+    // Story advances to free-roam after the Pokédex is received.
+    expect(sim.storyStep).toBe('EXPLORING');
   });
 });
 
@@ -786,6 +788,53 @@ describe('Scenario 17: Fly field move warps to PC', () => {
     // Every town in visitedTowns should have a Fly destination
     for (const town of sim.state.visitedTowns) {
       expect(FLY_DESTINATIONS[town], `Missing fly destination for ${town}`).toBeDefined();
+    }
+  });
+});
+
+// ─── Scenario 18: Gym leader auto-placement & badge award ────────────────────
+
+describe('Scenario 18: Gym leaders are auto-placed and award badges', () => {
+  it('places Brock in PEWTER_GYM with a real party', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'PEWTER_GYM',
+      playerPos: { x: 6, y: 6 },
+      direction: 'up',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+    });
+
+    const npcs = useGameStore.getState().getNPCs() as Record<string, Array<{ trainerClass?: string; isTrainer?: boolean; trainerTeam?: Array<{ name: string }> }>>;
+    const brock = npcs['PEWTER_GYM']?.find(n => n.trainerClass === 'brock');
+    expect(brock, 'Brock not placed in PEWTER_GYM').toBeDefined();
+    expect(brock?.isTrainer).toBe(true);
+    expect(brock?.trainerTeam?.length ?? 0).toBeGreaterThan(0);
+    // Canonical FireRed: Brock leads with GEODUDE.
+    expect(brock?.trainerTeam?.[0].name).toMatch(/GEODUDE/i);
+  });
+
+  it('places all 8 canonical gym leaders', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'PEWTER_GYM',
+      playerPos: { x: 6, y: 6 },
+      direction: 'up',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+    });
+
+    const npcs = useGameStore.getState().getNPCs() as Record<string, Array<{ trainerClass?: string }>>;
+    const gyms: Array<[string, string]> = [
+      ['PEWTER_GYM', 'brock'],
+      ['CERULEAN_GYM', 'misty'],
+      ['VERMILION_GYM', 'lt_surge'],
+      ['CELADON_GYM', 'erika'],
+      ['FUCHSIA_GYM', 'koga'],
+      ['SAFFRON_GYM', 'sabrina'],
+      ['CINNABAR_GYM', 'blaine'],
+      ['VIRIDIAN_GYM', 'giovanni'],
+    ];
+    for (const [map, cls] of gyms) {
+      expect(npcs[map]?.some(n => n.trainerClass === cls), `Missing ${cls} in ${map}`).toBe(true);
     }
   });
 });

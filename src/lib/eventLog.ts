@@ -227,45 +227,6 @@ export function cancelReplay(): void {
   restorePRNG();
 }
 
-/* ---------- Crash auto-save ----------
- * In DEV, if an unhandled error or rejection fires while a session is being
- * recorded, persist the log to disk as `crash-<ts>.json` so every bug can be
- * replayed as a test. Reads `src/test/simulator/GameSimulator.loadLogAsScenario`
- * to turn the saved log back into a failing scenario.
- */
-function installCrashAutoSave() {
-  const save = (tag: string) => {
-    if (!current) return;
-    const name = `crash-${tag}-${Date.now()}`;
-    // fire-and-forget; don't block the error
-    saveLogToDisk(name).catch(() => {});
-  };
-  window.addEventListener('error', () => save('error'));
-  window.addEventListener('unhandledrejection', () => save('rejection'));
-}
-
-/* ---------- window bridge ---------- */
-if (typeof window !== 'undefined' && import.meta.env?.DEV) {
-  installCrashAutoSave();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (window as any).__log = {
-    start: startRecord,
-    stop: stopRecord,
-    download: downloadLog,
-    save: saveLogToDisk,
-    list: listSavedLogs,
-    load: loadLogFromDisk,
-    export: exportLog,
-    get: getLog,
-    replay: (logOrJson: RecLog | string, opts?: { upToStep?: number }) => {
-      const log = typeof logOrJson === 'string' ? (JSON.parse(logOrJson) as RecLog) : logOrJson;
-      return replay(log, opts ?? {});
-    },
-    replayFromDisk: async (name: string, opts?: { upToStep?: number }) => {
-      const log = await loadLogFromDisk(name);
-      return replay(log, opts ?? {});
-    },
-    cancelReplay,
-    status: () => ({ recording, eventCount: current?.events.length ?? 0, obsCount: current?.observations.length ?? 0, seed: current?.seed ?? null }),
-  };
-}
+// Browser-only side effects (window listeners, window.__log bridge) live in
+// `eventLogBrowser.ts`. Import that module once from the app entry to install
+// the dev-time crash auto-save and console helpers.

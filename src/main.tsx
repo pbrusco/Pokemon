@@ -4,6 +4,8 @@ import App from './App.tsx';
 import { FireredPreview } from './components/FireredPreview.tsx';
 import { FireredKantoPreview } from './components/FireredKantoPreview.tsx';
 import './index.css';
+// Side-effect import: installs window.__log + DEV crash auto-save.
+import './lib/eventLogBrowser.ts';
 
 // `?firered=<LAYOUT_ID>` mounts a standalone FireRed renderer preview that
 // does not load the full game state — used to verify the new metatile
