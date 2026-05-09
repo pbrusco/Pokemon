@@ -46,12 +46,21 @@ export const NPC_OVERRIDES: Record<string, NpcOverride> = {
   },
 
   // ── Oak's Lab ──────────────────────────────────────────────────────────
+  LOCALID_OAKS_LAB_PROF_OAK: {
+    name: 'PROF. OAK',
+    dialogue: [
+      'OAK: ¡Bienvenido al mundo POKÉMON!',
+      'Toma uno de estos POKÉMON, te ayudará en tu viaje.',
+    ],
+    onInteract: 'oak_parcel_turnin',
+  },
   LOCALID_PROF_OAK: {
     name: 'PROF. OAK',
     dialogue: [
       'OAK: ¡Bienvenido al mundo POKÉMON!',
       'Toma uno de estos POKÉMON, te ayudará en tu viaje.',
     ],
+    onInteract: 'oak_parcel_turnin',
   },
   LOCALID_OAKS_LAB_RIVAL: {
     name: 'AZUL',

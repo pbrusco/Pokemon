@@ -140,14 +140,14 @@ describe('Scenario 2: Pick starter in Oak\'s Lab', () => {
   it('adds the chosen starter to the team', () => {
     sim = new GameSimulator().init({
       currentMap: 'OAKS_LAB',
-      // Stand one tile south of the first starter at (3, 5)
-      playerPos: { x: 3, y: 6 },
+      // Stand one tile south of the first starter at (8, 4)
+      playerPos: { x: 8, y: 5 },
       direction: 'up',
       playerTeam: [],
       storyStep: 'OAK_STOPPED',
     });
 
-    // Interact with the starter item (facing up toward y=5) → confirm prompt.
+    // Interact with the starter item (facing up toward y=4) → confirm prompt.
     sim.interact();
     sim.confirmYes();
 
@@ -164,7 +164,7 @@ describe('Scenario 3: Rival battle after starter pick', () => {
   it('transitions to battle after picking a starter', () => {
     sim = new GameSimulator().init({
       currentMap: 'OAKS_LAB',
-      playerPos: { x: 3, y: 6 },
+      playerPos: { x: 8, y: 5 },
       direction: 'up',
       playerTeam: [],
       storyStep: 'OAK_STOPPED',
@@ -198,7 +198,7 @@ describe('Scenario 4: Win rival battle', () => {
     // Start with a strong Pokémon so we win quickly
     sim = new GameSimulator().init({
       currentMap: 'OAKS_LAB',
-      playerPos: { x: 3, y: 6 },
+      playerPos: { x: 8, y: 5 },
       direction: 'up',
       playerTeam: [],
       storyStep: 'OAK_STOPPED',
@@ -389,7 +389,7 @@ describe('Scenario 10: Pokéball blocked in trainer battle', () => {
   it('rejects Pokéball, keeps inventory, stays in CHOOSING', () => {
     sim = new GameSimulator().init({
       currentMap: 'OAKS_LAB',
-      playerPos: { x: 3, y: 6 },
+      playerPos: { x: 8, y: 5 },
       direction: 'up',
       playerTeam: [],
       storyStep: 'OAK_STOPPED',

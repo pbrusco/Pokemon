@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'motion/react';
 import type { Pokemon } from '../../types';
 
 const STATUS_INFO: Record<string, { label: string; bg: string; color: string }> = {
@@ -88,8 +89,11 @@ export function TrainerBalls({ team, side }: { team: Pokemon[]; side: 'player' |
       {ordered.map((p, i) => {
         const fainted = (p.hp ?? 0) <= 0;
         return (
-          <span
+          <motion.span
             key={i}
+            initial={{ x: side === 'enemy' ? 40 : -40, opacity: 0, scale: 0.5 }}
+            animate={{ x: 0, opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.12, duration: 0.25, ease: 'easeOut' }}
             aria-label={fainted ? 'fainted-ball' : 'pokeball'}
             className={`inline-block w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 ${
               fainted

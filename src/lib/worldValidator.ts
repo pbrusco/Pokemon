@@ -53,7 +53,7 @@ export function validateWorld(): WorldValidationIssue[] {
   // deliberately placed on non-walkable building walls (sign objects, close-door
   // objects, PC objects, SNES objects). Flagging them as errors would be noise.
   function isWallObject(id: string): boolean {
-    return /^(sign_|door_|.*_closed$|.*_locked$|snes$|pc_|lab_locked|door_closed|item_MAP_POKEMON_MANSION_B1F)/.test(id);
+    return /^(sign_|door_|.*_closed$|.*_locked$|snes$|pc_|lab_locked|door_closed|starter_|item_MAP_POKEMON_MANSION_B1F)/.test(id);
   }
 
   // 1. Mandatory Tile-Entity Connections (Doors/Signs)

@@ -9,6 +9,23 @@ import { EXPLORING, HEALING, SHOP } from '../types';
 import { SfxController } from '../lib/sfx';
 import { useGameStore } from '../store/gameStore';
 
+// Random starter pool for the 4th "mystery" ball in Oak's Lab.
+// Gen I Pokémon at level 5 — fun surprises alongside the canonical trio.
+const RANDOM_STARTERS: Pokemon[] = [
+  makePokemon('pikachu', 'PIKACHU', 5, 'electric', [MOVES.THUNDERSHOCK, MOVES.TACKLE], 25),
+  makePokemon('meowth', 'MEOWTH', 5, 'normal', [MOVES.SCRATCH, MOVES.GROWL], 52),
+  makePokemon('machop', 'MACHOP', 5, 'fighting', [MOVES.LOW_KICK, MOVES.LEER], 66),
+  makePokemon('abra', 'ABRA', 5, 'psychic', [MOVES.TELEPORT], 63),
+  makePokemon('geodude', 'GEODUDE', 5, 'rock', [MOVES.TACKLE, MOVES.ROCK_THROW], 74, { types: ['rock', 'ground'] }),
+  makePokemon('gastly', 'GASTLY', 5, 'ghost', [MOVES.LICK, MOVES.CONFUSION], 92, { types: ['ghost', 'poison'] }),
+  makePokemon('eevee', 'EEVEE', 5, 'normal', [MOVES.TACKLE, MOVES.TAIL_WHIP], 133),
+];
+
+function randomStarter(): Pokemon {
+  const idx = Math.floor(Math.random() * RANDOM_STARTERS.length);
+  return { ...RANDOM_STARTERS[idx] };
+}
+
 type HealLocation = { map: MapID; pos: Position };
 
 interface UseInteractionEngineParams {
@@ -105,7 +122,7 @@ export const useInteractionEngine = ({
         return;
       }
       if (npc.onInteract === 'heal') {
-        if (npc.id === 'mom' && playerTeam.length === 0) {
+        if (npc.trainerClass === 'mom' && playerTeam.length === 0) {
           store.setDialogue(`MAMÁ: ${npc.dialogue[0]}`);
           return;
         }
@@ -199,8 +216,10 @@ export const useInteractionEngine = ({
     const item = items[currentMap]?.find(i => i.position.x === targetX && i.position.y === targetY);
     if (item) {
       if (item.type === 'item' && currentMap === 'OAKS_LAB' && playerTeam.length === 0) {
-        const starter = STARTERS.find(s => s.sprite === item.sprite);
-        if (starter) {
+        const canonicalStarter = STARTERS.find(s => s.sprite === item.sprite);
+        const isMystery = item.id === 'starter_4';
+        if (canonicalStarter || isMystery) {
+          const starter = canonicalStarter ?? randomStarter();
           // Confirmation prompt before locking in the starter (canonical
           // FireRed flow). The player can back out and pick a different ball.
           store.setConfirm({
@@ -214,9 +233,11 @@ export const useInteractionEngine = ({
 
               setTimeout(() => {
                 if (useGameStore.getState().playerTeam.length === 0) return;
-                const starterIndex = STARTERS.findIndex(p => p.sprite === item.sprite);
-                const rivalIndex = (starterIndex + 1) % STARTERS.length;
-                const rivalPkmn = { ...STARTERS[rivalIndex] };
+                // Rival always picks the starter that is strong against the player's.
+                // For canonical starters: (index + 1) % 3. For mystery ball: fixed Charmander.
+                const rivalPkmn = isMystery
+                  ? { ...STARTERS[1] } // Charmander
+                  : { ...STARTERS[(STARTERS.findIndex(p => p.sprite === item.sprite) + 1) % STARTERS.length] };
                 useGameStore.getState().setDialogue(
                   "AZUL: ¡Pues yo elijo a este! ¡Vamos a ver quién es más fuerte!",
                   () => initBattle([rivalPkmn], true, 'rival'),

@@ -3,15 +3,46 @@ import { STARTERS, makePokemon } from '../constants/pokemon';
 import { type NPC, type Entity, type MapID, type Direction, type Pokemon, type Position } from '../types';
 import { buildAutoEntities } from './firered/runtime';
 
+// Trainer classes that represent unique characters (only one per game).
+// When a manual entry uses one of these classes, the auto-extracted twin
+// is dropped regardless of position — otherwise we get e.g. two Profs. Oak
+// because the cutscene Oak (manual) and the canonical Oak (auto) sit on
+// different tiles in Pallet Town.
+const UNIQUE_TRAINER_CLASSES = new Set([
+  'oak', 'mom', 'rival', 'daisy', 'bill', 'fuji',
+  'brock', 'misty', 'lt_surge', 'erika', 'koga', 'sabrina', 'blaine', 'giovanni',
+  'lorelei', 'bruno', 'agatha', 'lance',
+]);
+
 // Merge auto-extracted FireRed entities into a hand-authored database:
-// any map where the hand-authored array is empty gets back-filled with the
-// canonical FireRed object_event content. Maps with custom entries
+// auto entries are APPENDED to manual entries. Maps with custom entries
 // (Pallet Town story NPCs, Oak's Lab starters, etc.) keep their hand-tuned
-// content because the manual data is preferred.
-function mergeAuto<T>(manual: Record<MapID, T[]>, auto: Record<MapID, T[]>): Record<MapID, T[]> {
+// content AND gain any auto-extracted trainers/NPCs on the same map.
+function mergeAuto<T extends { id: string; position: { x: number; y: number }; trainerClass?: string }>(
+  manual: Record<MapID, T[]>, auto: Record<MapID, T[]>
+): Record<MapID, T[]> {
   const merged = { ...manual };
   for (const [mapId, list] of Object.entries(auto) as Array<[MapID, T[]]>) {
-    if (!merged[mapId] || merged[mapId].length === 0) merged[mapId] = list;
+    const existing = merged[mapId] ?? [];
+    // Auto data is canonical FireRed: if an auto entry occupies a tile,
+    // remove any manual entry at that same position so they don't duplicate.
+    const autoPositions = new Set(list.map(e => `${e.position.x},${e.position.y}`));
+    const filtered = existing.filter(e => !autoPositions.has(`${e.position.x},${e.position.y}`));
+    // Unique-character trainerClasses already covered by the manual list:
+    // skip auto entries with the same class so we don't render Oak/Mom/etc twice.
+    const manualUniqueClasses = new Set(
+      filtered
+        .map(e => e.trainerClass)
+        .filter((c): c is string => !!c && UNIQUE_TRAINER_CLASSES.has(c))
+    );
+    const seen = new Set(filtered.map(e => e.id));
+    for (const e of list) {
+      if (seen.has(e.id)) continue;
+      if (e.trainerClass && manualUniqueClasses.has(e.trainerClass)) continue;
+      filtered.push(e);
+      seen.add(e.id);
+    }
+    merged[mapId] = filtered;
   }
   return merged;
 }
@@ -713,9 +744,14 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
 
     // ── Indoor maps ──────────────────────────────────────────────────────────
     OAKS_LAB: [
-      { id: 'starter_1', type: 'item', position: { x: 3, y: 5 }, direction: 'down', sprite: STARTERS[0].sprite },
-      { id: 'starter_2', type: 'item', position: { x: 4, y: 5 }, direction: 'down', sprite: STARTERS[1].sprite },
-      { id: 'starter_3', type: 'item', position: { x: 5, y: 5 }, direction: 'down', sprite: STARTERS[2].sprite },
+      // Starter balls at canonical FireRed positions (8,4)–(10,4).
+      { id: 'starter_1', type: 'item', position: { x: 8, y: 4 }, direction: 'down', sprite: STARTERS[0].sprite },
+      { id: 'starter_2', type: 'item', position: { x: 9, y: 4 }, direction: 'down', sprite: STARTERS[1].sprite },
+      { id: 'starter_3', type: 'item', position: { x: 10, y: 4 }, direction: 'down', sprite: STARTERS[2].sprite },
+      // 4th "mystery" ball — one extra tile right and two up from the table.
+      { id: 'starter_4', type: 'item', position: { x: 11, y: 2 }, direction: 'down', sprite: '🔴' },
+      // Sign next to the 4th ball — hints at the “weird Pokémon”.
+      { id: 'sign_weird_pokemon', type: 'object', position: { x: 11, y: 3 }, direction: 'down', sprite: '🪧', dialogue: ['¡Oh! Hay un POKÉMON raro aquí...', '¿Quieres llevártelo?'] },
     ],
     PLAYERS_HOUSE_1F: [],
     PLAYERS_HOUSE_2F: [

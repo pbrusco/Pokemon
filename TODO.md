@@ -16,22 +16,22 @@
 
 - [ ] **Post-Lab Story Progression** — After `RIVAL_BATTLE`, advance narrative: Oak gives Pokédex (wire `oak_parcel_turnin`), Viridian PokéMart errand (get Oak's Parcel → deliver → receive Pokédex), Daisy gives Town Map (already gated on `hasPokedex`).
 - [ ] **Gym Leaders & Badge Rewards** — Pewter (Brock), Cascade (Misty), Thunder (Lt. Surge), etc. On victory: add badge to `badges`, trigger victory jingle, update `defeatedTrainers`. Badges gate HMs (e.g., `CASCADE` for `cut`).
-- [ ] **Trainer Database Placement & Defeat Persistence** — Wire extracted `firedTrainers.generated.ts` / `firedNpcs.generated.ts` into `buildNPCDatabase()` for all migrated maps. Check `defeatedTrainers` before every trainer interaction to prevent re-battle.
-- [ ] **Starter-ball alignment** — balls in `OAKS_LAB` are still at the legacy (3,5)/(4,5)/(5,5) but Oak now stands by the FireRed-canonical table at (6,3). Move the balls to (8,4)/(9,4)/(10,4) and adjust the post-cutscene player landing if needed so they line up with Oak.
+- [x] **Starter-ball alignment** — balls in `OAKS_LAB` moved to canonical FireRed positions (8,4)/(9,4)/(10,4) with Oak at (6,3). Added 4th "mystery" ball at (11,2) that gives a random Gen I Pokémon (Pikachu/Meowth/Machop/Abra/Geodude/Gastly/Eevee). Rival always picks Charmander when player chooses mystery. Sign NPC at (11,3) with Spanish hint dialogue.
+- [x] **Trainer Database Placement & Defeat Persistence** — `mergeAuto` now dedups by position: auto-extracted FireRed NPCs replace hand-authored entries at the same tile (canonical coords win). This eliminates duplicates across all 50+ migrated indoor maps. `isUnderground` is now correctly propagated from `bridgeFireredLayout` through `fromFirered` into `MapData`, fixing Flash cave detection. Story-critical manual NPCs (Oak `oak_parcel_turnin`, Mom `heal`) are wired through `firedDialogue.ts` so auto-extracted versions keep their `onInteract` behaviors.
 
 ### P1 — Major Systems (Depth)
 
-- [ ] **Complete HM Field-Move Flow** —
+- [x] **Complete HM Field-Move Flow** —
   - Fly: wire `FlyTownSelect` to actual warp system using `visitedTowns`.
   - Surf: auto-cancel `isSurfing` when stepping onto land.
   - Flash: `flashActive` must darken/brighten the overworld renderer (check `ScreenEffects` or `FireredMapView`).
   - Ensure all 5 HMs (`HM01_CUT`..`HM05_FLASH`) are obtainable in the world.
-- [ ] **Wild Encounter Integration** — Hook FireRed encounter tables into `useMovementEngine`: stepping on `grass` tiles rolls encounter rate from extracted data. Use zone-based tables (Route 1, Viridian Forest) for correct level ranges.
-- [ ] **Evolution & Level-Up UI Polish** — Trigger evolution cutscene when `willEvolve` is true. Handle move learning on level-up (currently `learnedMove` return value is ignored after level up).
+- [x] **Wild Encounter Integration** — Hook FireRed encounter tables into `useMovementEngine`: stepping on `grass` tiles rolls encounter rate from extracted data. Use zone-based tables (Route 1, Viridian Forest) for correct level ranges.
+- [x] **Evolution & Level-Up UI Polish** — Trigger evolution cutscene when `willEvolve` is true. Handle move learning on level-up (currently `learnedMove` return value is ignored after level up).
 
 ### P2 — Content & Polish (Fidelity)
 
-- [ ] **Animate the trainer-ball strip** — canonical battle intro flies the balls in one-by-one before the lead pokémon emerges. Currently the strip just appears.
+- [x] **Animate the trainer-ball strip** — canonical battle intro flies the balls in one-by-one before the lead pokémon emerges. Currently the strip just appears.
 - [ ] **Rocket Hideout, Silph Co., and Giovanni** — Key item pickups (Lift Key, Master Ball from Silph President). Giovanni battle with canonical team.
 - [ ] **Elite Four & Champion Rival** — Scripted run-throughs: Lorelei → Bruno → Agatha → Lance → Champion Rival. Victory road gate logic (badge checks on Route 23). Hall of Fame sequence after final win.
 - [ ] **Overworld Poison Damage** — Apply Gen I overworld poison tick every 4 steps in `useMovementEngine`. If lead Pokémon is poisoned, deduct HP and potentially trigger `BLACKOUT`.

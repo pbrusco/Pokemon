@@ -230,6 +230,11 @@ function fireredNpcToEntity(
 ): NPC | Entity | null {
   // Item balls — render as collectable item, not NPC
   if (npc.gfx === 'ITEM_BALL') {
+    // Starter balls in Oak's Lab are already hand-authored at walkable
+    // positions; the auto-extracted ones sit on wall tiles (8,4)/(9,4)/(10,4).
+    if (npc.script?.includes('EventScript_BulbasaurBall') || npc.script?.includes('EventScript_SquirtleBall') || npc.script?.includes('EventScript_CharmanderBall')) {
+      return null;
+    }
     return {
       id: `item_${fireredMapId}_${npc.x}_${npc.y}`,
       type: 'item',
