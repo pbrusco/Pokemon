@@ -337,6 +337,17 @@ function dialogueForSign(script: string | null): string[] {
   return ['Es un cartel.'];
 }
 
+// FireRed map IDs whose NPCs are fully hand-authored in npcDatabase.ts.
+// Auto entries for these maps are skipped to avoid duplicates (e.g., the
+// canonical Pallet Oak vs. the cutscene-driven manual Oak, or Viridian's
+// CHICA / VIRIDIAN_WOMAN twins). Their CUT_TREE / ITEM_BALL / SIGN entries
+// still flow through the auto pipeline below — only `gfx`-driven NPCs are
+// suppressed here.
+const MANUAL_CANONICAL_NPC_MAPS = new Set<string>([
+  'MAP_PALLET_TOWN',
+  'MAP_VIRIDIAN_CITY',
+]);
+
 // ─── Public builders ─────────────────────────────────────────────────────
 export function buildAutoEntities(): { npcs: Record<MapID, NPC[]>; items: Record<MapID, Entity[]>; signs: Record<MapID, Entity[]> } {
   const npcsOut: Record<string, NPC[]> = {};
@@ -347,6 +358,7 @@ export function buildAutoEntities(): { npcs: Record<MapID, NPC[]>; items: Record
     const resolved = resolveMapAndOffset(fireredMapId);
     if (!resolved) continue;
     const { mapId, offsetX, offsetY } = resolved;
+    const skipNpcs = MANUAL_CANONICAL_NPC_MAPS.has(fireredMapId);
     npcsOut[mapId] ??= [];
     itemsOut[mapId] ??= [];
     for (const npc of list) {
@@ -354,8 +366,10 @@ export function buildAutoEntities(): { npcs: Record<MapID, NPC[]>; items: Record
       const wy = offsetY + npc.y;
       const e = fireredNpcToEntity(npc, fireredMapId, wx, wy);
       if (!e) continue;
+      // Items and CUT_TREE / SNORLAX are always auto-generated; only
+      // skip true NPCs in manually-curated maps.
       if (e.type === 'item' || e.type === 'object') itemsOut[mapId].push(e);
-      else npcsOut[mapId].push(e as NPC);
+      else if (!skipNpcs) npcsOut[mapId].push(e as NPC);
     }
   }
 

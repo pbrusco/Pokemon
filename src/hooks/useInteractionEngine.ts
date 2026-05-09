@@ -284,6 +284,26 @@ export const useInteractionEngine = ({
           } else {
             store.setDialogue("El PC está encendido.");
           }
+        } else if (item.id?.startsWith('cut_tree_')) {
+          const cut = HM_REQUIREMENTS.cut;
+          const leadMoves = playerTeam[0]?.moves.map(m => m.name) ?? [];
+          if (badges.includes(cut.badge) && leadMoves.includes(cut.move)) {
+            store.setConfirm({
+              text: `¿Usar ${cut.move}?`,
+              onYes: () => {
+                const s = useGameStore.getState();
+                s.setPickedItemIds(prev => [...prev, item.id]);
+                SfxController.play('item_get');
+                s.setDialogue('¡CORTAR despejó el árbol!');
+                s.setConfirm(null);
+              },
+              onNo: () => useGameStore.getState().setConfirm(null),
+            });
+          } else if (!badges.includes(cut.badge)) {
+            store.setDialogue(`Es un árbol que se puede cortar. Necesitas la medalla ${cut.badge} y un POKÉMON con ${cut.move}.`);
+          } else {
+            store.setDialogue(`Es un árbol que se puede cortar. Tu POKÉMON líder no conoce ${cut.move}.`);
+          }
         } else if (item.dialogue && item.dialogue.length > 0) {
           store.setDialogue(item.dialogue[0]);
         }

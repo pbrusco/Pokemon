@@ -177,7 +177,22 @@ export const WorldView = memo(({
             // Pickup items still render so the player sees collectable balls.
             // Object overlays (signs, computers, etc.) are already rendered
             // by the FireRed canvas — skip the JS overlay so we don't double-draw.
-            if (item.type === 'object') return null;
+            // Exception: cut-tree objects sit on otherwise-walkable path tiles
+            // and only exist as auto-extracted FireRed object_events, not as
+            // metatiles, so we draw them ourselves.
+            const isCutTree = item.id?.startsWith('cut_tree_');
+            if (item.type === 'object' && !isCutTree) return null;
+            if (isCutTree) {
+              return (
+                <div
+                  key={item.id}
+                  className="absolute top-0 left-0 flex items-end justify-center pointer-events-none"
+                  style={{ left: item.position.x * TILE_SIZE, top: item.position.y * TILE_SIZE - TILE_SIZE / 2, width: TILE_SIZE, height: TILE_SIZE * 1.5, zIndex: 18 + item.position.y }}
+                >
+                  <div className="text-[40px] leading-none drop-shadow-[0_2px_2px_rgba(0,0,0,0.4)]">🌳</div>
+                </div>
+              );
+            }
 
             return (
               <motion.div
