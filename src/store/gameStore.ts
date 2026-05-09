@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { type Pokemon, type Position, type Direction, type Entity, type InventoryCounts, type MapID, type PokedexState, type WildPokemonEntity, type BattleLogEntry, type Tile } from '../types';
 import { worldConfig } from '../data/worldConfig';
 import { buildNPCDatabase, buildItemDatabase } from '../data/npcDatabase';
+import { EVOLUTION_RULES } from '../constants/pokemon';
 import { type GamePhase, EXPLORING } from '../types';
 import type { BattleState } from '../lib/battleEngine';
 import type { SetStateAction } from 'react';
@@ -424,6 +425,21 @@ export const useGameStore = create<GameState>()(
     {
       name: 'pokemon-firered-save-v3',
       storage: createJSONStorage(() => safeLocalStorage),
+      onRehydrateStorage: () => (state) => {
+        // Backfill evolution data on saves predating EVOLUTION_RULES.
+        // Existing wild-spawned / mystery-ball Pokémon have undefined
+        // evolutionLevel/evolvesTo and would be stuck at base form.
+        const fix = (p: Pokemon): Pokemon => {
+          if (p.evolutionLevel != null || p.evolvesTo != null) return p;
+          const rule = EVOLUTION_RULES[p.id];
+          if (!rule) return p;
+          return { ...p, evolutionLevel: rule.evolutionLevel, evolvesTo: rule.evolvesTo };
+        };
+        if (state) {
+          state.playerTeam = state.playerTeam.map(fix);
+          state.pcStorage = state.pcStorage.map(fix);
+        }
+      },
       partialize: (state) => ({
         playerPos: state.playerPos,
         direction: state.direction,

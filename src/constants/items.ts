@@ -20,6 +20,8 @@ export const ITEMS_DATABASE: Record<string, InventoryItem> = {
   HM01_CUT:      { id: 'HM01_CUT',      name: 'MO01 CORTAR',   description: 'Enseña CORTAR a un POKÉMON.',           icon: '✂️', type: 'key_item' },
   HM04_STRENGTH: { id: 'HM04_STRENGTH', name: 'MO04 FUERZA',   description: 'Enseña FUERZA a un POKÉMON.',           icon: '💪', type: 'key_item' },
   SILPH_SCOPE:   { id: 'SILPH_SCOPE',   name: 'ALCANCE SILPH', description: 'Revela a los POKÉMON fantasma.',        icon: '🔭', type: 'key_item' },
+  LIFT_KEY:      { id: 'LIFT_KEY',      name: 'LLAVE ASCENSOR', description: 'Activa el ascensor del ESCONDITE ROCKET.', icon: '🔑', type: 'key_item' },
+  MASTER_BALL:   { id: 'MASTER_BALL',   name: 'MASTER BALL',    description: 'La mejor POKÉ BALL: atrapa cualquier POKÉMON sin fallar.', icon: '🟣', type: 'pokeball' },
   POKE_FLUTE:    { id: 'POKE_FLUTE',    name: 'FLAUTA POKé',   description: 'Despierta a los POKÉMON dormidos.',     icon: '🎵', type: 'key_item' },
    SS_TICKET:     { id: 'SS_TICKET',     name: 'BILLETE SS',    description: 'Billete de embarque para el SS ANNE.',  icon: '🎫', type: 'key_item' },
    HM03_SURF:     { id: 'HM03_SURF',     name: 'MO03 SURF',     description: 'Enseña SURF a un POKÉMON.',              icon: '🌊', type: 'key_item' },
