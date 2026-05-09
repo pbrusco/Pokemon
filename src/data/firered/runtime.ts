@@ -316,10 +316,17 @@ function fireredNpcToEntity(
   return base;
 }
 
+// FireRed scripts whose name doesn't follow the `_Item<Name>` convention but
+// still corresponds to a known itemId (key items, plot rewards, etc.).
+const SPECIAL_SCRIPT_TO_ITEM: Record<string, string> = {
+  RocketHideout_B4F_EventScript_LiftKey: 'LIFT_KEY',
+};
+
 // Map a FireRed script name (e.g. 'Route24_EventScript_ItemPotion') to
 // an itemId. Falls back to POTION for unknown scripts.
 function scriptToItemId(script: string | null): string | null {
   if (!script) return null;
+  if (SPECIAL_SCRIPT_TO_ITEM[script]) return SPECIAL_SCRIPT_TO_ITEM[script];
   const m = script.match(/_Item([A-Z][a-zA-Z0-9_]+)/);
   if (!m) return null;
   // ItemPotion → POTION, ItemSuperPotion → SUPER_POTION, etc.
@@ -346,6 +353,10 @@ function dialogueForSign(script: string | null): string[] {
 const MANUAL_CANONICAL_NPC_MAPS = new Set<string>([
   'MAP_PALLET_TOWN',
   'MAP_VIRIDIAN_CITY',
+  // The credits scroll is its own decorative map; its NPCs (Oak, the rival,
+  // Pokémon line-up) shouldn't be merged into KANTO_OVERWORLD where they'd
+  // overlap real warps.
+  'MAP_CREDITS',
 ]);
 
 // ─── Public builders ─────────────────────────────────────────────────────

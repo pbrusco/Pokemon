@@ -176,6 +176,35 @@ export function validateWorld(): WorldValidationIssue[] {
     }
   }
 
+  // 2b. NPCs must not stand on door tiles or warp tiles, except a few story
+  // blockers (sleeping old man, cutscene Oak). Players need a clear path to
+  // doors/warps to enter buildings or trigger map transitions.
+  const STORY_DOOR_BLOCKERS = new Set<string>([
+    'viridian_oldman_sleepy',  // blocks Route 22 entrance until Pokédex received
+    'oak_pallet',              // cutscene Oak before player has Pokémon
+    'oak_escort',              // cutscene-only NPC (Oak escort)
+    'saffron_rocket3',         // TEAM ROCKET blockade on Saffron gym
+    'dock_guard',              // SS Anne dock — requires BILLETE SS
+    // Auto-extracted FireRed cutscene NPCs (movement = INVISIBLE in source).
+    'localid_credits_rival',   // post-game credits scene rival
+  ]);
+  for (const id of mapIds) {
+    if (SKIP_MAPS.has(id)) continue;
+    const map = maps[id];
+    const warpKeys = new Set(map.warps.map(w => `${w.x},${w.y}`));
+    for (const npc of npcs[id] || []) {
+      if (STORY_DOOR_BLOCKERS.has(npc.id)) continue;
+      const k = `${npc.position.x},${npc.position.y}`;
+      const tile = tileAt(map.tiles, npc.position.x, npc.position.y);
+      if (warpKeys.has(k) || tile?.type === 'door') {
+        issues.push({
+          category: 'npc',
+          message: `NPC "${npc.id}" blocks a door/warp at ${id} (${npc.position.x},${npc.position.y}). Move them, or add the id to STORY_DOOR_BLOCKERS if intentional.`,
+        });
+      }
+    }
+  }
+
   // 3. Items / Sign objects — wall-placed objects (signs, doors, PCs, SNES)
   // are legitimate. Only flag items that should be pickups but are on walls.
   const items = buildItemDatabase([], 'START');

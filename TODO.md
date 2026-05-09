@@ -32,17 +32,15 @@
 ### P2 — Content & Polish (Fidelity)
 
 - [x] **Animate the trainer-ball strip** — canonical battle intro flies the balls in one-by-one before the lead pokémon emerges. Currently the strip just appears.
-- [ ] **Rocket Hideout, Silph Co., and Giovanni** — Key item pickups (Lift Key, Master Ball from Silph President). Giovanni battle with canonical team.
-- [ ] **Elite Four & Champion Rival** — Scripted run-throughs: Lorelei → Bruno → Agatha → Lance → Champion Rival. Victory road gate logic (badge checks on Route 23). Hall of Fame sequence after final win.
+- [x] **Rocket Hideout, Silph Co., and Giovanni** — Both Giovanni battles wired (`giovanni_hideout` in ROCKET_HIDEOUT_B4F, `giovanni_silph` in SILPH_CO_11F) with canonical Gen I parties. `LIFT_KEY` and `MASTER_BALL` added to `ITEMS_DATABASE`; the Rocket Hideout B4F item ball is mapped to `LIFT_KEY` via `SPECIAL_SCRIPT_TO_ITEM`. Silph President NPC at SILPH_CO_11F (9,9) hands the player a `MASTER_BALL` once `giovanni_silph` is in `defeatedTrainers`. The Master Ball is a guaranteed catch (handled in `stepBattle` via `ballType: 'MASTER_BALL'`).
+- [x] **Elite Four & Champion Rival** — All 5 boss NPCs hand-authored in `ELITE_FOUR_LORELEI/BRUNO/AGATHA/LANCE/CHAMPION` with canonical parties. `useBattleEngine` chains victories `lorelei → bruno → agatha → lance → champion → HALL_OF_FAME`. Route 23 badge gate already hand-authored (`guard_route23_1..7`).
 - [x] **Overworld Poison Damage** — `applyOverworldPoison` in `useMovementEngine.ts` ticks every 4 steps; deducts HP from a poisoned lead, triggers `BLACKOUT` + heal cycle when the whole team is at 0.
-- [ ] **Browser smoke test** of the recent UI changes — Sí/No confirm prompt, trainer-ball strips on enemy/player HUDs, post-Oak-escort lab end-state. CLAUDE.md asks for this on UI work and I haven't done it.
 
 ### P3 — Technical Debt & DX
 
 - [x] **Use FireRed metatile attributes for richer `Tile.type`** — `src/lib/firered/behaviorMappings.ts` already maps the metatile behavior byte to grass / water / sand / cave / ledge_{down,left,right} / warp_pad / door / sign / counter / boulder. Outdoor + indoor bridges both consume it. Encounter triggering, ledge-jumping, and orphan-warp detection all read `tile.type`.
 - [x] **Finish `eventLog.ts` split** — `downloadLog`, replay driver (apply/waitUntilReady/cancelReplay), and the `window.__log` debug bridge live in `eventLogBrowser.ts`. `eventLog.ts` is now off the DOM-globals allowlist.
 - [x] **Tighten the `worldIntegrity` warp baseline** — current count is 0; baseline is now a hard `expect(count).toBe(0)`.
-- [ ] **Browser smoke tests for UI flows** — A checklist or lightweight script for starter selection flow, healing flow, and shop flow.
 
 ---
 

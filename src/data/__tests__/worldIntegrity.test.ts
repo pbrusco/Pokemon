@@ -76,6 +76,14 @@ describe('world integrity', () => {
       expect(count).toBe(0);
     });
 
+    it('NPCs blocking doors / warps (hard 0)', () => {
+      const issues = validateWorld();
+      const offenders = issues.filter(i =>
+        i.category === 'npc' && i.message.includes('blocks a door/warp')
+      );
+      expect(offenders.map(i => i.message)).toEqual([]);
+    });
+
     it('items on non-walkable tiles (hard 0)', () => {
       const issues = validateWorld();
       const count = issues.filter(i =>

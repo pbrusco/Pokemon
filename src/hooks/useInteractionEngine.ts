@@ -184,6 +184,17 @@ export const useInteractionEngine = ({
         } else {
           store.setDialogue('La FLAUTA POKé ya la tienes.');
         }
+      } else if (npc.onInteract === 'give_master_ball') {
+        const defeatedGiovanni = useGameStore.getState().defeatedTrainers.includes('giovanni_silph');
+        if (!defeatedGiovanni) {
+          store.setDialogue('PRES. DE SILPH: ¡Aún no podemos hablar con tranquilidad — TEAM ROCKET sigue aquí!');
+        } else if (inventory['MASTER_BALL']) {
+          store.setDialogue('PRES. DE SILPH: ¡Ya te di la MASTER BALL! Úsala con sabiduría.');
+        } else {
+          store.addInventoryItem('MASTER_BALL');
+          SfxController.play('item_get');
+          store.setDialogue('¡Recibiste la MASTER BALL!');
+        }
       } else if (npc.onInteract === 'give_ss_ticket') {
         if (!inventory['SS_TICKET']) {
           store.addInventoryItem('SS_TICKET');

@@ -144,7 +144,7 @@ export type InventoryCounts = Record<string, number>;
 export interface NPC extends Entity {
   name: string;
   dialogue: string[];
-  onInteract?: 'heal' | 'shop' | 'oak_parcel_turnin' | 'give_town_map' | 'give_poke_flute' | 'give_ss_ticket' | 'wake_snorlax';
+  onInteract?: 'heal' | 'shop' | 'oak_parcel_turnin' | 'give_town_map' | 'give_poke_flute' | 'give_ss_ticket' | 'wake_snorlax' | 'give_master_ball';
   questId?: string;
   requiredBadge?: string;
   isRival?: boolean;

@@ -178,8 +178,9 @@ export default function App() {
       if (!hasItem) return;
       const ph = s.phase;
       const ib = ph.type === 'BATTLE' || ('returnTo' in ph && ph.returnTo?.type === 'BATTLE');
+      const isBall = itemId === 'POKEBALL' || itemId === 'MASTER_BALL';
       if (!ib) {
-        if (itemId === 'POKEBALL') {
+        if (isBall) {
           s.setDialogue('¡No es el momento de usar eso!');
           s.setPhase(EXPLORING);
           return;
@@ -187,8 +188,8 @@ export default function App() {
         s.setPhase({ type: 'ITEM_TEAM_SELECT', itemId });
         return;
       }
-      if (itemId === 'POKEBALL') {
-        dispatchBattleRef.current({ type: 'CATCH' });
+      if (isBall) {
+        dispatchBattleRef.current({ type: 'CATCH', ballType: itemId as 'POKEBALL' | 'MASTER_BALL' });
       } else {
         s.setPhase(battle({ type: 'BATTLE_ITEM_TEAM_SELECT', itemId }));
       }

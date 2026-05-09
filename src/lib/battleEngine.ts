@@ -89,7 +89,7 @@ export type BattleAction =
   | { type: 'USE_ITEM'; itemId: string; targetIndex: number }
   | { type: 'SWITCH'; index: number }
   | { type: 'FLEE' }
-  | { type: 'CATCH' }
+  | { type: 'CATCH'; ballType?: 'POKEBALL' | 'MASTER_BALL' }
   | { type: 'CHEAT_KO' }
   | { type: 'TICK' };
 
@@ -781,32 +781,39 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         return { state: { ...s, phase: 'CHOOSING' }, effects };
       }
 
-      const pkbQty = s.inventory['POKEBALL'] ?? 0;
-      if (pkbQty <= 0) return { state, effects };
+      const ballType = action.ballType ?? 'POKEBALL';
+      const ballQty = s.inventory[ballType] ?? 0;
+      if (ballQty <= 0) return { state, effects };
 
-      const newInv = pkbQty - 1 > 0
-        ? { ...s.inventory, POKEBALL: pkbQty - 1 }
-        : (() => { const { POKEBALL: _, ...rest } = s.inventory; return rest; })();
+      const newInv = ballQty - 1 > 0
+        ? { ...s.inventory, [ballType]: ballQty - 1 }
+        : (() => { const { [ballType]: _, ...rest } = s.inventory; return rest; })();
 
       let caught = false;
-      const catchStatus = s.enemyPokemon.status;
-      const r1 = Math.floor(Math.random() * 256);
-      if ((catchStatus === 'sleep' || catchStatus === 'frozen') && r1 < 25) {
+      if (ballType === 'MASTER_BALL') {
+        // Canonical Gen I: Master Ball always succeeds.
         caught = true;
-      } else if ((catchStatus === 'paralyzed' || catchStatus === 'burn' || catchStatus === 'poison') && r1 < 12) {
-        caught = true;
-      }
+      } else {
+        const catchStatus = s.enemyPokemon.status;
+        const r1 = Math.floor(Math.random() * 256);
+        if ((catchStatus === 'sleep' || catchStatus === 'frozen') && r1 < 25) {
+          caught = true;
+        } else if ((catchStatus === 'paralyzed' || catchStatus === 'burn' || catchStatus === 'poison') && r1 < 12) {
+          caught = true;
+        }
 
-      if (!caught) {
-        const speciesCatchRate = s.enemyPokemon.catchRate ?? 45;
-        const catchV = Math.floor(
-          speciesCatchRate * (s.enemyPokemon.maxHp * 3 - s.enemyPokemon.hp * 2) / (s.enemyPokemon.maxHp * 3)
-        );
-        caught = Math.floor(Math.random() * 256) < catchV;
+        if (!caught) {
+          const speciesCatchRate = s.enemyPokemon.catchRate ?? 45;
+          const catchV = Math.floor(
+            speciesCatchRate * (s.enemyPokemon.maxHp * 3 - s.enemyPokemon.hp * 2) / (s.enemyPokemon.maxHp * 3)
+          );
+          caught = Math.floor(Math.random() * 256) < catchV;
+        }
       }
 
       s = { ...s, inventory: newInv, phase: 'CATCHING' };
-      effects.push(log('¡Pablo lanzó una POKÉ BALL!', 'Pablo'));
+      const ballLabel = ballType === 'MASTER_BALL' ? 'MASTER BALL' : 'POKÉ BALL';
+      effects.push(log(`¡Pablo lanzó una ${ballLabel}!`, 'Pablo'));
 
       if (caught) {
         effects.push(log(`¡Ya está! ¡${s.enemyPokemon.name} atrapado!`));
