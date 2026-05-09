@@ -100,4 +100,70 @@ export const NPC_OVERRIDES: Record<string, NpcOverride> = {
     dialogue: ['¡Bienvenido a la TIENDA POKÉMON!'],
     onInteract: 'shop',
   },
+
+  // ── Gym Leaders (gfx-based overrides) ──────────────────────────────────
+  LOCALID_LEADER_BROCK: {
+    name: 'BROCK',
+    dialogue: [
+      '¡Soy BROCK!',
+      '¡Líder del GIMNASIO de CIUDAD PLATEADA!',
+      '¡Mis POKÉMON de roca son imparables!',
+    ],
+  },
+  LOCALID_LEADER_MISTY: {
+    name: 'MISTY',
+    dialogue: [
+      '¡Soy MISTY!',
+      '¡Líder del GIMNASIO de CIUDAD CELESTE!',
+      '¡Mis POKÉMON de agua son invencibles!',
+    ],
+  },
+  LOCALID_LEADER_LT_SURGE: {
+    name: 'TENIENTE SURGE',
+    dialogue: [
+      '¡Soy el TENIENTE SURGE!',
+      '¡Líder del GIMNASIO de CIUDAD CARMÍN!',
+      '¡Mis POKÉMON eléctricos te electrocutarán!',
+    ],
+  },
+  LOCALID_LEADER_ERIKA: {
+    name: 'ERIKA',
+    dialogue: [
+      '¡Soy ERIKA!',
+      '¡Líder del GIMNASIO de CIUDAD AZULONA!',
+      '¡Mis POKÉMON planta son hermosos y fuertes!',
+    ],
+  },
+  LOCALID_LEADER_KOGA: {
+    name: 'KOGA',
+    dialogue: [
+      '¡Soy KOGA!',
+      '¡Líder del GIMNASIO de CIUDAD FUCSIA!',
+      '¡Mis tácticas ninja y POKÉMON veneno te derrotarán!',
+    ],
+  },
+  LOCALID_LEADER_SABRINA: {
+    name: 'SABRINA',
+    dialogue: [
+      '...Soy SABRINA...',
+      'Líder del GIMNASIO de CIUDAD AZAFRÁN.',
+      '...Tu mente es débil...',
+    ],
+  },
+  LOCALID_LEADER_BLAINE: {
+    name: 'BLAINE',
+    dialogue: [
+      '¡Soy BLAINE!',
+      '¡Líder del GIMNASIO de ISLA CANELA!',
+      '¡Mis POKÉMON fuego arden con pasión!',
+    ],
+  },
+  LOCALID_LEADER_GIOVANNI: {
+    name: 'GIOVANNI',
+    dialogue: [
+      '...Bienvenido...',
+      'Soy GIOVANNI, el líder de CIUDAD VERDE.',
+      '¡Prepárate para perder!',
+    ],
+  },
 };

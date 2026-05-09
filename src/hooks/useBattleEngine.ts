@@ -139,7 +139,7 @@ export function useBattleEngine({
             giovanni:   ['EARTH',       'MEDALLA TIERRA de GIOVANNI'],
           };
 
-          const award = badgeAwards[trainer.id];
+          const award = badgeAwards[(trainer as { trainerClass?: string }).trainerClass ?? ''];
           if (award) {
             const [badge, label] = award;
             s.setBadges(prev => [...prev, badge]);

@@ -527,15 +527,16 @@ describe('Scenario 13: Trainer vision range', () => {
 // ─── Scenario 14: Brock leader battle ──────────────────────────────────────
 
 describe('Scenario 14: Brock leader battle', () => {
-  // Brock @ PEWTER_GYM (4, 1) at pokered position, facing down.
+  // Auto-extracted Brock @ PEWTER_GYM (6, 5) facing down.
+  // Camper Liam @ (3, 8).
   it('a L50 starter wins against Brock', () => {
     sim = new GameSimulator().init({
       currentMap: 'PEWTER_GYM',
-      playerPos: { x: 4, y: 2 },
+      playerPos: { x: 6, y: 6 },
       direction: 'up',
       playerTeam: [strongStarter()],
       storyStep: 'EXPLORING',
-      defeatedTrainers: ['pewter_gym_jr_trainer_m_1'],
+      defeatedTrainers: ['npc_MAP_PEWTER_CITY_GYM_3_8'],
     });
     sim.interact();
     sim.dismissDialogue();
@@ -554,7 +555,7 @@ describe('Scenario 14: Brock leader battle', () => {
     }
     sim.tick(10000);
     expect(sim.phase.type).toBe('EXPLORING');
-    expect(sim.state.defeatedTrainers).toContain('brock');
+    expect(sim.state.defeatedTrainers).toContain('npc_MAP_PEWTER_CITY_GYM_6_5');
   });
 });
 

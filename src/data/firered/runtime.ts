@@ -280,6 +280,14 @@ function fireredNpcToEntity(
   const gfxOverride = !exactOverride && !patternOverride
     ? (npc.gfx === 'NURSE' ? NPC_OVERRIDES.LOCALID_NURSE
       : npc.gfx === 'CLERK' ? NPC_OVERRIDES.LOCALID_POKEMART_CLERK
+      : npc.gfx === 'BROCK' ? NPC_OVERRIDES.LOCALID_LEADER_BROCK
+      : npc.gfx === 'MISTY' ? NPC_OVERRIDES.LOCALID_LEADER_MISTY
+      : npc.gfx === 'LT_SURGE' ? NPC_OVERRIDES.LOCALID_LEADER_LT_SURGE
+      : npc.gfx === 'ERIKA' ? NPC_OVERRIDES.LOCALID_LEADER_ERIKA
+      : npc.gfx === 'KOGA' ? NPC_OVERRIDES.LOCALID_LEADER_KOGA
+      : npc.gfx === 'SABRINA' ? NPC_OVERRIDES.LOCALID_LEADER_SABRINA
+      : npc.gfx === 'BLAINE' ? NPC_OVERRIDES.LOCALID_LEADER_BLAINE
+      : npc.gfx === 'GIOVANNI' ? NPC_OVERRIDES.LOCALID_LEADER_GIOVANNI
       : undefined)
     : undefined;
   const override = exactOverride ?? patternOverride ?? gfxOverride;
