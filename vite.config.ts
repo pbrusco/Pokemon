@@ -70,7 +70,7 @@ function logSaverPlugin(): Plugin {
 
 export default defineConfig(() => {
   return {
-    base: '/Pokemon/',
+    base: '/poke-test/',
     plugins: [react(), tailwindcss(), logSaverPlugin()],
     resolve: {
       alias: {
