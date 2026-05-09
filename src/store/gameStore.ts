@@ -7,6 +7,7 @@ import { EVOLUTION_RULES } from '../constants/pokemon';
 import { type GamePhase, EXPLORING } from '../types';
 import type { BattleState } from '../lib/battleEngine';
 import type { SetStateAction } from 'react';
+import { writeSlot, readSlot, type SlotNumber } from '../lib/saveSlots';
 
 interface GameSaveState {
   playerPos: Position;
@@ -220,10 +221,49 @@ interface GameState extends GameSaveState {
   addVisitedTown: (town: string) => void;
   setModifiedTile: (mapId: MapID, x: number, y: number, tile: Tile | null) => void;
 
-  /** Touches `lastSavedAt` to force the persist middleware to write the
-   *  partialized snapshot to localStorage. Returns the timestamp written. */
-  saveGame: () => number;
+  /** Snapshot the current state into save slot `n` (overwriting any existing
+   *  save in that slot). Returns the timestamp written. */
+  saveToSlot: (n: SlotNumber) => number;
+  /** Replace the current state with the contents of slot `n`. Returns true
+   *  if the slot existed and was applied. */
+  loadFromSlot: (n: SlotNumber) => boolean;
   resetGame: () => void;
+}
+
+/**
+ * Pick the persisted subset of game state — used both by zustand-persist for
+ * in-session continuity and by manual save slots so the same fields survive
+ * a slot save → slot load round-trip.
+ */
+function partializeGameState(state: GameState): Record<string, unknown> {
+  return {
+    playerPos: state.playerPos,
+    direction: state.direction,
+    currentMap: state.currentMap,
+    hasPokedex: state.hasPokedex,
+    hasParcel: state.hasParcel,
+    hasSilphScope: state.hasSilphScope,
+    hasPokeFlute: state.hasPokeFlute,
+    hasSsTicket: state.hasSsTicket,
+    clearedSnorlax: state.clearedSnorlax,
+    badges: state.badges,
+    storyStep: state.storyStep,
+    defeatedTrainers: state.defeatedTrainers,
+    lastHealLocation: state.lastHealLocation,
+    inventory: state.inventory,
+    playerTeam: state.playerTeam,
+    pcStorage: state.pcStorage,
+    money: state.money,
+    pickedItemIds: state.pickedItemIds,
+    pokedex: state.pokedex,
+    activeBattle: state.activeBattle,
+    phase: state.phase,
+    musicMuted: state.musicMuted,
+    musicVolume: state.musicVolume,
+    sfxMuted: state.sfxMuted,
+    sfxVolume: state.sfxVolume,
+    lastSavedAt: state.lastSavedAt,
+  };
 }
 
 const ensureUid = (p: Pokemon) => p.uid ? p : { ...p, uid: Math.random().toString(36).substring(2, 9) };
@@ -399,10 +439,39 @@ export const useGameStore = create<GameState>()(
       setBattleLogs: (logs) => set((state) => ({ battleLogs: typeof logs === 'function' ? logs(state.battleLogs) : logs })),
       setCatchResult: (v) => set({ catchResult: v }),
 
-      saveGame: () => {
+      saveToSlot: (n) => {
         const now = Date.now();
         set({ lastSavedAt: now });
-        return now;
+        const snap = partializeGameState(get());
+        const written = writeSlot(n, snap);
+        return written.savedAt;
+      },
+
+      loadFromSlot: (n) => {
+        const slot = readSlot(n);
+        if (!slot) return false;
+        // Drop in-flight transient state first so the loaded snapshot doesn't
+        // collide with an open dialogue/confirm/animation.
+        set({
+          dialogue: null,
+          dialogueCallback: null,
+          confirm: null,
+          isMoving: false,
+          showMoves: false,
+          grassEffect: null,
+          spottedTrainerId: null,
+          spottedTrainerPos: null,
+          enemyPokemon: null,
+          isTrainerBattle: false,
+          trainerBattleSprite: null,
+          battleLog: '',
+          battleLogs: [],
+          catchResult: null,
+          oakCutscenePos: null,
+          oakCutsceneDir: null,
+        });
+        set(slot.data as Partial<GameState>);
+        return true;
       },
 
       resetGame: () => {
@@ -452,34 +521,7 @@ export const useGameStore = create<GameState>()(
           state.pcStorage = state.pcStorage.map(fix);
         }
       },
-      partialize: (state) => ({
-        playerPos: state.playerPos,
-        direction: state.direction,
-        currentMap: state.currentMap,
-        hasPokedex: state.hasPokedex,
-        hasParcel: state.hasParcel,
-        hasSilphScope: state.hasSilphScope,
-        hasPokeFlute: state.hasPokeFlute,
-        hasSsTicket: state.hasSsTicket,
-        clearedSnorlax: state.clearedSnorlax,
-        badges: state.badges,
-        storyStep: state.storyStep,
-        defeatedTrainers: state.defeatedTrainers,
-        lastHealLocation: state.lastHealLocation,
-        inventory: state.inventory,
-        playerTeam: state.playerTeam,
-        pcStorage: state.pcStorage,
-        money: state.money,
-        pickedItemIds: state.pickedItemIds,
-        pokedex: state.pokedex,
-        activeBattle: state.activeBattle,
-        phase: state.phase,
-        musicMuted: state.musicMuted,
-        musicVolume: state.musicVolume,
-        sfxMuted: state.sfxMuted,
-        sfxVolume: state.sfxVolume,
-        lastSavedAt: state.lastSavedAt,
-      }),
+      partialize: (state) => partializeGameState(state),
     }
   )
 );

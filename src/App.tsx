@@ -21,6 +21,7 @@ import { MobileControls } from './components/MobileControls';
 import { SideMenu } from './components/SideMenu';
 import { MenuButton } from './components/MenuButton';
 import { GameModals } from './components/GameModals';
+import { LoadGameModal } from './components/LoadGameModal';
 import { ScreenEffects } from './components/ScreenEffects';
 import { applyItemToPokemon } from './lib/itemUtils';
 import { HM_MOVE_MAP, HM_REQUIREMENTS } from './constants/items';
@@ -412,6 +413,8 @@ export default function App() {
       {warpFlash && (
         <div className="fixed inset-0 bg-white z-[400] pointer-events-none" />
       )}
+
+      <LoadGameModal />
 
     </div>
   );

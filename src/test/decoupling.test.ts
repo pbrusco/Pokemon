@@ -14,6 +14,9 @@ const DOM_GLOBALS_ALLOWLIST: Record<string, string> = {
   // Wraps HTMLAudioElement for all game music. Could be refactored into
   // a pure interface + browser implementation.
   'src/lib/music.ts': 'HTMLAudioElement-based audio controller; extract interface for testability',
+  // Manual save-slot storage; reads/writes window.localStorage directly.
+  // Mirrors the side-effect surface zustand-persist already uses.
+  'src/lib/saveSlots.ts': 'localStorage-backed save slots',
 };
 
 function walk(dir: string): string[] {
