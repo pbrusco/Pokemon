@@ -46,6 +46,8 @@ interface GameSaveState {
   visitedTowns: string[];
   /** Persisted tile mutations keyed by "mapId:x:y" → serialized Tile */
   modifiedTiles: Record<string, { type: string; walkable: boolean }>;
+  /** Epoch ms of the last explicit Save. 0 if never saved manually. */
+  lastSavedAt: number;
 }
 
 const safeLocalStorage = {
@@ -107,6 +109,7 @@ const INITIAL_SAVE_STATE: GameSaveState = {
   flashActive: false,
   visitedTowns: ['PALLET_TOWN'],
   modifiedTiles: {},
+  lastSavedAt: 0,
 };
 
 interface GameState extends GameSaveState {
@@ -217,6 +220,9 @@ interface GameState extends GameSaveState {
   addVisitedTown: (town: string) => void;
   setModifiedTile: (mapId: MapID, x: number, y: number, tile: Tile | null) => void;
 
+  /** Touches `lastSavedAt` to force the persist middleware to write the
+   *  partialized snapshot to localStorage. Returns the timestamp written. */
+  saveGame: () => number;
   resetGame: () => void;
 }
 
@@ -393,6 +399,12 @@ export const useGameStore = create<GameState>()(
       setBattleLogs: (logs) => set((state) => ({ battleLogs: typeof logs === 'function' ? logs(state.battleLogs) : logs })),
       setCatchResult: (v) => set({ catchResult: v }),
 
+      saveGame: () => {
+        const now = Date.now();
+        set({ lastSavedAt: now });
+        return now;
+      },
+
       resetGame: () => {
         if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.removeItem === 'function') {
           window.localStorage.removeItem('pokemon-firered-save');
@@ -466,6 +478,7 @@ export const useGameStore = create<GameState>()(
         musicVolume: state.musicVolume,
         sfxMuted: state.sfxMuted,
         sfxVolume: state.sfxVolume,
+        lastSavedAt: state.lastSavedAt,
       }),
     }
   )

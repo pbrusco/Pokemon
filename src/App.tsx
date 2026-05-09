@@ -1,7 +1,6 @@
 import { useEffect, useRef, useMemo, useCallback, lazy, Suspense, useState } from 'react';
-import { type BattleState, type BattleAction } from './lib/battleEngine';
+import { type BattleState } from './lib/battleEngine';
 import { battle, B_CHOOSING, B_FORCED_SWITCH, EXPLORING } from './types';
-import { logEvent, withoutLogging } from './lib/eventLog';
 import { type Direction } from './types';
 import { useInteractionEngine } from './hooks/useInteractionEngine';
 import { useWindowSize } from './hooks/useWindowSize';
@@ -93,7 +92,6 @@ export default function App() {
   const battleStateRef = useRef<BattleState | null>(null);
 
   const handlePCSwap = useCallback((teamIdx: number, pcIdx: number) => {
-    logEvent({ k: 'pcSwap', teamIdx, pcIdx });
     const s = useGameStore.getState();
     const newTeam = [...s.playerTeam];
     const newPC = [...s.pcStorage];
@@ -110,10 +108,7 @@ export default function App() {
     setEnemyAnim,
     setBattleShake,
   });
-  const dispatchBattle = useCallback((action: BattleAction) => {
-    if (action.type !== 'TICK') logEvent({ k: 'battle', action });
-    rawDispatchBattle(action);
-  }, [rawDispatchBattle]);
+  const dispatchBattle = rawDispatchBattle;
 
   // Restore battle state from persisted store on mount
   useEffect(() => {
@@ -132,21 +127,13 @@ export default function App() {
     }
   }, []);
 
-  const { handleMove: rawHandleMove, initBattle } = useMovementEngine({
+  const { handleMove, initBattle } = useMovementEngine({
     setOverworldShake,
   });
-  const handleMove = useCallback((dir: Direction) => {
-    logEvent({ k: 'move', dir });
-    rawHandleMove(dir);
-  }, [rawHandleMove]);
 
-  const { handleAction: rawHandleAction } = useInteractionEngine({
+  const { handleAction } = useInteractionEngine({
     initBattle,
   });
-  const handleAction = useCallback(() => {
-    logEvent({ k: 'action' });
-    rawHandleAction();
-  }, [rawHandleAction]);
 
   const handleBack = useCallback(() => {
     const s = useGameStore.getState();
@@ -171,29 +158,26 @@ export default function App() {
   }, []);
 
   const handleUseItem = useCallback((itemId: string) => {
-    logEvent({ k: 'item', itemId });
-    withoutLogging(() => {
-      const s = useGameStore.getState();
-      const hasItem = (s.inventory[itemId] ?? 0) > 0;
-      if (!hasItem) return;
-      const ph = s.phase;
-      const ib = ph.type === 'BATTLE' || ('returnTo' in ph && ph.returnTo?.type === 'BATTLE');
-      const isBall = itemId === 'POKEBALL' || itemId === 'MASTER_BALL';
-      if (!ib) {
-        if (isBall) {
-          s.setDialogue('¡No es el momento de usar eso!');
-          s.setPhase(EXPLORING);
-          return;
-        }
-        s.setPhase({ type: 'ITEM_TEAM_SELECT', itemId });
+    const s = useGameStore.getState();
+    const hasItem = (s.inventory[itemId] ?? 0) > 0;
+    if (!hasItem) return;
+    const ph = s.phase;
+    const ib = ph.type === 'BATTLE' || ('returnTo' in ph && ph.returnTo?.type === 'BATTLE');
+    const isBall = itemId === 'POKEBALL' || itemId === 'MASTER_BALL';
+    if (!ib) {
+      if (isBall) {
+        s.setDialogue('¡No es el momento de usar eso!');
+        s.setPhase(EXPLORING);
         return;
       }
-      if (isBall) {
-        dispatchBattleRef.current({ type: 'CATCH', ballType: itemId as 'POKEBALL' | 'MASTER_BALL' });
-      } else {
-        s.setPhase(battle({ type: 'BATTLE_ITEM_TEAM_SELECT', itemId }));
-      }
-    });
+      s.setPhase({ type: 'ITEM_TEAM_SELECT', itemId });
+      return;
+    }
+    if (isBall) {
+      dispatchBattleRef.current({ type: 'CATCH', ballType: itemId as 'POKEBALL' | 'MASTER_BALL' });
+    } else {
+      s.setPhase(battle({ type: 'BATTLE_ITEM_TEAM_SELECT', itemId }));
+    }
   }, []);
 
   // dispatchBattle reference is stable (useCallback with stable dep), so it's
@@ -202,132 +186,124 @@ export default function App() {
   dispatchBattleRef.current = dispatchBattle;
 
   const handleApplyItemToPokemon = useCallback((index: number) => {
-    withoutLogging(() => {
-      const s = useGameStore.getState();
-      const ph = s.phase;
-      const ib = ph.type === 'BATTLE' || ('returnTo' in ph && ph.returnTo?.type === 'BATTLE');
-      let itemId: string | undefined;
-      if (ph.type === 'ITEM_TEAM_SELECT') {
-        itemId = ph.itemId;
-      } else if (ib && ph.type === 'BATTLE') {
-        if (ph.sub.type === 'BATTLE_ITEM_TEAM_SELECT') itemId = ph.sub.itemId;
-      }
+    const s = useGameStore.getState();
+    const ph = s.phase;
+    const ib = ph.type === 'BATTLE' || ('returnTo' in ph && ph.returnTo?.type === 'BATTLE');
+    let itemId: string | undefined;
+    if (ph.type === 'ITEM_TEAM_SELECT') {
+      itemId = ph.itemId;
+    } else if (ib && ph.type === 'BATTLE') {
+      if (ph.sub.type === 'BATTLE_ITEM_TEAM_SELECT') itemId = ph.sub.itemId;
+    }
 
-      if (!itemId) return;
+    if (!itemId) return;
 
-      if (!ib) {
-        const team = s.playerTeam;
-        const hmMoveName = HM_MOVE_MAP[itemId];
-        if (hmMoveName) {
-          const pkmn = team[index];
-          if (pkmn.moves.some(m => m.name === hmMoveName)) {
-            s.setDialogue(`¡${pkmn.name} ya sabe ${hmMoveName}!`);
+    if (!ib) {
+      const team = s.playerTeam;
+      const hmMoveName = HM_MOVE_MAP[itemId];
+      if (hmMoveName) {
+        const pkmn = team[index];
+        if (pkmn.moves.some(m => m.name === hmMoveName)) {
+          s.setDialogue(`¡${pkmn.name} ya sabe ${hmMoveName}!`);
+          s.setPhase(EXPLORING);
+        } else {
+          const move = Object.values(MOVES).find(m => m.name === hmMoveName)!;
+          if (pkmn.moves.length < 4) {
+            const newTeam = [...team];
+            newTeam[index] = { ...pkmn, moves: [...pkmn.moves, move] };
+            s.updateTeam(newTeam);
+            s.setDialogue(`¡${pkmn.name} aprendió ${hmMoveName}!`);
             s.setPhase(EXPLORING);
           } else {
-            const move = Object.values(MOVES).find(m => m.name === hmMoveName)!;
-            if (pkmn.moves.length < 4) {
-              const newTeam = [...team];
-              newTeam[index] = { ...pkmn, moves: [...pkmn.moves, move] };
-              s.updateTeam(newTeam);
-              s.setDialogue(`¡${pkmn.name} aprendió ${hmMoveName}!`);
-              s.setPhase(EXPLORING);
-            } else {
-              s.setConfirm({
-                text: `¿${pkmn.name} quiere olvidar un movimiento para aprender ${hmMoveName}?`,
-                onYes: () => {
-                  const fs2 = useGameStore.getState();
-                  const t = fs2.playerTeam;
-                  fs2.setPhase({ type: 'HM_FORGET', itemId: itemId!, teamIndex: index, existingMoveNames: t[index].moves.map(m => m.name) });
-                  fs2.setConfirm(null);
-                },
-                onNo: () => { useGameStore.getState().setConfirm(null); },
-              });
-              return;
-            }
+            s.setConfirm({
+              text: `¿${pkmn.name} quiere olvidar un movimiento para aprender ${hmMoveName}?`,
+              onYes: () => {
+                const fs2 = useGameStore.getState();
+                const t = fs2.playerTeam;
+                fs2.setPhase({ type: 'HM_FORGET', itemId: itemId!, teamIndex: index, existingMoveNames: t[index].moves.map(m => m.name) });
+                fs2.setConfirm(null);
+              },
+              onNo: () => { useGameStore.getState().setConfirm(null); },
+            });
+            return;
           }
-          return;
         }
-
-        const pkmn = team[index];
-        const result = applyItemToPokemon(pkmn, itemId);
-        if (result.success) {
-          const newTeam = [...team];
-          newTeam[index] = result.pokemon;
-          s.updateTeam(newTeam);
-          s.removeInventoryItem(itemId);
-          s.setDialogue(result.message);
-        } else {
-          s.setDialogue(result.message);
-        }
-        s.setPhase(EXPLORING);
-      } else {
-        dispatchBattleRef.current({ type: 'USE_ITEM', itemId, targetIndex: index });
+        return;
       }
-    });
+
+      const pkmn = team[index];
+      const result = applyItemToPokemon(pkmn, itemId);
+      if (result.success) {
+        const newTeam = [...team];
+        newTeam[index] = result.pokemon;
+        s.updateTeam(newTeam);
+        s.removeInventoryItem(itemId);
+        s.setDialogue(result.message);
+      } else {
+        s.setDialogue(result.message);
+      }
+      s.setPhase(EXPLORING);
+    } else {
+      dispatchBattleRef.current({ type: 'USE_ITEM', itemId, targetIndex: index });
+    }
   }, []);
 
   const handleHMForget = useCallback((forgetIndex: number) => {
-    withoutLogging(() => {
-      const s = useGameStore.getState();
-      const ph = s.phase;
-      if (ph.type !== 'HM_FORGET') return;
-      const hmMoveName = HM_MOVE_MAP[ph.itemId];
-      if (!hmMoveName) return;
-      const move = Object.values(MOVES).find(m => m.name === hmMoveName)!;
-      const team = [...s.playerTeam];
-      const pkmn = { ...team[ph.teamIndex] };
-      const newMoves = [...pkmn.moves];
-      newMoves[forgetIndex] = move;
-      pkmn.moves = newMoves;
-      team[ph.teamIndex] = pkmn;
-      s.updateTeam(team);
-      s.setDialogue(`¡${pkmn.name} aprendió ${hmMoveName} en lugar de ${ph.existingMoveNames[forgetIndex]}!`);
-      s.setPhase(EXPLORING);
-    });
+    const s = useGameStore.getState();
+    const ph = s.phase;
+    if (ph.type !== 'HM_FORGET') return;
+    const hmMoveName = HM_MOVE_MAP[ph.itemId];
+    if (!hmMoveName) return;
+    const move = Object.values(MOVES).find(m => m.name === hmMoveName)!;
+    const team = [...s.playerTeam];
+    const pkmn = { ...team[ph.teamIndex] };
+    const newMoves = [...pkmn.moves];
+    newMoves[forgetIndex] = move;
+    pkmn.moves = newMoves;
+    team[ph.teamIndex] = pkmn;
+    s.updateTeam(team);
+    s.setDialogue(`¡${pkmn.name} aprendió ${hmMoveName} en lugar de ${ph.existingMoveNames[forgetIndex]}!`);
+    s.setPhase(EXPLORING);
   }, []);
 
   const handleFlySelect = useCallback((town: string) => {
-    withoutLogging(() => {
-      const s = useGameStore.getState();
-      const flyMon = s.playerTeam.find(p => p.moves.some(m => m.name === 'VUELO'));
-      if (!flyMon) { s.setPhase(EXPLORING); return; }
-      s.setPhase({ type: 'FLY_ANIMATING', town, pokemonName: flyMon.name, pokemonSprite: flyMon.sprite });
-    });
+    const s = useGameStore.getState();
+    const flyMon = s.playerTeam.find(p => p.moves.some(m => m.name === 'VUELO'));
+    if (!flyMon) { s.setPhase(EXPLORING); return; }
+    s.setPhase({ type: 'FLY_ANIMATING', town, pokemonName: flyMon.name, pokemonSprite: flyMon.sprite });
   }, []);
 
   const handleFieldMove = useCallback((moveName: string) => {
-    withoutLogging(() => {
-      const s = useGameStore.getState();
-      if (moveName === HM_REQUIREMENTS.fly.move) {
-        if (!s.badges.includes(HM_REQUIREMENTS.fly.badge)) {
-          s.setDialogue(`Necesitas la medalla ${HM_REQUIREMENTS.fly.badge} para volar.`);
-          return;
-        }
-        s.setPhase({ type: 'FLY_TOWN_SELECT' });
+    const s = useGameStore.getState();
+    if (moveName === HM_REQUIREMENTS.fly.move) {
+      if (!s.badges.includes(HM_REQUIREMENTS.fly.badge)) {
+        s.setDialogue(`Necesitas la medalla ${HM_REQUIREMENTS.fly.badge} para volar.`);
         return;
       }
-      if (moveName === HM_REQUIREMENTS.surf.move) {
-        if (!s.badges.includes(HM_REQUIREMENTS.surf.badge)) {
-          s.setDialogue(`Necesitas la medalla ${HM_REQUIREMENTS.surf.badge} para surfear.`);
-          return;
-        }
-        s.setIsSurfing(true);
-        s.setPhase(EXPLORING);
-        s.setDialogue('¡Usaste SURF! ¡Ahora puedes navegar por el agua!');
+      s.setPhase({ type: 'FLY_TOWN_SELECT' });
+      return;
+    }
+    if (moveName === HM_REQUIREMENTS.surf.move) {
+      if (!s.badges.includes(HM_REQUIREMENTS.surf.badge)) {
+        s.setDialogue(`Necesitas la medalla ${HM_REQUIREMENTS.surf.badge} para surfear.`);
         return;
       }
-      if (moveName === HM_REQUIREMENTS.flash.move) {
-        if (!s.badges.includes(HM_REQUIREMENTS.flash.badge)) {
-          s.setDialogue(`Necesitas la medalla ${HM_REQUIREMENTS.flash.badge} para usar DESTELLO.`);
-          return;
-        }
-        s.setFlashActive(true);
-        s.setPhase(EXPLORING);
-        s.setDialogue('¡DESTELLO iluminó la cueva!');
-        return;
-      }
+      s.setIsSurfing(true);
       s.setPhase(EXPLORING);
-    });
+      s.setDialogue('¡Usaste SURF! ¡Ahora puedes navegar por el agua!');
+      return;
+    }
+    if (moveName === HM_REQUIREMENTS.flash.move) {
+      if (!s.badges.includes(HM_REQUIREMENTS.flash.badge)) {
+        s.setDialogue(`Necesitas la medalla ${HM_REQUIREMENTS.flash.badge} para usar DESTELLO.`);
+        return;
+      }
+      s.setFlashActive(true);
+      s.setPhase(EXPLORING);
+      s.setDialogue('¡DESTELLO iluminó la cueva!');
+      return;
+    }
+    s.setPhase(EXPLORING);
   }, []);
 
   const { giveDemoTeam } = useDebugAPI({

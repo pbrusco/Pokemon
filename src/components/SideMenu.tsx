@@ -1,6 +1,6 @@
 import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { RecorderButton } from './RecorderButton';
+import { SaveButton } from './SaveButton';
 import { ITEMS_DATABASE } from '../constants/items';
 import { type Pokemon, type InventoryCounts } from '../types';
 import { type GamePhase, EXPLORING } from '../types';
@@ -190,20 +190,18 @@ export const SideMenu = memo(({
             </div>
           </div>
 
-          {/* Dev tools */}
-          {import.meta.env.DEV && (
-            <div style={{ borderTop: '2px solid #383838' }}>
-              <div
-                className="px-4 py-1.5 font-game"
-                style={{ fontSize: '7px', color: '#a8a8a8', letterSpacing: '0.1em' }}
-              >
-                DEV
-              </div>
-              <div className="px-4 pb-3">
-                <RecorderButton />
-              </div>
+          {/* Save */}
+          <div style={{ borderTop: '2px solid #383838' }}>
+            <div
+              className="px-4 py-1.5 font-game"
+              style={{ fontSize: '7px', color: '#a8a8a8', letterSpacing: '0.1em' }}
+            >
+              GUARDAR
             </div>
-          )}
+            <div className="px-4 pb-3">
+              <SaveButton />
+            </div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

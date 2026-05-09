@@ -458,39 +458,6 @@ describe('Scenario 11: Pokécenter healing', () => {
   });
 });
 
-// ─── Scenario: loadLogAsScenario — replays recorded events ────────────────
-
-describe('loadLogAsScenario helper', () => {
-  it('replays a hand-crafted log: move + interact', () => {
-    sim = new GameSimulator().init({
-      currentMap: 'KANTO_OVERWORLD',
-      // FireRed Pallet Town central path (col 12, walkable everywhere) at
-      // world x=72, y=270. Walking up should land at (72, 269).
-      playerPos: { x: 72, y: 270 },
-      direction: 'down',
-      playerTeam: [STARTERS[0]],
-      storyStep: 'EXPLORING',
-    });
-    const snapshot: Record<string, unknown> = {};
-    const raw = useGameStore.getState() as unknown as Record<string, unknown>;
-    for (const [k, v] of Object.entries(raw)) {
-      if (typeof v !== 'function') snapshot[k] = v;
-    }
-    const log = {
-      version: 2 as const,
-      seed: 0xdeadbeef,
-      startedAt: Date.now(),
-      snapshot: structuredClone(snapshot),
-      events: [{ k: 'move' as const, dir: 'up' as const }],
-      observations: [],
-    };
-    sim.loadLogAsScenario(log);
-    expect(sim.pos).toEqual({ x: 72, y: 269 });
-  });
-});
-
-
-
 // ─── Scenario 13: Trainer vision is exactly 3 tiles ────────────────────────
 
 describe('Scenario 13: Trainer vision range', () => {

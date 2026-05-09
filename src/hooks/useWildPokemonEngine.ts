@@ -4,7 +4,6 @@ import { WILD_POKEMON_DATABASE, getKantoRegion } from '../constants/world';
 import { type Position, type WildPokemonEntity, type Direction, type Pokemon } from '../types';
 import { calcHp } from '../lib/damage';
 import { launchBattle } from '../lib/launchBattle';
-import { logObservation } from '../lib/eventLog';
 
 const MAX_WILD_POKEMON = 5;
 const SPAWN_CHANCE = 0.3;
@@ -12,7 +11,6 @@ const MOVE_CHANCE = 0.4;
 const TICK_RATE = 3000;
 
 function triggerBattle(pkmn: Pokemon) {
-  logObservation({ k: 'obs_encounter', map: useGameStore.getState().currentMap, pokemon: pkmn.name, level: pkmn.level });
   launchBattle({
     enemy: pkmn,
     isTrainer: false,

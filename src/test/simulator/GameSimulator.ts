@@ -27,7 +27,6 @@ import { validateWorld } from '../../lib/worldValidator';
 import type { Direction, Position, MapID, Pokemon, InventoryCounts } from '../../types';
 import type { GamePhase } from '../../types';
 import type { BattleAction } from '../../lib/battleEngine';
-import type { RecLog } from '../../lib/eventLog';
 
 // ─── Event log ──────────────────────────────────────────────────────────────
 
@@ -267,32 +266,6 @@ export class GameSimulator {
       t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
-    return this;
-  }
-
-  /**
-   * Replay a recorded event log through the simulator. Restores the snapshot,
-   * seeds the PRNG, and dispatches each event with a tick in between.
-   *
-   * Only supports `move`, `action`, and `battle` event types — `item` and
-   * `pcSwap` require hooks not wired into the headless useGameLoop.
-   */
-  loadLogAsScenario(log: RecLog, opts: { tickBetween?: number } = {}): this {
-    const tickMs = opts.tickBetween ?? 200;
-    act(() => {
-      useGameStore.setState(structuredClone(log.snapshot) as never);
-    });
-    this.seedPrng(log.seed);
-    this.tick(100);
-    for (const e of log.events) {
-      switch (e.k) {
-        case 'move': this.move(e.dir); break;
-        case 'action': this.interact(); break;
-        case 'battle': this.battleAction(e.action); break;
-        // item/pcSwap intentionally skipped (not in useGameLoop surface)
-      }
-      this.tick(tickMs);
-    }
     return this;
   }
 

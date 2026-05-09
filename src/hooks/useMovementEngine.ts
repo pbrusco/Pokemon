@@ -8,7 +8,6 @@ import { triggerTrainerCutscene } from '../lib/cutscenes/trainerEncounter';
 import { useGameStore } from '../store/gameStore';
 import { type MapID } from '../types';
 import { launchBattle } from '../lib/launchBattle';
-import { logObservation } from '../lib/eventLog';
 import { SfxController } from '../lib/sfx';
 import { WILD_POKEMON_DATABASE, WILD_ENCOUNTER_RATES, getKantoRegion, WATER_WILD_POKEMON_DATABASE } from '../constants/world';
 import { calcHp } from '../lib/damage';
@@ -254,7 +253,6 @@ export function useMovementEngine({
 
     // ── Collision with overworld wild pokemon ──
     if (wildAtNext && !ghostMode) {
-        logObservation({ k: 'obs_encounter', map: currentMap, pokemon: wildAtNext.pokemon.name, level: wildAtNext.pokemon.level });
         SfxController.play('battle_start');
         launchBattle({
           enemy: wildAtNext.pokemon,
@@ -337,7 +335,6 @@ export function useMovementEngine({
     // Trainer vision check
     const spottedTrainer = checkTrainerVision((npcs[currentMap] as NPC[]) || [], defeatedTrainers, nextX, nextY);
     if (spottedTrainer) {
-      logObservation({ k: 'obs_trainer_spotted', trainerId: spottedTrainer.id });
       triggerTrainerCutscene(spottedTrainer, { x: nextX, y: nextY });
     }
 
@@ -362,7 +359,6 @@ export function useMovementEngine({
         const level = Math.max(1, base.level + Math.floor(Math.random() * 3) - 1);
         const maxHp = calcHp(base.baseStats.hp, level);
         const enemy = { ...base, uid: Math.random().toString(36).substring(2, 9), level, hp: maxHp, maxHp };
-        logObservation({ k: 'obs_encounter', map: currentMap, pokemon: enemy.name, level });
         launchBattle({ enemy, isTrainer: false, battleLog: `¡Un ${enemy.name} salvaje apareció!` });
       }
     }

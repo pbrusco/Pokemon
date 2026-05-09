@@ -4,7 +4,6 @@ import { stepBattle, type BattleState, type BattleAction, type BattleEffect } fr
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
 import { useGameStore } from '../store/gameStore';
-import { logObservation } from '../lib/eventLog';
 import { SfxController } from '../lib/sfx';
 import type { MapID } from '../types';
 
@@ -110,9 +109,6 @@ export function useBattleEngine({
     const s = useGameStore.getState();
     const npcs = s.getNPCs();
 
-    if (newState.outcome !== 'ongoing') {
-      logObservation({ k: 'obs_battle_outcome', outcome: newState.outcome });
-    }
     if (newState.outcome === 'player_win') {
       const trainerId = newState.trainerName;
       if (newState.isTrainerBattle) {
@@ -214,7 +210,6 @@ export function useBattleEngine({
 
     // Catch failed and the fight continues (wild: enemy attacked back; trainer: can't catch).
     if (newState.outcome === 'ongoing' && newState.phase === 'CHOOSING') {
-      logObservation({ k: 'obs_catch', result: newState.isTrainerBattle ? 'failed_in_trainer' : 'escaped' });
       const d = playBattleEffects(effects);
       setTimeout(() => {
         setPlayerAnim('idle');
@@ -231,7 +226,6 @@ export function useBattleEngine({
     s.setBattleLog('¡Pablo lanzó una POKÉ BALL!');
     SfxController.play('pokeball_throw');
 
-    logObservation({ k: 'obs_catch', result: newState.outcome === 'caught' ? 'caught' : 'escaped' });
     if (newState.outcome === 'caught') {
       setTimeout(() => { SfxController.play('pokeball_catch'); useGameStore.getState().setCatchResult(true); }, sd(2800));
       setTimeout(() => {
@@ -275,23 +269,6 @@ export function useBattleEngine({
     const prevPhase = battleStateRef.current.phase;
     const { state: newState, effects } = stepBattle(battleStateRef.current, action);
     battleStateRef.current = newState;
-
-    if (action.type !== 'TICK') {
-      const activePlayer = newState.playerTeam[0];
-      logObservation({
-        k: 'obs_battle_step',
-        action,
-        prevPhase,
-        newPhase: newState.phase,
-        enemyName: newState.enemyPokemon.name,
-        enemyHp: newState.enemyPokemon.hp,
-        enemyHpMax: newState.enemyPokemon.maxHp,
-        playerName: activePlayer?.name ?? '',
-        playerHp: activePlayer?.hp ?? 0,
-        playerHpMax: activePlayer?.maxHp ?? 0,
-        logs: effects.filter(e => e.type === 'log').map(e => String(e.payload)),
-      });
-    }
 
     const s = useGameStore.getState();
     s.setIsTrainerBattle(newState.isTrainerBattle);
