@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { type Pokemon, type Position, type Direction, type Entity, type InventoryCounts, type MapID, type PokedexState, type WildPokemonEntity, type BattleLogEntry, type Tile } from '../types';
 import { worldConfig } from '../data/worldConfig';
 import { buildNPCDatabase, buildItemDatabase } from '../data/npcDatabase';
-import { type GamePhase, EXPLORING } from '../types/gamePhase';
+import { type GamePhase, EXPLORING } from '../types';
 import type { BattleState } from '../lib/battleEngine';
 import type { SetStateAction } from 'react';
 

@@ -1,7 +1,7 @@
 import { type Pokemon, type NPC } from '../types';
 import { createBattleState } from './battleEngine';
 import { useGameStore } from '../store/gameStore';
-import { BATTLE_TRANSITION } from '../types/gamePhase';
+import { BATTLE_TRANSITION } from '../types';
 import { getTrainerBattleSprite } from '../data/trainerSprites';
 
 interface LaunchBattleOptions {

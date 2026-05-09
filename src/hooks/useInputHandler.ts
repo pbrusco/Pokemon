@@ -1,6 +1,6 @@
 import { type RefObject, useEffect, useRef } from 'react';
 import { type Direction } from '../types';
-import { battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING } from '../types/gamePhase';
+import { battle, B_CHOOSING, B_BATTLE_INVENTORY, B_BATTLE_TEAM, EXPLORING } from '../types';
 import { type BattleAction } from '../lib/battleEngine';
 import { SfxController } from '../lib/sfx';
 import { useGameStore } from '../store/gameStore';

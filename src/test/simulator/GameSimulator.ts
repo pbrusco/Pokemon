@@ -20,12 +20,12 @@ import { vi } from 'vitest';
 import { useGameStore } from '../../store/gameStore';
 import { useGameLoop } from './useGameLoop';
 import { setGameSpeed } from '../../lib/gameSpeed';
-import { EXPLORING } from '../../types/gamePhase';
-import { battle, B_CHOOSING } from '../../types/gamePhase';
+import { EXPLORING } from '../../types';
+import { battle, B_CHOOSING } from '../../types';
 import { worldConfig } from '../../data/worldConfig';
 import { validateWorld } from '../../lib/worldValidator';
 import type { Direction, Position, MapID, Pokemon, InventoryCounts } from '../../types';
-import type { GamePhase } from '../../types/gamePhase';
+import type { GamePhase } from '../../types';
 import type { BattleAction } from '../../lib/battleEngine';
 import type { RecLog } from '../../lib/eventLog';
 
@@ -52,6 +52,7 @@ interface StoreOverrides {
   inventory?: InventoryCounts;
   pickedItemIds?: string[];
   money?: number;
+  visitedTowns?: string[];
 }
 
 // ─── Simulator ──────────────────────────────────────────────────────────────
@@ -90,6 +91,7 @@ export class GameSimulator {
       inventory: overrides.inventory ?? { POTION: 1, POKEBALL: 1 },
       pickedItemIds: overrides.pickedItemIds ?? [],
       money: overrides.money ?? 3000,
+      visitedTowns: overrides.visitedTowns ?? ['PALLET_TOWN'],
       pcStorage: [],
       pokedex: {},
       lastHealLocation: { map: 'PLAYERS_HOUSE_1F' as MapID, pos: { x: 5, y: 7 } },
@@ -329,6 +331,7 @@ export class GameSimulator {
   get enemyPokemon() { return this.state.enemyPokemon; }
   get battleLog() { return this.state.battleLog; }
   get battleState() { return this.hookResult.result.current.battleStateRef.current; }
+  get worldMap() { return this.state.worldMaps[this.state.currentMap]; }
 
   /** Get all logged events of a given type */
   eventsOfType(type: SimEvent['type']): SimEvent[] {

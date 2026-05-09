@@ -58,6 +58,7 @@ export interface MultiZoneFireredMap {
   height: number;
   tiles: Tile[][];
   warps: Array<{ x: number; y: number; targetMap: string; targetPos: Position; targetDir?: Direction }>;
+  isUnderground: boolean;
 }
 
 export function bridgeStitchedKanto(stitch: StitchedDescriptor): MultiZoneFireredMap {
@@ -123,5 +124,6 @@ export function bridgeStitchedKanto(stitch: StitchedDescriptor): MultiZoneFirere
     height: stitch.height,
     tiles,
     warps,
+    isUnderground: false,
   };
 }

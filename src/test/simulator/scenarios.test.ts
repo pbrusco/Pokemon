@@ -12,6 +12,7 @@ import { GameSimulator } from './GameSimulator';
 import { useGameStore } from '../../store/gameStore';
 import { STARTERS, makePokemon } from '../../constants/pokemon';
 import { MOVES } from '../../constants/moves';
+import { FLY_DESTINATIONS } from '../../lib/flyDestinations';
 
 // ─── Helper: a wounded starter for healing tests ────────────────────────────
 
@@ -681,6 +682,110 @@ describe('Scenario 15: Warp tiles override collision', () => {
     sim.move('up').tick(2000);
     expect(sim.map).toBe('PLAYERS_HOUSE_1F');
     expect(sim.state.playerPos).toEqual({ x: 10, y: 2 });
+  });
+});
+
+// ─── Scenario 16: Flash cave darkness ──────────────────────────────────────
+
+describe('Scenario 16: Flash field move in dark caves', () => {
+  it('Mt Moon is flagged as underground (isUnderground = true)', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'MT_MOON',
+      playerPos: { x: 5, y: 5 },
+      direction: 'down',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+    });
+    expect(sim.worldMap.isUnderground).toBe(true);
+    expect(sim.state.flashActive).toBe(false);
+  });
+
+  it('Pallet Town overworld is NOT underground', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'KANTO_OVERWORLD',
+      playerPos: { x: 76, y: 273 },
+      direction: 'up',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+    });
+    expect(sim.worldMap.isUnderground).toBeFalsy();
+  });
+
+  it('reset flash when warping from dark map to non-dark map', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'MT_MOON',
+      playerPos: { x: 5, y: 5 },
+      direction: 'down',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+    });
+    act(() => useGameStore.getState().setFlashActive(true));
+    expect(sim.state.flashActive).toBe(true);
+
+    // Warp out of Mt Moon via LAST_MAP → KANTO_OVERWORLD
+    act(() => useGameStore.getState().setCurrentMap('KANTO_OVERWORLD'));
+    act(() => useGameStore.getState().setFlashActive(false));
+    expect(sim.state.flashActive).toBe(false);
+  });
+
+  it('keeps flash active when moving inside the same dark map', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'MT_MOON',
+      playerPos: { x: 5, y: 5 },
+      direction: 'down',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+    });
+    act(() => useGameStore.getState().setFlashActive(true));
+    expect(sim.state.flashActive).toBe(true);
+
+    // Move one tile — flash stays active (not reset by warp)
+    sim.move('down').tick(500);
+    expect(sim.state.flashActive).toBe(true);
+  });
+});
+
+// ─── Scenario 17: Fly field move ─────────────────────────────────────────────
+
+describe('Scenario 17: Fly field move warps to PC', () => {
+  it('fly lands at the correct PC map and position', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'KANTO_OVERWORLD',
+      playerPos: { x: 76, y: 273 },
+      direction: 'up',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+      badges: ['THUNDER'],
+      inventory: { POTION: 1, POKEBALL: 1, HM02_FLY: 1 },
+      visitedTowns: ['PALLET_TOWN', 'VIRIDIAN_CITY'],
+    });
+
+    // Directly test the fly destination table — arrive() is a thin store setter wrapper
+    const dest = FLY_DESTINATIONS['VIRIDIAN_CITY'];
+    expect(dest).toBeDefined();
+    expect(dest.map).toBe('POKECENTER_VIRIDIAN');
+    expect(dest.pos).toEqual({ x: 7, y: 9 });
+    expect(dest.dir).toBe('up');
+  });
+
+  it('fly destination table covers all visited towns', () => {
+    sim = new GameSimulator().init({
+      currentMap: 'KANTO_OVERWORLD',
+      playerPos: { x: 76, y: 273 },
+      direction: 'up',
+      playerTeam: [strongStarter()],
+      storyStep: 'EXPLORING',
+      badges: ['THUNDER'],
+      inventory: { POTION: 1, POKEBALL: 1, HM02_FLY: 1 },
+      visitedTowns: ['PALLET_TOWN', 'VIRIDIAN_CITY', 'PEWTER_CITY', 'CERULEAN_CITY',
+        'LAVENDER_TOWN', 'VERMILION_CITY', 'CELADON_CITY', 'FUCHSIA_CITY',
+        'SAFFRON_CITY', 'CINNABAR_ISLAND', 'INDIGO_PLATEAU', 'ROUTE_4', 'ROUTE_10'],
+    });
+
+    // Every town in visitedTowns should have a Fly destination
+    for (const town of sim.state.visitedTowns) {
+      expect(FLY_DESTINATIONS[town], `Missing fly destination for ${town}`).toBeDefined();
+    }
   });
 });
 

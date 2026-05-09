@@ -1,6 +1,6 @@
 import { useEffect, type MutableRefObject, type Dispatch, type SetStateAction } from 'react';
 import { type Pokemon, type Direction } from '../types';
-import { type GamePhase, battle, B_CHOOSING, EXPLORING } from '../types/gamePhase';
+import { type GamePhase, battle, B_CHOOSING, EXPLORING } from '../types';
 import { type BattleAction, type BattleState, createBattleState } from '../lib/battleEngine';
 import { MOVES } from '../constants/moves';
 import { makePokemon } from '../constants/pokemon';

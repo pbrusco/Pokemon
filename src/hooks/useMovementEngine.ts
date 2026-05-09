@@ -1,6 +1,6 @@
 import { useCallback, useRef, useEffect, type MutableRefObject } from 'react';
 import { type Direction, type NPC, type Pokemon, type Position, type Tile } from '../types';
-import { BLACKOUT, HEALING, EXPLORING } from '../types/gamePhase';
+import { BLACKOUT, HEALING, EXPLORING } from '../types';
 import { fullHeal } from '../lib/healUtils';
 import { sd } from '../lib/gameSpeed';
 import { triggerOakCutscene } from '../lib/oakCutscene';
@@ -316,11 +316,18 @@ export function useMovementEngine({
           fs.setCurrentMap(validLoc.map);
           fs.setPlayerPos(validLoc.pos);
           fs.setDirection(exitDir);
+          // Reset flash when leaving any interior (including dark caves)
+          fs.setFlashActive(false);
         } else {
           const validLoc = getValidTeleportLocation(warp.targetMap, warp.targetPos);
           fs.setCurrentMap(validLoc.map);
           fs.setPlayerPos(validLoc.pos);
           if (warp.targetDir) fs.setDirection(warp.targetDir);
+          // Reset flash when warping from a dark map to a non-dark map
+          const targetMapData = fs.worldMaps[validLoc.map];
+          if (!targetMapData?.isUnderground) {
+            fs.setFlashActive(false);
+          }
         }
       }
     }, sd(isLedgeJump ? 260 : 110));

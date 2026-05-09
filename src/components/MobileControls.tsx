@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { DPad } from './DPad';
 import { type Direction } from '../types';
-import { type GamePhase, EXPLORING } from '../types/gamePhase';
+import { type GamePhase, EXPLORING } from '../types';
 import { type Dispatch, type SetStateAction } from 'react';
 
 interface MobileControlsProps {

@@ -55,6 +55,7 @@ export interface FireredLayoutJson {
     object_events?: FireredObjectEvent[];
     bg_events?: FireredEvent[];
     connections?: { map: string; offset: number; direction: string }[];
+    map_type?: string;
   };
 }
 
@@ -67,6 +68,8 @@ export interface FireredParsedMap {
   tiles: Tile[][];
   /** Resolved warps in our coord space. `targetMap` is validated against MapID at the call site. */
   warps: Array<{ x: number; y: number; targetMap: MapIdString; targetPos: Position; targetDir?: Direction; destWarpId?: string }>;
+  /** True if this map is underground / cave / dark (Flash-eligible). */
+  isUnderground: boolean;
 }
 
 /**
@@ -158,5 +161,7 @@ export function bridgeFireredLayout(layout: FireredLayoutJson): FireredParsedMap
     })
     .filter((w): w is NonNullable<typeof w> => w !== null);
 
-  return { firered: true, layout, tiles, warps };
+  const isUnderground = layout.meta?.map_type === 'MAP_TYPE_UNDERGROUND';
+
+  return { firered: true, layout, tiles, warps, isUnderground };
 }

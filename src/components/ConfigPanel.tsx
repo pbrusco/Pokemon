@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { useGameStore } from '../store/gameStore';
 import { SfxController } from '../lib/sfx';
 import { setGameSpeed } from '../lib/gameSpeed';
-import { EXPLORING } from '../types/gamePhase';
+import { EXPLORING } from '../types';
 
 function ConfigSection({ label, children }: { label: string; children: React.ReactNode }) {
   return (

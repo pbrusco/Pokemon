@@ -108,6 +108,7 @@ function fromFirered(json: unknown): MapData {
     warps: parsed.warps as MapData['warps'],
     firered: true,
     fireredLayout: parsed.layout,
+    isUnderground: parsed.isUnderground,
   };
 }
 

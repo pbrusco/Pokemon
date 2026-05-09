@@ -1,142 +1,100 @@
-# Graph Report - .  (2026-05-08)
+# Graph Report - poke  (2026-05-08)
 
 ## Corpus Check
-- 123 files · ~248,570 words
+- 868 files · ~1,757,804 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 833 nodes · 903 edges · 103 communities detected
-- Extraction: 85% EXTRACTED · 15% INFERRED · 0% AMBIGUOUS · INFERRED: 136 edges (avg confidence: 0.8)
+- 13939 nodes · 43880 edges · 61 communities detected
+- Extraction: 53% EXTRACTED · 47% INFERRED · 0% AMBIGUOUS · INFERRED: 20482 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
-- [[_COMMUNITY_Battle UI & Overworld Components|Battle UI & Overworld Components]]
-- [[_COMMUNITY_Frame Loop & Process Pipeline|Frame Loop & Process Pipeline]]
-- [[_COMMUNITY_Pokemon Stats & FireRed Bridge Helpers|Pokemon Stats & FireRed Bridge Helpers]]
-- [[_COMMUNITY_Logging & Replay System|Logging & Replay System]]
-- [[_COMMUNITY_Game Simulator (test harness)|Game Simulator (test harness)]]
-- [[_COMMUNITY_3D HUD & Items Data|3D HUD & Items Data]]
-- [[_COMMUNITY_Auto-Entity Builders (NPCItemTrainer)|Auto-Entity Builders (NPC/Item/Trainer)]]
-- [[_COMMUNITY_FireRed Pipeline Extraction|FireRed Pipeline Extraction]]
-- [[_COMMUNITY_FireRed Generated Constants|FireRed Generated Constants]]
-- [[_COMMUNITY_PNG  Tileset Decoder|PNG / Tileset Decoder]]
-- [[_COMMUNITY_Engine Hooks Coordination|Engine Hooks Coordination]]
-- [[_COMMUNITY_Battle Launch Pipeline|Battle Launch Pipeline]]
-- [[_COMMUNITY_Phase FSM Types|Phase FSM Types]]
-- [[_COMMUNITY_App Root Handlers|App Root Handlers]]
-- [[_COMMUNITY_Battle Engine Core|Battle Engine Core]]
-- [[_COMMUNITY_Battle Outcome & Cinematics|Battle Outcome & Cinematics]]
-- [[_COMMUNITY_Pokemon  Move Constants|Pokemon / Move Constants]]
-- [[_COMMUNITY_Tile Behavior Mappings|Tile Behavior Mappings]]
-- [[_COMMUNITY_3D Texture Generation|3D Texture Generation]]
-- [[_COMMUNITY_FireRed Build Scripts|FireRed Build Scripts]]
-- [[_COMMUNITY_Cutscene DSL|Cutscene DSL]]
-- [[_COMMUNITY_Overworld Stitching|Overworld Stitching]]
-- [[_COMMUNITY_Game Data Extraction|Game Data Extraction]]
-- [[_COMMUNITY_Interaction & Movement|Interaction & Movement]]
-- [[_COMMUNITY_Battle UI Pieces|Battle UI Pieces]]
-- [[_COMMUNITY_Music Selection by Map|Music Selection by Map]]
-- [[_COMMUNITY_Map  Warp Registry|Map / Warp Registry]]
-- [[_COMMUNITY_Music Mapping Tables|Music Mapping Tables]]
-- [[_COMMUNITY_FireRedRuntime Decoupling Tests|FireRed/Runtime Decoupling Tests]]
-- [[_COMMUNITY_Tileset Loader & Caches|Tileset Loader & Caches]]
-- [[_COMMUNITY_Team Menu Helpers|Team Menu Helpers]]
-- [[_COMMUNITY_Audio Playback|Audio Playback]]
-- [[_COMMUNITY_Indoor Map Generator|Indoor Map Generator]]
-- [[_COMMUNITY_Community 42|Community 42]]
+- [[_COMMUNITY_Community 0|Community 0]]
+- [[_COMMUNITY_Community 1|Community 1]]
+- [[_COMMUNITY_Community 2|Community 2]]
+- [[_COMMUNITY_Community 3|Community 3]]
+- [[_COMMUNITY_Community 4|Community 4]]
+- [[_COMMUNITY_Community 5|Community 5]]
+- [[_COMMUNITY_Community 6|Community 6]]
+- [[_COMMUNITY_Community 7|Community 7]]
+- [[_COMMUNITY_Community 8|Community 8]]
+- [[_COMMUNITY_Community 9|Community 9]]
+- [[_COMMUNITY_Community 10|Community 10]]
+- [[_COMMUNITY_Community 11|Community 11]]
+- [[_COMMUNITY_Community 12|Community 12]]
+- [[_COMMUNITY_Community 13|Community 13]]
+- [[_COMMUNITY_Community 14|Community 14]]
+- [[_COMMUNITY_Community 15|Community 15]]
+- [[_COMMUNITY_Community 16|Community 16]]
+- [[_COMMUNITY_Community 17|Community 17]]
+- [[_COMMUNITY_Community 18|Community 18]]
+- [[_COMMUNITY_Community 19|Community 19]]
+- [[_COMMUNITY_Community 20|Community 20]]
+- [[_COMMUNITY_Community 21|Community 21]]
+- [[_COMMUNITY_Community 22|Community 22]]
+- [[_COMMUNITY_Community 23|Community 23]]
+- [[_COMMUNITY_Community 24|Community 24]]
+- [[_COMMUNITY_Community 25|Community 25]]
+- [[_COMMUNITY_Community 26|Community 26]]
+- [[_COMMUNITY_Community 27|Community 27]]
+- [[_COMMUNITY_Community 28|Community 28]]
+- [[_COMMUNITY_Community 29|Community 29]]
+- [[_COMMUNITY_Community 30|Community 30]]
+- [[_COMMUNITY_Community 31|Community 31]]
+- [[_COMMUNITY_Community 32|Community 32]]
+- [[_COMMUNITY_Community 33|Community 33]]
+- [[_COMMUNITY_Community 34|Community 34]]
+- [[_COMMUNITY_Community 35|Community 35]]
+- [[_COMMUNITY_Community 36|Community 36]]
+- [[_COMMUNITY_Community 41|Community 41]]
 - [[_COMMUNITY_Community 43|Community 43]]
-- [[_COMMUNITY_Community 44|Community 44]]
-- [[_COMMUNITY_Community 66|Community 66]]
-- [[_COMMUNITY_Community 67|Community 67]]
-- [[_COMMUNITY_Community 68|Community 68]]
-- [[_COMMUNITY_Community 69|Community 69]]
-- [[_COMMUNITY_Community 70|Community 70]]
-- [[_COMMUNITY_Community 71|Community 71]]
-- [[_COMMUNITY_Community 72|Community 72]]
-- [[_COMMUNITY_Community 73|Community 73]]
-- [[_COMMUNITY_Community 75|Community 75]]
-- [[_COMMUNITY_Community 76|Community 76]]
+- [[_COMMUNITY_Community 45|Community 45]]
+- [[_COMMUNITY_Community 51|Community 51]]
+- [[_COMMUNITY_Community 52|Community 52]]
+- [[_COMMUNITY_Community 53|Community 53]]
+- [[_COMMUNITY_Community 54|Community 54]]
 - [[_COMMUNITY_Community 77|Community 77]]
 - [[_COMMUNITY_Community 78|Community 78]]
 - [[_COMMUNITY_Community 79|Community 79]]
-- [[_COMMUNITY_Community 116|Community 116]]
-- [[_COMMUNITY_Community 117|Community 117]]
-- [[_COMMUNITY_Community 118|Community 118]]
-- [[_COMMUNITY_Community 119|Community 119]]
-- [[_COMMUNITY_Community 120|Community 120]]
-- [[_COMMUNITY_Community 121|Community 121]]
-- [[_COMMUNITY_Community 122|Community 122]]
-- [[_COMMUNITY_Community 123|Community 123]]
-- [[_COMMUNITY_Community 124|Community 124]]
-- [[_COMMUNITY_Community 125|Community 125]]
-- [[_COMMUNITY_Community 126|Community 126]]
-- [[_COMMUNITY_Community 127|Community 127]]
-- [[_COMMUNITY_Community 128|Community 128]]
-- [[_COMMUNITY_Community 129|Community 129]]
-- [[_COMMUNITY_Community 130|Community 130]]
-- [[_COMMUNITY_Community 131|Community 131]]
-- [[_COMMUNITY_Community 132|Community 132]]
-- [[_COMMUNITY_Community 133|Community 133]]
-- [[_COMMUNITY_Community 134|Community 134]]
-- [[_COMMUNITY_Community 135|Community 135]]
-- [[_COMMUNITY_Community 136|Community 136]]
-- [[_COMMUNITY_Community 137|Community 137]]
-- [[_COMMUNITY_Community 138|Community 138]]
-- [[_COMMUNITY_Community 140|Community 140]]
-- [[_COMMUNITY_Community 141|Community 141]]
-- [[_COMMUNITY_Community 142|Community 142]]
-- [[_COMMUNITY_Community 143|Community 143]]
-- [[_COMMUNITY_Community 144|Community 144]]
-- [[_COMMUNITY_Community 145|Community 145]]
-- [[_COMMUNITY_Community 146|Community 146]]
-- [[_COMMUNITY_Community 148|Community 148]]
-- [[_COMMUNITY_Community 149|Community 149]]
-- [[_COMMUNITY_Community 150|Community 150]]
-- [[_COMMUNITY_Community 151|Community 151]]
-- [[_COMMUNITY_Community 152|Community 152]]
-- [[_COMMUNITY_Community 153|Community 153]]
-- [[_COMMUNITY_Community 154|Community 154]]
-- [[_COMMUNITY_Community 155|Community 155]]
-- [[_COMMUNITY_Community 156|Community 156]]
-- [[_COMMUNITY_Community 157|Community 157]]
-- [[_COMMUNITY_Community 158|Community 158]]
-- [[_COMMUNITY_Community 159|Community 159]]
-- [[_COMMUNITY_Community 160|Community 160]]
-- [[_COMMUNITY_Community 161|Community 161]]
-- [[_COMMUNITY_Community 162|Community 162]]
-- [[_COMMUNITY_Community 163|Community 163]]
-- [[_COMMUNITY_Community 164|Community 164]]
-- [[_COMMUNITY_Community 165|Community 165]]
-- [[_COMMUNITY_Community 166|Community 166]]
-- [[_COMMUNITY_Community 167|Community 167]]
-- [[_COMMUNITY_Community 168|Community 168]]
-- [[_COMMUNITY_Community 169|Community 169]]
-- [[_COMMUNITY_Community 170|Community 170]]
-- [[_COMMUNITY_Community 171|Community 171]]
+- [[_COMMUNITY_Community 541|Community 541]]
+- [[_COMMUNITY_Community 542|Community 542]]
+- [[_COMMUNITY_Community 543|Community 543]]
+- [[_COMMUNITY_Community 544|Community 544]]
+- [[_COMMUNITY_Community 545|Community 545]]
+- [[_COMMUNITY_Community 546|Community 546]]
+- [[_COMMUNITY_Community 547|Community 547]]
+- [[_COMMUNITY_Community 548|Community 548]]
+- [[_COMMUNITY_Community 549|Community 549]]
+- [[_COMMUNITY_Community 550|Community 550]]
+- [[_COMMUNITY_Community 551|Community 551]]
+- [[_COMMUNITY_Community 552|Community 552]]
+- [[_COMMUNITY_Community 553|Community 553]]
+- [[_COMMUNITY_Community 554|Community 554]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `GameSimulator` - 38 edges
-2. `GameModals` - 27 edges
-3. `stepBattle` - 13 edges
-4. `stepBattle()` - 12 edges
-5. `makePokemon()` - 10 edges
-6. `useGameStore (Zustand)` - 10 edges
-7. `cachedTexture()` - 9 edges
-8. `processNext()` - 9 edges
-9. `useGameStore` - 9 edges
-10. `useGameStore` - 9 edges
+1. `PlaySE()` - 384 edges
+2. `DestroyTask()` - 381 edges
+3. `CreateTask()` - 351 edges
+4. `SetGpuReg()` - 342 edges
+5. `GetBattlerSide()` - 326 edges
+6. `SetMainCallback2()` - 270 edges
+7. `StartSpriteAnim()` - 252 edges
+8. `CopyWindowToVram()` - 247 edges
+9. `DestroyAnimVisualTask()` - 236 edges
+10. `CreateSprite()` - 228 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `MoveMenu (incl. Forcejeo)` --implements--> `PP Tracking + Struggle`  [INFERRED]
-  src/components/BattleScreen.tsx → docs/game-mechanics.md
-- `DPad on-screen movement controller` --implements--> `Game Controls (Keyboard / Mobile)`  [INFERRED]
-  src/components/DPad.tsx → docs/gameplay.md
-- `Phase 1: Pipeline Metatile Bridge Refinement` --references--> `resolveBehaviorGrid()`  [INFERRED]
-  docs/missing_abilities_plan.md → scripts/build-firered-pipeline.mjs
-- `Phase 1: Pipeline Metatile Bridge Refinement` --references--> `Tile interface (type/walkable/blockFrom)`  [INFERRED]
-  docs/missing_abilities_plan.md → src/types.ts
-- `Phase 2: HM Teaching Flow` --implements--> `handleApplyItemToPokemon (HM teaching)`  [INFERRED]
-  docs/missing_abilities_plan.md → src/App.tsx
+- `listSavedLogs()` --calls--> `Json()`  [INFERRED]
+  src/lib/eventLog.ts → pokefirered_dissasembly/tools/mapjson/json11.cpp
+- `loadLogFromDisk()` --calls--> `Json()`  [INFERRED]
+  src/lib/eventLog.ts → pokefirered_dissasembly/tools/mapjson/json11.cpp
+- `processNext()` --calls--> `play()`  [INFERRED]
+  src/lib/cutscenes/runner.ts → vitest.setup.ts
+- `extractTrainerScripts()` --calls--> `slice()`  [INFERRED]
+  scripts/extract-game-data.mjs → pokefirered_dissasembly/tools/jsonproc/inja.hpp
+- `splitPages()` --calls--> `slice()`  [INFERRED]
+  src/components/DialogueBox.tsx → pokefirered_dissasembly/tools/jsonproc/inja.hpp
 
 ## Hyperedges (group relationships)
 - **FireRed Build-Time Data Pipeline (predev/prebuild)** — buildfireredpipeline_main, extractgamedata_main, generateindoormaps_main, stitchfireredoverworld_main, buildfireredpipeline_artifact_maps [EXTRACTED 0.95]
@@ -166,574 +124,306 @@
 
 ## Communities
 
-### Community 0 - "Battle UI & Overworld Components"
+### Community 0 - "Community 0"
+Cohesion: 0.0
+Nodes (1302): AddSpriteIndex(), BattleAnimAdjustPanning(), BattleAnimAdjustPanning2(), AnimLeechLifeNeedle(), AnimMegahornHorn(), AnimMissileArc(), AnimMissileArc_Step(), AnimSpiderWeb() (+1294 more)
+
+### Community 1 - "Community 1"
+Cohesion: 0.01
+Nodes (1123): BagCreateYesNoMenuBottomRight(), BagCreateYesNoMenuTopRight(), BagDrawDepositItemTextBox(), BagDrawTextBoxOnWindow(), BagPrintMoneyAmount(), BagPrintTextOnWin1CenteredColor0(), BagPrintTextOnWindow(), CloseBagWindow() (+1115 more)
+
+### Community 2 - "Community 2"
+Cohesion: 0.01
+Nodes (1058): SetBackdropFromColor(), ReadPng(), SetPngPalette(), WritePng(), ClearBattleAnimationVars(), Cmd_stopsound(), Cmd_waitsound(), AnimAirWaveProjectile() (+1050 more)
+
+### Community 3 - "Community 3"
+Cohesion: 0.0
+Nodes (927): apply(), BattleSetup_GetTerrainId(), ConfigureAndSetUpOneTrainerBattle(), HasTrainerBeenFought(), SetUpTrainerMovement(), AngledWipes_TryEnd(), Blur_End(), ClockwiseWipe_End() (+919 more)
+
+### Community 4 - "Community 4"
+Cohesion: 0.0
+Nodes (880): starts_with(), HandleEndTurn_BattleLost(), Cmd_getmoneyreward(), Cmd_givecaughtmon(), Cmd_incrementgamestat(), BattleSetup_ConfigureTrainerBattle(), BattleSetup_GetBattleTowerBattleTransition(), BattleSetup_GetScriptAddrAfterBattle() (+872 more)
+
+### Community 5 - "Community 5"
+Cohesion: 0.01
+Nodes (774): Cmd_end(), DoMoveAnim(), AnimTask_LeafBlade_Step2_Callback(), AnimTask_MusicNotesClearRainbowBlend(), AnimTask_ShowBattlersHealthbox(), IsDoubleBattle(), AnimTask_ImprisonOrbs_Step(), SpriteCB_SmokescreenImpact() (+766 more)
+
+### Community 6 - "Community 6"
+Cohesion: 0.01
+Nodes (747): DoBattleSpriteAffineAnim(), SpriteCB_EnemyMon(), AcroWheelieFaceDirection(), AreElevationsCompatible(), CalcWhetherObjectIsOffscreen(), CameraObject_0(), CameraObject_1(), CameraObjectGetFollowedObjectId() (+739 more)
+
+### Community 7 - "Community 7"
+Cohesion: 0.01
+Nodes (669): SetBackdropFromPalette(), InitBagWindows(), AnimTask_LoadMusicNotesPals(), AnimFlatterSpotlight(), AnimSpotlight(), AnimTask_CreateSpotlight(), AnimTask_RemoveSpotlight(), AnimTask_GhostGetOut_Step1() (+661 more)
+
+### Community 8 - "Community 8"
+Cohesion: 0.01
+Nodes (512): splitPages(), walkable(), move(), getKantoRegion(), decodePngIndices(), decodePngToIndices(), decompressZlib(), drawTileToImageData() (+504 more)
+
+### Community 9 - "Community 9"
+Cohesion: 0.01
+Nodes (419): AIStackPop(), AIStackPushVar(), BattleAI_ChooseMoveOrAction(), BattleAI_DoAIProcessing(), BattleAI_HandleItemUseBeforeAISetup(), BattleAI_SetupAIData(), Cmd_call(), Cmd_count_alive_pokemon() (+411 more)
+
+### Community 10 - "Community 10"
+Cohesion: 0.01
+Nodes (514): PrepareOwnMultiPartnerBuffer(), UpdatePartyOwnerOnSwitch_NonMulti(), ExpandBattleTextBuffPlaceholders(), Task_WaitButton(), Cmd_forcerandomswitch(), GetSeeingLinkPlayerCardMsg(), AlterEggSpeciesWithIncenseItem(), AppendGenderSymbol() (+506 more)
+
+### Community 11 - "Community 11"
+Cohesion: 0.01
+Nodes (478): rfu_LMAN_checkNICommunicateStatus(), rfu_LMAN_CHILD_checkEnableParentCandidate(), rfu_LMAN_CHILD_checkSendChildName(), rfu_LMAN_CHILD_checkSendChildName2(), rfu_LMAN_CHILD_connectParent(), rfu_LMAN_CHILD_linkRecoveryProcess(), rfu_LMAN_clearVariables(), rfu_LMAN_disconnect() (+470 more)
+
+### Community 12 - "Community 12"
+Cohesion: 0.01
+Nodes (321): BlitBitmapRect4Bit(), BlitBitmapRect4BitTo8Bit(), BlitBitmapRect4BitWithoutColorKey(), FillBitmapRect4Bit(), FillBitmapRect8Bit(), IsThereRoomInAnyBoxForMorePokemon(), Task_HofPC_HandlePaletteOnExit(), HandleMenuInput() (+313 more)
+
+### Community 13 - "Community 13"
+Cohesion: 0.02
+Nodes (247): TranslateSpriteLinearFixedPointIconFrame(), CreatePartyStatusSummarySprites(), Task_HidePartyStatusSummary_BattleStart_2(), Task_HidePartyStatusSummary_DuringBattle(), PutMonIconOnLvlUpBanner(), WhiteBarsFade_StartBars(), LoadCompressedSpritePaletteOverrideBuffer(), LoadCompressedSpriteSheetOverrideBuffer() (+239 more)
+
+### Community 14 - "Community 14"
+Cohesion: 0.01
+Nodes (132): run(), save(), start(), stop(), canSelect(), handleSelect(), baseExpFor(), expForLevel() (+124 more)
+
+### Community 15 - "Community 15"
+Cohesion: 0.02
+Nodes (186): PrintResultsText(), DynamicPlaceholderTextUtil_ExpandPlaceholders(), DynamicPlaceholderTextUtil_GetPlaceholderPtr(), DynamicPlaceholderTextUtil_Reset(), DynamicPlaceholderTextUtil_SetPlaceholderPtr(), ResetSpecialVars(), SetUsedPkmnCenterQuestLogEvent(), ShowDiploma() (+178 more)
+
+### Community 16 - "Community 16"
+Cohesion: 0.02
+Nodes (158): VBlankCB_Battle(), VBlankCB(), AngledWipes_DoWipe(), AngledWipes_SetWipeData(), BattleTransition_Start(), BigPokeball_Init(), BigPokeball_SetGfx(), Blur_Main() (+150 more)
+
+### Community 17 - "Community 17"
+Cohesion: 0.03
+Nodes (180): BackOutFromGroupToFieldSelect(), Cancel_CreateYesNoMenu(), Cancel_HandleYesNoMenu(), CommitECWords(), CompareProfileResponseWithPassphrase(), CompareQuestionnaireResponseWithPassphrase(), Confirm_CreateYesNoMenu(), Confirm_HandleYesNoMenu() (+172 more)
+
+### Community 18 - "Community 18"
+Cohesion: 0.02
+Nodes (171): BattleStringExpandPlaceholders(), AwardBattleTowerRibbons(), BattleTower_SoftReset(), BattleTowerMapScript2(), BattleTowerUtil(), BufferBattleTowerTrainerMessage(), BufferEReaderTrainerGreeting(), CB2_FinishEReaderBattle() (+163 more)
+
+### Community 19 - "Community 19"
+Cohesion: 0.02
+Nodes (174): GetDecompressedDataSize(), CopyWorkToOam(), DigitObjUtil_CreatePrinter(), DigitObjUtil_DeletePrinter(), DigitObjUtil_Free(), DigitObjUtil_HideOrShow(), DigitObjUtil_PrintNumOn(), DrawNumObjsLeadingZeros() (+166 more)
+
+### Community 20 - "Community 20"
+Cohesion: 0.05
+Nodes (128): FlagGet(), ApplyGlobalFieldPaletteTint(), DoPokemonLeagueLightingEffect(), SetDeoxysTrianglePalette(), ShowTownMap(), Task_CancelPokemonLeagueLightingEffect(), Task_RunPokemonLeagueLightingEffect(), ApplyGlobalTintToPaletteEntries() (+120 more)
+
+### Community 21 - "Community 21"
+Cohesion: 0.03
+Nodes (111): BlendPalettesAt(), ApplyDroughtGammaShiftWithBlend(), ApplyFogBlend(), ApplyGammaShift(), ApplyGammaShiftWithBlend(), ApplyWeatherGammaShiftToPal(), BuildGammaShiftTables(), DroughtStateInit() (+103 more)
+
+### Community 22 - "Community 22"
+Cohesion: 0.04
+Nodes (120): RequestDma3Copy(), BuildAndPrintMainTopicsListMenu(), BuildAndPrintSubmenuList(), BuildMainTopicsListAndMoveToH00(), GetHelpSystemMenuLevel(), HasGottenAtLeastOneHM(), HelpMenuSubroutine_HelpItemPrint(), HelpMenuSubroutine_HelpItemWaitButton() (+112 more)
+
+### Community 23 - "Community 23"
+Cohesion: 0.03
+Nodes (100): IdentifyFlash(), WaitForFlashWrite_Common(), EraseFlashChip_MX(), EraseFlashSector_MX(), ProgramByte(), ProgramFlashByte_MX(), ProgramFlashSector_MX(), ProgramFlashSectorAndVerify() (+92 more)
+
+### Community 24 - "Community 24"
+Cohesion: 0.04
+Nodes (91): ConvertBitDepth(), PngReadOpen(), ReadPng(), ReadPngPalette(), SetPngPalette(), WritePng(), ConvertFromFullwidthJapaneseFont(), ConvertFromHalfwidthJapaneseFont() (+83 more)
+
+### Community 25 - "Community 25"
+Cohesion: 0.04
+Nodes (86): Task_HidePartyStatusSummary(), ChangePokemonNickname(), StartTimer1(), AddTextCharacter(), BufferCharacter(), CreateBackOkSprites(), CreateButtonFlashTask(), CreateCursorSprite() (+78 more)
+
+### Community 26 - "Community 26"
 Cohesion: 0.06
-Nodes (48): BattleAction (battleEngine), BattleScreen, BattleScreen.integration.test, BattleTransition, CameraRig, ConfigPanel, DialogueBox, DPad on-screen movement controller (+40 more)
+Nodes (82): Task_CreateLevelUpVerticalStripes(), IsMonGettingExpSentOut(), Scene3_Task_GengarAttack(), Menu2_GetMonPosAttribute(), Menu2_GetStarSpritePosAttribute(), Task_RunPokeJumpGfxFunc(), GetAnimTypeByItemId(), GetClosenessFromFriendship() (+74 more)
 
-### Community 1 - "Frame Loop & Process Pipeline"
+### Community 27 - "Community 27"
 Cohesion: 0.06
-Nodes (40): computeExpAndLevelUp, battleEngine module, run(), processBattle(), processNext(), processNpcWalk(), processWalk(), runCutscene() (+32 more)
+Nodes (69): AddCoins(), GetCoins(), RemoveCoins(), SetCoins(), SetQLPlayedTheSlots(), ScrCmd_updatecoinsbox(), CalcPayout(), CalcSlotBias() (+61 more)
 
-### Community 2 - "Pokemon Stats & FireRed Bridge Helpers"
-Cohesion: 0.07
-Nodes (29): baseExpFor(), expForLevel(), getSprite(), makePokemon(), tileFromBehavior(), bridgeFireredLayout(), fromFirered(), bridgeStitchedKanto() (+21 more)
+### Community 28 - "Community 28"
+Cohesion: 0.05
+Nodes (36): CgbModVol(), CgbOscOff(), CgbPan(), CgbSound(), Clear64byte(), ClearModM(), m4aMPlayAllContinue(), m4aMPlayFadeOut() (+28 more)
 
-### Community 3 - "Logging & Replay System"
-Cohesion: 0.11
-Nodes (25): save(), start(), stop(), apply(), cancelReplay(), downloadLog(), exportLog(), installPRNG() (+17 more)
-
-### Community 4 - "Game Simulator (test harness)"
-Cohesion: 0.07
-Nodes (2): setGameSpeed(), GameSimulator
-
-### Community 5 - "3D HUD & Items Data"
-Cohesion: 0.09
-Nodes (29): getAmbienceFromMap, getCompassDir, Hud3D, ItemBillboard, ITEM_COLORS, SignPost, ITEMS_DATABASE, SHOP_PRICES (+21 more)
-
-### Community 6 - "Auto-Entity Builders (NPC/Item/Trainer)"
-Cohesion: 0.13
-Nodes (22): buildItemDatabase(), buildNPCDatabase(), mergeAuto(), w(), buildAutoEntities(), buildAutoWildEncounters(), buildEncountersForTable(), buildTrainerTeam() (+14 more)
-
-### Community 7 - "FireRed Pipeline Extraction"
-Cohesion: 0.09
-Nodes (25): artifact: src/artifacts/firered/maps/<layout>.json, artifact: src/artifacts/firered/tilesets/<slug>/, extractLayout(), extractTileset(), build-firered-pipeline.mjs entrypoint, parseMapBin() collision/elevation decoder, resolveBehaviorGrid(), FireredKantoPreview (?firered=KANTO) (+17 more)
-
-### Community 8 - "FireRed Generated Constants"
-Cohesion: 0.08
-Nodes (20): NPC_OVERRIDES, FIRERED_NPCS, FIRERED_SIGNS, FIRERED_SPECIES, FIRERED_TRAINERS, FIRERED_TRAINER_PARTIES, FIRERED_WILD_ENCOUNTERS, KANTO_FIRERED_ZONE_OFFSETS (+12 more)
-
-### Community 9 - "PNG / Tileset Decoder"
-Cohesion: 0.17
-Nodes (19): decodePngIndices(), decodePngToIndices(), decompressZlib(), drawTileToImageData(), findGlob(), getMetatileBitmap(), loadTileset(), paeth() (+11 more)
-
-### Community 10 - "Engine Hooks Coordination"
+### Community 29 - "Community 29"
 Cohesion: 0.1
-Nodes (8): mapEnginePhase(), useBattleEngine(), useInteractionEngine(), applyOverworldPoison(), useMovementEngine(), useGameLoop(), setup(), battle()
+Nodes (37): AddPointillismPoints(), ApplyImageEffect_BlackAndWhite(), ApplyImageEffect_BlackOutline(), ApplyImageEffect_Blur(), ApplyImageEffect_BlurDown(), ApplyImageEffect_BlurRight(), ApplyImageEffect_Grayscale(), ApplyImageEffect_Invert() (+29 more)
 
-### Community 11 - "Battle Launch Pipeline"
-Cohesion: 0.13
-Nodes (15): getTrainerBattleSprite(), triggerBattle(), createBattleState(), logObservation(), launchBattle(), getExpLog(), getLogs(), makeMove() (+7 more)
-
-### Community 12 - "Phase FSM Types"
+### Community 30 - "Community 30"
 Cohesion: 0.1
-Nodes (21): B_CHOOSING constant, battle() helper, BattlePhase (sub-FSM), GamePhase (top-level FSM), GameSimulator.assertWorldIntact, GameSimulator class, GameSimulator.init, GameSimulator.skipBattleTransition (+13 more)
+Nodes (26): CreatePostEvoSparkleSet1(), CreatePostEvoSparkleSet2(), CreatePreEvoSparkleSet1(), CreatePreEvoSparkleSet2(), EvoTask_ChooseNextEvoSpriteAnim(), EvoTask_CreatePostEvoSparklesSet1(), EvoTask_CreatePostEvoSparklesSet2(), EvoTask_CreatePostEvoSparklesSet2Trade() (+18 more)
 
-### Community 13 - "App Root Handlers"
-Cohesion: 0.11
-Nodes (20): App: battle restore-from-store useEffect, App() root component, handleApplyItemToPokemon (HM teaching), handleFieldMove (Surf/Fly/Flash), handleFlySelect, handleHMForget, handlePCSwap, handleUseItem (+12 more)
+### Community 31 - "Community 31"
+Cohesion: 0.14
+Nodes (23): AGBAssert(), AGBPrint(), AGBPrintf(), AGBPrintFlush(), AGBPrintFlush1Block(), AGBPrintInit(), AGBPrintTransferDataInternal(), AGBPutc() (+15 more)
 
-### Community 14 - "Battle Engine Core"
-Cohesion: 0.13
-Nodes (20): applyStatChange, BattleState, clearBoosts, createBattleState, selectTrainerMove, stepBattle, battleEngine.test, calcStat (+12 more)
+### Community 32 - "Community 32"
+Cohesion: 0.2
+Nodes (19): CloseSerial(), DetermineSendRecvState(), DisableTm3(), EnableSio(), EReader_Recv(), EReader_Send(), EReaderHandleTransfer(), EReaderHelper_ClearsSendRecvMgr() (+11 more)
 
-### Community 15 - "Battle Outcome & Cinematics"
-Cohesion: 0.11
-Nodes (11): dispatchBattle(), handleCatchAction(), useBattleEngine(), playBattleEffects(), CINEMATIC_DURATION_MS, CinematicEvent (type), giveDemoTeam(), useDebugAPI() (+3 more)
+### Community 33 - "Community 33"
+Cohesion: 0.14
+Nodes (7): ClearPulseBlendPalettesSettings(), RouletteFlash_FadePalette(), RouletteFlash_FlashPalette(), RouletteFlash_Run(), UnloadUsedPulseBlendPalettes(), UnmarkUsedPulseBlendPalettes(), UpdatePulseBlend()
 
-### Community 16 - "Pokemon / Move Constants"
-Cohesion: 0.15
-Nodes (17): MOVES, moveHelper, buildNPCDatabase, buildItemDatabase, mergeAuto, w(zone,lx,ly), BASE_STATS, EVOLUTIONS (+9 more)
+### Community 34 - "Community 34"
+Cohesion: 0.32
+Nodes (12): CB2_BerryFix(), SetScene(), Task_BerryFixMain(), MultiBootCheckComplete(), MultiBootHandShake(), MultiBootInit(), MultiBootMain(), MultiBootSend() (+4 more)
 
-### Community 17 - "Tile Behavior Mappings"
-Cohesion: 0.15
-Nodes (15): DOOR_BEHAVIORS, ENCOUNTER_BEHAVIORS, IMPASSABLE_DIRECTIONAL, LEDGE_BEHAVIORS, SIGN_BEHAVIORS, tileFromBehavior, WALL constant, WARP_PAD_BEHAVIORS (+7 more)
-
-### Community 18 - "3D Texture Generation"
-Cohesion: 0.26
-Nodes (9): cachedTexture(), makeCanopyTexture(), makeCarpetTexture(), makeFloorTexture(), makeGrassTexture(), makePathTexture(), makeTrunkTexture(), makeWallTexture() (+1 more)
-
-### Community 19 - "FireRed Build Scripts"
-Cohesion: 0.27
-Nodes (11): extractLayout(), extractTileset(), findTilesetDir(), loadAttrsForTileset(), loadPalettes(), parseAttrs(), parseMapBin(), parseMetatiles() (+3 more)
-
-### Community 20 - "Cutscene DSL"
-Cohesion: 0.24
-Nodes (11): BattleStep, CutsceneStep DSL, DialogueStep, NpcAppearStep, NpcWalkStep, runCutscene (cutscene runner), WalkStep, WarpStep (+3 more)
-
-### Community 21 - "Overworld Stitching"
-Cohesion: 0.29
-Nodes (7): buildBuckets(), buildBehaviorGrid(), buildZone(), isOutdoor(), loadAttrs(), place(), tilesetSlug()
-
-### Community 22 - "Game Data Extraction"
-Cohesion: 0.22
-Nodes (6): artifact: firedNpcs.generated.ts, artifact: firedTrainers.generated.ts, extractNpcs(scriptToTrainer), extractTrainers(), extractTrainerScripts(), extract-game-data.mjs entrypoint
-
-### Community 23 - "Interaction & Movement"
-Cohesion: 0.28
-Nodes (7): handleAction(), useInteractionEngine(), applyOverworldPoison(), getValidTeleportLocation(), handleMove(), useMovementEngine(), initBattle()
-
-### Community 24 - "Battle UI Pieces"
-Cohesion: 0.25
-Nodes (8): BattleScreen component, MoveMenu (incl. Forcejeo), PokeballAnim (catch animation), getTerrainFromMap / getArenaStyle, CinematicPanel battle intro, Critical Hit Probability, Battle System (engine + hook), PP Tracking + Struggle
-
-### Community 27 - "Music Selection by Map"
-Cohesion: 0.33
-Nodes (3): getKantoRegion(), fireredMusicForMap(), getOverworldMusic()
-
-### Community 28 - "Map / Warp Registry"
-Cohesion: 0.29
-Nodes (5): FIRERED_INDOOR_MAPS, MAP_KANTO_OVERWORLD, data/maps/index.ts, worldMaps, outdoorWarpsByTarget (Map)
-
-### Community 29 - "Music Mapping Tables"
-Cohesion: 0.29
-Nodes (6): FIRERED_MUS_TO_TRACK, INTERIOR_MUSIC, ZONE_MUSIC, fireredMusicForMap(), getOverworldMusic(), useMusicEngine()
-
-### Community 30 - "FireRed/Runtime Decoupling Tests"
-Cohesion: 0.29
-Nodes (7): firered/bridge.ts, include/fieldmap.h (NUM_TILES_IN_PRIMARY), pret/pokefirered disassembly (canonical source), DOM_GLOBALS_ALLOWLIST, test/decoupling.test.ts, firered/multiZoneBridge.ts, firered/tilesetLoader.ts
-
-### Community 31 - "Tileset Loader & Caches"
-Cohesion: 0.29
-Nodes (7): src/fieldmap.c LoadTilesetPalette, decodePngIndices (mini PNG decoder), drawTileToImageData, getMetatileBitmap, loadTileset, metatileCache (ImageBitmap cache), tilesetCache (per-label assets)
-
-### Community 32 - "Team Menu Helpers"
+### Community 35 - "Community 35"
 Cohesion: 0.4
-Nodes (3): canSelect(), handleSelect(), applyItemToPokemon()
+Nodes (10): Callback_Dummy_ID(), Callback_Dummy_M(), Callback_Dummy_S(), handshake_wait(), IntrSIO32(), sio32intr_clock_master(), sio32intr_clock_slave(), STWI_init_slave() (+2 more)
 
-### Community 33 - "Audio Playback"
-Cohesion: 0.47
-Nodes (3): createAudio(), getAudioElement(), resolvePath()
+### Community 36 - "Community 36"
+Cohesion: 0.33
+Nodes (5): IsAsciiAlpha(), IsAsciiAlphanum(), IsAsciiDigit(), IsIdentifierChar(), IsIdentifierStartingChar()
 
-### Community 35 - "Indoor Map Generator"
-Cohesion: 0.6
-Nodes (3): loadAttrs(), resolveBehaviorGrid(), tilesetSlug()
+### Community 41 - "Community 41"
+Cohesion: 0.83
+Nodes (3): ExtractData(), main(), ReadWholeFile()
 
-### Community 42 - "Community 42"
+### Community 43 - "Community 43"
+Cohesion: 0.5
+Nodes (4): Story Progression / storyStep flags, Phase 4: Persist Map Mutations, Dynamic NPC Generation (buildNPCDatabase), Zustand GameState Store
+
+### Community 45 - "Community 45"
+Cohesion: 1.0
+Nodes (2): HeaderComplement(), main()
+
+### Community 51 - "Community 51"
 Cohesion: 1.0
 Nodes (2): cssFrame(), getSpriteFrame()
 
-### Community 43 - "Community 43"
+### Community 52 - "Community 52"
+Cohesion: 0.67
+Nodes (3): Critical Hit Probability, Battle System (engine + hook), PP Tracking + Struggle
+
+### Community 53 - "Community 53"
 Cohesion: 0.67
 Nodes (3): Blackout Flow, Overworld Poison Logic, Status Effects Reference
 
-### Community 44 - "Community 44"
+### Community 54 - "Community 54"
 Cohesion: 0.67
-Nodes (3): ensureUid helper, setPlayerTeam (with ensureUid), syncTeamStats
-
-### Community 66 - "Community 66"
-Cohesion: 1.0
-Nodes (2): Damage Calculation Formula (Gen I), Damage Formula Implementation
-
-### Community 67 - "Community 67"
-Cohesion: 1.0
-Nodes (2): Experience Growth Rates, Leveling and Evolution Rules
-
-### Community 68 - "Community 68"
-Cohesion: 1.0
-Nodes (2): Pokemon Catch Likelihood (Gen I), Catch Rate Implementation
-
-### Community 69 - "Community 69"
-Cohesion: 1.0
-Nodes (2): Move interface, Pokemon interface
-
-### Community 70 - "Community 70"
-Cohesion: 1.0
-Nodes (2): Entity interface, NPC interface
-
-### Community 71 - "Community 71"
-Cohesion: 1.0
-Nodes (2): HM_MOVE_MAP, HM_REQUIREMENTS
-
-### Community 72 - "Community 72"
-Cohesion: 1.0
-Nodes (2): WILD_ENCOUNTER_RATES, WILD_POKEMON_DATABASE
-
-### Community 73 - "Community 73"
-Cohesion: 1.0
-Nodes (2): getKantoRegion, KANTO_ZONE_OFFSETS
-
-### Community 75 - "Community 75"
-Cohesion: 1.0
-Nodes (2): cssFrame, getSpriteFrame
-
-### Community 76 - "Community 76"
-Cohesion: 1.0
-Nodes (2): FireredParsedMap interface, MultiZoneFireredMap
+Nodes (3): Menus (Mochila/Equipo/Pokedex/PC/Tienda), BattleSubPhase enum, GamePhase FSM (discriminated union)
 
 ### Community 77 - "Community 77"
 Cohesion: 1.0
-Nodes (2): GameSaveState interface, GameState interface
+Nodes (2): Experience Growth Rates, Leveling and Evolution Rules
 
 ### Community 78 - "Community 78"
 Cohesion: 1.0
-Nodes (2): GameSimulator.loadLogAsScenario, GameSimulator.seedPrng (mulberry32)
+Nodes (2): Damage Calculation Formula (Gen I), Damage Formula Implementation
 
 ### Community 79 - "Community 79"
 Cohesion: 1.0
-Nodes (2): firered/behaviorMappings.ts, include/constants/metatile_behaviors.h
+Nodes (2): Pokemon Catch Likelihood (Gen I), Catch Rate Implementation
 
-### Community 116 - "Community 116"
+### Community 541 - "Community 541"
 Cohesion: 1.0
 Nodes (1): Accuracy and Evasion
 
-### Community 117 - "Community 117"
+### Community 542 - "Community 542"
 Cohesion: 1.0
 Nodes (1): Wild Pokemon Encounters Formula
 
-### Community 118 - "Community 118"
+### Community 543 - "Community 543"
 Cohesion: 1.0
 Nodes (1): Stat Calculation (DV+StatExp)
 
-### Community 119 - "Community 119"
+### Community 544 - "Community 544"
 Cohesion: 1.0
 Nodes (1): Type Effectiveness Chart
 
-### Community 120 - "Community 120"
+### Community 545 - "Community 545"
 Cohesion: 1.0
 Nodes (1): Movement System Description
 
-### Community 121 - "Community 121"
+### Community 546 - "Community 546"
 Cohesion: 1.0
 Nodes (1): Sound System (soundManager)
 
-### Community 122 - "Community 122"
+### Community 547 - "Community 547"
+Cohesion: 1.0
+Nodes (1): Game Controls (Keyboard / Mobile)
+
+### Community 548 - "Community 548"
+Cohesion: 1.0
+Nodes (1): Phase 1: Pipeline Metatile Bridge Refinement
+
+### Community 549 - "Community 549"
+Cohesion: 1.0
+Nodes (1): Phase 2: HM Teaching Flow
+
+### Community 550 - "Community 550"
+Cohesion: 1.0
+Nodes (1): Phase 3: Surf HM
+
+### Community 551 - "Community 551"
+Cohesion: 1.0
+Nodes (1): Phase 5: Flash HM
+
+### Community 552 - "Community 552"
+Cohesion: 1.0
+Nodes (1): Phase 6: Fly HM
+
+### Community 553 - "Community 553"
 Cohesion: 1.0
 Nodes (1): Phase 7: Strength Item Placement
 
-### Community 123 - "Community 123"
+### Community 554 - "Community 554"
 Cohesion: 1.0
 Nodes (1): Phase 8: Waterfall HM (post-game)
 
-### Community 124 - "Community 124"
-Cohesion: 1.0
-Nodes (1): TILE_SIZE constant (=64)
-
-### Community 125 - "Community 125"
-Cohesion: 1.0
-Nodes (1): BattleTransition wipe component
-
-### Community 126 - "Community 126"
-Cohesion: 1.0
-Nodes (1): ConfigPanel UI
-
-### Community 127 - "Community 127"
-Cohesion: 1.0
-Nodes (1): DialogueBox (typewriter + confirm)
-
-### Community 128 - "Community 128"
-Cohesion: 1.0
-Nodes (1): WATER_WILD_POKEMON_DATABASE
-
-### Community 129 - "Community 129"
-Cohesion: 1.0
-Nodes (1): PLAYER_OVERWORLD_SPRITE
-
-### Community 130 - "Community 130"
-Cohesion: 1.0
-Nodes (1): CENTER_MAPS
-
-### Community 131 - "Community 131"
-Cohesion: 1.0
-Nodes (1): MART_MAPS
-
-### Community 132 - "Community 132"
-Cohesion: 1.0
-Nodes (1): NpcOverride (interface)
-
-### Community 133 - "Community 133"
-Cohesion: 1.0
-Nodes (1): FIRERED_ITEMS
-
-### Community 134 - "Community 134"
-Cohesion: 1.0
-Nodes (1): FireredItem (interface)
-
-### Community 135 - "Community 135"
-Cohesion: 1.0
-Nodes (1): FireredNpc (interface)
-
-### Community 136 - "Community 136"
-Cohesion: 1.0
-Nodes (1): FireredSign (interface)
-
-### Community 137 - "Community 137"
-Cohesion: 1.0
-Nodes (1): FireredTrainer (interface)
-
-### Community 138 - "Community 138"
-Cohesion: 1.0
-Nodes (1): outdoorEntryByTarget
-
-### Community 140 - "Community 140"
-Cohesion: 1.0
-Nodes (1): MetatileCache (interface)
-
-### Community 141 - "Community 141"
-Cohesion: 1.0
-Nodes (1): useWindowSize
-
-### Community 142 - "Community 142"
-Cohesion: 1.0
-Nodes (1): BattleAction
-
-### Community 143 - "Community 143"
-Cohesion: 1.0
-Nodes (1): logEvent
-
-### Community 144 - "Community 144"
-Cohesion: 1.0
-Nodes (1): setGameSpeed
-
-### Community 145 - "Community 145"
-Cohesion: 1.0
-Nodes (1): sdur (scale seconds)
-
-### Community 146 - "Community 146"
-Cohesion: 1.0
-Nodes (1): fullHeal
-
-### Community 148 - "Community 148"
-Cohesion: 1.0
-Nodes (1): cutscenes/types.ts
-
-### Community 149 - "Community 149"
-Cohesion: 1.0
-Nodes (1): FireredLayoutJson interface
-
-### Community 150 - "Community 150"
-Cohesion: 1.0
-Nodes (1): StitchedDescriptor
-
-### Community 151 - "Community 151"
-Cohesion: 1.0
-Nodes (1): store/gameStore.ts
-
-### Community 152 - "Community 152"
-Cohesion: 1.0
-Nodes (1): reorderTeam
-
-### Community 153 - "Community 153"
-Cohesion: 1.0
-Nodes (1): setDialogue
-
-### Community 154 - "Community 154"
-Cohesion: 1.0
-Nodes (1): setConfirm (yes/no modal)
-
-### Community 155 - "Community 155"
-Cohesion: 1.0
-Nodes (1): addInventoryItem
-
-### Community 156 - "Community 156"
-Cohesion: 1.0
-Nodes (1): removeInventoryItem
-
-### Community 157 - "Community 157"
-Cohesion: 1.0
-Nodes (1): updatePokedex
-
-### Community 158 - "Community 158"
-Cohesion: 1.0
-Nodes (1): setModifiedTile
-
-### Community 159 - "Community 159"
-Cohesion: 1.0
-Nodes (1): test/setup.ts
-
-### Community 160 - "Community 160"
-Cohesion: 1.0
-Nodes (1): test/simulator/GameSimulator.ts
-
-### Community 161 - "Community 161"
-Cohesion: 1.0
-Nodes (1): GameSimulator.destroy
-
-### Community 162 - "Community 162"
-Cohesion: 1.0
-Nodes (1): GameSimulator.phaseHistory
-
-### Community 163 - "Community 163"
-Cohesion: 1.0
-Nodes (1): Scenario 5-6: Mom heals
-
-### Community 164 - "Community 164"
-Cohesion: 1.0
-Nodes (1): Scenario 7: Wild encounter
-
-### Community 165 - "Community 165"
-Cohesion: 1.0
-Nodes (1): Scenario 8-9: Parcel/Pokedex
-
-### Community 166 - "Community 166"
-Cohesion: 1.0
-Nodes (1): Scenario 10: Pokeball blocked in trainer battle
-
-### Community 167 - "Community 167"
-Cohesion: 1.0
-Nodes (1): Scenario 11: Pokecenter heal
-
-### Community 168 - "Community 168"
-Cohesion: 1.0
-Nodes (1): Scenario 14: Brock leader battle
-
-### Community 169 - "Community 169"
-Cohesion: 1.0
-Nodes (1): test/simulator/useGameLoop.ts
-
-### Community 170 - "Community 170"
-Cohesion: 1.0
-Nodes (1): types/gamePhase.ts
-
-### Community 171 - "Community 171"
-Cohesion: 1.0
-Nodes (1): EXPLORING constant
-
 ## Knowledge Gaps
-- **216 isolated node(s):** `Damage Calculation Formula (Gen I)`, `Critical Hit Probability`, `Accuracy and Evasion`, `Wild Pokemon Encounters Formula`, `Pokemon Catch Likelihood (Gen I)` (+211 more)
+- **42 isolated node(s):** `FunctionStorage`, `exception`, `invalid_iterator`, `type_error`, `out_of_range` (+37 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Game Simulator (test harness)`** (36 nodes): `setGameSpeed()`, `GameSimulator`, `.badges()`, `.battleAction()`, `.battleLog()`, `.battleState()`, `.confirmNo()`, `.confirmYes()`, `.destroy()`, `.dialogue()`, `.dialogueContains()`, `.direction()`, `.dismissDialogue()`, `.enemyPokemon()`, `.eventsOfType()`, `.face()`, `.flushTimers()`, `.hasParcel()`, `.hasPokedex()`, `.init()`, `.interact()`, `.inventory()`, `.loadLogAsScenario()`, `.money()`, `.move()`, `.phase()`, `.pos()`, `.seedPrng()`, `.setNextRandom()`, `.setRandomSequence()`, `.skipBattleTransition()`, `.state()`, `.storyStep()`, `.team()`, `.tick()`, `GameSimulator.ts`
+- **Thin community `Community 45`** (3 nodes): `HeaderComplement()`, `main()`, `gbafix.c`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 42`** (3 nodes): `cssFrame()`, `getSpriteFrame()`, `spriteFormat.ts`
+- **Thin community `Community 51`** (3 nodes): `cssFrame()`, `getSpriteFrame()`, `spriteFormat.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 66`** (2 nodes): `Damage Calculation Formula (Gen I)`, `Damage Formula Implementation`
+- **Thin community `Community 77`** (2 nodes): `Experience Growth Rates`, `Leveling and Evolution Rules`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 67`** (2 nodes): `Experience Growth Rates`, `Leveling and Evolution Rules`
+- **Thin community `Community 78`** (2 nodes): `Damage Calculation Formula (Gen I)`, `Damage Formula Implementation`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 68`** (2 nodes): `Pokemon Catch Likelihood (Gen I)`, `Catch Rate Implementation`
+- **Thin community `Community 79`** (2 nodes): `Pokemon Catch Likelihood (Gen I)`, `Catch Rate Implementation`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 69`** (2 nodes): `Move interface`, `Pokemon interface`
+- **Thin community `Community 541`** (1 nodes): `Accuracy and Evasion`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 70`** (2 nodes): `Entity interface`, `NPC interface`
+- **Thin community `Community 542`** (1 nodes): `Wild Pokemon Encounters Formula`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 71`** (2 nodes): `HM_MOVE_MAP`, `HM_REQUIREMENTS`
+- **Thin community `Community 543`** (1 nodes): `Stat Calculation (DV+StatExp)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 72`** (2 nodes): `WILD_ENCOUNTER_RATES`, `WILD_POKEMON_DATABASE`
+- **Thin community `Community 544`** (1 nodes): `Type Effectiveness Chart`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 73`** (2 nodes): `getKantoRegion`, `KANTO_ZONE_OFFSETS`
+- **Thin community `Community 545`** (1 nodes): `Movement System Description`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 75`** (2 nodes): `cssFrame`, `getSpriteFrame`
+- **Thin community `Community 546`** (1 nodes): `Sound System (soundManager)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 76`** (2 nodes): `FireredParsedMap interface`, `MultiZoneFireredMap`
+- **Thin community `Community 547`** (1 nodes): `Game Controls (Keyboard / Mobile)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 77`** (2 nodes): `GameSaveState interface`, `GameState interface`
+- **Thin community `Community 548`** (1 nodes): `Phase 1: Pipeline Metatile Bridge Refinement`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 78`** (2 nodes): `GameSimulator.loadLogAsScenario`, `GameSimulator.seedPrng (mulberry32)`
+- **Thin community `Community 549`** (1 nodes): `Phase 2: HM Teaching Flow`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 79`** (2 nodes): `firered/behaviorMappings.ts`, `include/constants/metatile_behaviors.h`
+- **Thin community `Community 550`** (1 nodes): `Phase 3: Surf HM`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 116`** (1 nodes): `Accuracy and Evasion`
+- **Thin community `Community 551`** (1 nodes): `Phase 5: Flash HM`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 117`** (1 nodes): `Wild Pokemon Encounters Formula`
+- **Thin community `Community 552`** (1 nodes): `Phase 6: Fly HM`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 118`** (1 nodes): `Stat Calculation (DV+StatExp)`
+- **Thin community `Community 553`** (1 nodes): `Phase 7: Strength Item Placement`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 119`** (1 nodes): `Type Effectiveness Chart`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 120`** (1 nodes): `Movement System Description`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 121`** (1 nodes): `Sound System (soundManager)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 122`** (1 nodes): `Phase 7: Strength Item Placement`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 123`** (1 nodes): `Phase 8: Waterfall HM (post-game)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 124`** (1 nodes): `TILE_SIZE constant (=64)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 125`** (1 nodes): `BattleTransition wipe component`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 126`** (1 nodes): `ConfigPanel UI`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 127`** (1 nodes): `DialogueBox (typewriter + confirm)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 128`** (1 nodes): `WATER_WILD_POKEMON_DATABASE`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 129`** (1 nodes): `PLAYER_OVERWORLD_SPRITE`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 130`** (1 nodes): `CENTER_MAPS`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 131`** (1 nodes): `MART_MAPS`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 132`** (1 nodes): `NpcOverride (interface)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 133`** (1 nodes): `FIRERED_ITEMS`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 134`** (1 nodes): `FireredItem (interface)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 135`** (1 nodes): `FireredNpc (interface)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 136`** (1 nodes): `FireredSign (interface)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 137`** (1 nodes): `FireredTrainer (interface)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 138`** (1 nodes): `outdoorEntryByTarget`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 140`** (1 nodes): `MetatileCache (interface)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 141`** (1 nodes): `useWindowSize`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 142`** (1 nodes): `BattleAction`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 143`** (1 nodes): `logEvent`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 144`** (1 nodes): `setGameSpeed`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 145`** (1 nodes): `sdur (scale seconds)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 146`** (1 nodes): `fullHeal`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 148`** (1 nodes): `cutscenes/types.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 149`** (1 nodes): `FireredLayoutJson interface`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 150`** (1 nodes): `StitchedDescriptor`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 151`** (1 nodes): `store/gameStore.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 152`** (1 nodes): `reorderTeam`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 153`** (1 nodes): `setDialogue`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 154`** (1 nodes): `setConfirm (yes/no modal)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 155`** (1 nodes): `addInventoryItem`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 156`** (1 nodes): `removeInventoryItem`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 157`** (1 nodes): `updatePokedex`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 158`** (1 nodes): `setModifiedTile`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 159`** (1 nodes): `test/setup.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 160`** (1 nodes): `test/simulator/GameSimulator.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 161`** (1 nodes): `GameSimulator.destroy`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 162`** (1 nodes): `GameSimulator.phaseHistory`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 163`** (1 nodes): `Scenario 5-6: Mom heals`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 164`** (1 nodes): `Scenario 7: Wild encounter`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 165`** (1 nodes): `Scenario 8-9: Parcel/Pokedex`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 166`** (1 nodes): `Scenario 10: Pokeball blocked in trainer battle`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 167`** (1 nodes): `Scenario 11: Pokecenter heal`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 168`** (1 nodes): `Scenario 14: Brock leader battle`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 169`** (1 nodes): `test/simulator/useGameLoop.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 170`** (1 nodes): `types/gamePhase.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 171`** (1 nodes): `EXPLORING constant`
+- **Thin community `Community 554`** (1 nodes): `Phase 8: Waterfall HM (post-game)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `launchBattle()` connect `Battle Launch Pipeline` to `Frame Loop & Process Pipeline`?**
-  _High betweenness centrality (0.049) - this node is a cross-community bridge._
-- **Why does `GameSimulator` connect `Game Simulator (test harness)` to `Pokemon Stats & FireRed Bridge Helpers`, `Logging & Replay System`, `Auto-Entity Builders (NPC/Item/Trainer)`?**
-  _High betweenness centrality (0.048) - this node is a cross-community bridge._
-- **Why does `createBattleState()` connect `Battle Launch Pipeline` to `Pokemon Stats & FireRed Bridge Helpers`?**
-  _High betweenness centrality (0.043) - this node is a cross-community bridge._
-- **Are the 6 inferred relationships involving `stepBattle()` (e.g. with `.map()` and `doesMoveHit()`) actually correct?**
-  _`stepBattle()` has 6 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 6 inferred relationships involving `makePokemon()` (e.g. with `strongStarter()` and `calcHp()`) actually correct?**
-  _`makePokemon()` has 6 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Damage Calculation Formula (Gen I)`, `Critical Hit Probability`, `Accuracy and Evasion` to the rest of the system?**
-  _216 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Battle UI & Overworld Components` be split into smaller, more focused modules?**
-  _Cohesion score 0.06 - nodes in this community are weakly interconnected._
+- **Why does `Random()` connect `Community 9` to `Community 0`, `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 5`, `Community 6`, `Community 7`, `Community 10`, `Community 11`, `Community 14`, `Community 16`, `Community 17`, `Community 18`, `Community 19`, `Community 21`, `Community 23`, `Community 27`, `Community 30`?**
+  _High betweenness centrality (0.092) - this node is a cross-community bridge._
+- **Why does `PlaySE()` connect `Community 10` to `Community 0`, `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 5`, `Community 6`, `Community 7`, `Community 9`, `Community 11`, `Community 12`, `Community 13`, `Community 16`, `Community 17`, `Community 19`, `Community 20`, `Community 21`, `Community 22`, `Community 25`, `Community 26`, `Community 27`, `Community 30`?**
+  _High betweenness centrality (0.085) - this node is a cross-community bridge._
+- **Why does `DestroyTask()` connect `Community 3` to `Community 0`, `Community 1`, `Community 2`, `Community 4`, `Community 5`, `Community 7`, `Community 10`, `Community 11`, `Community 12`, `Community 13`, `Community 15`, `Community 16`, `Community 18`, `Community 19`, `Community 20`, `Community 21`, `Community 23`, `Community 26`, `Community 27`, `Community 30`, `Community 34`?**
+  _High betweenness centrality (0.068) - this node is a cross-community bridge._
+- **Are the 383 inferred relationships involving `PlaySE()` (e.g. with `Mugshot_StartOpponentSlide()` and `Task_RunEasyChat()`) actually correct?**
+  _`PlaySE()` has 383 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 380 inferred relationships involving `DestroyTask()` (e.g. with `IsBattleTransitionDone()` and `Task_Intro()`) actually correct?**
+  _`DestroyTask()` has 380 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 349 inferred relationships involving `CreateTask()` (e.g. with `LaunchBattleTransitionTask()` and `Transition_StartIntro()`) actually correct?**
+  _`CreateTask()` has 349 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 337 inferred relationships involving `SetGpuReg()` (e.g. with `Blur_Init()` and `Blur_Main()`) actually correct?**
+  _`SetGpuReg()` has 337 INFERRED edges - model-reasoned connections that need verification._

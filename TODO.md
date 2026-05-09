@@ -12,30 +12,147 @@
 
 ## Next up
 
-### Story / battle content
+### P0 — Critical Path (Unblock Main Story)
 
+- [ ] **Post-Lab Story Progression** — After `RIVAL_BATTLE`, advance narrative: Oak gives Pokédex (wire `oak_parcel_turnin`), Viridian PokéMart errand (get Oak's Parcel → deliver → receive Pokédex), Daisy gives Town Map (already gated on `hasPokedex`).
+- [ ] **Gym Leaders & Badge Rewards** — Pewter (Brock), Cascade (Misty), Thunder (Lt. Surge), etc. On victory: add badge to `badges`, trigger victory jingle, update `defeatedTrainers`. Badges gate HMs (e.g., `CASCADE` for `cut`).
+- [ ] **Trainer Database Placement & Defeat Persistence** — Wire extracted `firedTrainers.generated.ts` / `firedNpcs.generated.ts` into `buildNPCDatabase()` for all migrated maps. Check `defeatedTrainers` before every trainer interaction to prevent re-battle.
 - [ ] **Starter-ball alignment** — balls in `OAKS_LAB` are still at the legacy (3,5)/(4,5)/(5,5) but Oak now stands by the FireRed-canonical table at (6,3). Move the balls to (8,4)/(9,4)/(10,4) and adjust the post-cutscene player landing if needed so they line up with Oak.
-- [ ] **Browser smoke test** of the recent UI changes — Sí/No confirm prompt, trainer-ball strips on enemy/player HUDs, post-Oak-escort lab end-state. CLAUDE.md asks for this on UI work and I haven't done it.
+
+### P1 — Major Systems (Depth)
+
+- [ ] **Complete HM Field-Move Flow** —
+  - Fly: wire `FlyTownSelect` to actual warp system using `visitedTowns`.
+  - Surf: auto-cancel `isSurfing` when stepping onto land.
+  - Flash: `flashActive` must darken/brighten the overworld renderer (check `ScreenEffects` or `FireredMapView`).
+  - Ensure all 5 HMs (`HM01_CUT`..`HM05_FLASH`) are obtainable in the world.
+- [ ] **Wild Encounter Integration** — Hook FireRed encounter tables into `useMovementEngine`: stepping on `grass` tiles rolls encounter rate from extracted data. Use zone-based tables (Route 1, Viridian Forest) for correct level ranges.
+- [ ] **Evolution & Level-Up UI Polish** — Trigger evolution cutscene when `willEvolve` is true. Handle move learning on level-up (currently `learnedMove` return value is ignored after level up).
+
+### P2 — Content & Polish (Fidelity)
+
 - [ ] **Animate the trainer-ball strip** — canonical battle intro flies the balls in one-by-one before the lead pokémon emerges. Currently the strip just appears.
-- [ ] Giovanni bosses — Rocket Hideout B4F + Silph Co. 11F final encounters.
-- [ ] Elite Four scripted run-throughs — Lorelei, Bruno, Agatha, Lance, Champion Rival.
+- [ ] **Rocket Hideout, Silph Co., and Giovanni** — Key item pickups (Lift Key, Master Ball from Silph President). Giovanni battle with canonical team.
+- [ ] **Elite Four & Champion Rival** — Scripted run-throughs: Lorelei → Bruno → Agatha → Lance → Champion Rival. Victory road gate logic (badge checks on Route 23). Hall of Fame sequence after final win.
+- [ ] **Overworld Poison Damage** — Apply Gen I overworld poison tick every 4 steps in `useMovementEngine`. If lead Pokémon is poisoned, deduct HP and potentially trigger `BLACKOUT`.
+- [ ] **Browser smoke test** of the recent UI changes — Sí/No confirm prompt, trainer-ball strips on enemy/player HUDs, post-Oak-escort lab end-state. CLAUDE.md asks for this on UI work and I haven't done it.
 
-### Polish / DX
+### P3 — Technical Debt & DX
 
-- [ ] Use FireRed metatile attributes for richer `Tile.type` — today everything walkable is `floor`/`path`; FireRed metatile attrs distinguish grass / water / ledge_down|left|right / warp surfaces. Pipeline change: surface the attribute byte from each metatile through the bridge.
-- [ ] Drop `eventLog.ts` from the DOM-globals decoupling allowlist — split into a pure recorder + browser bridge.
-- [ ] Tighten the `worldIntegrity` warp baseline below 200 as data drift gets cleaned up; eventually delete the threshold and assert zero.
+- [ ] **Use FireRed metatile attributes for richer `Tile.type`** — today everything walkable is `floor`/`path`; FireRed metatile attrs distinguish grass / water / ledge_down|left|right / warp surfaces. Pipeline change: surface the attribute byte from each metatile through the bridge.
+- [ ] **Drop `eventLog.ts` from the DOM-globals decoupling allowlist** — split into a pure recorder + browser bridge.
+- [ ] **Tighten the `worldIntegrity` warp baseline** — currently allows ≤4 warp issues; aim for 0, then delete the threshold and assert zero.
+- [ ] **Browser smoke tests for UI flows** — A checklist or lightweight script for starter selection flow, healing flow, and shop flow.
+
+---
+
+## Design patterns to consider (from refactoring observations)
+
+These are structural improvements that would further reduce complexity if adopted across the codebase. They aren't bugs — the code works — but they represent recurring duplication or missing abstraction that became visible during the refactor.
+
+### 1. `updateActivePokemon` / `withPlayerPkmn` helper
+
+**Problem:** Modifying the active Pokemon's HP, status, or move PP requires the same 3-line spread every time:
+
+```ts
+const team = [...s.playerTeam];
+team[0] = { ...team[0], hp: newHp };
+s = { ...s, playerTeam: team };
+```
+
+This pattern repeats ~25 times across `battleEngine.ts` and `battleMechanics.ts`.
+
+**Fix:** A helper like:
+
+```ts
+function updateActive(state: BattleState, fn: (p: Pokemon) => Pokemon) {
+  const team = [...state.playerTeam];
+  team[0] = fn(team[0]);
+  return { ...state, playerTeam: team };
+}
+```
+
+Would collapse dozens of lines. Same pattern exists for `enemyPokemon` (always a single `{ ...s.enemyPokemon, hp: x }` that could be `updateEnemy(state, props)`).
+
+### 2. Unified `resolveAttack(attacker, defender, move, side)` function
+
+**Problem:** Enemy attack resolution is implemented 3 times with subtle differences:
+- Enemy-first branch in ATTACK (playerPkmn is hit by enemy)
+- Player-attack branch in ATTACK (enemyPkmn is hit by player)
+- TICK `ENEMY_ATTACK` handler (playerPkmn is hit by enemy again)
+
+Each copy formats damage logs, applies physical-type tracking, handles status effects, rage, bide, and faint checks. When a new mechanic is added (e.g., future abilities), it must be replicated everywhere.
+
+**Fix:** A single `resolveAttack` that takes attacker, defender, move, and returns `{ newDefender: Pokemon, effects: BattleEffect[], log: string }`. The caller handles the outcome (faint / next-phase). This would remove ~150 lines of duplicate attack code.
+
+### 3. `stepBattle` action handlers as a strategy map
+
+**Problem:** Even after the mechanics split, `stepBattle` is still one giant `switch` statement (500+ lines). Adding a new action type requires touching the same file and mentally parsing which branches affect state vs. effects.
+
+**Fix:** Replace the switch with a map:
+
+```ts
+const HANDLERS: Record<string, (s: BattleState, a: BattleAction) => BattleResult> = {
+  ATTACK: handleAttack,
+  TICK: handleTick,
+  SWITCH: handleSwitch,
+  // ...
+};
+
+export function stepBattle(state: BattleState, action: BattleAction): BattleResult {
+  const handler = HANDLERS[action.type];
+  return handler ? handler(state, action) : { state, effects: [] };
+}
+```
+
+Each handler becomes a pure function in its own file, making unit testing trivial and keeping `battleEngine.ts` as the registry only.
+
+### 4. Shared `useItem` pipeline (overworld vs. battle)
+
+**Problem:** Items are applied to Pokemon via two completely separate code paths:
+- **Overworld:** `App.tsx` → `handleApplyItemToPokemon` (80+ lines, also handles HM teaching, key items)
+- **Battle:** `stepBattle` → `USE_ITEM` case → `applyItemToPokemon` from `itemUtils.ts`
+
+Both paths compute the same thing (reduce inventory count, apply item effect to a Pokemon) but do it differently. HM/field-item logic is tangled into the overworld path even though it's a separate concern.
+
+**Fix:** A single `useItem(itemId, targetPokemon, context: 'overworld' | 'battle')` function that handles inventory deduction + effect application. HM teaching and key-item effects become separate handlers that consume the result.
+
+### 5. Headless modal adapter for `GameSimulator`
+
+**Problem:** The `GameSimulator` can't test UI flows (inventory selection, team switch, shop purchase, starter confirm) because `GameModals.tsx` renders modals directly via React components. The simulator is limited to engine-level tests only.
+
+**Fix:** Extract `GameModals` into a headless state machine that returns actions (e.g., `{ type: 'OPEN_INVENTORY' }`) + an adapter component that renders the UI. The simulator can then drive modal flows by calling `sim.selectItem()`, `sim.selectPokemon()`, `sim.confirmYes()` — expanding test coverage significantly.
+
+### 6. Error boundary / invariant checks in `stepBattle`
+
+**Problem:** `stepBattle` assumes `s.playerTeam[0]` always exists, but there's no runtime guard. If a bug corrupts the state (e.g., a forced switch leaves index 0 fainted without triggering FAINTED), the engine enters an unrecoverable state silently.
+
+**Fix:** Add lightweight invariant assertions at the top of `stepBattle`:
+
+```ts
+invariant(s.playerTeam.length > 0, 'BattleState has no player team');
+invariant(s.playerTeam[0].hp > 0 || s.phase === 'FORCED_SWITCH', 'Lead Pokemon fainted in non-switch phase');
+```
+
+These would catch state corruption in tests before it reaches the UI. Strip them in production via a build flag or use `assert` (which is already a dev-only pattern).
 
 ---
 
 ## Recently completed (this session)
+
+- [x] Removed `scratch/` + `scratch.ts` (14 dead files)
+- [x] Folded `src/types/gamePhase.ts` → `src/types.ts` (69 lines + 1 directory gone, 20 imports unified)
+- [x] Cleaned `knip.json` (5 stale ignore entries removed)
+- [x] Split `battleEngine.ts` (1,333 → 894) + new `battleMechanics.ts` (304): deduplicated triplicated status checks, 60-line enemy-fainted block shared by ATTACK/CHEAT_KO, end-of-turn effects extracted
+- [x] Consolidated audio: `useSoundEngine.ts` deleted, `useMusicEngine.ts` renamed to `useAudioEngine.ts` (69 lines), music selection logic moved into `lib/music.ts` (550 lines)
+- [x] Split `BattleScreen.tsx` (829 → 302) into 6 focused files under `components/battle/`: `BattleHUD`, `PokeballAnim`, `MoveMenu`, `BattleLogArea`, `TrainerIntro`, `BattleArena`
 
 - [x] Story polish: bedroom start (PLAYERS_HOUSE_2F) confirmed, starter-selection yes/no confirm prompt (`store.confirm` + `DialogueBox` Sí/No buttons + keyboard 1/Z = sí, 2/X = no), Oak's lab NPCs repositioned to canonical FireRed coords (Oak at (6,3) by the ball table; rival at (5,4)), Oak escort cutscene now lands the player at (6,11) facing the table and Oak speaks twice on arrival
 - [x] VIRIDIAN_FOREST migrated to its own FireRed-backed MapID; Scenario 12 (no-ghost-rebattle) re-enabled and passing
 - [x] Per-city Pokémon Centers (`POKECENTER_VIRIDIAN`, `POKECENTER_PEWTER`, …) and Marts (`POKEMART_*`) split out — each city's overworld door warps to its own MapID with the correct nurse/clerk and per-city heal location. Pipeline supports shared FireRed layouts via per-MapID overlay artifacts.
 - [x] Stat-boost ±6 feedback text: separate "ya no puede mejorar más" / "ya no puede empeorar más" branches with regression tests
 - [x] Music auto-switch driven by FireRed `meta.music` (with hand-maintained dict as fallback for non-migrated maps)
-- [x] `worldIntegrity` test now asserts a warp-issue baseline (≤200) instead of just running
+- [x] `worldIntegrity` test now asserts a warp-issue baseline (≤4) instead of just running
 - [x] Trainer-party preview at battle start: 6-slot pokéball strip on enemy HUD (filled = healthy, grey = fainted) for trainer battles, plus matching strip on player HUD when team has more than one mon
 
 ## Recently completed (FireRed migration round)

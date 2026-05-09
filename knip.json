@@ -6,17 +6,12 @@
     "src/**/__tests__/**/*.{ts,tsx}"
   ],
   "project": ["src/**/*.{ts,tsx}"],
-  "ignoreBinaries": ["knip"],
   "ignoreDependencies": ["tailwindcss"],
   "ignore": [
     "src/lib/cutscenes/types.ts",
     "src/lib/firered/tilesetLoader.ts",
     "src/lib/firered/bridge.ts",
-    "src/lib/firered/multiZoneBridge.ts",
     "src/data/firered/kantoZoneOffsets.generated.ts",
-    "src/data/firered/firedTrainers.generated.ts",
-    "src/data/firered/firedSigns.generated.ts",
-    "src/data/firered/firedItems.generated.ts",
-    "src/data/maps/index.ts"
+    "src/data/firered/firedTrainers.generated.ts"
   ]
 }

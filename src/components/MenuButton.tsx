@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Menu, X } from 'lucide-react';
-import { type GamePhase, EXPLORING } from '../types/gamePhase';
+import { type GamePhase, EXPLORING } from '../types';
 import { SfxController } from '../lib/sfx';
 import { type Dispatch, type SetStateAction } from 'react';
 

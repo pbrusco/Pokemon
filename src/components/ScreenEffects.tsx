@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { sdur } from '../lib/gameSpeed';
-import { type BattlePhase } from '../types/gamePhase';
+import { type BattlePhase } from '../types';
 import { useGameStore } from '../store/gameStore';
 
 interface ScreenEffectsProps {
@@ -11,6 +11,13 @@ interface ScreenEffectsProps {
 
 export const ScreenEffects = memo(({ phaseType, battlePhase }: ScreenEffectsProps) => {
   const isTrainerBattle = useGameStore(s => s.isTrainerBattle);
+  const flashActive = useGameStore(s => s.flashActive);
+  const currentMap = useGameStore(s => s.currentMap);
+  const worldMaps = useGameStore(s => s.worldMaps);
+
+  const mapData = worldMaps[currentMap];
+  const inDarkCave = mapData?.isUnderground ?? false;
+  const showFlashDarkness = inDarkCave && !flashActive && !['BATTLE', 'BATTLE_TRANSITION', 'HEALING', 'BLACKOUT'].includes(phaseType);
 
   return (
     <>
@@ -83,6 +90,22 @@ export const ScreenEffects = memo(({ phaseType, battlePhase }: ScreenEffectsProp
             animate={{ opacity: [0, 0.85, 0, 0.85, 0, 0.85, 0] }}
             transition={{ duration: sdur(1.6), times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 1], ease: "linear" }}
             exit={{ opacity: 0 }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Flash cave darkness — visible ring around player, everything else black */}
+      <AnimatePresence>
+        {showFlashDarkness && (
+          <motion.div
+            className="fixed inset-0 z-[150] pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              background: 'radial-gradient(circle at 50% 50%, transparent 12%, rgba(0,0,0,0.75) 35%, rgba(0,0,0,0.92) 100%)',
+            }}
           />
         )}
       </AnimatePresence>

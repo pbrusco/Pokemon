@@ -1,6 +1,6 @@
 import { useEffect, useRef, useMemo, useCallback, lazy, Suspense, useState } from 'react';
 import { type BattleState, type BattleAction } from './lib/battleEngine';
-import { battle, B_CHOOSING, B_FORCED_SWITCH, EXPLORING } from './types/gamePhase';
+import { battle, B_CHOOSING, B_FORCED_SWITCH, EXPLORING } from './types';
 import { logEvent, withoutLogging } from './lib/eventLog';
 import { type Direction } from './types';
 import { useInteractionEngine } from './hooks/useInteractionEngine';
@@ -13,8 +13,7 @@ import { useDebugAPI } from './hooks/useDebugAPI';
 import { useBattleEngine } from './hooks/useBattleEngine';
 import { useMovementEngine } from './hooks/useMovementEngine';
 import { useWildPokemonEngine } from './hooks/useWildPokemonEngine';
-import { useMusicEngine } from './hooks/useMusicEngine';
-import { useSoundEngine } from './hooks/useSoundEngine';
+import { useAudioEngine } from './hooks/useAudioEngine';
 import { SfxController } from './lib/sfx';
 import { WorldView } from './components/WorldView';
 const WorldView3D = lazy(() => import('./components/overworld3d/WorldView3D'));
@@ -366,9 +365,7 @@ export default function App() {
 
   useWildPokemonEngine();
 
-  useMusicEngine();
-
-  useSoundEngine();
+  useAudioEngine();
 
   return (
     <div className="h-screen bg-slate-900 flex flex-col items-center justify-center overflow-hidden font-sans selection:bg-red-500 selection:text-white">

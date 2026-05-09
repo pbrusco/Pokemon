@@ -3,6 +3,11 @@
 // Wraps HTMLAudioElement with cross-fading, looping, and jingle support.
 // ---------------------------------------------------------------------------
 
+import { getKantoRegion } from '../constants/world';
+import { worldConfig } from '../data/worldConfig';
+import type { MapID } from '../types';
+import type { GamePhase } from '../types';
+
 export type MusicTrack =
   | 'title'
   | 'intro_route_24'
@@ -354,3 +359,192 @@ if (typeof window !== 'undefined') {
     }
   }, 1000);
 }
+
+// ─── Music selection ─────────────────────────────────────────────────────────
+
+const FIRERED_MUS_TO_TRACK: Record<string, MusicTrack> = {
+  MUS_PALLET: 'pallet_town',
+  MUS_SLOW_PALLET: 'pallet_town',
+  MUS_OAK_LAB: 'oak_lab',
+  MUS_POKE_CENTER: 'pokecenter',
+  MUS_GYM: 'gym',
+  MUS_PEWTER: 'pewter_city',
+  MUS_CELADON: 'celadon',
+  MUS_LAVENDER: 'lavender',
+  MUS_FUCHSIA: 'route_1',
+  MUS_CINNABAR: 'cinnabar',
+  MUS_VERMILLION: 'vermilion',
+  MUS_MT_MOON: 'mt_moon',
+  MUS_VIRIDIAN_FOREST: 'viridian_forest',
+  MUS_VICTORY_ROAD: 'victory_road',
+  MUS_POKE_TOWER: 'pokemon_tower',
+  MUS_POKE_MANSION: 'mansion',
+  MUS_ROCKET_HIDEOUT: 'rocket_hideout',
+  MUS_SILPH: 'silph_co',
+  MUS_SS_ANNE: 'ss_anne',
+  MUS_GAME_CORNER: 'game_corner',
+  MUS_ROUTE1: 'route_1',
+  MUS_ROUTE3: 'route_3',
+  MUS_ROUTE11: 'route_to_lavender',
+  MUS_ROUTE24: 'intro_route_24',
+};
+
+function fireredMusicForMap(map: MapID): MusicTrack | null {
+  const m = worldConfig.maps[map];
+  const layout = (m as { fireredLayout?: { meta?: { music?: string } } } | undefined)?.fireredLayout;
+  const mus = layout?.meta?.music;
+  return mus ? (FIRERED_MUS_TO_TRACK[mus] ?? null) : null;
+}
+
+const INTERIOR_MUSIC: Record<string, MusicTrack> = {
+  PLAYERS_HOUSE_1F: 'pallet_town',
+  PLAYERS_HOUSE_2F: 'pallet_town',
+  RIVALS_HOUSE: 'pallet_town',
+  OAKS_LAB: 'oak_lab',
+  MT_MOON: 'mt_moon',
+  MT_MOON_B1F: 'mt_moon',
+  MT_MOON_B2F: 'mt_moon',
+  PEWTER_GYM: 'gym',
+  CERULEAN_GYM: 'gym',
+  VERMILION_GYM: 'gym',
+  ROCK_TUNNEL_1F: 'mt_moon',
+  ROCK_TUNNEL_B1F: 'mt_moon',
+  POKEMON_TOWER_1F: 'pokemon_tower',
+  POKEMON_TOWER_2F: 'pokemon_tower',
+  POKEMON_TOWER_3F: 'pokemon_tower',
+  POKEMON_TOWER_4F: 'pokemon_tower',
+  POKEMON_TOWER_5F: 'pokemon_tower',
+  POKEMON_TOWER_6F: 'pokemon_tower',
+  POKEMON_TOWER_7F: 'pokemon_tower',
+  BILLS_HOUSE: 'cerulean',
+  CELADON_GYM: 'gym',
+  FUCHSIA_GYM: 'gym',
+  SAFFRON_GYM: 'gym',
+  CINNABAR_GYM: 'gym',
+  VIRIDIAN_GYM: 'gym',
+  SEAFOAM_ISLANDS_1F: 'mt_moon',
+  SEAFOAM_ISLANDS_B1F: 'mt_moon',
+  SEAFOAM_ISLANDS_B2F: 'mt_moon',
+  SEAFOAM_ISLANDS_B3F: 'mt_moon',
+  SEAFOAM_ISLANDS_B4F: 'mt_moon',
+  VICTORY_ROAD_1F: 'victory_road',
+  VICTORY_ROAD_2F: 'victory_road',
+  VICTORY_ROAD_3F: 'victory_road',
+  CERULEAN_CAVE_1F: 'mt_moon',
+  CERULEAN_CAVE_2F: 'mt_moon',
+  CERULEAN_CAVE_B_1F: 'mt_moon',
+  DIGLETTS_CAVE: 'mt_moon',
+  POWER_PLANT: 'mt_moon',
+  POKEMON_MANSION_1F: 'mansion',
+  POKEMON_MANSION_2F: 'mansion',
+  POKEMON_MANSION_3F: 'mansion',
+  POKEMON_MANSION_B1F: 'mansion',
+  SAFARI_ZONE_CENTER: 'viridian_forest',
+  SILPH_CO_1F: 'silph_co',
+  SILPH_CO_2F: 'silph_co',
+  SILPH_CO_3F: 'silph_co',
+  SILPH_CO_4F: 'silph_co',
+  SILPH_CO_5F: 'silph_co',
+  SILPH_CO_6F: 'silph_co',
+  SILPH_CO_7F: 'silph_co',
+  SILPH_CO_8F: 'silph_co',
+  SILPH_CO_9F: 'silph_co',
+  SILPH_CO_10F: 'silph_co',
+  SILPH_CO_11F: 'silph_co',
+  ROCKET_HIDEOUT_B1F: 'rocket_hideout',
+  ROCKET_HIDEOUT_B2F: 'rocket_hideout',
+  ROCKET_HIDEOUT_B3F: 'rocket_hideout',
+  ROCKET_HIDEOUT_B4F: 'rocket_hideout',
+  SS_ANNE_1F: 'ss_anne',
+  SS_ANNE_2F: 'ss_anne',
+  SS_ANNE_3F: 'ss_anne',
+  INDIGO_PLATEAU_LOBBY: 'route_1',
+  ELITE_FOUR_LORELEI: 'victory_road',
+  ELITE_FOUR_BRUNO: 'victory_road',
+  ELITE_FOUR_AGATHA: 'victory_road',
+  ELITE_FOUR_LANCE: 'victory_road',
+  ELITE_FOUR_CHAMPION: 'final_battle',
+  HALL_OF_FAME: 'hall_of_fame',
+  CELADON_MART_1F: 'celadon',
+  CELADON_MART_2F: 'celadon',
+  CELADON_MART_3F: 'celadon',
+  CELADON_MART_4F: 'celadon',
+  CELADON_MART_5F: 'celadon',
+  CELADON_MART_ELEVATOR: 'celadon',
+  CELADON_MART_ROOF: 'celadon',
+  CELADON_GAME_CORNER: 'game_corner',
+};
+
+const ZONE_MUSIC: Record<string, MusicTrack> = {
+  PALLET_TOWN: 'pallet_town',
+  ROUTE_1: 'route_1',
+  VIRIDIAN_CITY: 'route_1',
+  ROUTE_2: 'viridian_forest',
+  VIRIDIAN_FOREST: 'viridian_forest',
+  PEWTER_CITY: 'pewter_city',
+  ROUTE_3: 'route_3',
+  ROUTE_4: 'route_3',
+  CERULEAN_CITY: 'cerulean',
+  ROUTE_5: 'route_1',
+  SAFFRON_CITY: 'route_1',
+  ROUTE_6: 'route_to_lavender',
+  ROUTE_7: 'route_to_lavender',
+  ROUTE_8: 'route_to_lavender',
+  ROUTE_9: 'route_3',
+  ROUTE_10: 'route_3',
+  ROUTE_11: 'route_to_lavender',
+  ROUTE_12: 'route_to_lavender',
+  ROUTE_13: 'route_to_lavender',
+  ROUTE_14: 'route_to_lavender',
+  ROUTE_15: 'route_to_lavender',
+  ROUTE_16: 'route_to_lavender',
+  ROUTE_17: 'route_to_lavender',
+  ROUTE_18: 'route_to_lavender',
+  ROUTE_19: 'route_1',
+  ROUTE_20: 'route_1',
+  ROUTE_21: 'route_1',
+  ROUTE_22: 'route_1',
+  ROUTE_23: 'victory_road',
+  ROUTE_24: 'intro_route_24',
+  ROUTE_25: 'route_to_lavender',
+  VERMILION_CITY: 'vermilion',
+  LAVENDER_TOWN: 'lavender',
+  CELADON_CITY: 'celadon',
+  FUCHSIA_CITY: 'route_1',
+  CINNABAR_ISLAND: 'cinnabar',
+  INDIGO_PLATEAU: 'victory_road',
+};
+
+export function getOverworldMusic(map: MapID, playerPos: { x: number; y: number }): MusicTrack {
+  if (map !== 'KANTO_OVERWORLD') {
+    const fromFirered = fireredMusicForMap(map);
+    if (fromFirered) return fromFirered;
+    if (map.startsWith('POKEMART')) return 'route_1';
+    return INTERIOR_MUSIC[map] ?? 'route_1';
+  }
+  const zone = getKantoRegion(playerPos.x, playerPos.y);
+  return ZONE_MUSIC[zone] ?? 'route_1';
+}
+
+export function getBattleMusic(phase: GamePhase, isTrainerBattle: boolean): MusicTrack {
+  if (phase.type !== 'BATTLE') return 'route_1';
+  const sub = phase.sub.type;
+  if (sub === 'CHOOSING' || sub === 'PLAYER_ATTACK' || sub === 'ENEMY_ATTACK' || sub === 'CATCHING' || sub === 'BATTLE_INVENTORY' || sub === 'BATTLE_TEAM' || sub === 'BATTLE_ITEM_TEAM_SELECT' || sub === 'TRAINER_NEXT_POKEMON') {
+    return isTrainerBattle ? 'battle_trainer' : 'battle_wild';
+  }
+  if (sub === 'PLAYER_FAINTED' || sub === 'FORCED_SWITCH') {
+    return isTrainerBattle ? 'battle_trainer' : 'battle_wild';
+  }
+  if (sub === 'ENEMY_FAINTED') {
+    return isTrainerBattle ? 'victory_trainer' : 'victory_wild';
+  }
+  if (sub === 'LEVEL_UP' || sub === 'EVOLVING') {
+    return 'level_up';
+  }
+  return isTrainerBattle ? 'battle_trainer' : 'battle_wild';
+}
+
+export const JINGLES = new Set<MusicTrack>([
+  'healed', 'level_up', 'caught', 'evolved', 'item', 'key_item',
+  'victory_trainer', 'victory_wild', 'victory_gym', 'pokedex_eval',
+]);

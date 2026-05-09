@@ -5,7 +5,7 @@ import { STARTERS, makePokemon } from '../constants/pokemon';
 import { HM_REQUIREMENTS, ITEMS_DATABASE } from '../constants/items';
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
-import { EXPLORING, HEALING, SHOP } from '../types/gamePhase';
+import { EXPLORING, HEALING, SHOP } from '../types';
 import { SfxController } from '../lib/sfx';
 import { useGameStore } from '../store/gameStore';
 

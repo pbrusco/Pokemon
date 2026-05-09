@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { RecorderButton } from './RecorderButton';
 import { ITEMS_DATABASE } from '../constants/items';
 import { type Pokemon, type InventoryCounts } from '../types';
-import { type GamePhase, EXPLORING } from '../types/gamePhase';
+import { type GamePhase, EXPLORING } from '../types';
 import { type Dispatch, type SetStateAction } from 'react';
 import { useGameStore } from '../store/gameStore';
 

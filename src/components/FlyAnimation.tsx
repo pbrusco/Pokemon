@@ -1,8 +1,8 @@
 import { memo, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useGameStore } from '../store/gameStore';
-import { EXPLORING } from '../types/gamePhase';
-import { type MapID } from '../types';
+import { EXPLORING } from '../types';
+import { FLY_DESTINATIONS } from '../lib/flyDestinations';
 
 interface FlyAnimationProps {
   pokemonName: string;
@@ -22,26 +22,23 @@ const TOWN_NAMES: Record<string, string> = {
   SAFFRON_CITY: 'CIUDAD AZAFRÁN',
   CINNABAR_ISLAND: 'ISLA CANELA',
   INDIGO_PLATEAU: 'MESETA AÑIL',
+  ROUTE_4: 'RUTA 4',
+  ROUTE_10: 'RUTA 10',
 };
 
 function arrive(town: string) {
   const s = useGameStore.getState();
-  const pcMap = (town === 'INDIGO_PLATEAU' ? 'INDIGO_PLATEAU_LOBBY' : `POKECENTER_${town}`);
-  const map = (s.worldMaps as Record<string, unknown>)[pcMap] as { tiles: { walkable: boolean }[][] } | undefined;
-  if (!map) { s.setPhase(EXPLORING); return; }
-  for (let yy = 0; yy < map.tiles.length; yy++) {
-    for (let xx = 0; xx < (map.tiles[0]?.length ?? 0); xx++) {
-      if (map.tiles[yy][xx].walkable) {
-        s.setCurrentMap(pcMap as MapID);
-        s.setPlayerPos({ x: xx, y: yy });
-        s.setDirection('down');
-        s.setPhase(EXPLORING);
-        s.setDialogue('¡Has volado a tu destino!');
-        return;
-      }
-    }
+  const dest = FLY_DESTINATIONS[town];
+  if (!dest) {
+    console.warn(`[Fly] Unknown destination: ${town}`);
+    s.setPhase(EXPLORING);
+    return;
   }
+  s.setCurrentMap(dest.map);
+  s.setPlayerPos(dest.pos);
+  s.setDirection(dest.dir);
   s.setPhase(EXPLORING);
+  s.setDialogue('¡Has volado a tu destino!');
 }
 
 export const FlyAnimation = memo(({ pokemonName, pokemonSprite, town }: FlyAnimationProps) => {

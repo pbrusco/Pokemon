@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { type BattlePhase, EXPLORING, battle, B_CHOOSING, B_FORCED_SWITCH } from '../types/gamePhase';
+import { type BattlePhase, EXPLORING, battle, B_CHOOSING, B_FORCED_SWITCH } from '../types';
 import { type BattleAction } from '../lib/battleEngine';
 import { BattleScreen } from './BattleScreen';
 import { BattleTransition } from './BattleTransition';
