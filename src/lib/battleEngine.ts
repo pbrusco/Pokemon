@@ -580,11 +580,16 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         return { state: result2.s, effects: result2.effects };
       }
 
+      // The player's own attack may have fainted the active Pokémon — e.g.
+      // Self-Destruct (faintsUser), Struggle/Double-Edge recoil, or a confusion
+      // self-hit earlier in this branch. Route directly to PLAYER_FAINTED
+      // instead of letting the enemy retaliate against a 0-HP target.
+      const postAttackPlayer = s.playerTeam[0];
+      if (postAttackPlayer.hp === 0) {
+        return { state: handlePlayerFaint(s, effects, postAttackPlayer), effects };
+      }
+
       if (enemyAlreadyAttacked) {
-        playerPkmn = s.playerTeam[0];
-        if (playerPkmn.hp === 0) {
-          return { state: handlePlayerFaint(s, effects, playerPkmn), effects };
-        }
         effects.push(log(''));
         return { state: { ...s, log: '', phase: 'CHOOSING' }, effects };
       }
@@ -610,6 +615,14 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
     case 'TICK': {
       if (s.phase === 'ENEMY_ATTACK') {
         const playerPkmn = s.playerTeam[0];
+
+        // Defensive: a fainted enemy must never act. This can happen when
+        // recoil / leech-seed / poison ticks finished the enemy off between
+        // phases — we still need to short-circuit cleanly back to CHOOSING.
+        if (s.enemyPokemon.hp <= 0) {
+          effects.push(log(''));
+          return { state: { ...s, log: '', phase: 'CHOOSING' }, effects };
+        }
 
         const eStatus = checkEnemyStatus(s.enemyPokemon);
         if (eStatus.action === 'skip') {

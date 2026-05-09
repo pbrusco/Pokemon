@@ -807,3 +807,44 @@ describe('Battle text cleanup and formatting', () => {
     expect(allLogs).not.toContain('RIVAL SQUIRTLE');
   });
 });
+
+// ─── Fainted Pokémon must not act ────────────────────────────────────────────
+
+describe('Fainted Pokémon do not attack', () => {
+  it('TICK with phase=ENEMY_ATTACK and enemy.hp=0 → enemy does not attack', () => {
+    randomSpy.mockReturnValue(0.5);
+    const base = makeState();
+    const state: BattleState = {
+      ...base,
+      phase: 'ENEMY_ATTACK',
+      enemyPokemon: { ...base.enemyPokemon, hp: 0 },
+    };
+
+    const result = stepBattle(state, { type: 'TICK' });
+
+    // The enemy should not have used a move; logs must not contain "usó".
+    const logs = getLogs(result.effects).join(' ');
+    expect(logs).not.toContain('usó');
+    // Player HP must be unchanged.
+    expect(result.state.playerTeam[0].hp).toBe(base.playerTeam[0].hp);
+  });
+
+  it('after Self-Destruct, the player faints — engine routes to PLAYER_FAINTED, not ENEMY_ATTACK', () => {
+    randomSpy.mockReturnValue(0.5);
+    const base = makeState();
+    // Beefy enemy so Self-Destruct doesn't KO it; player faints via faintsUser.
+    const enemy = { ...base.enemyPokemon, hp: 999, maxHp: 999 };
+    const selfDestruct = makeMove({ name: 'AUTODESTRUCCIÓN', type: 'normal', power: 130, faintsUser: true });
+    const player = { ...base.playerTeam[0], moves: [selfDestruct], baseStats: { ...base.playerTeam[0].baseStats, speed: 200 } };
+    const state: BattleState = { ...base, enemyPokemon: enemy, playerTeam: [player] };
+
+    const result = stepBattle(state, { type: 'ATTACK', move: selfDestruct });
+
+    expect(result.state.playerTeam[0].hp).toBe(0);
+    expect(result.state.phase).not.toBe('ENEMY_ATTACK');
+    // Either we already entered PLAYER_FAINTED / FORCED_SWITCH, or the
+    // outcome is finalised — anything but "let the enemy retaliate."
+    const allowed = ['PLAYER_FAINTED', 'FORCED_SWITCH', 'CHOOSING'];
+    expect(allowed).toContain(result.state.phase);
+  });
+});
