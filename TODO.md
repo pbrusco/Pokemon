@@ -34,7 +34,7 @@
 - [x] **Animate the trainer-ball strip** — canonical battle intro flies the balls in one-by-one before the lead pokémon emerges. Currently the strip just appears.
 - [ ] **Rocket Hideout, Silph Co., and Giovanni** — Key item pickups (Lift Key, Master Ball from Silph President). Giovanni battle with canonical team.
 - [ ] **Elite Four & Champion Rival** — Scripted run-throughs: Lorelei → Bruno → Agatha → Lance → Champion Rival. Victory road gate logic (badge checks on Route 23). Hall of Fame sequence after final win.
-- [ ] **Overworld Poison Damage** — Apply Gen I overworld poison tick every 4 steps in `useMovementEngine`. If lead Pokémon is poisoned, deduct HP and potentially trigger `BLACKOUT`.
+- [x] **Overworld Poison Damage** — `applyOverworldPoison` in `useMovementEngine.ts` ticks every 4 steps; deducts HP from a poisoned lead, triggers `BLACKOUT` + heal cycle when the whole team is at 0.
 - [ ] **Browser smoke test** of the recent UI changes — Sí/No confirm prompt, trainer-ball strips on enemy/player HUDs, post-Oak-escort lab end-state. CLAUDE.md asks for this on UI work and I haven't done it.
 
 ### P3 — Technical Debt & DX
