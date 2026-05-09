@@ -44,6 +44,10 @@ export function useBattleEngine({
 }: UseBattleEngineParams) {
   const store = useGameStore();
   const nextLogId = useRef(0);
+  // True while a dispatch's effect-queue + cascade is still playing. Blocks
+  // re-entrant dispatches so a player can't queue a second attack on top of
+  // an in-flight animation sequence.
+  const animatingRef = useRef(false);
 
   // Auto-sync: keep battleStateRef in step with the store's activeBattle.
   // Triggered when a cutscene's processBattle() sets activeBattle without
@@ -58,51 +62,84 @@ export function useBattleEngine({
     }
   }, [activeBattle, battleStateRef]);
 
-  const playBattleEffects = (effects: BattleEffect[]): number => {
-    let delay = 0;
-    effects.forEach(effect => {
-      const d = delay;
-      switch (effect.type) {
-        case 'log':
-          setTimeout(() => {
-            const text = effect.payload as string;
-            useGameStore.getState().setBattleLog(text);
-            if (text.trim() !== '') {
-              useGameStore.getState().setBattleLogs(prev => {
-                const newMsg = { text, speaker: effect.speaker || 'Sistema', id: nextLogId.current++ };
-                return [newMsg, ...prev].slice(0, 5);
-              });
-            }
-          }, d);
-          delay += sd(500);
-          break;
-        case 'sound':
-          if (effect.payload) {
-            setTimeout(() => SfxController.play(String(effect.payload).toLowerCase()), d);
-          }
-          break;
-        case 'player_anim':
-          setTimeout(() => {
-            setPlayerAnim(effect.payload as 'idle' | 'attack' | 'hit' | 'faint');
-            if (effect.payload === 'hit') SfxController.play('hit');
-          }, d);
-          if (effect.payload === 'attack') delay += sd(ATTACK_ANIM_MS);
-          else if (effect.payload === 'hit' || effect.payload === 'faint') delay += sd(400);
-          break;
-        case 'enemy_anim':
-          setTimeout(() => {
-            setEnemyAnim(effect.payload as 'idle' | 'attack' | 'hit' | 'faint');
-            if (effect.payload === 'hit') SfxController.play('hit');
-          }, d);
-          if (effect.payload === 'attack') delay += sd(ATTACK_ANIM_MS);
-          else if (effect.payload === 'hit' || effect.payload === 'faint') delay += sd(400);
-          break;
-        case 'battle_shake':
-          setTimeout(() => { setBattleShake(true); setTimeout(() => setBattleShake(false), sd(400)); }, d);
-          break;
+  /** Run a single effect, then call `next` once it has visually completed.
+   *  Each step decides its own duration; the queue runner chains them. */
+  const runOneEffect = (effect: BattleEffect, next: () => void): void => {
+    switch (effect.type) {
+      case 'log': {
+        const text = effect.payload as string;
+        useGameStore.getState().setBattleLog(text);
+        if (text.trim() !== '') {
+          useGameStore.getState().setBattleLogs(prev => {
+            const newMsg = { text, speaker: effect.speaker || 'Sistema', id: nextLogId.current++ };
+            return [newMsg, ...prev].slice(0, 5);
+          });
+        }
+        setTimeout(next, sd(500));
+        return;
       }
-    });
-    return delay;
+      case 'sound': {
+        if (effect.payload) SfxController.play(String(effect.payload).toLowerCase());
+        next();
+        return;
+      }
+      case 'player_anim': {
+        const a = effect.payload as 'idle' | 'attack' | 'hit' | 'faint';
+        setPlayerAnim(a);
+        if (a === 'hit') SfxController.play('hit');
+        const dur = a === 'attack' ? sd(ATTACK_ANIM_MS)
+                  : a === 'hit' || a === 'faint' ? sd(400)
+                  : 0;
+        if (dur > 0) setTimeout(next, dur);
+        else next();
+        return;
+      }
+      case 'enemy_anim': {
+        const a = effect.payload as 'idle' | 'attack' | 'hit' | 'faint';
+        setEnemyAnim(a);
+        if (a === 'hit') SfxController.play('hit');
+        const dur = a === 'attack' ? sd(ATTACK_ANIM_MS)
+                  : a === 'hit' || a === 'faint' ? sd(400)
+                  : 0;
+        if (dur > 0) setTimeout(next, dur);
+        else next();
+        return;
+      }
+      case 'battle_shake': {
+        // Shake is decorative; play it in parallel and proceed immediately so
+        // we don't double-stack delays on top of the hit anim that emitted it.
+        setBattleShake(true);
+        setTimeout(() => setBattleShake(false), sd(400));
+        next();
+        return;
+      }
+      case 'screen_flash':
+      default:
+        next();
+        return;
+    }
+  };
+
+  /** Drain `effects` in order, calling `onDone` when the last effect has
+   *  played. After each visible hit/faint anim, sync the corresponding
+   *  side's HP from `newState` so the bar drops in lockstep with the
+   *  animation rather than instantly when the action was dispatched. */
+  const runEffectQueue = (effects: BattleEffect[], newState: BattleState, onDone: () => void): void => {
+    let i = 0;
+    const next = () => {
+      if (i >= effects.length) { onDone(); return; }
+      const e = effects[i++];
+      runOneEffect(e, () => {
+        if (e.type === 'enemy_anim' && (e.payload === 'hit' || e.payload === 'faint')) {
+          useGameStore.getState().setEnemyPokemon(newState.enemyPokemon);
+        }
+        if (e.type === 'player_anim' && (e.payload === 'hit' || e.payload === 'faint')) {
+          useGameStore.getState().syncTeamStats(newState.playerTeam);
+        }
+        next();
+      });
+    };
+    next();
   };
 
   const resolveBattleOutcome = (newState: BattleState) => {
@@ -210,14 +247,13 @@ export function useBattleEngine({
 
     // Catch failed and the fight continues (wild: enemy attacked back; trainer: can't catch).
     if (newState.outcome === 'ongoing' && newState.phase === 'CHOOSING') {
-      const d = playBattleEffects(effects);
-      setTimeout(() => {
+      runEffectQueue(effects, newState, () => {
         setPlayerAnim('idle');
         setEnemyAnim('idle');
         const fs = useGameStore.getState();
         fs.syncTeamStats(newState.playerTeam);
         fs.setPhase(battle(B_CHOOSING));
-      }, d);
+      });
       return;
     }
 
@@ -254,17 +290,21 @@ export function useBattleEngine({
     }
   };
 
-  // Stable ref so the deferred setTimeout callbacks always call the latest
-  // version of dispatchBattle without creating a circular useCallback dep.
-  const dispatchBattleRef = useRef<((action: BattleAction) => void) | undefined>(undefined);
-
-  const dispatchBattle = useCallback((action: BattleAction) => {
-    if (!battleStateRef.current) return;
-    if (battleStateRef.current.outcome !== 'ongoing') return;
-
+  /** Step the engine and play its effect queue. `onDone` is called after
+   *  the entire visual sequence — including any chained ENEMY_ATTACK or
+   *  TRAINER_NEXT_POKEMON cascade — has finished, so the caller can release
+   *  the animation lock. */
+  const runDispatch = (action: BattleAction, onDone: () => void): void => {
+    if (!battleStateRef.current || battleStateRef.current.outcome !== 'ongoing') {
+      onDone();
+      return;
+    }
     const ph = battleStateRef.current.phase;
     const validPhase = ph === 'CHOOSING' || (ph === 'FORCED_SWITCH' && action.type === 'SWITCH');
-    if (!validPhase && action.type !== 'TICK') return;
+    if (!validPhase && action.type !== 'TICK') {
+      onDone();
+      return;
+    }
 
     const prevPhase = battleStateRef.current.phase;
     const { state: newState, effects } = stepBattle(battleStateRef.current, action);
@@ -277,58 +317,70 @@ export function useBattleEngine({
     }
 
     if (action.type === 'CATCH') {
+      // Catch flow has its own visual sequence (ball throw / wobble / result)
+      // that runs in fixed timing. Hold the lock for its full duration so a
+      // second action can't start mid-throw.
       handleCatchAction(newState, effects);
+      setTimeout(onDone, sd(4000));
       return;
     }
 
-    if (action.type === 'ATTACK') {
-      setPlayerAnim('attack');
-    }
-
-    // Push HP changes to the store up-front so the HP bar animates down
-    // BEFORE the faint sprite animation (which plays via playBattleEffects
-    // a few hundred ms later).
-    s.setEnemyPokemon(newState.enemyPokemon);
-    s.syncTeamStats(newState.playerTeam);
+    if (action.type === 'ATTACK') setPlayerAnim('attack');
 
     // When a trainer sends out their next Pokémon, reset the enemy animation
     // immediately so the new sprite renders fresh instead of stuck in faint/idle.
-    if (prevPhase === 'TRAINER_NEXT_POKEMON') {
-      setEnemyAnim('idle');
-    }
+    if (prevPhase === 'TRAINER_NEXT_POKEMON') setEnemyAnim('idle');
 
-    const aDuration = playBattleEffects(effects);
-    const aDelay = Math.max(aDuration + sd(300), sd(800));
-
-    setTimeout(() => {
+    runEffectQueue(effects, newState, () => {
       setPlayerAnim('idle');
       setEnemyAnim('idle');
 
       const fs = useGameStore.getState();
       fs.setActiveBattle(newState);
+      // Final sync — any HP not already pushed by an interleaved hit/faint
+      // (e.g. switches, status-tick damage) lands here.
       fs.setEnemyPokemon(newState.enemyPokemon);
       fs.syncTeamStats(newState.playerTeam);
 
       if (newState.phase === 'ENEMY_ATTACK') {
         fs.setPhase(mapEnginePhase('ENEMY_ATTACK'));
         fs.setBattleLog('¡Turno del enemigo!');
-        setTimeout(() => dispatchBattleRef.current?.({ type: 'TICK' }), sd(600));
-      } else {
-        fs.setPhase(mapEnginePhase(newState.phase));
-        resolveBattleOutcome(newState);
-
-        if (newState.phase === 'TRAINER_NEXT_POKEMON') {
-          setTimeout(() => {
-            if (!battleStateRef.current || battleStateRef.current.outcome !== 'ongoing') return;
-            dispatchBattleRef.current?.({ type: 'TICK' });
-          }, sd(1200));
-        }
+        setTimeout(() => runDispatch({ type: 'TICK' }, onDone), sd(600));
+        return;
       }
-    }, aDelay);
+
+      fs.setPhase(mapEnginePhase(newState.phase));
+      resolveBattleOutcome(newState);
+
+      if (newState.phase === 'TRAINER_NEXT_POKEMON') {
+        setTimeout(() => {
+          if (battleStateRef.current?.outcome === 'ongoing') {
+            runDispatch({ type: 'TICK' }, onDone);
+          } else {
+            onDone();
+          }
+        }, sd(1200));
+        return;
+      }
+
+      onDone();
+    });
+  };
+
+  const dispatchBattle = useCallback((action: BattleAction) => {
+    // External callers wait for the in-flight sequence to finish. Internal
+    // cascade calls go through runDispatch directly and bypass this guard.
+    if (animatingRef.current) return;
+    if (!battleStateRef.current || battleStateRef.current.outcome !== 'ongoing') return;
+
+    const ph = battleStateRef.current.phase;
+    const validPhase = ph === 'CHOOSING' || (ph === 'FORCED_SWITCH' && action.type === 'SWITCH');
+    if (!validPhase && action.type !== 'TICK') return;
+
+    animatingRef.current = true;
+    runDispatch(action, () => { animatingRef.current = false; });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [battleStateRef, setPlayerAnim, setEnemyAnim, setBattleShake]);
-
-  dispatchBattleRef.current = dispatchBattle;
 
   return {
     dispatchBattle,
