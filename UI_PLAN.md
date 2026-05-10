@@ -27,7 +27,7 @@ Story = Pokémon Red. Visuals = FRLG. Medium = the web.
 | 11 | Pokédex — detail panel on select, proper seen/caught states | `PokedexUI.tsx` | ✅ done |
 | 12 | Battle log — pixel font, speaker label, ◆ cursor | `BattleScreen.tsx` | ✅ done |
 | 13 | Transitions — warp flash, win sequence, evolution silhouette | `BattleTransition.tsx`, `ScreenEffects.tsx` | ✅ done |
-| 14 | Speaker portraits in dialogue (stretch) | `DialogueBox.tsx`, sprite mapping | ⬜ stretch |
+| 14 | Speaker portraits in dialogue (stretch) | `DialogueBox.tsx`, speakerPortraits.ts | ✅ done |
 
 ---
 

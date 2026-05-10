@@ -1,5 +1,6 @@
 import { memo, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { getSpeakerPortrait } from '../data/speakerPortraits';
 
 const PAGE_LEN = 120;
 const CHARS_PER_TICK = 2;
@@ -122,14 +123,34 @@ export const DialogueBox = memo(({ text, onComplete, confirm }: DialogueBoxProps
           className="rounded-sm px-5 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4"
           style={{ background: '#0d1b2a', boxShadow: 'inset 0 0 0 2px #1e3a5f' }}
         >
-          {/* Speaker label */}
+          {/* Speaker label + optional portrait */}
           {speaker && (
-            <p
-              className="font-game text-[#f8d830] mb-2"
-              style={{ fontSize: '8px', letterSpacing: '0.06em' }}
-            >
-              {speaker}:
-            </p>
+            <div className="flex items-center gap-2 mb-2">
+              {(() => {
+                const portrait = getSpeakerPortrait(speaker);
+                if (!portrait) return null;
+                return (
+                  <motion.img
+                    src={portrait}
+                    alt={speaker}
+                    className="pixelated shrink-0 rounded-sm"
+                    style={{ width: 36, height: 36 }}
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2 }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                );
+              })()}
+              <p
+                className="font-game text-[#f8d830]"
+                style={{ fontSize: '8px', letterSpacing: '0.06em' }}
+              >
+                {speaker}:
+              </p>
+            </div>
           )}
 
           {/* Dialogue text */}
