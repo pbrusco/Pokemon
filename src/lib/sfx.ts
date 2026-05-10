@@ -24,7 +24,8 @@ type SoundId =
   | 'hit'
   | 'crit'
   | 'miss'
-  | 'faint';
+  | 'faint'
+  | 'low_hp_alarm';
 
 const SFX_FILES: Partial<Record<SoundId, string>> = {
   trainer_spotted: 'trainer_spotted.ogg',
@@ -243,7 +244,30 @@ const SYNTH_SOUNDS: Record<SoundId, () => void> = {
     playSweep(400, 100, 0.3);
     playNoise(0.15, 'low');
   },
+  low_hp_alarm: () => {
+    playTone(988, 0.08, 'square');
+    setTimeout(() => playTone(784, 0.08, 'square'), 200);
+  },
 };
+
+// ─── Pokémon cries — species-specific synthesized calls ──────────────────────
+// Each cry is a unique frequency sweep + noise burst derived from the dex number
+export function playPokemonCry(dexNum: number): void {
+  const baseFreq = 200 + (dexNum * 37) % 800;
+  if (!ctx()) return;
+  ensureCtxResumed();
+  if (dexNum % 3 === 0) {
+    playTone(baseFreq, 0.15, 'sawtooth');
+    setTimeout(() => playTone(baseFreq + 80, 0.12, 'square'), 100);
+  } else if (dexNum % 3 === 1) {
+    playSweep(baseFreq, baseFreq - 120, 0.2);
+    playNoise(0.08, 'mid');
+    setTimeout(() => playTone(baseFreq + 60, 0.1, 'square'), 120);
+  } else {
+    playSweep(baseFreq - 60, baseFreq + 100, 0.18);
+    setTimeout(() => { playTone(baseFreq + 40, 0.08, 'triangle'); playNoise(0.06, 'high'); }, 100);
+  }
+}
 
 // ── Public API ─────────────────────────────────────────────────────────────
 

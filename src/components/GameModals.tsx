@@ -165,6 +165,7 @@ export const GameModals = memo(({
       <AnimatePresence>
         {phase.type === 'SHOP' && (
           <ShopUI
+            shopId={phase.shopId ?? store.currentMap}
             money={store.money}
             onClose={() => store.setPhase(EXPLORING)}
             onBuy={(id) => {

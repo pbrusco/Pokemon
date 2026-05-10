@@ -5,7 +5,7 @@ import { useGameStore } from '../../store/gameStore';
 import type { NPC, Entity, Tile, Pokemon, Position, InventoryCounts } from '../../types';
 import type { MapID } from '../../types';
 import { STARTERS } from '../../constants/pokemon';
-import { EXPLORING, SHOP, battle, B_CHOOSING } from '../../types';
+import { EXPLORING, battle, B_CHOOSING } from '../../types';
 import { type worldConfig } from '../../data/worldConfig';
 
 // ─── Map / world fixtures ─────────────────────────────────────────────────────
@@ -255,7 +255,7 @@ describe('Shop NPC — returning visit', () => {
     act(() => handleAction());
     act(() => vi.advanceTimersByTime(1000));
 
-    expect(getState().phase).toEqual(SHOP);
+    expect(getState().phase).toEqual({ type: 'SHOP', shopId: 'POKEMART_VIRIDIAN' });
   });
 });
 

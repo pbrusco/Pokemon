@@ -353,6 +353,13 @@ export function useBattleEngine({
         return;
       }
 
+      if (newState.phase === 'EVOLVING') {
+        fs.setPhase(mapEnginePhase('EVOLVING'));
+        setTimeout(() => resolveBattleOutcome(newState), sd(3700));
+        onDone();
+        return;
+      }
+
       fs.setPhase(mapEnginePhase(newState.phase));
       resolveBattleOutcome(newState);
 

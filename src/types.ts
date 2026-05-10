@@ -95,6 +95,7 @@ export interface Pokemon {
   exp?: number;
   expToNextLevel?: number;
   status?: 'none' | 'paralyzed' | 'sleep' | 'poison' | 'burn' | 'frozen';
+  toxicTurns?: number;
   statBoosts?: StatBoosts;
   evolutionLevel?: number;
   evolvesTo?: string;
@@ -127,7 +128,9 @@ interface ItemEffect {
   healHp?: number;
   cureStatus?: 'paralyzed' | 'sleep' | 'poison' | 'burn' | 'frozen' | 'all';
   revive?: boolean;
-  reviveHpPercent?: number; // e.g. 50 for revive, 100 for max revive
+  reviveHpPercent?: number;
+  stoneEvolve?: boolean;
+  rareCandy?: boolean;
 }
 
 export interface InventoryItem {
@@ -135,7 +138,7 @@ export interface InventoryItem {
   name: string;
   description: string;
   icon: string;
-  type: 'potion' | 'pokeball' | 'key_item' | 'status_heal' | 'revive';
+  type: 'potion' | 'pokeball' | 'key_item' | 'status_heal' | 'revive' | 'tm' | 'stone';
   effect?: ItemEffect;
 }
 
@@ -144,7 +147,7 @@ export type InventoryCounts = Record<string, number>;
 export interface NPC extends Entity {
   name: string;
   dialogue: string[];
-  onInteract?: 'heal' | 'shop' | 'oak_parcel_turnin' | 'give_town_map' | 'give_poke_flute' | 'give_ss_ticket' | 'wake_snorlax' | 'give_master_ball';
+  onInteract?: 'heal' | 'shop' | 'oak_parcel_turnin' | 'give_town_map' | 'give_poke_flute' | 'give_ss_ticket' | 'wake_snorlax' | 'give_master_ball' | 'give_bike';
   questId?: string;
   requiredBadge?: string;
   isRival?: boolean;
@@ -220,7 +223,7 @@ export type GamePhase =
   | { type: 'FLY_ANIMATING'; town: string; pokemonName: string; pokemonSprite: string }
   | { type: 'POKEMON_SUMMARY'; teamIndex: number }
   | { type: 'TEAM'; returnTo?: GamePhase }
-  | { type: 'SHOP' }
+  | { type: 'SHOP'; shopId?: string }
   | { type: 'POKEDEX'; returnTo?: GamePhase }
   | { type: 'PC'; returnTo?: GamePhase }
   | { type: 'BATTLE_TRANSITION' }
@@ -230,7 +233,6 @@ export type GamePhase =
   | { type: 'CONFIG'; returnTo?: GamePhase }
 
 export const EXPLORING: GamePhase = { type: 'EXPLORING' };
-export const SHOP: GamePhase = { type: 'SHOP' };
 export const BATTLE_TRANSITION: GamePhase = { type: 'BATTLE_TRANSITION' };
 export const BLACKOUT: GamePhase = { type: 'BLACKOUT' };
 export const HEALING: GamePhase = { type: 'HEALING' };

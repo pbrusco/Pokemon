@@ -16,6 +16,7 @@ export const WILD_ENCOUNTER_RATES: Record<string, number> = {
   ROUTE_9: 10,
   ROUTE_10: 10,
   ROCK_TUNNEL_1F: 15,
+  ROCK_TUNNEL_B1F: 15,
   POKEMON_TOWER_3F: 10,
   ROUTE_7: 15,
   ROUTE_8: 15,
@@ -36,6 +37,10 @@ export const WILD_ENCOUNTER_RATES: Record<string, number> = {
   VICTORY_ROAD_2F: 10,
   VICTORY_ROAD_3F: 15,
   SEAFOAM_ISLANDS_1F: 15,
+  SEAFOAM_ISLANDS_B1F: 15,
+  SEAFOAM_ISLANDS_B2F: 15,
+  SEAFOAM_ISLANDS_B3F: 15,
+  SEAFOAM_ISLANDS_B4F: 15,
   POKEMON_MANSION_1F: 10,
   POKEMON_MANSION_2F: 10,
   POKEMON_MANSION_3F: 10,
@@ -78,3 +83,19 @@ export function getKantoRegion(x: number, y: number): string {
 import { buildAutoWildEncounters, buildWaterEncounters } from '../data/firered/runtime';
 export const WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = buildAutoWildEncounters();
 export const WATER_WILD_POKEMON_DATABASE: Record<string, Pokemon[]> = buildWaterEncounters();
+
+import { makePokemon } from './pokemon';
+import { MOVES } from './moves';
+export const FISHING_ENCOUNTERS: Record<string, Pokemon[]> = {
+  PALLET_TOWN: [makePokemon('magikarp', 'MAGIKARP', 5, 'water', [MOVES.SPLASH], 129)],
+  VIRIDIAN_CITY: [makePokemon('poliwag', 'POLIWAG', 5, 'water', [MOVES.BUBBLE], 60), makePokemon('magikarp', 'MAGIKARP', 5, 'water', [MOVES.SPLASH], 129)],
+  CERULEAN_CITY: [makePokemon('poliwag', 'POLIWAG', 10, 'water', [MOVES.BUBBLE], 60), makePokemon('goldeen', 'GOLDEEN', 10, 'water', [MOVES.PECK, MOVES.WATER_GUN], 118)],
+  VERMILION_CITY: [makePokemon('tentacool', 'TENTACOOL', 15, 'water', [MOVES.POISON_STING, MOVES.BUBBLE], 72, { types: ['water', 'poison'] }), makePokemon('magikarp', 'MAGIKARP', 5, 'water', [MOVES.SPLASH], 129)],
+  CINNABAR_ISLAND: [makePokemon('staryu', 'STARYU', 20, 'water', [MOVES.WATER_GUN, MOVES.TACKLE], 120), makePokemon('tentacool', 'TENTACOOL', 20, 'water', [MOVES.POISON_STING, MOVES.BUBBLE], 72, { types: ['water', 'poison'] })],
+  ROUTE_6: [makePokemon('psyduck', 'PSYDUCK', 10, 'water', [MOVES.SCRATCH, MOVES.WATER_GUN], 54), makePokemon('goldeen', 'GOLDEEN', 10, 'water', [MOVES.PECK, MOVES.WATER_GUN], 118)],
+  ROUTE_10: [makePokemon('krabby', 'KRABBY', 15, 'water', [MOVES.BUBBLE, MOVES.VICEGRIP], 98), makePokemon('horsea', 'HORSEA', 15, 'water', [MOVES.BUBBLE], 116)],
+  ROUTE_12: [makePokemon('horsea', 'HORSEA', 20, 'water', [MOVES.BUBBLE, MOVES.WATER_GUN], 116), makePokemon('krabby', 'KRABBY', 20, 'water', [MOVES.BUBBLE, MOVES.VICEGRIP], 98)],
+  ROUTE_18: [makePokemon('tentacool', 'TENTACOOL', 20, 'water', [MOVES.POISON_STING, MOVES.BUBBLE], 72, { types: ['water', 'poison'] })],
+  ROUTE_20: [makePokemon('staryu', 'STARYU', 20, 'water', [MOVES.WATER_GUN, MOVES.TACKLE], 120), makePokemon('tentacool', 'TENTACOOL', 20, 'water', [MOVES.POISON_STING, MOVES.BUBBLE], 72, { types: ['water', 'poison'] })],
+  ROUTE_21: [makePokemon('tentacool', 'TENTACOOL', 25, 'water', [MOVES.POISON_STING, MOVES.BUBBLE], 72, { types: ['water', 'poison'] }), makePokemon('magikarp', 'MAGIKARP', 10, 'water', [MOVES.SPLASH, MOVES.TACKLE], 129)],
+};

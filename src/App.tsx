@@ -24,7 +24,7 @@ import { GameModals } from './components/GameModals';
 import { LoadGameModal } from './components/LoadGameModal';
 import { ScreenEffects } from './components/ScreenEffects';
 import { applyItemToPokemon } from './lib/itemUtils';
-import { HM_MOVE_MAP, HM_REQUIREMENTS } from './constants/items';
+import { HM_MOVE_MAP, HM_REQUIREMENTS, TM_MOVE_MAP, STONE_EVOLUTIONS, ITEMS_DATABASE } from './constants/items';
 import { MOVES } from './constants/moves';
 
 export default function App() {
@@ -201,7 +201,7 @@ export default function App() {
 
     if (!ib) {
       const team = s.playerTeam;
-      const hmMoveName = HM_MOVE_MAP[itemId];
+      const hmMoveName = HM_MOVE_MAP[itemId] ?? TM_MOVE_MAP[itemId];
       if (hmMoveName) {
         const pkmn = team[index];
         if (pkmn.moves.some(m => m.name === hmMoveName)) {
@@ -213,6 +213,7 @@ export default function App() {
             const newTeam = [...team];
             newTeam[index] = { ...pkmn, moves: [...pkmn.moves, move] };
             s.updateTeam(newTeam);
+            if (TM_MOVE_MAP[itemId]) s.removeInventoryItem(itemId);
             s.setDialogue(`¡${pkmn.name} aprendió ${hmMoveName}!`);
             s.setPhase(EXPLORING);
           } else {
@@ -233,6 +234,22 @@ export default function App() {
       }
 
       const pkmn = team[index];
+      const item = ITEMS_DATABASE[itemId];
+      if (STONE_EVOLUTIONS[itemId]) {
+        const compatible = STONE_EVOLUTIONS[itemId].includes(pkmn.id);
+        if (!compatible) {
+          s.setDialogue('¡No tiene ningún efecto!');
+        } else {
+          const evolvedMon = applyItemToPokemon(pkmn, itemId);
+          const newTeam = [...team];
+          newTeam[index] = evolvedMon.pokemon;
+          s.updateTeam(newTeam);
+          s.removeInventoryItem(itemId);
+          s.setDialogue(`¡${pkmn.name} evolucionó con la ${item.name}!`);
+        }
+        s.setPhase(EXPLORING);
+        return;
+      }
       const result = applyItemToPokemon(pkmn, itemId);
       if (result.success) {
         const newTeam = [...team];
@@ -253,7 +270,7 @@ export default function App() {
     const s = useGameStore.getState();
     const ph = s.phase;
     if (ph.type !== 'HM_FORGET') return;
-    const hmMoveName = HM_MOVE_MAP[ph.itemId];
+    const hmMoveName = HM_MOVE_MAP[ph.itemId] ?? TM_MOVE_MAP[ph.itemId];
     if (!hmMoveName) return;
     const move = Object.values(MOVES).find(m => m.name === hmMoveName)!;
     const team = [...s.playerTeam];
@@ -263,6 +280,7 @@ export default function App() {
     pkmn.moves = newMoves;
     team[ph.teamIndex] = pkmn;
     s.updateTeam(team);
+    if (TM_MOVE_MAP[ph.itemId]) s.removeInventoryItem(ph.itemId);
     s.setDialogue(`¡${pkmn.name} aprendió ${hmMoveName} en lugar de ${ph.existingMoveNames[forgetIndex]}!`);
     s.setPhase(EXPLORING);
   }, []);

@@ -43,6 +43,8 @@ interface GameSaveState {
   lastOverworldDir: Direction | null;
 
   isSurfing: boolean;
+  hasBike: boolean;
+  isBiking: boolean;
   flashActive: boolean;
   visitedTowns: string[];
   /** Persisted tile mutations keyed by "mapId:x:y" → serialized Tile */
@@ -107,6 +109,8 @@ const INITIAL_SAVE_STATE: GameSaveState = {
   lastOverworldDir: 'up',
 
   isSurfing: false,
+  hasBike: false,
+  isBiking: false,
   flashActive: false,
   visitedTowns: ['PALLET_TOWN'],
   modifiedTiles: {},
@@ -217,6 +221,8 @@ interface GameState extends GameSaveState {
   setLastOverworldPos: (pos: Position | null, dir: Direction | null) => void;
 
   setIsSurfing: (v: boolean) => void;
+  setHasBike: (v: boolean) => void;
+  setIsBiking: (v: boolean) => void;
   setFlashActive: (v: boolean) => void;
   addVisitedTown: (town: string) => void;
   setModifiedTile: (mapId: MapID, x: number, y: number, tile: Tile | null) => void;
@@ -262,6 +268,11 @@ function partializeGameState(state: GameState): Record<string, unknown> {
     musicVolume: state.musicVolume,
     sfxMuted: state.sfxMuted,
     sfxVolume: state.sfxVolume,
+    isSurfing: state.isSurfing,
+    hasBike: state.hasBike,
+    flashActive: state.flashActive,
+    visitedTowns: state.visitedTowns,
+    modifiedTiles: state.modifiedTiles,
     lastSavedAt: state.lastSavedAt,
   };
 }
@@ -415,8 +426,10 @@ export const useGameStore = create<GameState>()(
       toggleSfxMute: () => set((state) => ({ sfxMuted: !state.sfxMuted })),
       setLastOverworldPos: (pos, dir) => set({ lastOverworldPos: pos, lastOverworldDir: dir }),
 
-      setIsSurfing: (v) => set({ isSurfing: v }),
-      setFlashActive: (v) => set({ flashActive: v }),
+      setIsSurfing: (v: boolean) => set({ isSurfing: v }),
+      setHasBike: (v: boolean) => set({ hasBike: v }),
+      setIsBiking: (v: boolean) => set({ isBiking: v }),
+      setFlashActive: (v: boolean) => set({ flashActive: v }),
       addVisitedTown: (town) => set(s => ({ visitedTowns: s.visitedTowns.includes(town) ? s.visitedTowns : [...s.visitedTowns, town] })),
       setModifiedTile: (mapId, x, y, tile) => set(s => {
         const key = `${mapId}:${x}:${y}`;

@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import type { Pokemon, Move, BattleLogEntry } from '../types';
 import { sdur } from '../lib/gameSpeed';
@@ -9,6 +9,7 @@ import { MoveMenu } from './battle/MoveMenu';
 import { BattleLogArea } from './battle/BattleLogArea';
 import { TrainerIntro } from './battle/TrainerIntro';
 import { getTerrainFromMap, getArenaStyle, BattlePlatform } from './battle/BattleArena';
+import { SfxController } from '../lib/sfx';
 
 interface BattleScreenProps {
   currentMap: string;
@@ -42,13 +43,30 @@ export const BattleScreen = memo(function BattleScreen({
   const playerPkmn = playerTeam[0];
   const trainerBattleSprite = useGameStore(s => s.trainerBattleSprite);
   const trainerName = useGameStore(s => s.activeBattle?.trainerName);
-  const enemyTeam = useGameStore(s => s.activeBattle?.enemyTeam) ?? [];
+  const enemyTeamRaw = useGameStore(s => s.activeBattle?.enemyTeam);
+  const enemyTeam = useMemo(() => enemyTeamRaw ?? [], [enemyTeamRaw]);
+  const activeBattle = useGameStore(s => s.activeBattle);
   const [enemySpriteError, setEnemySpriteError] = useState(false);
   const [trainerSpriteError, setTrainerSpriteError] = useState(false);
   const [playerSpriteError, setPlayerSpriteError] = useState(false);
   const [showTrainerIntro, setShowTrainerIntro] = useState(false);
   const prevIsTrainerBattle = useRef(isTrainerBattle);
   const prevTrainerName = useRef(trainerName);
+  const [trainerExiting, setTrainerExiting] = useState(false);
+  const prevEnemyAnim = useRef(enemyAnim);
+
+  useEffect(() => {
+    const enemyTeamAlive = enemyTeam.filter(p => p.hp > 0).length;
+    const isLastEnemy = enemyTeamAlive <= 1;
+    if (prevEnemyAnim.current !== 'faint' && enemyAnim === 'faint' && isTrainerBattle && isLastEnemy) {
+      setTrainerExiting(true);
+    }
+    prevEnemyAnim.current = enemyAnim;
+  }, [enemyAnim, isTrainerBattle, enemyTeam]);
+
+  useEffect(() => {
+    setTrainerExiting(false);
+  }, [trainerName]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -70,7 +88,23 @@ export const BattleScreen = memo(function BattleScreen({
   const pHp = playerPkmn?.hp ?? 0;
   const pMax = playerPkmn?.maxHp ?? 1;
 
+  const battlePhase = activeBattle?.phase;
+  useEffect(() => {
+    if (pHp === 0 || pMax === 0) return;
+    if (battlePhase !== 'CHOOSING') return;
+    if (pHp > 0 && pHp <= Math.ceil(pMax * 0.2) && !isCatching) {
+      const interval = setInterval(() => SfxController.play('low_hp_alarm'), 1500);
+      SfxController.play('low_hp_alarm');
+      return () => clearInterval(interval);
+    }
+    return;
+  }, [pHp, pMax, isCatching, battlePhase]);
+
   const redBackSprite = `${import.meta.env.BASE_URL}sprites/battle/red_back_pic.png`;
+
+  const isEvolving = activeBattle?.phase === 'EVOLVING';
+  const preEvoSprite = activeBattle?.preEvoSprite;
+  const evoSprite = activeBattle?.evoSprite;
 
   return (
     <motion.div
@@ -117,10 +151,12 @@ export const BattleScreen = memo(function BattleScreen({
             </div>
             <div className="flex items-end gap-2 relative z-10 justify-center h-full">
               {isTrainerBattle && trainerBattleSprite && !trainerSpriteError && (
-                <img
+                <motion.img
                   src={trainerBattleSprite}
                   className="w-16 h-16 sm:w-24 sm:h-24 mb-4 object-contain pixelated opacity-90 shrink-0"
                   alt="trainer"
+                  animate={trainerExiting ? { x: -120, opacity: 0, scale: 0.8 } : { x: 0, opacity: 1, scale: 1 }}
+                  transition={trainerExiting ? { duration: 0.5, ease: 'easeIn' } : { duration: 0 }}
                   onError={() => setTrainerSpriteError(true)}
                 />
               )}
@@ -199,9 +235,47 @@ export const BattleScreen = memo(function BattleScreen({
                   hit: { x: [0, -10, 10, -10, 10, 0], filter: ["brightness(1)", "invert(1)", "brightness(1)"], transition: { duration: sdur(0.4) } },
                   faint: { y: [0, 100], opacity: [1, 0], transition: { duration: sdur(0.5), ease: "easeIn" } }
                 }}
-                animate={playerAnim}
+                animate={isEvolving ? undefined : playerAnim}
               >
-                {playerPkmn?.sprite && !playerSpriteError && (
+                {isEvolving && preEvoSprite && (
+                  <motion.img
+                    src={preEvoSprite.replace('pokemon/', 'pokemon/back/')}
+                    className="absolute inset-0 w-full h-full object-contain pixelated"
+                    alt="pre-evo"
+                    animate={{
+                      opacity: [1, 1, 0, 0],
+                      filter: [
+                        'brightness(1)',
+                        'brightness(0.2)',
+                        'brightness(0.05)',
+                        'brightness(0.05)',
+                      ],
+                      scale: [1, 1.15, 1.3, 1.3],
+                    }}
+                    transition={{ duration: sdur(1.6), times: [0, 0.25, 0.6, 1] }}
+                  />
+                )}
+                {isEvolving && evoSprite && (
+                  <motion.img
+                    src={evoSprite.replace('pokemon/', 'pokemon/back/')}
+                    className="absolute inset-0 w-full h-full object-contain pixelated"
+                    alt="evo"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{
+                      opacity: [0, 0, 0, 1, 1],
+                      filter: [
+                        'brightness(0.05)',
+                        'brightness(0.05)',
+                        'brightness(0.2)',
+                        'brightness(1)',
+                        'brightness(1)',
+                      ],
+                      scale: [1.3, 1.3, 1.15, 1, 1],
+                    }}
+                    transition={{ duration: sdur(2.4), times: [0, 0.4, 0.5, 0.7, 1] }}
+                  />
+                )}
+                {!isEvolving && playerPkmn?.sprite && !playerSpriteError && (
                   <img
                     src={playerPkmn.sprite.replace('pokemon/', 'pokemon/back/')}
                     className="w-full h-full object-contain pixelated drop-shadow-[0_4px_4px_rgba(0,0,0,0.3)]"
@@ -209,7 +283,7 @@ export const BattleScreen = memo(function BattleScreen({
                     onError={() => setPlayerSpriteError(true)}
                   />
                 )}
-                {playerSpriteError && (
+                {!isEvolving && playerSpriteError && (
                   <div
                     className="w-full h-full bg-[#2c2c2c]/80 border-2 border-[#1a1a1a] rounded-full"
                     aria-label="player-fallback"

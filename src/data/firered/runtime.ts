@@ -17,8 +17,8 @@ import { FIRERED_SIGNS } from './firedSigns.generated';
 import { FIRERED_MAP_ID_TO_INTERNAL } from './mapIds.generated';
 import { KANTO_FIRERED_ZONE_OFFSETS } from './kantoZoneOffsets.generated';
 import { makePokemon } from '../../constants/pokemon';
-import { MOVES } from '../../constants/moves';
-import type { NPC, Entity, MapID, Direction, Pokemon } from '../../types';
+import { MOVES, LEARNSET_DATABASE } from '../../constants/moves';
+import type { NPC, Entity, MapID, Direction, Pokemon, Move } from '../../types';
 import { NPC_OVERRIDES } from './firedDialogue';
 
 // ─── FireRed map id → internal MapID resolution ──────────────────────────
@@ -204,6 +204,14 @@ const GEN1_DEX: Record<string, number> = {
   moltres: 146, dratini: 147, dragonair: 148, dragonite: 149, mewtwo: 150, mew: 151,
 };
 
+function getMovesForLevel(dexId: number, level: number): Move[] {
+  const learnset = LEARNSET_DATABASE[String(dexId)];
+  if (!learnset) return [MOVES.TACKLE];
+  const known = learnset.filter(m => m.level <= level).map(m => m.move);
+  if (known.length === 0) return [MOVES.TACKLE];
+  return known.slice(-4);
+}
+
 function buildTrainerTeam(trainerId: string): Pokemon[] {
   const trainer = FIRERED_TRAINERS[trainerId];
   if (!trainer?.partyKey) return [];
@@ -214,10 +222,8 @@ function buildTrainerTeam(trainerId: string): Pokemon[] {
     const name = mon.species.replace(/^SPECIES_/, '');
     const type = speciesPrimaryType(id);
     const dexId = speciesDexId(id);
-    // Default moves: TACKLE + first non-tackle attack. The custom-moves
-    // variants (.moves = {MOVE_X, MOVE_Y, ...}) in FireRed parties are rare
-    // boss fights; a future pass can wire them through.
-    return makePokemon(id, name, mon.lvl, type, [MOVES.TACKLE, MOVES.GROWL], dexId);
+    const moves = getMovesForLevel(dexId, mon.lvl);
+    return makePokemon(id, name, mon.lvl, type, moves, dexId);
   });
 }
 
@@ -439,7 +445,8 @@ function buildEncountersForTable(tableName: string): Record<MapID, Pokemon[]> {
       const dex = GEN1_DEX[species];
       if (!dex) continue;
       const lvl = Math.floor((slot.min_level + slot.max_level) / 2);
-      all.push(makePokemon(species, slot.species.replace(/^SPECIES_/, ''), lvl, speciesPrimaryType(species), [MOVES.TACKLE, MOVES.GROWL], dex));
+      const moves = getMovesForLevel(dex, lvl);
+      all.push(makePokemon(species, slot.species.replace(/^SPECIES_/, ''), lvl, speciesPrimaryType(species), moves, dex));
     }
     if (all.length > 0) {
       const seen = new Set<string>();

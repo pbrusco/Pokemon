@@ -134,6 +134,11 @@ export function useInputHandler({
         case 'z': case 'Enter': handleAction(); break;
         case ' ': handleAction(); break;
         case 'Escape': if (store.phase.type === 'MENU') store.setPhase(store.phase.returnTo ?? EXPLORING); break;
+        case 'b': case 'B':
+          if (store.phase.type === 'EXPLORING' && store.hasBike) {
+            store.setIsBiking(!store.isBiking);
+          }
+          break;
       }
 
       if (dir) {

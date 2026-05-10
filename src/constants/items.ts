@@ -14,6 +14,30 @@ export const HM_MOVE_MAP: Record<string, string> = {
   HM04_STRENGTH: 'FUERZA',
   HM05_FLASH:    'DESTELLO',
 };
+
+export const TM_MOVE_MAP: Record<string, string> = {
+  TM02_RAZOR_WIND: 'VIENTO CORT.',
+  TM06_TOXIC: 'TÓXICO',
+  TM07_HORN_DRILL: 'PERFORADOR',
+  TM11_BUBBLE_BEAM: 'RAYO BURBUJA',
+  TM13_ICE_BEAM: 'RAYO HIELO',
+  TM17_SUBMISSION: 'SUBMISIÓN',
+  TM21_MEGA_DRAIN: 'MEGA DRENADO',
+  TM24_THUNDERBOLT: 'RAYO',
+  TM26_EARTHQUAKE: 'TERREMOTO',
+  TM29_PSYCHIC: 'PSÍQUICO',
+  TM30_TELEPORT: 'TELETRANSP.',
+  TM38_FIRE_BLAST: 'LLAMARADA',
+};
+
+export const STONE_EVOLUTIONS: Record<string, string[]> = {
+  FIRE_STONE:    ['vulpix', 'growlithe', 'eevee'],
+  WATER_STONE:   ['poliwhirl', 'shellder', 'staryu', 'eevee'],
+  THUNDER_STONE: ['pikachu', 'eevee'],
+  LEAF_STONE:    ['gloom', 'weepinbell', 'exeggcute'],
+  MOON_STONE:    ['nidorina', 'nidorino', 'clefairy', 'jigglypuff'],
+};
+
 export const ITEMS_DATABASE: Record<string, InventoryItem> = {
   OAK_PARCEL:    { id: 'OAK_PARCEL',    name: 'PAQUETE OAK',   description: 'Un paquete para el Prof. Oak.',        icon: '📦', type: 'key_item' },
   TOWN_MAP:      { id: 'TOWN_MAP',      name: 'MAPA CIUDAD',   description: 'Mapa de la región Kanto.',              icon: '🗺️', type: 'key_item' },
@@ -28,31 +52,91 @@ export const ITEMS_DATABASE: Record<string, InventoryItem> = {
    HM02_FLY:      { id: 'HM02_FLY',      name: 'MO02 VUELO',    description: 'Enseña VUELO a un POKÉMON.',              icon: '🕊️', type: 'key_item' },
    HM05_FLASH:    { id: 'HM05_FLASH',    name: 'MO05 DESTELLO', description: 'Enseña DESTELLO a un POKÉMON.',           icon: '💡', type: 'key_item' },
    FRESH_WATER:   { id: 'FRESH_WATER',   name: 'AGUA FRESCA',  description: 'Agua mineral muy refrescante.',           icon: '🥤', type: 'key_item' },
+   BICYCLE:       { id: 'BICYCLE',       name: 'BICICLETA',     description: 'Se monta para avanzar a gran velocidad.',    icon: '🚲', type: 'key_item' },
+   OLD_ROD:       { id: 'OLD_ROD',       name: 'CAÑA VIEJA',    description: 'Una caña para pescar POKÉMON.',              icon: '🎣', type: 'key_item' },
+   GOOD_ROD:      { id: 'GOOD_ROD',      name: 'CAÑA BUENA',   description: 'Caña de buena calidad para pescar.',           icon: '🎣', type: 'key_item' },
+   SUPER_ROD:     { id: 'SUPER_ROD',     name: 'SUPER CAÑA',   description: 'La mejor caña. Atrae POKÉMON raros.',         icon: '🎣', type: 'key_item' },
+   ESCAPE_ROPE:   { id: 'ESCAPE_ROPE',   name: 'CUERDA HUIDA', description: 'Se usa para salir de cuevas y mazmorras.',    icon: '🪢', type: 'key_item' },
+   FIRE_STONE:    { id: 'FIRE_STONE',    name: 'PIEDRA FUEGO',  description: 'Evoluciona a ciertos POKÉMON de fuego.',      icon: '🔥', type: 'stone', effect: { stoneEvolve: true } },
+   WATER_STONE:   { id: 'WATER_STONE',   name: 'PIEDRA AGUA',   description: 'Evoluciona a ciertos POKÉMON de agua.',       icon: '💧', type: 'stone', effect: { stoneEvolve: true } },
+   THUNDER_STONE: { id: 'THUNDER_STONE', name: 'PIEDRA TRUENO', description: 'Evoluciona a ciertos POKÉMON eléctricos.',    icon: '⚡', type: 'stone', effect: { stoneEvolve: true } },
+   LEAF_STONE:    { id: 'LEAF_STONE',    name: 'PIEDRA HOJA',   description: 'Evoluciona a ciertos POKÉMON de planta.',      icon: '🍃', type: 'stone', effect: { stoneEvolve: true } },
+   MOON_STONE:    { id: 'MOON_STONE',    name: 'PIEDRA LUNAR',  description: 'Evoluciona a ciertos POKÉMON.',                icon: '🌙', type: 'stone', effect: { stoneEvolve: true } },
+   RARE_CANDY:    { id: 'RARE_CANDY',    name: 'CARAMELO RARO', description: 'Sube un nivel a un POKÉMON.',                  icon: '🍬', type: 'potion', effect: { rareCandy: true } },
    POKEBALL: { id: 'POKEBALL', name: 'POKÉ BALL', description: 'Sirve para atrapar Pokémon salvajes.', icon: '🔴', type: 'pokeball' },
-  
-  // Healing Items
+
   POTION: { id: 'POTION', name: 'POCIÓN', description: 'Restaura 20 PS.', icon: '🧪', type: 'potion', effect: { healHp: 20 } },
   SUPER_POTION: { id: 'SUPER_POTION', name: 'SÚPER POCIÓN', description: 'Restaura 50 PS.', icon: '🧪', type: 'potion', effect: { healHp: 50 } },
   HYPER_POTION: { id: 'HYPER_POTION', name: 'HIPER POCIÓN', description: 'Restaura 200 PS.', icon: '🧪', type: 'potion', effect: { healHp: 200 } },
   MAX_POTION: { id: 'MAX_POTION', name: 'POCIÓN MÁXIMA', description: 'Restaura todos los PS.', icon: '🧪', type: 'potion', effect: { healHp: 9999 } },
   FULL_RESTORE: { id: 'FULL_RESTORE', name: 'RESTAURAR TODO', description: 'Restaura todos los PS y cura estados.', icon: '✨', type: 'potion', effect: { healHp: 9999, cureStatus: 'all' } },
-  
-  // Status Healing Items
+
   ANTIDOTE: { id: 'ANTIDOTE', name: 'ANTÍDOTO', description: 'Cura el envenenamiento.', icon: '💊', type: 'status_heal', effect: { cureStatus: 'poison' } },
   AWAKENING: { id: 'AWAKENING', name: 'DESPERTAR', description: 'Despierta a un Pokémon dormido.', icon: '☕', type: 'status_heal', effect: { cureStatus: 'sleep' } },
   BURN_HEAL: { id: 'BURN_HEAL', name: 'ANTIQUEMAR', description: 'Cura las quemaduras.', icon: '🩹', type: 'status_heal', effect: { cureStatus: 'burn' } },
   ICE_HEAL: { id: 'ICE_HEAL', name: 'ANTIHIELO', description: 'Descongela a un Pokémon.', icon: '🔥', type: 'status_heal', effect: { cureStatus: 'frozen' } },
   PARALYZE_HEAL: { id: 'PARALYZE_HEAL', name: 'ANTIPARALIZADOR', description: 'Cura la parálisis.', icon: '⚡', type: 'status_heal', effect: { cureStatus: 'paralyzed' } },
   FULL_HEAL: { id: 'FULL_HEAL', name: 'CURA TOTAL', description: 'Cura cualquier problema de estado.', icon: '🌟', type: 'status_heal', effect: { cureStatus: 'all' } },
-  
-  // Revives
+
   REVIVE: { id: 'REVIVE', name: 'REVIVIR', description: 'Revive a un Pokémon con la mitad de PS.', icon: '💎', type: 'revive', effect: { revive: true, reviveHpPercent: 50 } },
   MAX_REVIVE: { id: 'MAX_REVIVE', name: 'MAX REVIVIR', description: 'Revive a un Pokémon con todos sus PS.', icon: '💎', type: 'revive', effect: { revive: true, reviveHpPercent: 100 } },
+
+  TM02_RAZOR_WIND: { id: 'TM02_RAZOR_WIND', name: 'MT02 VIENTO CORTANTE', description: 'Enseña VIENTO CORTANTE.', icon: '📀', type: 'tm' },
+  TM06_TOXIC: { id: 'TM06_TOXIC', name: 'MT06 TÓXICO', description: 'Enseña TÓXICO.', icon: '📀', type: 'tm' },
+  TM07_HORN_DRILL: { id: 'TM07_HORN_DRILL', name: 'MT07 PERFORADOR', description: 'Enseña PERFORADOR.', icon: '📀', type: 'tm' },
+  TM11_BUBBLE_BEAM: { id: 'TM11_BUBBLE_BEAM', name: 'MT11 RAYO BURBUJA', description: 'Enseña RAYO BURBUJA.', icon: '📀', type: 'tm' },
+  TM13_ICE_BEAM: { id: 'TM13_ICE_BEAM', name: 'MT13 RAYO HIELO', description: 'Enseña RAYO HIELO.', icon: '📀', type: 'tm' },
+  TM17_SUBMISSION: { id: 'TM17_SUBMISSION', name: 'MT17 SUMISIÓN', description: 'Enseña SUMISIÓN.', icon: '📀', type: 'tm' },
+  TM21_MEGA_DRAIN: { id: 'TM21_MEGA_DRAIN', name: 'MT21 MEGA DRENADO', description: 'Enseña MEGA DRENADO.', icon: '📀', type: 'tm' },
+  TM24_THUNDERBOLT: { id: 'TM24_THUNDERBOLT', name: 'MT24 RAYO', description: 'Enseña RAYO.', icon: '📀', type: 'tm' },
+  TM26_EARTHQUAKE: { id: 'TM26_EARTHQUAKE', name: 'MT26 TERREMOTO', description: 'Enseña TERREMOTO.', icon: '📀', type: 'tm' },
+  TM29_PSYCHIC: { id: 'TM29_PSYCHIC', name: 'MT29 PSÍQUICO', description: 'Enseña PSÍQUICO.', icon: '📀', type: 'tm' },
+  TM30_TELEPORT: { id: 'TM30_TELEPORT', name: 'MT30 TELETRANSPORTE', description: 'Enseña TELETRANSPORTE.', icon: '📀', type: 'tm' },
+  TM38_FIRE_BLAST: { id: 'TM38_FIRE_BLAST', name: 'MT38 LLAMARADA', description: 'Enseña LLAMARADA.', icon: '📀', type: 'tm' },
 };
-export const SHOP_PRICES: Record<string, number> = { 
-  POTION: 200, 
+
+export const SHOP_PRICES: Record<string, number> = {
   POKEBALL: 200,
+  POTION: 200,
+  SUPER_POTION: 700,
+  HYPER_POTION: 1200,
+  MAX_POTION: 2500,
+  FULL_RESTORE: 3000,
   ANTIDOTE: 100,
+  AWAKENING: 250,
+  BURN_HEAL: 250,
+  ICE_HEAL: 250,
   PARALYZE_HEAL: 200,
-  BURN_HEAL: 250
+  FULL_HEAL: 600,
+  REVIVE: 1500,
+  MAX_REVIVE: 4000,
+  TM02_RAZOR_WIND: 2000,
+  TM06_TOXIC: 3000,
+  TM07_HORN_DRILL: 3000,
+  TM11_BUBBLE_BEAM: 4500,
+  TM13_ICE_BEAM: 3500,
+  TM17_SUBMISSION: 3000,
+  TM21_MEGA_DRAIN: 3500,
+  TM24_THUNDERBOLT: 3500,
+  TM26_EARTHQUAKE: 5500,
+  TM29_PSYCHIC: 6000,
+  TM30_TELEPORT: 1000,
+  TM38_FIRE_BLAST: 5500,
+  ESCAPE_ROPE: 550,
+};
+
+export const SHOP_INVENTORY: Record<string, string[]> = {
+  POKEMART_VIRIDIAN: ['POKEBALL', 'POTION', 'ANTIDOTE', 'PARALYZE_HEAL'],
+  POKEMART_PEWTER: ['POKEBALL', 'POTION', 'ANTIDOTE', 'BURN_HEAL', 'AWAKENING'],
+  POKEMART_CERULEAN: ['POKEBALL', 'POTION', 'SUPER_POTION', 'ANTIDOTE', 'PARALYZE_HEAL', 'AWAKENING', 'BURN_HEAL'],
+  POKEMART_VERMILION: ['POKEBALL', 'SUPER_POTION', 'REVIVE', 'ANTIDOTE', 'PARALYZE_HEAL', 'BURN_HEAL', 'ICE_HEAL'],
+  POKEMART_LAVENDER: ['POKEBALL', 'SUPER_POTION', 'REVIVE', 'FULL_HEAL', 'ANTIDOTE', 'AWAKENING'],
+  CELADON_MART_2F: ['TM13_ICE_BEAM', 'TM24_THUNDERBOLT', 'TM38_FIRE_BLAST'],
+  CELADON_MART_3F: ['TM21_MEGA_DRAIN', 'TM17_SUBMISSION', 'TM06_TOXIC'],
+  CELADON_MART_4F: ['TM26_EARTHQUAKE', 'TM29_PSYCHIC', 'TM11_BUBBLE_BEAM'],
+  CELADON_MART_5F: ['MAX_POTION', 'FULL_RESTORE', 'MAX_REVIVE'],
+  POKEMART_CELADON: ['POKEBALL', 'SUPER_POTION', 'HYPER_POTION', 'REVIVE', 'FULL_HEAL', 'ANTIDOTE', 'AWAKENING', 'BURN_HEAL', 'ICE_HEAL'],
+  POKEMART_FUCHSIA: ['POKEBALL', 'SUPER_POTION', 'HYPER_POTION', 'REVIVE', 'FULL_HEAL'],
+  POKEMART_SAFFRON: ['POKEBALL', 'SUPER_POTION', 'HYPER_POTION', 'MAX_POTION', 'REVIVE', 'FULL_RESTORE', 'FULL_HEAL'],
+  POKEMART_CINNABAR: ['POKEBALL', 'SUPER_POTION', 'HYPER_POTION', 'MAX_POTION', 'REVIVE', 'FULL_RESTORE'],
 };

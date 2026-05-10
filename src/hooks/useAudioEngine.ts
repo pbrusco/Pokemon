@@ -15,6 +15,7 @@ export function useAudioEngine() {
   const sfxMuted = useGameStore((s) => s.sfxMuted);
   const sfxVolume = useGameStore((s) => s.sfxVolume);
   const isSurfing = useGameStore((s) => s.isSurfing);
+  const isBiking = useGameStore((s) => s.isBiking);
 
   const lastTrackRef = useRef<MusicTrack | null>(null);
   const wasMusicMutedRef = useRef(musicMuted);
@@ -57,7 +58,7 @@ export function useAudioEngine() {
       AudioController.stop();
       return;
     } else {
-      track = isSurfing ? 'surf' : getOverworldMusic(currentMap, pos);
+      track = isSurfing ? 'surf' : isBiking ? 'bicycle' : getOverworldMusic(currentMap, pos);
     }
 
     if (track !== lastTrackRef.current) {
@@ -69,5 +70,5 @@ export function useAudioEngine() {
         AudioController.play(track, { loop: true });
       }
     }
-  }, [phase, currentMap, playerX, playerY, isTrainerBattle, musicMuted, isSurfing]);
+  }, [phase, currentMap, playerX, playerY, isTrainerBattle, musicMuted, isSurfing, isBiking]);
 }

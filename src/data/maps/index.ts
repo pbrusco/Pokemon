@@ -90,6 +90,48 @@ _stitched.warps.push(
   { x: 66, y: 151, targetMap: 'VIRIDIAN_FOREST', targetPos: { x: 29, y: 61 } },
 );
 
+// Diglett's Cave — Route 2 warp at local (17,11) → world (77,111) and Route 11
+// warp at local (6,7) → world (318,217) target gate buildings
+// (MAP_DIGLETTS_CAVE_{NORTH,SOUTH}_ENTRANCE) that aren't mapped. Bridge directly
+// into the cave B1F so the connection works.
+const DIGLETT_NORTH = { x: 77, y: 111 };
+const DIGLETT_SOUTH = { x: 318, y: 217 };
+const diglett = FIRERED_INDOOR_MAPS.DIGLETTS_CAVE;
+if (diglett) {
+  for (const w of diglett.warps) {
+    if (w.targetMap !== 'KANTO_OVERWORLD') continue;
+    w.targetPos = w.x <= 5 ? { x: DIGLETT_NORTH.x, y: DIGLETT_NORTH.y + 1 } : { x: DIGLETT_SOUTH.x, y: DIGLETT_SOUTH.y + 1 };
+  }
+  // Cave exit warps target gate buildings — push KANTO_OVERWORLD exits instead
+  diglett.warps.push(
+    { x: 3, y: 3, targetMap: 'KANTO_OVERWORLD', targetPos: { x: DIGLETT_NORTH.x, y: DIGLETT_NORTH.y + 1 } },
+    { x: 82, y: 71, targetMap: 'KANTO_OVERWORLD', targetPos: { x: DIGLETT_SOUTH.x, y: DIGLETT_SOUTH.y + 1 } },
+  );
+}
+_stitched.warps.push(
+  { x: DIGLETT_NORTH.x, y: DIGLETT_NORTH.y, targetMap: 'DIGLETTS_CAVE', targetPos: { x: 3, y: 3 } },
+  { x: DIGLETT_SOUTH.x, y: DIGLETT_SOUTH.y, targetMap: 'DIGLETTS_CAVE', targetPos: { x: 82, y: 71 } },
+);
+
+// Safari Zone — Fuchsia City warp at local (24,5) → world (216,305) targets
+// MAP_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE (gate building, not mapped). Bridge
+// directly into SAFARI_ZONE_CENTER.
+const SAFARI_ENTRY = { x: 216, y: 305 };
+const safari = FIRERED_INDOOR_MAPS.SAFARI_ZONE_CENTER;
+if (safari) {
+  for (const w of safari.warps) {
+    if (w.targetMap !== 'KANTO_OVERWORLD') continue;
+    w.targetPos = { x: SAFARI_ENTRY.x, y: SAFARI_ENTRY.y + 1 };
+  }
+  // Center exit warps target the gate building — push a KANTO_OVERWORLD exit
+  safari.warps.push(
+    { x: 25, y: 30, targetMap: 'KANTO_OVERWORLD', targetPos: { x: SAFARI_ENTRY.x, y: SAFARI_ENTRY.y + 1 } },
+  );
+}
+_stitched.warps.push(
+  { x: SAFARI_ENTRY.x, y: SAFARI_ENTRY.y, targetMap: 'SAFARI_ZONE_CENTER', targetPos: { x: 26, y: 30 } },
+);
+
 // Snap any warp whose target landed on a non-walkable tile to the nearest
 // walkable tile (BFS, max radius 6). The runtime's getValidTeleportLocation
 // otherwise crashes the player back to PLAYERS_HOUSE_2F with a SYSTEM ERROR

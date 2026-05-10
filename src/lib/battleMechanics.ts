@@ -220,7 +220,7 @@ export function handleEnemyFainted(
       effects.push(log(`¡¿Qué?! ¡${leveledPkmn.name} está evolucionando!`));
       const evoTeam = [...updatedTeamWithExp];
       evoTeam[0] = evolvedPkmn;
-      s = { ...s, playerTeam: evoTeam, log: `¡Felicidades! ¡${evolvedPkmn.name} ha evolucionado!`, phase: 'EVOLVING' };
+      s = { ...s, playerTeam: evoTeam, log: `¡Felicidades! ¡${evolvedPkmn.name} ha evolucionado!`, phase: 'EVOLVING', preEvoSprite: leveledPkmn.sprite, evoSprite: evolvedPkmn.sprite };
     }
   }
 
@@ -240,12 +240,24 @@ export function handleEnemyFainted(
   return { s, effects };
 }
 
-// ─── End-of-turn effects: burn / leech seed / trap ───────────────────────────
+// ─── End-of-turn effects: poison / burn / leech seed / trap ──────────────────
 
 export function handleEndOfTurnEffects(
   s: BattleState,
   effects: BattleEffect[],
 ): BattleState {
+  if (s.playerTeam[0]?.status === 'poison' && s.playerTeam[0]?.hp > 0) {
+    const turns = (s.playerTeam[0].toxicTurns || 0) + 1;
+    const chip = s.playerTeam[0].toxicTurns
+      ? Math.max(1, Math.floor(s.playerTeam[0].maxHp * turns / 16))
+      : Math.max(1, Math.floor(s.playerTeam[0].maxHp / 16));
+    const newHp = Math.max(0, s.playerTeam[0].hp - chip);
+    const updated = [...s.playerTeam];
+    updated[0] = { ...updated[0], hp: newHp, toxicTurns: s.playerTeam[0].toxicTurns ? turns : undefined };
+    effects.push(log(`¡${s.playerTeam[0].name} recibe daño por veneno!`));
+    s = { ...s, playerTeam: updated };
+    if (newHp === 0) { s = { ...s, phase: 'PLAYER_FAINTED' }; }
+  }
   if (s.playerTeam[0]?.status === 'burn' && s.playerTeam[0]?.hp > 0) {
     const chip = Math.max(1, Math.floor(s.playerTeam[0].maxHp / 16));
     const newHp = Math.max(0, s.playerTeam[0].hp - chip);
@@ -264,6 +276,14 @@ export function handleEndOfTurnEffects(
     effects.push(log(`¡${s.playerTeam[0].name} pierde vida por DRENADORAS!`));
     s = { ...s, playerTeam: updated, enemyPokemon: { ...s.enemyPokemon, hp: s.enemyPokemon.hp + healedAmount } };
     if (newHp === 0) { s = { ...s, phase: 'PLAYER_FAINTED' }; }
+  }
+  if (s.enemyPokemon.status === 'poison' && s.enemyPokemon.hp > 0) {
+    const eTurns = (s.enemyPokemon.toxicTurns || 0) + 1;
+    const eChip = s.enemyPokemon.toxicTurns
+      ? Math.max(1, Math.floor(s.enemyPokemon.maxHp * eTurns / 16))
+      : Math.max(1, Math.floor(s.enemyPokemon.maxHp / 16));
+    s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: Math.max(0, s.enemyPokemon.hp - eChip), toxicTurns: s.enemyPokemon.toxicTurns ? eTurns : undefined } };
+    effects.push(log(`¡${s.enemyPokemon.name} recibe daño por veneno!`));
   }
   if (s.enemyPokemon.status === 'burn' && s.enemyPokemon.hp > 0) {
     const chip = Math.max(1, Math.floor(s.enemyPokemon.maxHp / 16));

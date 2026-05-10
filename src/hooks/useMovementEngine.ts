@@ -270,6 +270,10 @@ export function useMovementEngine({
     // ── Movement accepted ──
     store.setIsMoving(true);
     store.setPlayerPos({ x: nextX, y: nextY });
+    // Auto-dismount bike when not in the outdoor overworld (buildings, caves, forests)
+    if (store.isBiking && currentMap !== 'KANTO_OVERWORLD' && !store.isSurfing) {
+      store.setIsBiking(false);
+    }
 
     if (!ghostMode) {
       applyOverworldPoison(playerTeam, poisonStepCounter, setOverworldShake);
@@ -355,6 +359,10 @@ export function useMovementEngine({
         speciesList = WILD_POKEMON_DATABASE[currentMap] ?? WILD_POKEMON_DATABASE[zone];
       }
       if (speciesList && speciesList.length > 0 && Math.random() * 100 < rate) {
+        if (currentMap.startsWith('POKEMON_TOWER') && !store.hasSilphScope) {
+          store.setDialogue('¡Un fantasma te bloquea el paso!\nNecesitas el ALCANCE SILPH para identificarlo.');
+          return;
+        }
         const base = speciesList[Math.floor(Math.random() * speciesList.length)];
         const level = Math.max(1, base.level + Math.floor(Math.random() * 3) - 1);
         const maxHp = calcHp(base.baseStats.hp, level);

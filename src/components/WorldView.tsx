@@ -40,6 +40,7 @@ export const WorldView = memo(({
   dialogue,
 }: WorldViewProps) => {
   const { playerPos, direction, isMoving, currentMap, wildPokemon } = useGameStore();
+  const isBiking = useGameStore(s => s.isBiking);
   const mapData = maps[currentMap];
 
   const grid = mapData?.tiles ?? [];
@@ -131,7 +132,7 @@ export const WorldView = memo(({
           y: finalY,
           scale: 1
         }}
-        transition={{ type: "tween", duration: 0.11, ease: "linear" }}
+        transition={{ type: "tween", duration: isBiking ? 0.06 : 0.11, ease: "linear" }}
       >
         <div className="relative" style={{ width: cols * TILE_SIZE, height: rows * TILE_SIZE }}>
           {(() => {

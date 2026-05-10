@@ -5,9 +5,11 @@ import { STARTERS, makePokemon } from '../constants/pokemon';
 import { HM_REQUIREMENTS, ITEMS_DATABASE } from '../constants/items';
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
-import { EXPLORING, HEALING, SHOP } from '../types';
+import { EXPLORING, HEALING } from '../types';
 import { SfxController } from '../lib/sfx';
 import { useGameStore } from '../store/gameStore';
+import { launchBattle } from '../lib/launchBattle';
+import { FISHING_ENCOUNTERS, getKantoRegion } from '../constants/world';
 
 // Random starter pool for the 4th "mystery" ball in Oak's Lab.
 // Gen I Pokémon at level 5 — fun surprises alongside the canonical trio.
@@ -156,7 +158,7 @@ export const useInteractionEngine = ({
           store.setDialogue("DEPENDIENTE: ¡Ah! ¡Tú vienes de PUEBLO PALETA! Tengo un paquete para el PROF. OAK. ¿Se lo llevarías?");
         } else {
           store.setDialogue("DEPENDIENTE: ¡Hola! ¿Quieres comprar algo?");
-          setTimeout(() => useGameStore.getState().setPhase(SHOP), sd(1000));
+          setTimeout(() => useGameStore.getState().setPhase({ type: 'SHOP', shopId: currentMap }), sd(1000));
         }
       } else if (npc.onInteract === 'oak_parcel_turnin' && hasParcel) {
         store.setHasParcel(false);
@@ -194,6 +196,15 @@ export const useInteractionEngine = ({
           store.addInventoryItem('MASTER_BALL');
           SfxController.play('item_get');
           store.setDialogue('¡Recibiste la MASTER BALL!');
+        }
+      } else if (npc.onInteract === 'give_bike') {
+        if (!store.hasBike) {
+          store.setHasBike(true);
+          store.addInventoryItem('BICYCLE');
+          SfxController.play('item_get');
+          store.setDialogue('¡Recibiste una BICICLETA!\n¡Pulsa B para usarla!');
+        } else {
+          store.setDialogue('¡Espero que disfrutes de tu BICICLETA!');
         }
       } else if (npc.onInteract === 'give_ss_ticket') {
         if (!inventory['SS_TICKET']) {
@@ -342,6 +353,22 @@ export const useInteractionEngine = ({
               onNo: () => { store.setConfirm(null); },
             });
             return;
+          } else {
+            const hasRod = inventory['OLD_ROD'] || inventory['GOOD_ROD'] || inventory['SUPER_ROD'];
+            if (!hasRod) {
+              store.setDialogue('No tienes ninguna CAÑA de pescar.');
+            } else {
+              const fishZone = getKantoRegion(targetX, targetY);
+              const fishTable = FISHING_ENCOUNTERS[fishZone];
+              if (fishTable && fishTable.length > 0) {
+                const base = fishTable[Math.floor(Math.random() * fishTable.length)];
+                const enemy = { ...base, uid: Math.random().toString(36).substring(2, 9), hp: base.maxHp };
+                store.setDialogue(`¡Es un ${enemy.name}! ¡Ha picado!`);
+                setTimeout(() => launchBattle({ enemy, isTrainer: false, battleLog: `¡Un ${enemy.name} salvaje ha picado!` }), sd(600));
+                return;
+              }
+              store.setDialogue('No pica nada...');
+            }
           }
         }
       } else if (tile.type === 'cut_tree') {

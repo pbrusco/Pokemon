@@ -3,6 +3,7 @@ import { createBattleState } from './battleEngine';
 import { useGameStore } from '../store/gameStore';
 import { BATTLE_TRANSITION } from '../types';
 import { getTrainerBattleSprite } from '../data/trainerSprites';
+import { playPokemonCry } from './sfx';
 
 interface LaunchBattleOptions {
   enemy: Pokemon;
@@ -46,4 +47,6 @@ export function launchBattle(options: LaunchBattleOptions): void {
     s.setBattleLogs([{ text: options.battleLog, speaker: 'Sistema', id: -1 }]);
   }
   s.setPhase(BATTLE_TRANSITION);
+  const dexNum = parseInt(options.enemy.sprite?.match(/(\d+)\.png/)?.[1] || '1');
+  playPokemonCry(dexNum);
 }
