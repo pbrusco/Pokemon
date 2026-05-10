@@ -106,8 +106,8 @@ export const WorldView = memo(({
   }
   const isInteractable =
     !inBattle && !dialogue && !isMoving && (
-      npcs[currentMap].some(npc => npc.position.x === interactTargetX && npc.position.y === interactTargetY) ||
-      items[currentMap].some(item => item.position.x === interactTargetX && item.position.y === interactTargetY) ||
+      npcs[currentMap]?.some(npc => npc.position.x === interactTargetX && npc.position.y === interactTargetY) ||
+      items[currentMap]?.some(item => item.position.x === interactTargetX && item.position.y === interactTargetY) ||
       (interactTargetX >= 0 && interactTargetX < cols && interactTargetY >= 0 && interactTargetY < rows &&
        ['tree', 'table', 'cut_tree', 'boulder', 'door', 'sign'].includes(mapData.tiles[interactTargetY][interactTargetX].type))
     );
@@ -162,7 +162,7 @@ export const WorldView = memo(({
           {visionIndicators}
           {warpIndicators}
 
-          {npcs[currentMap].map(npc => (
+          {(npcs[currentMap] ?? []).map(npc => (
             <NPCComponent
               key={npc.id}
               npc={(npc.id === spottedTrainerId && spottedTrainerPos ? { ...npc, position: spottedTrainerPos } : npc) as NPC}
@@ -171,7 +171,7 @@ export const WorldView = memo(({
             />
           ))}
 
-          {items[currentMap].map(item => {
+          {(items[currentMap] ?? []).map(item => {
             // For native-rendered maps the canonical pokered block graphics
             // already draw furniture, TVs, computers, plants, etc. The
             // "object" overlay (brown signpost) would only duplicate them.

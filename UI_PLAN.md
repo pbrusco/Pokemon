@@ -25,10 +25,9 @@ Story = Pokémon Red. Visuals = FRLG. Medium = the web.
 | — | Remove overworld team HUD (now in menu) | `WorldView.tsx`, `App.tsx` | ✅ done |
 | — | Fix Red back sprite (64×320 spritesheet → clip first frame) | `BattleScreen.tsx` | ✅ done |
 | 11 | Pokédex — detail panel on select, proper seen/caught states | `PokedexUI.tsx` | ✅ done |
-| 12 | Battle log — pixel font, speaker label, ◆ cursor | `BattleScreen.tsx` | ⬜ |
-| 13 | Transitions — warp flash, win sequence, evolution silhouette | `BattleTransition.tsx`, `ScreenEffects.tsx` | ⬜ |
-| 14 | 3D mode HUD — compass overlay, "3D" badge, dungeon feel | `WorldView3D.tsx`, `CameraRig.tsx` | ⬜ |
-| 15 | Speaker portraits in dialogue (stretch) | `DialogueBox.tsx`, sprite mapping | ⬜ |
+| 12 | Battle log — pixel font, speaker label, ◆ cursor | `BattleScreen.tsx` | ✅ done |
+| 13 | Transitions — warp flash, win sequence, evolution silhouette | `BattleTransition.tsx`, `ScreenEffects.tsx` | ✅ done |
+| 14 | Speaker portraits in dialogue (stretch) | `DialogueBox.tsx`, sprite mapping | ⬜ stretch |
 
 ---
 
@@ -306,15 +305,6 @@ When a Pokémon entry is selected:
 
 ---
 
-## Stage 14 — 3D Mode HUD
-
-- Small compass rose in bottom-right corner showing N/S/E/W based on player facing
-- "MODO 3D" pixel-font badge in top-right when in 3D
-- Tile textures: voxel faces use the same palette as the 2D tileset (same colors, just applied to box faces)
-- Atmosphere: caves should have a subtle dark vignette, buildings slightly warmer ambient light
-
----
-
 ## Design Tokens Reference
 
 See `src/index.css` for the canonical `:root { --pk-*, --ui-*, --battle-*, --hp-* }` values.
@@ -326,7 +316,7 @@ See `src/data/tileset/tilesetGenerator.ts` for tile draw colors (canvas-based, n
 
 - **`red_back_pic.png` is a spritesheet** (64×320, 5 frames). All other `/public/sprites/battle/*.png` are 64×64 singles. Always use `overflow-hidden` wrapper to clip to frame 0.
 - **Water shimmer pixel values are hardcoded** (`-384px` / `-448px` in `index.css`). Derived from `TILE_SIZE=64 × tileId`. Must update if `TILE_SIZE` ever changes.
-- **`font-game` → Press Start 2P** is defined in `@theme` in `index.css`. `BattleScreen.tsx` and `WorldView3D.tsx` already used `font-game` before it was defined — now works.
+- **`font-game` → Press Start 2P** is defined in `@theme` in `index.css`. `BattleScreen.tsx` uses `font-game`.
 - **`STATUS_INFO` and `TYPE_COLORS`** are defined locally in `BattleScreen.tsx` and `STATUS_BADGE` duplicated in `TeamMenuUI.tsx`. Consider extracting to a shared `src/lib/typeColors.ts` in a future cleanup pass.
 - **Overworld team HUD removed** — team is now accessed via MENÚ → Equipo. `WorldView.tsx` no longer accepts `playerTeam` prop.
 - **Dialogue speaker format** — all existing `setDialogue()` calls embed the speaker as `"NAME: text"`. No call-site changes needed for speaker display to work.

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo, useCallback, lazy, Suspense, useState } from 'react';
+import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import { type BattleState } from './lib/battleEngine';
 import { battle, B_CHOOSING, B_FORCED_SWITCH, EXPLORING } from './types';
 import { type Direction } from './types';
@@ -15,7 +15,6 @@ import { useWildPokemonEngine } from './hooks/useWildPokemonEngine';
 import { useAudioEngine } from './hooks/useAudioEngine';
 import { SfxController } from './lib/sfx';
 import { WorldView } from './components/WorldView';
-const WorldView3D = lazy(() => import('./components/overworld3d/WorldView3D'));
 import { Minimap } from './components/Minimap';
 import { MobileControls } from './components/MobileControls';
 import { SideMenu } from './components/SideMenu';
@@ -34,7 +33,6 @@ export default function App() {
   // direction, isMoving, or wildPokemon.
   // Each selector below only triggers re-render when its value changes.
   const phase = useGameStore(s => s.phase);
-  const viewMode = useGameStore(s => s.viewMode);
   const currentMap = useGameStore(s => s.currentMap);
   const worldMaps = useGameStore(s => s.worldMaps);
   const grassEffect = useGameStore(s => s.grassEffect);
@@ -367,31 +365,20 @@ export default function App() {
       <div className="scanline" />
 
 
-      {viewMode === '2d' ? (
-        <WorldView
-          currentMap={currentMap}
-          maps={worldMaps}
-          npcs={npcs}
-          items={items}
-          grassEffect={grassEffect}
-          overworldShake={overworldShake}
-          windowSize={windowSize}
-          spottedTrainerId={spottedTrainerId}
-          spottedTrainerPos={spottedTrainerPos}
-          defeatedTrainers={defeatedTrainers}
-          inBattle={inBattle}
-          dialogue={dialogue}
-        />
-      ) : (
-        <Suspense fallback={<div className="absolute inset-0 bg-slate-900" />}>
-          <WorldView3D
-            currentMap={currentMap}
-            maps={worldMaps}
-            npcs={npcs}
-            items={items}
-          />
-        </Suspense>
-      )}
+      <WorldView
+        currentMap={currentMap}
+        maps={worldMaps}
+        npcs={npcs}
+        items={items}
+        grassEffect={grassEffect}
+        overworldShake={overworldShake}
+        windowSize={windowSize}
+        spottedTrainerId={spottedTrainerId}
+        spottedTrainerPos={spottedTrainerPos}
+        defeatedTrainers={defeatedTrainers}
+        inBattle={inBattle}
+        dialogue={dialogue}
+      />
 
       <Minimap />
 

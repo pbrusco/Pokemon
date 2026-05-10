@@ -17,7 +17,7 @@ interface SpriteFrame {
 
 const DEFAULT_FRAMES = FRAME_MAP[10];
 
-export function getSpriteFrame(direction: Direction, numFrames: number): SpriteFrame {
+function getSpriteFrame(direction: Direction, numFrames: number): SpriteFrame {
   const frames = FRAME_MAP[numFrames] ?? DEFAULT_FRAMES;
   const frame = frames[direction] ?? 0;
   const flipped = direction === 'right';

@@ -81,14 +81,12 @@ export const ConfigPanel = memo(() => {
   const musicVolume = useGameStore(s => s.musicVolume);
   const sfxMuted = useGameStore(s => s.sfxMuted);
   const sfxVolume = useGameStore(s => s.sfxVolume);
-  const viewMode = useGameStore(s => s.viewMode);
   const ghostMode = useGameStore(s => s.ghostMode);
   const showMinimap = useGameStore(s => s.showMinimap);
   const setMusicMuted = useGameStore(s => s.setMusicMuted);
   const setMusicVolume = useGameStore(s => s.setMusicVolume);
   const setSfxMuted = useGameStore(s => s.setSfxMuted);
   const setSfxVolume = useGameStore(s => s.setSfxVolume);
-  const setViewMode = useGameStore(s => s.setViewMode);
   const toggleGhostMode = useGameStore(s => s.toggleGhostMode);
   const toggleMinimap = useGameStore(s => s.toggleMinimap);
 
@@ -155,39 +153,6 @@ export const ConfigPanel = memo(() => {
                   onToggle={toggleSfx} onVolumeChange={handleSfxVolume}
                   testLabel="Test" onTest={testSfx}
                 />
-              </div>
-            </ConfigSection>
-
-            <ConfigSection label="Pantalla">
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col">
-                  <span className="font-mono text-sm text-slate-800">Modo de vista</span>
-                  <span className="font-mono text-[10px] text-slate-400">{viewMode === '2d' ? 'Cenital (2D)' : 'Primera persona (3D)'}</span>
-                </div>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => setViewMode('2d')}
-                    className="font-mono text-xs px-2 py-0.5 rounded border transition-colors"
-                    style={{
-                      background: viewMode === '2d' ? '#4878D8' : '#f1f5f9',
-                      borderColor: viewMode === '2d' ? '#4878D8' : '#cbd5e1',
-                      color: viewMode === '2d' ? '#fff' : '#64748b',
-                    }}
-                  >
-                    2D
-                  </button>
-                  <button
-                    onClick={() => setViewMode('3d')}
-                    className="font-mono text-xs px-2 py-0.5 rounded border transition-colors"
-                    style={{
-                      background: viewMode === '3d' ? '#4878D8' : '#f1f5f9',
-                      borderColor: viewMode === '3d' ? '#4878D8' : '#cbd5e1',
-                      color: viewMode === '3d' ? '#fff' : '#64748b',
-                    }}
-                  >
-                    3D
-                  </button>
-                </div>
               </div>
             </ConfigSection>
 
