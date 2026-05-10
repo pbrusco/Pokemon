@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import type { Pokemon, MapID, Position, NPC } from '../types';
 import { MOVES } from '../constants/moves';
 import { STARTERS, makePokemon } from '../constants/pokemon';
+
 import { HM_REQUIREMENTS, ITEMS_DATABASE } from '../constants/items';
 import { sd } from '../lib/gameSpeed';
 import { fullHeal } from '../lib/healUtils';
@@ -253,6 +254,11 @@ export const useInteractionEngine = ({
             text: promptText,
             onYes: () => {
               const starter = canonicalStarter ?? randomStarter();
+              // If Abra is rolled from the mystery ball, replace Teleport with
+              // Confusion so the player has an attacking move for the rival battle.
+              if (starter.id === 'abra') {
+                starter.moves = [{ ...MOVES.CONFUSION }];
+              }
               const s = useGameStore.getState();
               s.setPickedItemIds(prev => [...prev, item.id]);
               s.setPlayerTeam([starter]);

@@ -352,6 +352,22 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         }
 
         if (eStatus.action !== 'skip') {
+          if (s.enemyPokemon.confused && s.enemyPokemon.confused.turns > 0) {
+            const updatedConfused = { ...s.enemyPokemon.confused, turns: s.enemyPokemon.confused.turns - 1 };
+            s = { ...s, enemyPokemon: { ...s.enemyPokemon, confused: updatedConfused } };
+            if (Math.random() < 0.5) {
+              const selfDmg = Math.max(1, Math.floor(((((2 * s.enemyPokemon.level / 5 + 2) * 40 * s.enemyPokemon.baseStats.attack) / s.enemyPokemon.baseStats.defense) / 50 + 2) * (217 + Math.floor(Math.random() * 39)) / 255));
+              s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: Math.max(0, s.enemyPokemon.hp - selfDmg) } };
+              effects.push(log(`¡${s.enemyPokemon.name} se golpeó a sí mismo por la confusión!`));
+              if (s.enemyPokemon.hp === 0) {
+                pushDefenderHit(effects, true);
+                const result3 = handleEnemyFainted(s, playerPkmn, effects);
+                return { state: result3.s, effects: result3.effects };
+              }
+              effects.push(log(''));
+              return { state: { ...s, log: '', phase: 'CHOOSING' }, effects };
+            }
+          }
           effects.push({ type: 'enemy_anim', payload: 'attack', moveName: enemyMove.name, moveType: enemyMove.type });
 
           if (!moveHits(s.enemyPokemon, playerPkmn, enemyMove)) {
@@ -431,6 +447,19 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
             moveLog += ` ¡${s.enemyPokemon.name} fue sembrado!`;
           }
         }
+        if (move.name === 'FURIA') {
+          s = withLeadPkmn(s, p => ({ ...p, rageActive: true }));
+          moveLog += ' ¡La furia crece!';
+        }
+        if (move.healSelf && playerPkmn.hp < playerPkmn.maxHp) {
+          const restored = Math.min(playerPkmn.maxHp - playerPkmn.hp, Math.floor(playerPkmn.maxHp * move.healSelf / 100));
+          s = withLeadPkmn(s, p => ({ ...p, hp: p.hp + restored }));
+          moveLog += ` ¡Recuperó ${restored} PS!`;
+        }
+        if (move.healStatus) {
+          s = withLeadPkmn(s, p => ({ ...p, status: 'none' }));
+          moveLog += ` ¡${playerPkmn.name} se durmió y curó sus problemas!`;
+        }
         if (move.confuseChance && Math.random() * 100 < (move.confuseChance)) {
           s = { ...s, enemyPokemon: { ...s.enemyPokemon, confused: { turns: 2 + Math.floor(Math.random() * 4) } } };
           moveLog += ` ¡${s.enemyPokemon.name} está confuso!`;
@@ -502,11 +531,15 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       }
 
       if (move.drain && result.effectivenessLabel !== 'no_effect') {
-        const drained = Math.max(1, Math.floor(damage * move.drain));
-        const drainTeam = [...s.playerTeam];
-        drainTeam[0] = { ...drainTeam[0], hp: Math.min(drainTeam[0].maxHp, drainTeam[0].hp + drained) };
-        s = { ...s, playerTeam: drainTeam };
-        effects.push(log(`¡${playerPkmn.name} absorbió vitalidad!`));
+        if (move.name === 'COMESUEÑOS' && s.enemyPokemon.status !== 'sleep') {
+          effects.push(log('¡No tuvo efecto!'));
+        } else {
+          const drained = Math.max(1, Math.floor(damage * move.drain));
+          const drainTeam = [...s.playerTeam];
+          drainTeam[0] = { ...drainTeam[0], hp: Math.min(drainTeam[0].maxHp, drainTeam[0].hp + drained) };
+          s = { ...s, playerTeam: drainTeam };
+          effects.push(log(`¡${playerPkmn.name} absorbió vitalidad!`));
+        }
       }
 
       if (move.faintsUser) {

@@ -696,10 +696,10 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
       { id: 'starter_1', type: 'item', position: { x: 8, y: 4 }, direction: 'down', sprite: STARTERS[0].sprite },
       { id: 'starter_2', type: 'item', position: { x: 9, y: 4 }, direction: 'down', sprite: STARTERS[1].sprite },
       { id: 'starter_3', type: 'item', position: { x: 10, y: 4 }, direction: 'down', sprite: STARTERS[2].sprite },
-      // 4th "mystery" ball — one extra tile right and two up from the table.
-      { id: 'starter_4', type: 'item', position: { x: 11, y: 2 }, direction: 'down', sprite: '🔴' },
-      // Sign next to the 4th ball — hints at the “weird Pokémon”.
-      { id: 'sign_weird_pokemon', type: 'object', position: { x: 11, y: 3 }, direction: 'down', sprite: '🪧', dialogue: ['¡Oh! Hay un POKÉMON raro aquí...', '¿Quieres llevártelo?'] },
+      // 4th “mystery” ball — sitting on the central table.
+      { id: 'starter_4', type: 'item', position: { x: 2, y: 4 }, direction: 'down', sprite: '🔴' },
+      // Sign near the table — hints at the “weird Pokémon”.
+      { id: 'sign_weird_pokemon', type: 'object', position: { x: 3, y: 5 }, direction: 'down', sprite: '🪧', dialogue: ['¡Oh! Hay un POKÉMON raro aquí...', '¿Quieres llevártelo?'] },
     ],
     PLAYERS_HOUSE_1F: [],
     PLAYERS_HOUSE_2F: [
