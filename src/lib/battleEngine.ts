@@ -102,7 +102,7 @@ interface BattleResult {
 
 // ─── Status / turn helpers ───────────────────────────────────────────────────
 
-function withLeadPkmn(s: BattleState, fn: (p: Pokemon) => Pokemon): BattleState {
+export function withLeadPkmn(s: BattleState, fn: (p: Pokemon) => Pokemon): BattleState {
   const team = [...s.playerTeam];
   team[0] = fn(team[0]);
   return { ...s, playerTeam: team };
@@ -326,9 +326,10 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       // ── Turn order ────────────────────────────────────────────────────────
       const enemyMove = s.isTrainerBattle
         ? selectTrainerMove(s.enemyPokemon, playerPkmn)
-        : (s.enemyPokemon.moves.filter(m => m.pp > 0).length > 0
-            ? s.enemyPokemon.moves.filter(m => m.pp > 0)[Math.floor(Math.random() * s.enemyPokemon.moves.filter(m => m.pp > 0).length)]
-            : STRUGGLE);
+        : (() => {
+            const usable = s.enemyPokemon.moves.filter(m => m.pp > 0 && m.name !== s.enemyPokemon.disabled?.moveName);
+            return usable.length > 0 ? usable[Math.floor(Math.random() * usable.length)] : STRUGGLE;
+          })();
 
       const playerEffSpeed = getEffectiveSpeed(playerPkmn);
       const enemyEffSpeed = getEffectiveSpeed(s.enemyPokemon);
@@ -451,6 +452,28 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           s = withLeadPkmn(s, p => ({ ...p, rageActive: true }));
           moveLog += ' ¡La furia crece!';
         }
+        if (move.name === 'SALPICADURA') {
+          moveLog += ' ¡Pero no pasó nada!';
+        }
+        if (move.name === 'ANULACIÓN') {
+          const enemyMoves = s.enemyPokemon.moves.filter(m => m.pp > 0);
+          if (enemyMoves.length > 0) {
+            const disabledIdx = Math.floor(Math.random() * enemyMoves.length);
+            const disabledMove = enemyMoves[disabledIdx];
+            const turnCount = 2 + Math.floor(Math.random() * 4);
+            s = { ...s, enemyPokemon: { ...s.enemyPokemon, disabled: { moveName: disabledMove.name, turns: turnCount } } };
+            moveLog += ` ¡${disabledMove.name} fue anulado!`;
+          } else {
+            moveLog += ' ¡Pero falló!';
+          }
+        }
+        if (move.name === 'NEBLINA OSC.') {
+          s = { ...s,
+            playerTeam: s.playerTeam.map(p => ({ ...p, statBoosts: { attack: 0, defense: 0, special: 0, speed: 0 } })),
+            enemyPokemon: { ...s.enemyPokemon, statBoosts: { attack: 0, defense: 0, special: 0, speed: 0 } },
+          };
+          moveLog += ' ¡Los cambios de estadísticas fueron eliminados!';
+        }
         if (move.healSelf && playerPkmn.hp < playerPkmn.maxHp) {
           const restored = Math.min(playerPkmn.maxHp - playerPkmn.hp, Math.floor(playerPkmn.maxHp * move.healSelf / 100));
           s = withLeadPkmn(s, p => ({ ...p, hp: p.hp + restored }));
@@ -496,9 +519,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
 
       // Two-turn execution: clear charging flag
       if (move.twoTurn) {
-        const unchargedTeam = [...s.playerTeam];
-        unchargedTeam[0] = { ...unchargedTeam[0], charging: undefined };
-        s = { ...s, playerTeam: unchargedTeam };
+        s = withLeadPkmn(s, p => ({ ...p, charging: undefined }));
       }
 
       const newEnemyHP = Math.max(0, s.enemyPokemon.hp - damage);
@@ -515,18 +536,14 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
       // Post-attack effects
       if (move.name === 'FORCEJEO') {
         const recoil = Math.max(1, Math.floor(damage / 4));
-        const recoilTeam = [...s.playerTeam];
-        recoilTeam[0] = { ...recoilTeam[0], hp: Math.max(0, recoilTeam[0].hp - recoil) };
-        s = { ...s, playerTeam: recoilTeam };
+        s = withLeadPkmn(s, p => ({ ...p, hp: Math.max(0, p.hp - recoil) }));
         effects.push(log(`¡${playerPkmn.name} recibió daño por el rebote!`));
-        if (recoilTeam[0].hp === 0) {
+        if (s.playerTeam[0].hp === 0) {
           effects.push(log(`¡${playerPkmn.name} se debilitó por el rebote!`));
         }
       } else if (move.recoil) {
         const recoilDmg = Math.max(1, Math.floor(damage * move.recoil));
-        const recoilTeam = [...s.playerTeam];
-        recoilTeam[0] = { ...recoilTeam[0], hp: Math.max(0, recoilTeam[0].hp - recoilDmg) };
-        s = { ...s, playerTeam: recoilTeam };
+        s = withLeadPkmn(s, p => ({ ...p, hp: Math.max(0, p.hp - recoilDmg) }));
         effects.push(log(`¡${playerPkmn.name} recibió daño por el rebote!`));
       }
 
@@ -535,36 +552,26 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           effects.push(log('¡No tuvo efecto!'));
         } else {
           const drained = Math.max(1, Math.floor(damage * move.drain));
-          const drainTeam = [...s.playerTeam];
-          drainTeam[0] = { ...drainTeam[0], hp: Math.min(drainTeam[0].maxHp, drainTeam[0].hp + drained) };
-          s = { ...s, playerTeam: drainTeam };
+          s = withLeadPkmn(s, p => ({ ...p, hp: Math.min(p.maxHp, p.hp + drained) }));
           effects.push(log(`¡${playerPkmn.name} absorbió vitalidad!`));
         }
       }
 
       if (move.faintsUser) {
-        const faintTeam = [...s.playerTeam];
-        faintTeam[0] = { ...faintTeam[0], hp: 0 };
-        s = { ...s, playerTeam: faintTeam };
+        s = withLeadPkmn(s, p => ({ ...p, hp: 0 }));
         effects.push(log(`¡${playerPkmn.name} se debilitó!`));
       }
 
       if (move.recharge && newEnemyHP > 0) {
-        const reTeam = [...s.playerTeam];
-        reTeam[0] = { ...reTeam[0], recharging: true };
-        s = { ...s, playerTeam: reTeam };
+        s = withLeadPkmn(s, p => ({ ...p, recharging: true }));
       }
 
       if (move.twoTurn && !playerPkmn.charging) {
-        const chgTeam = [...s.playerTeam];
-        chgTeam[0] = { ...chgTeam[0], charging: true };
-        s = { ...s, playerTeam: chgTeam };
+        s = withLeadPkmn(s, p => ({ ...p, charging: true }));
       }
 
       if (move.rampage && !playerPkmn.rampage) {
-        const rmpTeam = [...s.playerTeam];
-        rmpTeam[0] = { ...rmpTeam[0], rampage: { move, remainingTurns: 2 + Math.floor(Math.random() * 2) } };
-        s = { ...s, playerTeam: rmpTeam };
+        s = withLeadPkmn(s, p => ({ ...p, rampage: { move, remainingTurns: 2 + Math.floor(Math.random() * 2) } }));
       }
 
       if (move.statusEffect && Math.random() * 100 < (move.statusChance || 100)) {
@@ -636,6 +643,24 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
         const enemyMove = s.isTrainerBattle
           ? selectTrainerMove(s.enemyPokemon, playerPkmn)
           : s.enemyPokemon.moves[Math.floor(Math.random() * s.enemyPokemon.moves.length)];
+
+        if (s.enemyPokemon.confused && s.enemyPokemon.confused.turns > 0) {
+          const updatedConfused = { ...s.enemyPokemon.confused, turns: s.enemyPokemon.confused.turns - 1 };
+          s = { ...s, enemyPokemon: { ...s.enemyPokemon, confused: updatedConfused } };
+          if (Math.random() < 0.5) {
+            const selfDmg = Math.max(1, Math.floor(((((2 * s.enemyPokemon.level / 5 + 2) * 40 * s.enemyPokemon.baseStats.attack) / s.enemyPokemon.baseStats.defense) / 50 + 2) * (217 + Math.floor(Math.random() * 39)) / 255));
+            s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: Math.max(0, s.enemyPokemon.hp - selfDmg) } };
+            effects.push(log(`¡${s.enemyPokemon.name} se golpeó a sí mismo por la confusión!`));
+            if (s.enemyPokemon.hp === 0) {
+              pushDefenderHit(effects, true);
+              const result4 = handleEnemyFainted(s, playerPkmn, effects);
+              return { state: result4.s, effects: result4.effects };
+            }
+            effects.push(log(''));
+            return { state: { ...s, log: '', phase: 'CHOOSING' }, effects };
+          }
+        }
+
         effects.push({ type: 'enemy_anim', payload: 'attack', moveName: enemyMove.name, moveType: enemyMove.type });
 
         if (!moveHits(s.enemyPokemon, playerPkmn, enemyMove)) {
@@ -651,9 +676,7 @@ export function stepBattle(state: BattleState, action: BattleAction): BattleResu
           if (sc.msg) moveLog += ' ' + sc.msg;
           s = { ...s, playerTeam: sc.playerTeam, enemyPokemon: sc.enemyPokemon, badgeBoostGlitchStacks: sc.newGlitchStacks };
           if (enemyMove.statusEffect && Math.random() * 100 < (enemyMove.statusChance || 100)) {
-            const ut2 = [...s.playerTeam];
-            ut2[0] = { ...ut2[0], status: enemyMove.statusEffect };
-            s = { ...s, playerTeam: ut2 };
+            s = withLeadPkmn(s, p => ({ ...p, status: enemyMove.statusEffect }));
             moveLog += ` ¡${playerPkmn.name} ahora está ${enemyMove.statusEffect}!`;
           }
           effects.push(log(moveLog, s.enemyPokemon.name));

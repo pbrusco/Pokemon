@@ -45,6 +45,7 @@ interface GameSaveState {
   isSurfing: boolean;
   hasBike: boolean;
   isBiking: boolean;
+  hasBeatenChampion: boolean;
   flashActive: boolean;
   visitedTowns: string[];
   /** Persisted tile mutations keyed by "mapId:x:y" → serialized Tile */
@@ -111,6 +112,7 @@ const INITIAL_SAVE_STATE: GameSaveState = {
   isSurfing: false,
   hasBike: false,
   isBiking: false,
+  hasBeatenChampion: false,
   flashActive: false,
   visitedTowns: ['PALLET_TOWN'],
   modifiedTiles: {},
@@ -221,6 +223,7 @@ interface GameState extends GameSaveState {
   setIsSurfing: (v: boolean) => void;
   setHasBike: (v: boolean) => void;
   setIsBiking: (v: boolean) => void;
+  setHasBeatenChampion: (v: boolean) => void;
   setFlashActive: (v: boolean) => void;
   addVisitedTown: (town: string) => void;
   setModifiedTile: (mapId: MapID, x: number, y: number, tile: Tile | null) => void;
@@ -268,6 +271,7 @@ function partializeGameState(state: GameState): Record<string, unknown> {
     sfxVolume: state.sfxVolume,
     isSurfing: state.isSurfing,
     hasBike: state.hasBike,
+    hasBeatenChampion: state.hasBeatenChampion,
     flashActive: state.flashActive,
     visitedTowns: state.visitedTowns,
     modifiedTiles: state.modifiedTiles,
@@ -425,6 +429,7 @@ export const useGameStore = create<GameState>()(
       setIsSurfing: (v: boolean) => set({ isSurfing: v }),
       setHasBike: (v: boolean) => set({ hasBike: v }),
       setIsBiking: (v: boolean) => set({ isBiking: v }),
+      setHasBeatenChampion: (v: boolean) => set({ hasBeatenChampion: v }),
       setFlashActive: (v: boolean) => set({ flashActive: v }),
       addVisitedTown: (town) => set(s => ({ visitedTowns: s.visitedTowns.includes(town) ? s.visitedTowns : [...s.visitedTowns, town] })),
       setModifiedTile: (mapId, x, y, tile) => set(s => {

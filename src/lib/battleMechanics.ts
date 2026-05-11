@@ -6,6 +6,7 @@ import {
 import { EVOLUTIONS, expForLevel, baseExpFor } from '../constants/pokemon';
 import { LEARNSET_DATABASE } from '../constants/moves';
 
+import { withLeadPkmn } from './battleEngine';
 import type { BattleState, BattleEffect, BattleSubPhase } from './battleEngine';
 
 // ─── Log helper ──────────────────────────────────────────────────────────────
@@ -147,8 +148,26 @@ function computeExpAndLevelUp(pkmn: Pokemon, expGain: number): {
 
 // ─── Trainer AI ──────────────────────────────────────────────────────────────
 
+function getUsefulMoves(attacker: Pokemon, defender: Pokemon): Move[] {
+  const all = attacker.moves.filter(m => m.pp > 0 && m.name !== attacker.disabled?.moveName);
+  const damaging = all.filter(m => m.power > 0);
+  if (damaging.length > 0) return damaging;
+
+  const defStatus = defender.status;
+  const defTypes = defender.types ?? [defender.type];
+  return all.filter(m => {
+    if (m.statusEffect === 'sleep' && defStatus !== 'none') return false;
+    if (m.statusEffect && defStatus === m.statusEffect) return false;
+    if (m.statusEffect === 'poison' && defTypes.includes('poison')) return false;
+    if (m.statusEffect === 'paralyzed' && defTypes.includes('electric')) return false;
+    if (m.statusEffect === 'burn' && defTypes.includes('fire')) return false;
+    if (m.statusEffect === 'frozen' && defTypes.includes('ice')) return false;
+    return true;
+  });
+}
+
 export function selectTrainerMove(attacker: Pokemon, defender: Pokemon): Move {
-  const moves = attacker.moves.filter(m => m.pp > 0);
+  const moves = getUsefulMoves(attacker, defender);
   if (moves.length === 0) return {
     name: 'FORCEJEO', type: 'normal', power: 50, accuracy: 100, pp: 99, maxPp: 99,
     sfxType: 'noise'
@@ -156,10 +175,10 @@ export function selectTrainerMove(attacker: Pokemon, defender: Pokemon): Move {
   const damagingMoves = moves.filter(m => m.power > 0);
   if (damagingMoves.length === 0) return moves[Math.floor(Math.random() * moves.length)];
 
-  const scored = damagingMoves.map(m => {
-    const effectiveness = getTypeEffectiveness(m.type, defender.types ?? []);
-    return { move: m, score: m.power * effectiveness };
-  });
+  const scored = damagingMoves.map(m => ({
+    move: m,
+    score: m.power * getTypeEffectiveness(m.type, defender.types ?? []),
+  }));
   scored.sort((a, b) => b.score - a.score);
 
   if (Math.random() < 0.7) {
@@ -202,11 +221,10 @@ export function handleEnemyFainted(
   effects.push({ type: 'enemy_anim', payload: 'faint' });
   effects.push(log(`¡${playerPkmn.name} ganó ${expGain} puntos de EXP!`));
 
-  const updatedTeamWithExp = [...s.playerTeam];
-  updatedTeamWithExp[0] = leveledPkmn;
+  s = withLeadPkmn(s, () => leveledPkmn);
   let nextPhase: BattleSubPhase = 'ENEMY_FAINTED';
 
-  s = { ...s, playerTeam: updatedTeamWithExp, log: `¡${playerPkmn.name} ganó ${expGain} puntos de EXP!`, phase: nextPhase };
+  s = { ...s, log: `¡${playerPkmn.name} ganó ${expGain} puntos de EXP!`, phase: nextPhase };
 
   if (didLevelUp) {
     effects.push(log(`¡${leveledPkmn.name} subió al nivel ${leveledPkmn.level}!`));
@@ -218,9 +236,8 @@ export function handleEnemyFainted(
 
     if (willEvolve && evolvedPkmn) {
       effects.push(log(`¡¿Qué?! ¡${leveledPkmn.name} está evolucionando!`));
-      const evoTeam = [...updatedTeamWithExp];
-      evoTeam[0] = evolvedPkmn;
-      s = { ...s, playerTeam: evoTeam, log: `¡Felicidades! ¡${evolvedPkmn.name} ha evolucionado!`, phase: 'EVOLVING', preEvoSprite: leveledPkmn.sprite, evoSprite: evolvedPkmn.sprite };
+      s = withLeadPkmn(s, () => evolvedPkmn);
+      s = { ...s, log: `¡Felicidades! ¡${evolvedPkmn.name} ha evolucionado!`, phase: 'EVOLVING', preEvoSprite: leveledPkmn.sprite, evoSprite: evolvedPkmn.sprite };
     }
   }
 
@@ -246,35 +263,36 @@ export function handleEndOfTurnEffects(
   s: BattleState,
   effects: BattleEffect[],
 ): BattleState {
+  if (s.enemyPokemon.disabled && s.enemyPokemon.disabled.turns > 0) {
+    s = { ...s, enemyPokemon: { ...s.enemyPokemon, disabled: { ...s.enemyPokemon.disabled, turns: s.enemyPokemon.disabled.turns - 1 } } };
+  }
+  if (s.enemyPokemon.disabled && s.enemyPokemon.disabled.turns <= 0) {
+    s = { ...s, enemyPokemon: { ...s.enemyPokemon, disabled: undefined } };
+  }
   if (s.playerTeam[0]?.status === 'poison' && s.playerTeam[0]?.hp > 0) {
     const turns = (s.playerTeam[0].toxicTurns || 0) + 1;
     const chip = s.playerTeam[0].toxicTurns
       ? Math.max(1, Math.floor(s.playerTeam[0].maxHp * turns / 16))
       : Math.max(1, Math.floor(s.playerTeam[0].maxHp / 16));
     const newHp = Math.max(0, s.playerTeam[0].hp - chip);
-    const updated = [...s.playerTeam];
-    updated[0] = { ...updated[0], hp: newHp, toxicTurns: s.playerTeam[0].toxicTurns ? turns : undefined };
+    s = withLeadPkmn(s, p => ({ ...p, hp: newHp, toxicTurns: s.playerTeam[0].toxicTurns ? turns : undefined }));
     effects.push(log(`¡${s.playerTeam[0].name} recibe daño por veneno!`));
-    s = { ...s, playerTeam: updated };
     if (newHp === 0) { s = { ...s, phase: 'PLAYER_FAINTED' }; }
   }
   if (s.playerTeam[0]?.status === 'burn' && s.playerTeam[0]?.hp > 0) {
     const chip = Math.max(1, Math.floor(s.playerTeam[0].maxHp / 16));
     const newHp = Math.max(0, s.playerTeam[0].hp - chip);
-    const updated = [...s.playerTeam];
-    updated[0] = { ...updated[0], hp: newHp };
+    s = withLeadPkmn(s, p => ({ ...p, hp: newHp }));
     effects.push(log(`¡${s.playerTeam[0].name} recibe daño por quemaduras!`));
-    s = { ...s, playerTeam: updated };
     if (newHp === 0) { s = { ...s, phase: 'PLAYER_FAINTED' }; }
   }
   if (s.playerTeam[0]?.leechSeed && s.playerTeam[0]?.hp > 0) {
     const seedChip = Math.max(1, Math.floor(s.playerTeam[0].maxHp / 16));
     const newHp = Math.max(0, s.playerTeam[0].hp - seedChip);
     const healedAmount = Math.min(seedChip, s.enemyPokemon.maxHp - s.enemyPokemon.hp);
-    const updated = [...s.playerTeam];
-    updated[0] = { ...updated[0], hp: newHp };
+    s = withLeadPkmn(s, p => ({ ...p, hp: newHp }));
     effects.push(log(`¡${s.playerTeam[0].name} pierde vida por DRENADORAS!`));
-    s = { ...s, playerTeam: updated, enemyPokemon: { ...s.enemyPokemon, hp: s.enemyPokemon.hp + healedAmount } };
+    s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: s.enemyPokemon.hp + healedAmount } };
     if (newHp === 0) { s = { ...s, phase: 'PLAYER_FAINTED' }; }
   }
   if (s.enemyPokemon.status === 'poison' && s.enemyPokemon.hp > 0) {
@@ -296,21 +314,17 @@ export function handleEndOfTurnEffects(
     const healedToPlayer = Math.min(seedChip, Math.max(0, s.playerTeam[0].maxHp - s.playerTeam[0].hp));
     s = { ...s, enemyPokemon: { ...s.enemyPokemon, hp: newEnemyHp } };
     if (healedToPlayer > 0) {
-      const ph = [...s.playerTeam];
-      ph[0] = { ...ph[0], hp: ph[0].hp + healedToPlayer };
-      s = { ...s, playerTeam: ph };
+      s = withLeadPkmn(s, p => ({ ...p, hp: p.hp + healedToPlayer }));
     }
     effects.push(log(`¡${s.enemyPokemon.name} pierde vida por DRENADORAS!`));
   }
   if (s.playerTeam[0]?.trapped && s.playerTeam[0]?.hp > 0) {
     s.playerTeam[0].trapped.remainingTurns -= 1;
+    const remaining = s.playerTeam[0].trapped.remainingTurns;
     const trapChip = Math.max(1, Math.floor(s.playerTeam[0].maxHp / 16));
     const newHp = Math.max(0, s.playerTeam[0].hp - trapChip);
-    const updated = [...s.playerTeam];
-    updated[0] = { ...updated[0], hp: newHp,
-      trapped: s.playerTeam[0].trapped.remainingTurns > 0 ? s.playerTeam[0].trapped : undefined };
+    s = withLeadPkmn(s, p => ({ ...p, hp: newHp, trapped: remaining > 0 ? { ...p.trapped!, remainingTurns: remaining } : undefined }));
     effects.push(log(`¡${s.playerTeam[0].name} recibe daño por el ataque continuo!`));
-    s = { ...s, playerTeam: updated };
     if (newHp === 0) { s = { ...s, phase: 'PLAYER_FAINTED' }; }
   }
   if (s.enemyPokemon.trapped && s.enemyPokemon.hp > 0) {

@@ -792,7 +792,10 @@ export function buildItemDatabase(pickedItemIds: string[], storyStep: string): R
     SILPH_CO_11F: [],
     ROCKET_HIDEOUT_B1F: [],
     ROCKET_HIDEOUT_B2F: [],
-    INDIGO_PLATEAU_LOBBY: [],
+    INDIGO_PLATEAU_LOBBY: [
+      { id: 'plateau_nurse', name: 'ENFERMERA JOY', type: 'npc', position: { x: 7, y: 10 }, direction: 'down', trainerClass: 'nurse', dialogue: ['¡Bienvenido! TUS POKÉMON están en plena forma.'], onInteract: 'heal' },
+      { id: 'plateau_clerk', name: 'TENDERA', type: 'npc', position: { x: 2, y: 10 }, direction: 'down', trainerClass: 'clerk', dialogue: ['¡Últimas provisiones antes de la LIGA POKÉMON! ¡Buena suerte, entrenador!'] },
+    ],
     SS_ANNE_1F: [],
     SS_ANNE_2F: [],
     SS_ANNE_3F: [],

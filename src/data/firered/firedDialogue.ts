@@ -406,6 +406,7 @@ export const NPC_OVERRIDES: Record<string, NpcOverride> = {
       'Solo los entrenadores que han demostrado ser CAMPEONES pueden entrar.',
       'Si aún no has llegado al ALTO MANDO, te sugiero que sigas entrenando.',
     ],
+    onInteract: 'cerulean_cave_guard',
   },
 
   // ── Gym Leaders (gfx-based overrides) ──────────────────────────────────

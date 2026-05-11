@@ -207,6 +207,12 @@ export const useInteractionEngine = ({
         } else {
           store.setDialogue('¡Espero que disfrutes de tu BICICLETA!');
         }
+      } else if (npc.onInteract === 'cerulean_cave_guard') {
+        if (!store.hasBeatenChampion) {
+          store.setDialogue('GUARDIA: ¡Alto! Esta cueva es extremadamente peligrosa.\nSolo los CAMPEONES pueden entrar.');
+        } else {
+          store.setDialogue('GUARDIA: ¡Adelante, CAMPEÓN! Pero ten cuidado ahí dentro...');
+        }
       } else if (npc.onInteract === 'give_ss_ticket') {
         if (!inventory['SS_TICKET']) {
           store.addInventoryItem('SS_TICKET');

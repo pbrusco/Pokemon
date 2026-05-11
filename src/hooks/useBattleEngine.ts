@@ -207,6 +207,7 @@ export function useBattleEngine({
           fs.setCurrentMap('HALL_OF_FAME' as MapID);
           fs.setPlayerPos({ x: 6, y: 9 });
           fs.setDirection('up');
+          fs.setHasBeatenChampion(true);
           fs.setPhase(EXPLORING);
           fs.setDialogue('PROF. OAK: ¡Increíble! ¡Has derrotado al campeón!');
         } else {

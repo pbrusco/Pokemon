@@ -40,10 +40,25 @@ The simulator can't test UI flows (inventory, team switch, shop) because modals 
 
 ---
 
+## Bug Fixes Needed — Battle Engine
+
+| Bug | Impact | File |
+|---|---|---|
+| ~~Recover / Softboiled / Rest do nothing~~ | `healSelf` never read in runtime; self-healing moves were no-ops | `battleEngine.ts` |
+| ~~Rage activation missing~~ | `rageActive` never set to `true`; lock + boost logic existed but dead | `battleEngine.ts` |
+| ~~Dream Eater works on non-sleeping targets~~ | Drain always applied; missing sleep gate | `battleEngine.ts` |
+| ~~Enemy confusion never checked~~ | 50% self-hit only on player; enemies always act while confused | `battleEngine.ts` |
+| Trainer AI uses status moves on already-statused targets | Will Thunder Wave a paralyzed Pokémon | `battleMechanics.ts:150-169` |
+
 ## Known Gaps (not bugs — DESIGN.md scope decisions or low-priority)
 
 | Gap | Status |
 |---|---|
+| Move effects: Disable, Haze, Counter, Mirror Move, Metronome, Splash, Conversion, Substitute, Transform, Focus Energy, Light Screen, Reflect, Mist | Defined in `moves.ts` but zero runtime logic |
+| Flinch | No `flinchChance` property on any move; no handler |
+| Sleep Talk, Roar/Whirlwind | Not implemented |
+| SS Anne trainers | 3 floors of SS Anne have zero NPCs placed |
+| Route 5, Route 7 trainers | Zero trainers (matches FireRed — short connectors) |
 | Game Corner / slots | Out of scope (no casino mini-game planned) |
 | Day Care / breeding | Out of scope (no Gen I breeding mechanic) |
 | Safari Zone special mechanics | Map exists, special rules (bait/rock/step counter) not wired |
@@ -51,6 +66,5 @@ The simulator can't test UI flows (inventory, team switch, shop) because modals 
 | Mansion journals | Lore item; maps exist but no journal NPCs |
 | Move Deleter / Relearner | Not planned |
 | Trade evolutions | Replaced with level-up evolutions (no trading) |
-| Battle item restriction | Poké Balls blocked during trainer battles; healing items allowed (canonical Gen I) |
 | Cerulean Cave guard gating | Dialogue exists; access gate not enforced |
 | Indigo Plateau Lobby NPCs | Map works; no nurse/shop NPCs |

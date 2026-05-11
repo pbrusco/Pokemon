@@ -112,6 +112,7 @@ export interface Pokemon {
   lastPhysicalDamage?: number;
   trapped?: { damage: number; remainingTurns: number };
   rageActive?: boolean;
+  disabled?: { moveName: string; turns: number };
 }
 
 export interface PokemonSummary {
@@ -147,7 +148,7 @@ export type InventoryCounts = Record<string, number>;
 export interface NPC extends Entity {
   name: string;
   dialogue: string[];
-  onInteract?: 'heal' | 'shop' | 'oak_parcel_turnin' | 'give_town_map' | 'give_poke_flute' | 'give_ss_ticket' | 'wake_snorlax' | 'give_master_ball' | 'give_bike';
+  onInteract?: 'heal' | 'shop' | 'oak_parcel_turnin' | 'give_town_map' | 'give_poke_flute' | 'give_ss_ticket' | 'wake_snorlax' | 'give_master_ball' | 'give_bike' | 'cerulean_cave_guard';
   questId?: string;
   requiredBadge?: string;
   isRival?: boolean;
