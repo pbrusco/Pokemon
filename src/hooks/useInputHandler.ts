@@ -37,7 +37,8 @@ export function useInputHandler({
 
       if (inBattle) {
         const battleSubPhase = store.phase.type === 'BATTLE' ? store.phase.sub.type : null;
-        if (e.key === 'Escape') {
+        const isBackKey = e.key === 'Escape' || e.key === 'Backspace';
+        if (isBackKey) {
           if (battleSubPhase === 'BATTLE_INVENTORY' || battleSubPhase === 'BATTLE_TEAM') {
             store.setPhase(battle(B_CHOOSING));
             return;
@@ -69,7 +70,7 @@ export function useInputHandler({
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
 
       if (store.phase.type === 'EXPLORING') {
-        if (e.key === 'Tab') { e.preventDefault(); if (store.hasPokedex) store.setPhase({ type: 'POKEDEX', returnTo: EXPLORING }); return; }
+        if (e.key === 'Tab' || e.key === 'Backspace') { e.preventDefault(); if (store.hasPokedex) store.setPhase({ type: 'POKEDEX', returnTo: EXPLORING }); return; }
       }
 
       if (e.key === '`') {

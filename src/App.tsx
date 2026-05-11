@@ -151,6 +151,18 @@ export default function App() {
 
   const handleSelect = useCallback(() => {
     const s = useGameStore.getState();
+    if (s.phase.type === 'BATTLE') {
+      const sub = s.phase.sub.type;
+      if (sub === 'BATTLE_INVENTORY' || sub === 'BATTLE_TEAM') {
+        s.setPhase(battle(B_CHOOSING));
+        return;
+      }
+      if (sub === 'CHOOSING' && s.showMoves) {
+        s.setShowMoves(false);
+        return;
+      }
+      return;
+    }
     if (!s.hasPokedex) return;
     if (s.phase.type === 'EXPLORING') s.setPhase({ type: 'POKEDEX', returnTo: EXPLORING });
     else if (s.phase.type === 'POKEDEX') s.setPhase(s.phase.returnTo ?? EXPLORING);
