@@ -14,57 +14,40 @@
 
 These are structural improvements that would reduce complexity if adopted across the codebase. They aren't bugs — the code works — but they represent recurring duplication or missing abstraction.
 
-### 1. `withLeadPkmn` helper (partially done)
+### 1. Unified `resolveAttack(attacker, defender, move)` function
 
-Added to `battleEngine.ts` but not yet used everywhere. Still ~18 remaining spread patterns in `battleEngine.ts` and `battleMechanics.ts` that could use it.
+Enemy attack resolution is implemented 3 times with subtle differences. A single function would remove ~150 lines of duplicate code.
 
-### 2. Unified `resolveAttack(attacker, defender, move)` function
+### 2. `stepBattle` action handlers as a strategy map
 
-Enemy attack resolution is implemented 3 times with subtle differences (ATTACK player-first, ATTACK enemy-first, TICK ENEMY_ATTACK). A single function returning `{ newDefender, effects, log }` would remove ~150 lines of duplicate code.
+The giant `switch` statement (500+ lines) could be replaced with a `Record<string, handler>` map.
 
-### 3. `stepBattle` action handlers as a strategy map
+### 3. Shared `useItem` pipeline (overworld vs. battle)
 
-The giant `switch` statement (500+ lines) could be replaced with a `Record<string, handler>` map. Each handler becomes a pure function in its own file, making unit testing trivial.
+Items are applied via two separate code paths. A single `useItem(itemId, targetPokemon, context)` function would unify them.
 
-### 4. Shared `useItem` pipeline (overworld vs. battle)
+### 4. Headless modal adapter for `GameSimulator`
 
-Items are applied via two separate code paths: `App.tsx` → `handleApplyItemToPokemon` and `battleEngine.ts` → `USE_ITEM` case. A single `useItem(itemId, targetPokemon, context)` function would unify inventory deduction + effect application.
+The simulator can't test UI flows. Extracting `GameModals` into a headless state machine would enable this.
 
-### 5. Headless modal adapter for `GameSimulator`
+### 5. Error boundary / invariant checks in `stepBattle`
 
-The simulator can't test UI flows (inventory, team switch, shop) because modals render via React components. Extracting `GameModals` into a headless state machine with an adapter component would let the simulator drive modal flows.
-
-### 6. Error boundary / invariant checks in `stepBattle`
-
-`stepBattle` assumes `s.playerTeam[0]` always exists. Lightweight assertions would catch state corruption in tests before it reaches the UI.
+Lightweight assertions would catch state corruption in tests before it reaches the UI.
 
 ---
-
-## Bug Fixes Needed — Battle Engine
-
-| Bug | Impact | File |
-|---|---|---|
-| ~~Recover / Softboiled / Rest do nothing~~ | `healSelf` never read in runtime; self-healing moves were no-ops | `battleEngine.ts` |
-| ~~Rage activation missing~~ | `rageActive` never set to `true`; lock + boost logic existed but dead | `battleEngine.ts` |
-| ~~Dream Eater works on non-sleeping targets~~ | Drain always applied; missing sleep gate | `battleEngine.ts` |
-| ~~Enemy confusion never checked~~ | 50% self-hit only on player; enemies always act while confused | `battleEngine.ts` |
-| Trainer AI uses status moves on already-statused targets | Will Thunder Wave a paralyzed Pokémon | `battleMechanics.ts:150-169` |
 
 ## Known Gaps (not bugs — DESIGN.md scope decisions or low-priority)
 
 | Gap | Status |
 |---|---|
-| Move effects: Disable, Haze, Counter, Mirror Move, Metronome, Splash, Conversion, Substitute, Transform, Focus Energy, Light Screen, Reflect, Mist | Defined in `moves.ts` but zero runtime logic |
+| Move effects: Mirror Move, Metronome, Conversion, Substitute, Transform, Focus Energy, Light Screen, Reflect, Mist | Defined in `moves.ts` but zero runtime logic — low impact |
 | Flinch | No `flinchChance` property on any move; no handler |
 | Sleep Talk, Roar/Whirlwind | Not implemented |
-| SS Anne trainers | 3 floors of SS Anne have zero NPCs placed |
-| Route 5, Route 7 trainers | Zero trainers (matches FireRed — short connectors) |
+| SS Anne trainers | 3 floors of SS Anne have no trainer NPCs (side rooms not mapped as separate maps) |
 | Game Corner / slots | Out of scope (no casino mini-game planned) |
 | Day Care / breeding | Out of scope (no Gen I breeding mechanic) |
-| Safari Zone special mechanics | Map exists, special rules (bait/rock/step counter) not wired |
+| Safari Zone special mechanics | Map exists; special rules not wired |
 | S.S. Anne departure | Maps + ticket exist; ship never sails |
 | Mansion journals | Lore item; maps exist but no journal NPCs |
 | Move Deleter / Relearner | Not planned |
 | Trade evolutions | Replaced with level-up evolutions (no trading) |
-| Cerulean Cave guard gating | Dialogue exists; access gate not enforced |
-| Indigo Plateau Lobby NPCs | Map works; no nurse/shop NPCs |
