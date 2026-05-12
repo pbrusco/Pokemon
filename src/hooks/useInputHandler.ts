@@ -6,7 +6,6 @@ import { SfxController } from '../lib/sfx';
 import { useGameStore } from '../store/gameStore';
 
 // How long (ms) to wait after turning before walking begins if key is held.
-// Shorter = snappier; 120ms is enough to show the turn frame without feeling sluggish.
 const TURN_WALK_DELAY_MS = 120;
 
 interface UseInputHandlerParams {
@@ -33,12 +32,15 @@ export function useInputHandler({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const store = useGameStore.getState();
+      const kb = store.keyBindings;
+
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+
       const inBattle = store.phase.type === 'BATTLE';
 
       if (inBattle) {
         const battleSubPhase = store.phase.type === 'BATTLE' ? store.phase.sub.type : null;
-        const isBackKey = e.key === 'Escape' || e.key === 'Backspace';
-        if (isBackKey) {
+        if (e.key === 'Escape' || e.key === 'Backspace') {
           if (battleSubPhase === 'BATTLE_INVENTORY' || battleSubPhase === 'BATTLE_TEAM') {
             store.setPhase(battle(B_CHOOSING));
             return;
@@ -49,8 +51,7 @@ export function useInputHandler({
           }
         }
         if (battleSubPhase === 'CHOOSING') {
-          const inMovesMenu = store.showMoves;
-          if (!inMovesMenu) {
+          if (!store.showMoves) {
             if (e.key === 'w' || e.key === 'W') { dispatchBattle({ type: 'CHEAT_KO' }); return; }
             if (e.key === '1') { store.setShowMoves(true); return; }
             if (e.key === '2') { store.setPhase(battle(B_BATTLE_TEAM)); return; }
@@ -67,13 +68,11 @@ export function useInputHandler({
         return;
       }
 
-      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
-
       if (store.phase.type === 'EXPLORING') {
         if (e.key === 'Tab' || e.key === 'Backspace') { e.preventDefault(); if (store.hasPokedex) store.setPhase({ type: 'POKEDEX', returnTo: EXPLORING }); return; }
       }
 
-      if (e.key === '`') {
+      if (e.key.toLowerCase() === kb.menu.toLowerCase()) {
         const current = store.phase;
         const isMenu = current.type === 'MENU';
         SfxController.play(isMenu ? 'menu_close' : 'menu_open');
@@ -81,18 +80,18 @@ export function useInputHandler({
         return;
       }
 
-      if (e.key === 'g' || e.key === 'G') {
+      if (e.key.toLowerCase() === kb.gmode.toLowerCase()) {
         store.toggleGhostMode();
         return;
       }
 
-      if (e.key === 'm' || e.key === 'M') {
+      if (e.key.toLowerCase() === kb.minimap.toLowerCase()) {
         store.toggleMinimap();
         return;
       }
 
-      if (store.dialogue) {
-        if (!e.repeat) {
+      if (store.dialogue || store.confirm) {
+        if (!e.repeat && store.dialogue) {
           const cb = store.dialogueCallback;
           SfxController.play('dialog_advance');
           store.setDialogue(null);
@@ -102,42 +101,36 @@ export function useInputHandler({
       }
 
       let dir: Direction | null = null;
-      switch (e.key) {
-        case 'ArrowUp': dir = 'up'; break;
-        case 'ArrowDown': dir = 'down'; break;
-        case 'ArrowLeft': dir = 'left'; break;
-        case 'ArrowRight': dir = 'right'; break;
-        case 'z': case 'Enter': handleAction(); break;
-        case ' ': handleAction(); break;
-        case 'Escape': if (store.phase.type === 'MENU') store.setPhase(store.phase.returnTo ?? EXPLORING); break;
-        case 'b': case 'B':
-          if (store.phase.type === 'EXPLORING' && store.hasBike) {
-            store.setIsBiking(!store.isBiking);
-          }
-          break;
+      if (e.key.toLowerCase() === kb.up.toLowerCase()) dir = 'up';
+      else if (e.key.toLowerCase() === kb.down.toLowerCase()) dir = 'down';
+      else if (e.key.toLowerCase() === kb.left.toLowerCase()) dir = 'left';
+      else if (e.key.toLowerCase() === kb.right.toLowerCase()) dir = 'right';
+      else if (e.key.toLowerCase() === kb.interact.toLowerCase() || e.key === ' ') handleAction();
+      else if (e.key.toLowerCase() === kb.back.toLowerCase()) {
+        if (store.phase.type === 'MENU') store.setPhase(store.phase.returnTo ?? EXPLORING);
+      }
+      else if (e.key.toLowerCase() === kb.bike.toLowerCase()) {
+        if (store.phase.type === 'EXPLORING' && store.hasBike) {
+          store.setIsBiking(!store.isBiking);
+        }
       }
 
       if (dir) {
-        if (spottedTrainerId) return; // Block movement if a trainer has spotted us
+        if (spottedTrainerId) return;
 
         const currentDir = store.direction;
 
-        // Turn-in-place: first fresh press of a *new* direction just turns the sprite.
-        // e.repeat means the key is held down (OS key-repeat), so we skip turn-only then.
         if (!e.repeat && dir !== currentDir && lastTurnedDir.current !== dir) {
           store.setDirection(dir);
           lastTurnedDir.current = dir;
           pressedKeys.current.add(dir);
-          // After a short delay, if the key is still held start walking.
-          // We bypass the OS key-repeat delay (300-500ms) by doing this ourselves.
           if (turnWalkTimer.current) clearTimeout(turnWalkTimer.current);
           turnWalkTimer.current = setTimeout(() => {
             if (pressedKeys.current.has(dir)) handleMove(dir);
           }, TURN_WALK_DELAY_MS);
-          return; // Don't actually step yet
+          return;
         }
 
-        // Same direction pressed again (after already turning), or OS key-repeat → move
         const wasEmpty = pressedKeys.current.size === 0;
         pressedKeys.current.add(dir);
         if (wasEmpty || e.repeat) handleMove(dir);
@@ -145,18 +138,16 @@ export function useInputHandler({
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
+      const kb = useGameStore.getState().keyBindings;
       let dir: Direction | null = null;
-      switch (e.key) {
-        case 'ArrowUp': dir = 'up'; break;
-        case 'ArrowDown': dir = 'down'; break;
-        case 'ArrowLeft': dir = 'left'; break;
-        case 'ArrowRight': dir = 'right'; break;
-      }
+      if (e.key.toLowerCase() === kb.up.toLowerCase()) dir = 'up';
+      else if (e.key.toLowerCase() === kb.down.toLowerCase()) dir = 'down';
+      else if (e.key.toLowerCase() === kb.left.toLowerCase()) dir = 'left';
+      else if (e.key.toLowerCase() === kb.right.toLowerCase()) dir = 'right';
       if (dir) {
         pressedKeys.current.delete(dir);
         if (lastTurnedDir.current === dir) {
           lastTurnedDir.current = null;
-          // Cancel pending walk if key was released before the delay elapsed
           if (turnWalkTimer.current) {
             clearTimeout(turnWalkTimer.current);
             turnWalkTimer.current = null;
@@ -175,7 +166,6 @@ export function useInputHandler({
   }, [handleMove, handleAction, isTrainerBattle, spottedTrainerId, dispatchBattle]);
 
   const isMoving = useGameStore(s => s.isMoving);
-  // Self-trigger: the moment a move finishes, immediately start the next one if a key is held.
   useEffect(() => {
     if (isMoving || spottedTrainerId) return;
     if (pressedKeys.current.size > 0) {
@@ -183,7 +173,6 @@ export function useInputHandler({
       handleMove(dir);
       return;
     }
-    // Mobile joystick hold-to-walk: keep moving while the joystick is held in a direction.
     if (mobileDirRef?.current) handleMove(mobileDirRef.current);
   }, [isMoving, handleMove, spottedTrainerId, mobileDirRef]);
 }

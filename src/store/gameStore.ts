@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { type Pokemon, type Position, type Direction, type Entity, type InventoryCounts, type MapID, type PokedexState, type WildPokemonEntity, type BattleLogEntry, type Tile } from '../types';
+import { type Pokemon, type Position, type Direction, type Entity, type InventoryCounts, type MapID, type PokedexState, type WildPokemonEntity, type BattleLogEntry, type Tile, type KeyBindings, DEFAULT_KEY_BINDINGS } from '../types';
 import { worldConfig } from '../data/worldConfig';
 import { buildNPCDatabase, buildItemDatabase } from '../data/npcDatabase';
 import { EVOLUTION_RULES } from '../constants/pokemon';
@@ -48,6 +48,7 @@ interface GameSaveState {
   hasBeatenChampion: boolean;
   flashActive: boolean;
   visitedTowns: string[];
+  keyBindings: KeyBindings;
   /** Persisted tile mutations keyed by "mapId:x:y" → serialized Tile */
   modifiedTiles: Record<string, { type: string; walkable: boolean }>;
   /** Epoch ms of the last explicit Save. 0 if never saved manually. */
@@ -115,6 +116,7 @@ const INITIAL_SAVE_STATE: GameSaveState = {
   hasBeatenChampion: false,
   flashActive: false,
   visitedTowns: ['PALLET_TOWN'],
+  keyBindings: DEFAULT_KEY_BINDINGS,
   modifiedTiles: {},
   lastSavedAt: 0,
 };
@@ -227,6 +229,7 @@ interface GameState extends GameSaveState {
   setFlashActive: (v: boolean) => void;
   addVisitedTown: (town: string) => void;
   setModifiedTile: (mapId: MapID, x: number, y: number, tile: Tile | null) => void;
+  setKeyBindings: (bindings: SetStateAction<KeyBindings>) => void;
 
   /** Snapshot the current state into save slot `n` (overwriting any existing
    *  save in that slot). Returns the timestamp written. */
@@ -274,6 +277,7 @@ function partializeGameState(state: GameState): Record<string, unknown> {
     hasBeatenChampion: state.hasBeatenChampion,
     flashActive: state.flashActive,
     visitedTowns: state.visitedTowns,
+    keyBindings: state.keyBindings,
     modifiedTiles: state.modifiedTiles,
     lastSavedAt: state.lastSavedAt,
   };
@@ -442,6 +446,10 @@ export const useGameStore = create<GameState>()(
         }
         return { modifiedTiles: next };
       }),
+
+      setKeyBindings: (bindings) => set(s => ({
+        keyBindings: typeof bindings === 'function' ? bindings(s.keyBindings) : bindings,
+      })),
 
       setGrassEffect: (pos) => set({ grassEffect: pos }),
       setSpottedTrainerId: (id) => set({ spottedTrainerId: id }),

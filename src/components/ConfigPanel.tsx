@@ -1,9 +1,9 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useGameStore } from '../store/gameStore';
 import { SfxController } from '../lib/sfx';
 import { setGameSpeed } from '../lib/gameSpeed';
-import { EXPLORING } from '../types';
+import { EXPLORING, DEFAULT_KEY_BINDINGS, type KeyBindings } from '../types';
 
 function ConfigSection({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -75,6 +75,87 @@ function VolumeRow({ label, muted, volume, onToggle, onVolumeChange, testLabel, 
   );
 }
 
+function keyDisplayName(key: string): string {
+  const map: Record<string, string> = {
+    ArrowUp: '↑',
+    ArrowDown: '↓',
+    ArrowLeft: '←',
+    ArrowRight: '→',
+    Enter: 'Entrar',
+    Escape: 'Esc',
+    Backspace: '←⌫',
+    ' ': 'Espacio',
+    '`': '`',
+    Tab: 'Tab',
+  };
+  return map[key] ?? key.toUpperCase();
+}
+
+const KEY_NAMES: { key: keyof KeyBindings; label: string }[] = [
+  { key: 'up', label: 'Arriba' },
+  { key: 'down', label: 'Abajo' },
+  { key: 'left', label: 'Izquierda' },
+  { key: 'right', label: 'Derecha' },
+  { key: 'interact', label: 'Interactuar' },
+  { key: 'menu', label: 'Menú' },
+  { key: 'back', label: 'Atrás' },
+  { key: 'bike', label: 'Bici' },
+  { key: 'gmode', label: 'Fantasmas' },
+  { key: 'minimap', label: 'Minimapa' },
+];
+
+function KeyBindRow({ label, currentKey, onBind }: {
+  label: string;
+  currentKey: string;
+  onBind: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between py-1">
+      <span className="font-mono text-sm text-slate-800">{label}</span>
+      <button
+        onClick={(e) => { e.stopPropagation(); onBind(); }}
+        className="font-mono text-xs px-3 py-0.5 rounded border-2 border-slate-300 bg-slate-100 hover:bg-slate-200 transition-colors min-w-[60px] text-center"
+      >
+        {keyDisplayName(currentKey)}
+      </button>
+    </div>
+  );
+}
+
+function KeyBindListener({ activeKey, onCapture }: {
+  activeKey: keyof KeyBindings | null;
+  onCapture: (key: string) => void;
+}) {
+  useEffect(() => {
+    if (!activeKey) return;
+    const handler = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.key === 'Escape') {
+        onCapture('');
+        return;
+      }
+      onCapture(e.key);
+    };
+    window.addEventListener('keydown', handler, true);
+    return () => window.removeEventListener('keydown', handler, true);
+  }, [activeKey, onCapture]);
+
+  if (!activeKey) return null;
+  return (
+    <div className="fixed inset-0 z-[200] bg-black/40 flex items-center justify-center">
+      <div className="bg-white border-[3px] border-slate-600 rounded-lg px-6 py-4 shadow-lg text-center">
+        <p className="font-mono text-sm text-slate-700 mb-2">
+          Pulsa una tecla para <b>{KEY_NAMES.find(k => k.key === activeKey)?.label}</b>
+        </p>
+        <p className="font-mono text-[10px] text-slate-400">
+          (Esc para cancelar)
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export const ConfigPanel = memo(() => {
   const phase = useGameStore(s => s.phase);
   const musicMuted = useGameStore(s => s.musicMuted);
@@ -83,14 +164,18 @@ export const ConfigPanel = memo(() => {
   const sfxVolume = useGameStore(s => s.sfxVolume);
   const ghostMode = useGameStore(s => s.ghostMode);
   const showMinimap = useGameStore(s => s.showMinimap);
+  const keyBindings = useGameStore(s => s.keyBindings);
   const setMusicMuted = useGameStore(s => s.setMusicMuted);
   const setMusicVolume = useGameStore(s => s.setMusicVolume);
   const setSfxMuted = useGameStore(s => s.setSfxMuted);
   const setSfxVolume = useGameStore(s => s.setSfxVolume);
   const toggleGhostMode = useGameStore(s => s.toggleGhostMode);
   const toggleMinimap = useGameStore(s => s.toggleMinimap);
+  const setKeyBindings = useGameStore(s => s.setKeyBindings);
 
   const returnTo = phase.type === 'CONFIG' ? (phase.returnTo ?? EXPLORING) : EXPLORING;
+
+  const [listeningKey, setListeningKey] = useState<keyof KeyBindings | null>(null);
 
   const handleMusicVolume = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const v = parseFloat(e.target.value);
@@ -122,90 +207,125 @@ export const ConfigPanel = memo(() => {
     setGameSpeed(parseFloat(e.target.value));
   }, []);
 
+  const startListening = useCallback((key: keyof KeyBindings) => {
+    setListeningKey(key);
+  }, []);
+
+  const handleCapture = useCallback((capturedKey: string) => {
+    if (listeningKey && capturedKey) {
+      setKeyBindings(prev => ({ ...prev, [listeningKey]: capturedKey }));
+    }
+    setListeningKey(null);
+  }, [listeningKey, setKeyBindings]);
+
+  const resetKeyBindings = useCallback(() => {
+    setKeyBindings(DEFAULT_KEY_BINDINGS);
+    SfxController.play('menu_select');
+  }, [setKeyBindings]);
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[110] bg-black/60 flex items-center justify-center p-4"
-    >
-      <div className="w-full max-w-sm max-h-[85vh] flex flex-col">
-        <div className="bg-white border-[4px] border-slate-800 rounded-lg shadow-[6px_6px_0_rgba(0,0,0,0.15)] flex flex-col">
-          {/* Header */}
-          <div className="border-b-2 border-slate-300 px-4 py-2 bg-slate-50 rounded-t shrink-0">
-            <span className="font-mono font-bold text-slate-800 text-sm tracking-wide uppercase">
-              Configurar
-            </span>
-          </div>
+    <>
+      <KeyBindListener activeKey={listeningKey} onCapture={handleCapture} />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[110] bg-black/60 flex items-center justify-center p-4"
+      >
+        <div className="w-full max-w-sm max-h-[85vh] flex flex-col">
+          <div className="bg-white border-[4px] border-slate-800 rounded-lg shadow-[6px_6px_0_rgba(0,0,0,0.15)] flex flex-col">
+            <div className="border-b-2 border-slate-300 px-4 py-2 bg-slate-50 rounded-t shrink-0">
+              <span className="font-mono font-bold text-slate-800 text-sm tracking-wide uppercase">
+                Configurar
+              </span>
+            </div>
 
-          {/* Content — scrollable */}
-          <div className="px-4 py-4 space-y-5 overflow-y-auto">
-            <ConfigSection label="Audio">
-              <VolumeRow
-                label="Música"
-                muted={musicMuted} volume={musicVolume}
-                onToggle={toggleMusic} onVolumeChange={handleMusicVolume}
-              />
-              <div className="mt-3">
+            <div className="px-4 py-4 space-y-5 overflow-y-auto">
+              <ConfigSection label="Audio">
                 <VolumeRow
-                  label="Efectos"
-                  muted={sfxMuted} volume={sfxVolume}
-                  onToggle={toggleSfx} onVolumeChange={handleSfxVolume}
-                  testLabel="Test" onTest={testSfx}
+                  label="Música"
+                  muted={musicMuted} volume={musicVolume}
+                  onToggle={toggleMusic} onVolumeChange={handleMusicVolume}
                 />
-              </div>
-            </ConfigSection>
-
-            <ConfigSection label="Utilidades">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex flex-col">
-                  <span className="font-mono text-sm text-slate-800">Modo fantasma</span>
-                  <span className="font-mono text-[10px] text-slate-400">Atravesar paredes</span>
+                <div className="mt-3">
+                  <VolumeRow
+                    label="Efectos"
+                    muted={sfxMuted} volume={sfxVolume}
+                    onToggle={toggleSfx} onVolumeChange={handleSfxVolume}
+                    testLabel="Test" onTest={testSfx}
+                  />
                 </div>
-                <ToggleButton active={ghostMode} onToggle={toggleGhostMode} />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col">
-                  <span className="font-mono text-sm text-slate-800">Minimapa</span>
-                  <span className="font-mono text-[10px] text-slate-400">Superior izquierda</span>
+              </ConfigSection>
+
+              <ConfigSection label="Utilidades">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex flex-col">
+                    <span className="font-mono text-sm text-slate-800">Modo fantasma</span>
+                    <span className="font-mono text-[10px] text-slate-400">Atravesar paredes</span>
+                  </div>
+                  <ToggleButton active={ghostMode} onToggle={toggleGhostMode} />
                 </div>
-                <ToggleButton active={showMinimap} onToggle={toggleMinimap} />
-              </div>
-            </ConfigSection>
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="font-mono text-sm text-slate-800">Minimapa</span>
+                    <span className="font-mono text-[10px] text-slate-400">Superior izquierda</span>
+                  </div>
+                  <ToggleButton active={showMinimap} onToggle={toggleMinimap} />
+                </div>
+              </ConfigSection>
 
-            <ConfigSection label="Velocidad del juego">
-              <input
-                type="range"
-                min="1"
-                max="8"
-                step="1"
-                defaultValue="1"
-                onChange={handleSpeed}
-                className="w-full h-1.5 rounded-full appearance-none cursor-pointer mt-[-2px]"
-                style={{
-                  background: `linear-gradient(to right, #d03030 0%, #d03030 100%)`,
-                  accentColor: '#d03030',
-                }}
-              />
-              <div className="flex justify-between mt-0.5">
-                <span className="font-mono text-[9px] text-slate-400">x1</span>
-                <span className="font-mono text-[9px] text-slate-400">x8</span>
-              </div>
-            </ConfigSection>
-          </div>
+              <ConfigSection label="Teclado">
+                <div className="space-y-0.5">
+                  {KEY_NAMES.map(({ key, label }) => (
+                    <KeyBindRow
+                      key={key}
+                      label={label}
+                      currentKey={keyBindings[key]}
+                      onBind={() => startListening(key)}
+                    />
+                  ))}
+                </div>
+                <button
+                  onClick={resetKeyBindings}
+                  className="font-mono text-[10px] text-slate-400 hover:text-slate-700 mt-2 underline"
+                >
+                  Restaurar valores por defecto
+                </button>
+              </ConfigSection>
 
-          {/* Footer */}
-          <div className="border-t-2 border-slate-300 px-4 py-3 bg-slate-50 rounded-b flex justify-between items-center shrink-0">
-            <span className="font-mono text-[9px] text-slate-400">Atajos: G M 1 2</span>
-            <button
-              onClick={() => useGameStore.getState().setPhase(returnTo)}
-              className="font-mono font-bold text-sm text-slate-800 border-2 border-slate-400 rounded px-5 py-1 hover:bg-slate-100 transition-colors"
-            >
-              CERRAR
-            </button>
+              <ConfigSection label="Velocidad del juego">
+                <input
+                  type="range"
+                  min="1"
+                  max="8"
+                  step="1"
+                  defaultValue="1"
+                  onChange={handleSpeed}
+                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer mt-[-2px]"
+                  style={{
+                    background: `linear-gradient(to right, #d03030 0%, #d03030 100%)`,
+                    accentColor: '#d03030',
+                  }}
+                />
+                <div className="flex justify-between mt-0.5">
+                  <span className="font-mono text-[9px] text-slate-400">x1</span>
+                  <span className="font-mono text-[9px] text-slate-400">x8</span>
+                </div>
+              </ConfigSection>
+            </div>
+
+            <div className="border-t-2 border-slate-300 px-4 py-3 bg-slate-50 rounded-b flex justify-between items-center shrink-0">
+              <span className="font-mono text-[9px] text-slate-400">Atajos: G M 1 2</span>
+              <button
+                onClick={() => useGameStore.getState().setPhase(returnTo)}
+                className="font-mono font-bold text-sm text-slate-800 border-2 border-slate-400 rounded px-5 py-1 hover:bg-slate-100 transition-colors"
+              >
+                CERRAR
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </>
   );
 });

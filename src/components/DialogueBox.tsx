@@ -1,6 +1,7 @@
 import { memo, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getSpeakerPortrait } from '../data/speakerPortraits';
+import { useGameStore } from '../store/gameStore';
 
 const PAGE_LEN = 120;
 const CHARS_PER_TICK = 2;
@@ -41,10 +42,12 @@ export const DialogueBox = memo(({ text, onComplete, confirm }: DialogueBoxProps
   const [pageIdx, setPageIdx] = useState(0);
   const [displayed, setDisplayed] = useState('');
   const [done, setDone] = useState(false);
+  const [focusYes, setFocusYes] = useState(true);
 
   // Reset page index whenever the source text changes
   useEffect(() => {
     setPageIdx(0);
+    setFocusYes(true);
   }, [text]);
 
   // Typewriter effect — reruns whenever the visible page changes
@@ -80,22 +83,27 @@ export const DialogueBox = memo(({ text, onComplete, confirm }: DialogueBoxProps
     }
   }, [done, currentPage, pageIdx, pages.length, onComplete, confirm]);
 
-  // Keyboard shortcuts for confirm mode: 1/Z = Sí, 2/X = No.
+  // Keyboard shortcuts for confirm mode
   useEffect(() => {
     if (!confirm || !done || pageIdx < pages.length - 1) return;
     const onKey = (e: KeyboardEvent) => {
+      const kb = useGameStore.getState().keyBindings;
       const k = e.key.toLowerCase();
-      if (k === 'z' || k === '1' || k === 'enter' || k === 'y') {
+      if (k === 'arrowleft' || k === 'arrowright') {
         e.preventDefault();
-        confirm.onYes();
-      } else if (k === 'x' || k === '2' || k === 'escape' || k === 'n') {
+        setFocusYes(p => !p);
+      } else if (k === 'enter' || k === kb.interact.toLowerCase()) {
+        e.preventDefault();
+        if (focusYes) confirm.onYes();
+        else confirm.onNo();
+      } else if (k === kb.back.toLowerCase() || k === 'x' || k === 'escape') {
         e.preventDefault();
         confirm.onNo();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [confirm, done, pageIdx, pages.length]);
+  }, [confirm, done, pageIdx, pages.length, focusYes]);
 
   return (
     <motion.div
@@ -189,18 +197,20 @@ export const DialogueBox = memo(({ text, onComplete, confirm }: DialogueBoxProps
                   <button
                     type="button"
                     onClick={confirm.onYes}
-                    className="px-4 py-1 bg-[#f8d830] text-[#383838] font-bold rounded-sm border-2 border-[#383838] hover:bg-[#fce97a] active:translate-y-px"
+                    onPointerEnter={() => setFocusYes(true)}
+                    className={`px-4 py-1 text-[#383838] font-bold rounded-sm border-2 border-[#383838] hover:bg-[#fce97a] active:translate-y-px transition-colors ${focusYes ? 'bg-[#f8d830]' : 'bg-[#a89028]'}`}
                     style={{ fontSize: '12px' }}
                   >
-                    SÍ
+                    ▶ SÍ
                   </button>
                   <button
                     type="button"
                     onClick={confirm.onNo}
-                    className="px-4 py-1 bg-white text-[#383838] font-bold rounded-sm border-2 border-[#383838] hover:bg-[#f0f0f0] active:translate-y-px"
+                    onPointerEnter={() => setFocusYes(false)}
+                    className={`px-4 py-1 text-[#383838] font-bold rounded-sm border-2 border-[#383838] hover:bg-[#f0f0f0] active:translate-y-px transition-colors ${!focusYes ? 'bg-white' : 'bg-[#c0c0c0]'}`}
                     style={{ fontSize: '12px' }}
                   >
-                    NO
+                    ▶ NO
                   </button>
                 </motion.div>
               ) : done ? (

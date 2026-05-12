@@ -197,11 +197,12 @@ export function useMovementEngine({
       const t = grid[nextY][nextX].type;
       const ledgeMatch =
         (t === 'ledge_down'  && dir === 'down')  ||
+        (t === 'ledge_up'    && dir === 'up')    ||
         (t === 'ledge_left'  && dir === 'left')  ||
         (t === 'ledge_right' && dir === 'right');
       if (ledgeMatch) {
         const landX = dir === 'left' ? nextX - 1 : dir === 'right' ? nextX + 1 : nextX;
-        const landY = dir === 'down' ? nextY + 1 : nextY;
+        const landY = dir === 'up' ? nextY - 1 : dir === 'down' ? nextY + 1 : nextY;
         if (
           inBounds(landX, landY) &&
           (grid[landY][landX].walkable || ghostMode) &&

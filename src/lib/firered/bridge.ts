@@ -130,10 +130,10 @@ export function bridgeFireredLayout(layout: FireredLayoutJson): FireredParsedMap
     for (let x = 0; x < layout.width; x++) {
       const behavior = behaviorGrid?.[y]?.[x] ?? 0;
       const t = tileFromBehavior(behavior, false);
-      // Door / sign / warp_pad / counter metatiles have collision=1 but should NOT be WALL.
+      // Door / sign / warp_pad / counter / ledge metatiles have collision=1 but should NOT be WALL.
       // Same for tiles with directional blockFrom (MB_IMPASSABLE_<DIR>).
       const blocked = layout.collision[y][x] !== 0;
-      if (blocked && t.type !== 'door' && t.type !== 'sign' && t.type !== 'warp_pad' && t.type !== 'counter' && !t.blockFrom) {
+      if (blocked && t.type !== 'door' && t.type !== 'sign' && t.type !== 'warp_pad' && t.type !== 'counter' && !t.type.startsWith('ledge_') && !t.blockFrom) {
         row.push(WALL);
       } else {
         row.push(t);

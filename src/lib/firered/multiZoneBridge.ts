@@ -78,9 +78,9 @@ export function bridgeStitchedKanto(stitch: StitchedDescriptor): MultiZoneFirere
         tiles[wy][wx] = tileFromBehavior(behavior, true);
 
         // Override with WALL if this metatile has collision AND isn't a
-        // known "solid but functional" tile (door, sign, warp_pad, boulder, counter).
+        // known "solid but functional" tile (door, sign, warp_pad, boulder, counter, ledge).
         const blocked = z.layout.collision[y][x] !== 0;
-        if (blocked && tiles[wy][wx].type !== 'door' && tiles[wy][wx].type !== 'sign' && tiles[wy][wx].type !== 'warp_pad' && tiles[wy][wx].type !== 'boulder' && tiles[wy][wx].type !== 'counter' && !tiles[wy][wx].blockFrom) {
+        if (blocked && tiles[wy][wx].type !== 'door' && tiles[wy][wx].type !== 'sign' && tiles[wy][wx].type !== 'warp_pad' && tiles[wy][wx].type !== 'boulder' && tiles[wy][wx].type !== 'counter' && !tiles[wy][wx].type.startsWith('ledge_') && !tiles[wy][wx].blockFrom) {
           tiles[wy][wx] = WALL;
         }
       }

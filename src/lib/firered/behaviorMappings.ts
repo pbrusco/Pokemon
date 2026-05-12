@@ -18,7 +18,7 @@ const WATER_BEHAVIORS = new Set([
 const LEDGE_BEHAVIORS: Record<number, Tile['type']> = {
   0x38: 'ledge_right',   // MB_JUMP_EAST  → jump from east → fall right
   0x39: 'ledge_left',    // MB_JUMP_WEST  → jump from west → fall left
-  // 0x3A: MB_JUMP_NORTH — no tile type for upward ledges yet, skip
+  0x3A: 'ledge_up',      // MB_JUMP_NORTH → jump from north → fall up
   0x3B: 'ledge_down',    // MB_JUMP_SOUTH → jump from south → fall down
 };
 

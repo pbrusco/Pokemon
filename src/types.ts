@@ -175,7 +175,7 @@ export interface Entity {
 }
 
 export interface Tile {
-  type: 'grass' | 'water' | 'path' | 'wall' | 'door' | 'floor' | 'carpet' | 'table' | 'tree' | 'sign' | 'cut_tree' | 'boulder' | 'bookshelf' | 'machine' | 'fence' | 'flower' | 'ledge_down' | 'ledge_left' | 'ledge_right' | 'cave' | 'sand' | 'warp_pad' | 'counter';
+  type: 'grass' | 'water' | 'path' | 'wall' | 'door' | 'floor' | 'carpet' | 'table' | 'tree' | 'sign' | 'cut_tree' | 'boulder' | 'bookshelf' | 'machine' | 'fence' | 'flower' | 'ledge_down' | 'ledge_up' | 'ledge_left' | 'ledge_right' | 'cave' | 'sand' | 'warp_pad' | 'counter';
   walkable: boolean;
   /**
    * Movement directions the player CANNOT use to enter this tile. Used for
@@ -186,6 +186,32 @@ export interface Tile {
    */
   blockFrom?: Direction[];
 }
+
+export interface KeyBindings {
+  up: string;
+  down: string;
+  left: string;
+  right: string;
+  interact: string;
+  menu: string;
+  back: string;
+  bike: string;
+  gmode: string;
+  minimap: string;
+}
+
+export const DEFAULT_KEY_BINDINGS: KeyBindings = {
+  up: 'ArrowUp',
+  down: 'ArrowDown',
+  left: 'ArrowLeft',
+  right: 'ArrowRight',
+  interact: 'z',
+  menu: '`',
+  back: 'Escape',
+  bike: 'b',
+  gmode: 'g',
+  minimap: 'm',
+};
 
 export const TILE_SIZE = 64;
 
