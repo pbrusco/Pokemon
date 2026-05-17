@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
+import { useEffect, useRef, useMemo, useCallback, useState, lazy, Suspense } from 'react';
 import { type BattleState } from './lib/battleEngine';
 import { battle, B_CHOOSING, B_FORCED_SWITCH, EXPLORING } from './types';
 import { type Direction } from './types';
@@ -17,10 +17,15 @@ import { SfxController } from './lib/sfx';
 import { WorldView } from './components/WorldView';
 import { Minimap } from './components/Minimap';
 import { MobileControls } from './components/MobileControls';
-import { SideMenu } from './components/SideMenu';
-import { GameModals } from './components/GameModals';
-import { LoadGameModal } from './components/LoadGameModal';
 import { ScreenEffects } from './components/ScreenEffects';
+
+// Heavy menu/battle UIs that the player never sees until they open a menu
+// or start a fight — lazy-load to keep the initial JS bundle small. Suspense
+// fallback is `null` because each is rendered conditionally; while the chunk
+// downloads the player just sees the overworld for a moment.
+const SideMenu = lazy(() => import('./components/SideMenu').then(m => ({ default: m.SideMenu })));
+const GameModals = lazy(() => import('./components/GameModals').then(m => ({ default: m.GameModals })));
+const LoadGameModal = lazy(() => import('./components/LoadGameModal').then(m => ({ default: m.LoadGameModal })));
 import { applyItemToPokemon } from './lib/itemUtils';
 import { HM_MOVE_MAP, HM_REQUIREMENTS, TM_MOVE_MAP, STONE_EVOLUTIONS, ITEMS_DATABASE } from './constants/items';
 import { MOVES } from './constants/moves';
@@ -419,31 +424,33 @@ export default function App() {
 
       <MobileControls onMove={handleMove} onDirChange={(dir) => { mobileDirRef.current = dir; }} onAction={handleAction} onBack={handleBack} onSelect={handleSelect} setPhase={setPhase} />
 
-      <SideMenu
-        phase={phase}
-        playerTeam={playerTeam}
-        storyStep={storyStep}
-        inventory={inventory}
-        hasPokedex={hasPokedex}
-        setPhase={setPhase}
-        setDialogue={setDialogue}
-        resetGame={resetGame}
-        onUseItem={handleUseItem}
-        giveDemoTeam={giveDemoTeam}
-      />
+      <Suspense fallback={null}>
+        <SideMenu
+          phase={phase}
+          playerTeam={playerTeam}
+          storyStep={storyStep}
+          inventory={inventory}
+          hasPokedex={hasPokedex}
+          setPhase={setPhase}
+          setDialogue={setDialogue}
+          resetGame={resetGame}
+          onUseItem={handleUseItem}
+          giveDemoTeam={giveDemoTeam}
+        />
 
-      <GameModals
-        battleShake={battleShake}
-        enemyAnim={enemyAnim}
-        playerAnim={playerAnim}
-        handlePCSwap={handlePCSwap}
-        handleUseItem={handleUseItem}
-        handleApplyItemToPokemon={handleApplyItemToPokemon}
-        handleHMForget={handleHMForget}
-        handleFlySelect={handleFlySelect}
-        onUseFieldMove={handleFieldMove}
-        dispatchBattle={dispatchBattle}
-      />
+        <GameModals
+          battleShake={battleShake}
+          enemyAnim={enemyAnim}
+          playerAnim={playerAnim}
+          handlePCSwap={handlePCSwap}
+          handleUseItem={handleUseItem}
+          handleApplyItemToPokemon={handleApplyItemToPokemon}
+          handleHMForget={handleHMForget}
+          handleFlySelect={handleFlySelect}
+          onUseFieldMove={handleFieldMove}
+          dispatchBattle={dispatchBattle}
+        />
+      </Suspense>
 
       <ScreenEffects phaseType={phase.type} battlePhase={battlePhase} />
 
@@ -452,7 +459,9 @@ export default function App() {
         <div className="fixed inset-0 bg-white z-[400] pointer-events-none" />
       )}
 
-      <LoadGameModal />
+      <Suspense fallback={null}>
+        <LoadGameModal />
+      </Suspense>
 
     </div>
   );

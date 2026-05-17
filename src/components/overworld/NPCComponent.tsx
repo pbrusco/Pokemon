@@ -42,15 +42,21 @@ export const NPCComponent = memo(({ npc, isSpotted, trackProximity = false }: {
       : false
   );
 
+  // CSS transition on `transform` instead of framer-motion. Position changes
+  // animate smoothly via the GPU compositor with no React state machinery.
+  // (Inner exclamation/nametag still use motion+AnimatePresence for their
+  // mount/unmount tweens — that's where framer earns its keep.)
   return (
-    <motion.div
+    <div
       className="absolute top-0 left-0 flex items-center justify-center"
-      animate={{
-        x: npc.position.x * TILE_SIZE,
-        y: npc.position.y * TILE_SIZE,
+      style={{
+        width: TILE_SIZE,
+        height: TILE_SIZE,
+        zIndex: 20 + npc.position.y,
+        transform: `translate3d(${npcX * TILE_SIZE}px, ${npcY * TILE_SIZE}px, 0)`,
+        transition: 'transform 0.11s linear',
+        willChange: 'transform',
       }}
-      transition={{ type: "tween", duration: 0.11, ease: "linear" }}
-      style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 20 + npc.position.y }}
     >
       <div className="relative">
         {/* Trainer spotted exclamation mark */}
@@ -146,6 +152,6 @@ export const NPCComponent = memo(({ npc, isSpotted, trackProximity = false }: {
           )}
         </AnimatePresence>
       </div>
-    </motion.div>
+    </div>
   );
 });

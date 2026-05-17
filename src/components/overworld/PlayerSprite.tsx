@@ -32,12 +32,16 @@ export const PlayerSprite = memo(({ position, direction }: { position: Position,
   const isPkmnSprite = !!surfPkmn;
 
   return (
-    <motion.div
+    <div
       className="absolute top-0 left-0 flex items-center justify-center"
-      initial={false}
-      animate={{ x: position.x * TILE_SIZE, y: position.y * TILE_SIZE }}
-      transition={{ type: "tween", duration: 0.11, ease: "linear" }}
-      style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 20 + position.y }}
+      style={{
+        width: TILE_SIZE,
+        height: TILE_SIZE,
+        zIndex: 20 + position.y,
+        transform: `translate3d(${position.x * TILE_SIZE}px, ${position.y * TILE_SIZE}px, 0)`,
+        transition: 'transform 0.11s linear',
+        willChange: 'transform',
+      }}
     >
       <div className="relative">
         <motion.div
@@ -70,6 +74,6 @@ export const PlayerSprite = memo(({ position, direction }: { position: Position,
           />
         )}
       </div>
-    </motion.div>
+    </div>
   );
 });

@@ -370,14 +370,15 @@ export const AudioController = {
   },
 };
 
-// Start preloading audio files in the background after a short delay
-// to ensure instant playback when requested, without blocking initial page load.
+// Preload only the small set of always-needed tracks. Everything else lazy-
+// loads when `play(track)` first runs and is then cached. Preloading all 50+
+// tracks (~80 MB) at boot wasted bandwidth and battery on songs the player
+// would probably never hear.
+const CRITICAL_PRELOAD: MusicTrack[] = ['battle_wild', 'battle_trainer'];
 if (typeof window !== 'undefined') {
   setTimeout(() => {
-    for (const track of Object.keys(MUSIC_FILES) as MusicTrack[]) {
-      getAudioElement(track);
-    }
-  }, 1000);
+    for (const track of CRITICAL_PRELOAD) getAudioElement(track);
+  }, 1500);
 }
 
 // ─── Music selection ─────────────────────────────────────────────────────────

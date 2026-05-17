@@ -272,11 +272,15 @@ export const WorldView = memo(({
             }
 
             return (
-              <motion.div
+              <div
                 key={item.id}
                 className="absolute top-0 left-0 flex items-center justify-center"
-                animate={{ x: item.position.x * TILE_SIZE, y: item.position.y * TILE_SIZE }}
-                style={{ width: TILE_SIZE, height: TILE_SIZE, zIndex: 18 + item.position.y }}
+                style={{
+                  width: TILE_SIZE,
+                  height: TILE_SIZE,
+                  zIndex: 18 + item.position.y,
+                  transform: `translate3d(${item.position.x * TILE_SIZE}px, ${item.position.y * TILE_SIZE}px, 0)`,
+                }}
               >
                 {item.type === 'item' ? (
                   <div className="w-8 h-8 bg-red-500 rounded-full border-2 border-[#383838] flex items-center justify-center relative shadow-md">
@@ -295,7 +299,7 @@ export const WorldView = memo(({
                     </div>
                   </div>
                 )}
-              </motion.div>
+              </div>
             );
           })}
 
