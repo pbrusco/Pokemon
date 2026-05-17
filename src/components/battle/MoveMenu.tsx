@@ -1,16 +1,16 @@
-import { useState } from 'react';
 import type { Move } from '../../types';
 import { STRUGGLE_MOVE } from '../../constants/moves';
 import { TypeBadge } from './BattleHUD';
 
-export function MoveMenu({ moves, onAttack, onBack }: {
+export function MoveMenu({ moves, onAttack, onBack, cursor, setCursor }: {
   moves: Move[];
   onAttack: (m: Move) => void;
   onBack: () => void;
+  cursor: number;
+  setCursor: (n: number) => void;
 }) {
-  const [hovered, setHovered] = useState<number | null>(null);
   const allNoPP = moves.every(m => m.pp <= 0);
-  const infoMove = hovered !== null ? (moves[hovered] ?? moves[0]) : moves[0];
+  const infoMove = moves[cursor] ?? moves[0];
 
   return (
     <div className="flex flex-col h-full">
@@ -26,23 +26,21 @@ export function MoveMenu({ moves, onAttack, onBack }: {
         ) : (
           moves.map((move, i) => {
             const noPP = move.pp <= 0;
-            const isHov = hovered === i;
+            const isCursor = cursor === i;
             return (
               <button
                 key={`${move.name}-${i}`}
                 disabled={noPP}
                 className={`bg-[#f8f8f8] text-left px-2 sm:px-3 py-2 flex flex-col justify-center transition-colors ${
-                  noPP ? 'opacity-40 cursor-not-allowed' : isHov ? 'bg-[#d8ecd8]' : 'hover:bg-[#edf4ef]'
+                  noPP ? 'opacity-40 cursor-not-allowed' : isCursor ? 'bg-[#d8ecd8]' : 'hover:bg-[#edf4ef]'
                 }`}
                 onClick={() => { if (!noPP) onAttack(move); }}
-                onMouseEnter={() => setHovered(i)}
-                onMouseLeave={() => setHovered(null)}
+                onMouseEnter={() => { if (!noPP) setCursor(i); }}
               >
                 <span className="inline-flex items-center gap-0.5 sm:gap-1 w-full overflow-hidden">
-                  <span className={`text-red-500 text-[10px] transition-opacity shrink-0 ${isHov && !noPP ? 'opacity-100' : 'opacity-0'}`}>▶</span>
+                  <span className={`text-red-500 text-[10px] transition-opacity shrink-0 ${isCursor && !noPP ? 'opacity-100' : 'opacity-0'}`}>▶</span>
                   <span className="font-bold text-[#2f2f2f] text-[10px] sm:text-sm uppercase tracking-tight leading-tight truncate">{move.name}</span>
                 </span>
-                <span className="text-[8px] text-slate-400 font-mono ml-3.5 mt-0.5">[{i + 1}]</span>
               </button>
             );
           })

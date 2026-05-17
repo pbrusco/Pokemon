@@ -8,7 +8,7 @@ import { EXPLORING, DEFAULT_KEY_BINDINGS, type KeyBindings } from '../types';
 function ConfigSection({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <span className="font-mono text-xs text-slate-500 uppercase tracking-wide block mb-2">{label}</span>
+      <span className="font-mono text-xs text-slate-700 uppercase tracking-wide block mb-2 font-bold">{label}</span>
       {children}
     </div>
   );
@@ -111,10 +111,10 @@ function KeyBindRow({ label, currentKey, onBind }: {
 }) {
   return (
     <div className="flex items-center justify-between py-1">
-      <span className="font-mono text-sm text-slate-800">{label}</span>
+      <span className="font-mono text-sm text-slate-950 font-bold">{label}</span>
       <button
         onClick={(e) => { e.stopPropagation(); onBind(); }}
-        className="font-mono text-xs px-3 py-0.5 rounded border-2 border-slate-300 bg-slate-100 hover:bg-slate-200 transition-colors min-w-[60px] text-center"
+        className="font-mono text-xs px-3 py-0.5 rounded border-2 border-slate-400 bg-slate-200 hover:bg-slate-300 transition-colors min-w-[60px] text-center text-slate-950 font-bold"
       >
         {keyDisplayName(currentKey)}
       </button>

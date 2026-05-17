@@ -42,7 +42,7 @@ const actionBtn = (size: number, mb = 0): React.CSSProperties => ({
 });
 
 export const MobileControls = memo(({ onMove, onDirChange, onAction, onBack, onSelect, setPhase }: MobileControlsProps) => (
-  <div className="fixed bottom-0 left-0 w-full px-4 pb-5 lg:hidden flex items-end z-30 pointer-events-none"
+  <div className="fixed bottom-0 left-0 w-full px-4 pb-5 flex items-end z-30 pointer-events-none"
     style={{ gap: '0' }}
   >
     {/* Left — D-pad */}

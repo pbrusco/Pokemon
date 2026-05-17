@@ -19,7 +19,7 @@ import { KANTO_FIRERED_ZONE_OFFSETS } from './kantoZoneOffsets.generated';
 import { makePokemon } from '../../constants/pokemon';
 import { MOVES, LEARNSET_DATABASE } from '../../constants/moves';
 import type { NPC, Entity, MapID, Direction, Pokemon, Move } from '../../types';
-import { NPC_OVERRIDES } from './firedDialogue';
+import { NPC_OVERRIDES, FUNNY_FALLBACK_BY_GFX } from './firedDialogue';
 
 // ─── FireRed map id → internal MapID resolution ──────────────────────────
 // Outdoor zones aggregate into KANTO_OVERWORLD; their FireRed local x/y is
@@ -76,6 +76,7 @@ const GFX_TO_TRAINER_CLASS: Record<string, string> = {
   PROF_OAK: 'oak',
   RIVAL_OAKS_LAB: 'rival',
   RED_NORMAL: 'rival',
+  BLUE: 'rival',
   ROCKET_M: 'rocket',
   ROCKET_F: 'rocket',
   ROCKET: 'rocket',
@@ -130,12 +131,23 @@ const GFX_TO_TRAINER_CLASS: Record<string, string> = {
   BIRD_KEEPER: 'birdkeeper',
   NURSE: 'nurse',
   CLERK: 'clerk',
+  WORKER_M: 'worker_m',
+  WORKER_F: 'worker_f',
 };
 
 function gfxToTrainerClass(gfx: string | null): string {
   if (!gfx) return 'citizen';
   return GFX_TO_TRAINER_CLASS[gfx] ?? 'citizen';
 }
+
+// FireRed gfx values that represent decorative / flag-gated *objects* rather
+// than NPC characters. We don't have artwork for them, and they default-hide
+// in canonical FireRed until specific story flags clear, so render as nothing.
+const OBJECT_GFX_HIDE = new Set([
+  'POKEDEX', 'TOWN_MAP', 'OLD_AMBER', 'SAPPHIRE', 'RUBY',
+  'METEORITE', 'SEAGALLOP', 'SS_ANNE', 'PUSHABLE_BOULDER',
+  'HO_OH', 'LUGIA', 'ZAPDOS', 'ARTICUNO', 'MOLTRES', 'MEWTWO',
+]);
 
 // ─── FireRed movement type → starting direction ──────────────────────────
 function movementToDirection(movement: string | null): Direction {
@@ -261,6 +273,10 @@ function fireredNpcToEntity(
       dialogue: ['Este árbol parece poder cortarse.'],
     };
   }
+  // Decorative / flag-gated object sprites that aren't people. We don't have
+  // dedicated artwork for them, and they default-hide in canonical FireRed
+  // until story flags clear — so don't render them as fallback citizens.
+  if (npc.gfx && OBJECT_GFX_HIDE.has(npc.gfx)) return null;
   if (npc.gfx === 'SNORLAX') {
     return {
       id: `snorlax_${fireredMapId}_${npc.x}_${npc.y}`,
@@ -303,6 +319,7 @@ function fireredNpcToEntity(
     ? npc.localId.toLowerCase()
     : `npc_${fireredMapId}_${npc.x}_${npc.y}`;
 
+  const funnyFallback = npc.gfx ? FUNNY_FALLBACK_BY_GFX[npc.gfx] : undefined;
   const base: NPC = {
     id,
     name: override?.name ?? npc.localId?.replace(/^LOCALID_/, '') ?? trainerClass.toUpperCase(),
@@ -310,7 +327,7 @@ function fireredNpcToEntity(
     position: { x: worldX, y: worldY },
     direction: movementToDirection(npc.movement),
     trainerClass,
-    dialogue: override?.dialogue ?? [`(Sin traducir: ${npc.localId ?? npc.script ?? 'NPC'})`],
+    dialogue: override?.dialogue ?? funnyFallback ?? ['Hmmm... no sé qué decir.', 'Volveré cuando tenga algo más interesante.'],
   };
 
   if (npc.trainerId) {

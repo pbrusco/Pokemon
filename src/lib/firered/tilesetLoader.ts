@@ -220,6 +220,28 @@ const NUM_METATILES_IN_PRIMARY = 640;
 const NUM_PALS_IN_PRIMARY = 7;
 
 /**
+ * Synchronous fast-path: returns a metatile bitmap iff it's already been
+ * synthesized for this primary/secondary pair. Used by the map hook to fill
+ * the initial cache without waiting on any async work.
+ */
+export function getCachedMetatileBitmap(
+  primaryTileset: string,
+  secondaryTileset: string,
+  metatileId: number,
+): ImageBitmap | undefined {
+  return metatileCache.get(`${primaryTileset}|${secondaryTileset}|${metatileId}`);
+}
+
+/**
+ * Eagerly start loading a tileset (no need to wait for the result). Used to
+ * prewarm common tilesets at app start so the first map paint hits warm
+ * cache.
+ */
+export function prewarmTileset(label: string): void {
+  loadTileset(label).catch(() => {});
+}
+
+/**
  * Render one metatile as a 16×16 ImageBitmap.
  */
 export async function getMetatileBitmap(

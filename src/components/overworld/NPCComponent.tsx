@@ -1,17 +1,20 @@
 import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { type NPC, type Position, TILE_SIZE } from '../../types';
+import { type NPC, TILE_SIZE } from '../../types';
 import { NPC_SPRITE_MAP } from '../../data/npcSpriteMap';
 import { cssFrame } from '../../lib/spriteFormat';
+import { useGameStore } from '../../store/gameStore';
 
 // Generic trainer classes that aren't interesting enough to label
 const SILENT_CLASSES = new Set(['citizen', 'old_man', 'old_woman', 'man', 'woman']);
 
-export const NPCComponent = memo(({ npc, isSpotted, playerPos }: {
+export const NPCComponent = memo(({ npc, isSpotted, trackProximity = false }: {
   npc: NPC;
   key?: string;
   isSpotted?: boolean;
-  playerPos?: Position;
+  /** If true, this NPC subscribes to playerPos to show a proximity name tag.
+   *  Off for wild Pokémon (they don't get labels). */
+  trackProximity?: boolean;
 }) => {
   const [spriteError, setSpriteError] = useState(false);
   const entry = npc.trainerClass ? NPC_SPRITE_MAP[npc.trainerClass] : undefined;
@@ -25,13 +28,19 @@ export const NPCComponent = memo(({ npc, isSpotted, playerPos }: {
   const dispW = TILE_SIZE;                   // 64px
   const dispH = TILE_SIZE * (frameH / 16);  // 128px portrait, 64px square
 
-  // Name tag: visible only when player is within 3 tiles (Chebyshev distance).
-  // Wild Pokémon pass no playerPos so they never show a label.
-  // Silent generic classes (citizens etc.) are also skipped.
+  // Proximity name tag: shown when the player is within 3 tiles (Chebyshev).
+  // We subscribe via a *boolean* selector so the component only re-renders
+  // when nearness actually flips — not on every player step. Without this,
+  // every NPC on the map re-renders each tile the player walks.
   const isSilent = npc.trainerClass ? SILENT_CLASSES.has(npc.trainerClass) : false;
-  const isNearby = playerPos != null && !isSilent
-    ? Math.max(Math.abs(npc.position.x - playerPos.x), Math.abs(npc.position.y - playerPos.y)) <= 3
-    : false;
+  const npcX = npc.position.x;
+  const npcY = npc.position.y;
+  const enableProximity = trackProximity && !isSilent;
+  const isNearby = useGameStore(s =>
+    enableProximity
+      ? Math.max(Math.abs(npcX - s.playerPos.x), Math.abs(npcY - s.playerPos.y)) <= 3
+      : false
+  );
 
   return (
     <motion.div

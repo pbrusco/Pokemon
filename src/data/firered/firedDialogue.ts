@@ -474,4 +474,416 @@ export const NPC_OVERRIDES: Record<string, NpcOverride> = {
       '¡Prepárate para perder!',
     ],
   },
+
+  // ── Elite Four ──────────────────────────────────────────────────────────
+  LOCALID_BRUNO: {
+    name: 'BRUNO',
+    dialogue: [
+      '¡HUYAH! Soy BRUNO del ALTO MANDO.',
+      'Mi cuerpo y mi mente son uno con mis POKÉMON.',
+      '¡Veamos si tú puedes decir lo mismo!',
+    ],
+  },
+  LOCALID_LANCE: {
+    name: 'LANCE',
+    dialogue: [
+      'Soy LANCE, el último del ALTO MANDO.',
+      'Mis DRAGONES han entrenado conmigo desde siempre.',
+      '¡No tendrás piedad ni del primero!',
+    ],
+  },
+  LOCALID_LEAGUE_DOOR_GUARD: {
+    name: 'GUARDIA',
+    dialogue: [
+      '¿Las ocho MEDALLAS? Déjame ver...',
+      'Mmm, ¡muy bien! Adelante, CAMPEÓN en potencia.',
+    ],
+  },
+
+  // ── Champions Room / Hall of Fame ───────────────────────────────────────
+  LOCALID_CHAMPIONS_ROOM_PROF_OAK: {
+    name: 'PROF. OAK',
+    dialogue: [
+      '¡RED! ¡Sabía que llegarías hasta aquí!',
+      'Has demostrado ser un entrenador excepcional.',
+      '¡Es hora de coronarte como CAMPEÓN!',
+    ],
+  },
+  LOCALID_CHAMPIONS_ROOM_RIVAL: {
+    name: 'AZUL',
+    dialogue: [
+      '¡Llevo años esperando este momento!',
+      'Yo soy el CAMPEÓN, RED. ¡Ven y demuéstrame lo contrario!',
+    ],
+  },
+  LOCALID_HALL_OF_FAME_PROF_OAK: {
+    name: 'PROF. OAK',
+    dialogue: [
+      'RED, ahora eres parte de la HISTORIA POKÉMON.',
+      'Tus POKÉMON quedarán inmortalizados en el SALÓN DE LA FAMA.',
+    ],
+  },
+  LOCALID_CREDITS_PROF_OAK: {
+    name: 'PROF. OAK',
+    dialogue: [
+      '¡Gracias por jugar, entrenador!',
+      'Que tu aventura POKÉMON nunca termine.',
+    ],
+  },
+  LOCALID_CREDITS_RIVAL: {
+    name: 'AZUL',
+    dialogue: [
+      'Bueno... esta vez has ganado tú.',
+      '¡La próxima vez no será tan fácil!',
+    ],
+  },
+
+  // ── Giovanni encounters ─────────────────────────────────────────────────
+  LOCALID_HIDEOUT_GIOVANNI: {
+    name: 'GIOVANNI',
+    dialogue: [
+      '¡Tú! ¿Cómo te atreves a entrar en mi escondite?',
+      'Soy GIOVANNI, el JEFE del TEAM ROCKET.',
+      '¡Te haré pagar por tu osadía!',
+    ],
+  },
+  LOCALID_SILPH_CO_GIOVANNI: {
+    name: 'GIOVANNI',
+    dialogue: [
+      '¡De nuevo TÚ! ¿Es que no te rindes?',
+      '¡SILPH S.A. será mía y nadie me lo impedirá!',
+    ],
+  },
+  LOCALID_VIRIDIAN_GIOVANNI: {
+    name: 'GIOVANNI',
+    dialogue: [
+      'Así que llegaste hasta aquí...',
+      'Soy GIOVANNI, el LÍDER del GIMNASIO de CIUDAD VERDE.',
+      '¡Y también el JEFE del TEAM ROCKET! ¡Adelante, mocoso!',
+    ],
+  },
+
+  // ── Silph Co. ───────────────────────────────────────────────────────────
+  LOCALID_SILPH_CO_RIVAL: {
+    name: 'AZUL',
+    dialogue: [
+      '¡Eh, RED! ¿Tú también vienes a meterte con el TEAM ROCKET?',
+      '¡Bien! ¡Veamos quién es más fuerte primero!',
+    ],
+  },
+  LOCALID_SILPH_CO_11F_GRUNT1: {
+    name: 'RECLUTA ROCKET',
+    dialogue: ['¡No pasarás más allá!', 'El JEFE está MUY ocupado.'],
+  },
+  LOCALID_SILPH_CO_11F_GRUNT2: {
+    name: 'RECLUTA ROCKET',
+    dialogue: ['¡SILPH S.A. nos pertenece!', '¡Lárgate, mocoso!'],
+  },
+  LOCALID_SILPH_CO_7F_WORKER_M2: {
+    name: 'TRABAJADOR',
+    dialogue: [
+      '¡Gracias por salvarnos!',
+      'Toma, te regalo este MASTER BALL... ¡es broma, eso lo da el PRESIDENTE!',
+    ],
+  },
+
+  // ── Pokedex objects (Oak's Lab) ─────────────────────────────────────────
+  LOCALID_POKEDEX_1: {
+    name: 'POKÉDEX',
+    dialogue: [
+      'Es una POKÉDEX.',
+      'Una enciclopedia POKÉMON de alta tecnología.',
+    ],
+  },
+  LOCALID_POKEDEX_2: {
+    name: 'POKÉDEX',
+    dialogue: [
+      'Otra POKÉDEX en su soporte.',
+      '...Esta parece tener el polvo de la anterior.',
+    ],
+  },
+
+  // ── Rival's house ───────────────────────────────────────────────────────
+  LOCALID_TOWN_MAP: {
+    name: 'MAPA DE PUEBLO',
+    dialogue: [
+      'Es el MAPA DE PUEBLO de AZUL.',
+      '¡Échale un ojo si necesitas orientarte!',
+    ],
+  },
+
+  // ── Pewter Museum ───────────────────────────────────────────────────────
+  LOCALID_MUSEUM_SCIENTIST1: {
+    name: 'CIENTÍFICO',
+    dialogue: [
+      '¡Bienvenido al MUSEO DE LA CIENCIA!',
+      'Aquí investigamos fósiles de POKÉMON prehistóricos.',
+      '...Y tomamos café. Mucho café.',
+    ],
+  },
+  LOCALID_OLD_AMBER: {
+    name: 'ÁMBAR ANTIGUO',
+    dialogue: [
+      'Un trozo de ÁMBAR ANTIGUO.',
+      'Hay algo atrapado en su interior...',
+      'Dicen que podría contener ADN POKÉMON.',
+    ],
+  },
+  LOCALID_PEWTER_HOUSE_NIDORAN: {
+    name: 'NIDORAN',
+    dialogue: [
+      '¡Nido-NIDO!',
+      'Este NIDORAN parece muy mimado.',
+    ],
+  },
+
+  // ── Viridian School ─────────────────────────────────────────────────────
+  LOCALID_SCHOOL_LASS: {
+    name: 'CHICA',
+    dialogue: [
+      '¡Bienvenido a la ACADEMIA POKÉMON!',
+      'Aquí estudiamos cómo entrenar POKÉMON correctamente.',
+      '¡Aunque hoy más bien dibujamos!',
+    ],
+  },
+  LOCALID_SCHOOL_WOMAN: {
+    name: 'MAESTRA',
+    dialogue: [
+      '¿Tomas notas en la pizarra?',
+      'La información sobre estados alterados te será MUY útil.',
+    ],
+  },
+
+  // ── Bill's Cottage ──────────────────────────────────────────────────────
+  LOCALID_BILL_CLEFAIRY: {
+    name: 'CLEFAIRY',
+    dialogue: [
+      '¡Cle-FAIRY!',
+      'Espera... esa voz... ¡es BILL!',
+    ],
+  },
+  LOCALID_WONDER_NEWS_BERRY_MAN: {
+    name: 'ANCIANO',
+    dialogue: [
+      '¿Bayas? ¿Quieres bayas?',
+      'Toma, llévate algunas. ¡Pero no le digas a mi nieta!',
+    ],
+  },
+
+  // ── Vermilion Fan Club ──────────────────────────────────────────────────
+  LOCALID_POKEMON_FAN_CLUB_FAT_MAN: {
+    name: 'PRESIDENTE',
+    dialogue: [
+      '¡Bienvenido al CLUB DE FANS POKÉMON!',
+      'Yo soy el PRESIDENTE.',
+      '¡Mira mi RAPIDASH! ¡Mi orgullo y alegría!',
+    ],
+  },
+  LOCALID_POKEMON_FAN_CLUB_WOMAN: {
+    name: 'CHICA',
+    dialogue: [
+      '¡Mi SEAKING es PRECIOSO!',
+      '¡A que sí, SEAKING? ¡A que sí, mi vida?',
+    ],
+  },
+
+  // ── Saffron Trainer Fan Club ────────────────────────────────────────────
+  LOCALID_TRAINER_FAN_CLUB_BATTLE_GIRL: {
+    name: 'CHICA',
+    dialogue: ['¡Adoro a los entrenadores fuertes!', '¡Como tú! ¿O no?'],
+  },
+  LOCALID_TRAINER_FAN_CLUB_BEAUTY: {
+    name: 'CHICA',
+    dialogue: ['Los entrenadores guapos son lo mejor.', '...Tú estás bien también.'],
+  },
+  LOCALID_TRAINER_FAN_CLUB_BLACK_BELT: {
+    name: 'KARATEKA',
+    dialogue: ['¡Aquí valoramos la fuerza!', '¡Demuéstrala con tus puños... digo, con tus POKÉMON!'],
+  },
+  LOCALID_TRAINER_FAN_CLUB_GENTLEMAN: {
+    name: 'CABALLERO',
+    dialogue: ['Ah, los buenos entrenadores...', '¡Toman su té y vencen sin sudar!'],
+  },
+  LOCALID_TRAINER_FAN_CLUB_LITTLE_GIRL: {
+    name: 'NIÑA',
+    dialogue: ['¡Quiero ser entrenadora como ellos!', '¿Tú me das un POKÉMON?'],
+  },
+  LOCALID_TRAINER_FAN_CLUB_ROCKER: {
+    name: 'ROCKERO',
+    dialogue: ['¡ROCK AND ROLL POKÉMON!', '¡RUEEEEDA!'],
+  },
+  LOCALID_TRAINER_FAN_CLUB_WOMAN: {
+    name: 'MUJER',
+    dialogue: ['Mi hijo es un entrenador estupendo.', '¡A ver cuándo gana algo!'],
+  },
+  LOCALID_TRAINER_FAN_CLUB_YOUNGSTER: {
+    name: 'JOVEN',
+    dialogue: ['¡Yo también seré famoso algún día!', '¡Pantalones cortos para siempre!'],
+  },
+
+  // ── Cinnabar Gym (Quiz NPCs) ────────────────────────────────────────────
+  LOCALID_AVERY: {
+    name: 'AVERY',
+    dialogue: ['¡Soy AVERY! ¿Sabes responder a las preguntas de BLAINE?', '¡Si no, te tocará luchar contra mí!'],
+  },
+  LOCALID_DEREK: {
+    name: 'DEREK',
+    dialogue: ['Las preguntas son sobre POKÉMON.', '¡Si fallas, yo seré tu castigo!'],
+  },
+  LOCALID_DUSTY: {
+    name: 'DUSTY',
+    dialogue: ['¿Apostamos? Si fallas, ¡combatimos!', '¡Y nadie me ha ganado todavía!'],
+  },
+  LOCALID_QUINN: {
+    name: 'QUINN',
+    dialogue: ['¡BLAINE adora los acertijos!', '¿Te crees listo? ¡Pues a ver qué tal!'],
+  },
+  LOCALID_RAMON: {
+    name: 'RAMON',
+    dialogue: ['¡El fuego es mi pasión!', '¡Como las preguntas de BLAINE!'],
+  },
+  LOCALID_ZAC: {
+    name: 'ZAC',
+    dialogue: ['Cada puerta esconde una pregunta.', '¡Y un combate, si fallas!'],
+  },
+
+  // ── Saffron Dojo ────────────────────────────────────────────────────────
+  LOCALID_KARATE_MASTER: {
+    name: 'MAESTRO KARATE',
+    dialogue: [
+      '¡HIIIYAAA! Soy el MAESTRO del DOJO.',
+      '¡Demuestra tu valor en combate!',
+      'Si me ganas, te regalaré uno de mis POKÉMON.',
+    ],
+  },
+
+  // ── Celadon Game Corner ─────────────────────────────────────────────────
+  LOCALID_GAME_CORNER_GRUNT: {
+    name: 'RECLUTA ROCKET',
+    dialogue: [
+      '¡No mires! ¡Aquí no pasa nada raro!',
+      '...Sólo estoy mirando esta pared. Sí, esta pared.',
+    ],
+  },
+
+  // ── SS Anne dock object ─────────────────────────────────────────────────
+  LOCALID_SS_ANNE: {
+    name: 'S.S. ANNE',
+    dialogue: [
+      'Es el majestuoso S.S. ANNE.',
+      'Su pintura blanca brilla bajo el sol.',
+    ],
+  },
+  LOCALID_VERMILION_HARBOR_SAILOR: {
+    name: 'MARINERO',
+    dialogue: ['¿Tu BILLETE? Vale, sube a bordo.', '¡Y no te marees!'],
+  },
+
+  // ── Cinnabar Pokémon Center / Bill ──────────────────────────────────────
+  LOCALID_CINNABAR_POKEMON_CENTER_BILL: {
+    name: 'BILL',
+    dialogue: [
+      '¡Otra vez tú, RED!',
+      'Estoy de vacaciones... ¡bueno, casi!',
+      'En la MANSION ABANDONADA hay diarios muy interesantes.',
+    ],
+  },
+};
+
+// Funny Spanish fallback lines keyed by FireRed `gfx` (sprite class). Used when
+// no specific localId / pattern override matches — instead of dropping a
+// "(Sin traducir: ...)" placeholder we give the NPC a class-flavoured chuckle
+// so the world feels alive while translations land.
+export const FUNNY_FALLBACK_BY_GFX: Record<string, string[]> = {
+  YOUNGSTER: ['¡Llevo pantalones cortos porque son cómodos!', '¿Tú no llevas? ¡Pues te aguantas!'],
+  BUG_CATCHER: ['¡He cazado seis CATERPIE!', '¿Te interesa intercambiar? ¿Hola? ¿Adónde vas?'],
+  LASS: ['¡Mira mi POKÉMON, qué mono!', '¿No te dan ganas de hacerle cosquillas?'],
+  HIKER: ['¡SOY ROBUSTO!', 'Como mi GEODUDE. Pero con menos pelo.'],
+  FISHER: ['He pescado un MAGIKARP así de grande.', '...Vale, así de pequeño. Pero era MUY brillante.'],
+  GAMER: ['¡Hoy me siento con suerte!', 'Llevo perdiendo desde el martes pasado.'],
+  GENTLEMAN: ['Ejem. Buenos días, caballero.', '¿No le parece que hace un tiempo espléndido?'],
+  WOMAN_1: ['¿Sabes? Mi hijo es entrenador POKÉMON.', 'Aún no ha llamado. Hace tres años.'],
+  WOMAN_2: ['¡Qué bonita está hoy CIUDAD!', '¿Cuál ciudad? Da igual, todas son bonitas.'],
+  WOMAN_3: ['Mi marido está enganchado al juego.', 'Si lo ves en el CASINO, dile que vuelva a casa.'],
+  OLD_WOMAN: ['En mis tiempos, los POKÉMON eran más educados.', 'Ahora todos te muerden el tobillo.'],
+  OLD_WOMAN_1: ['¿Has visto mi MEOWTH?', 'Se fue persiguiendo una moneda y aún no ha vuelto.'],
+  OLD_WOMAN_2: ['¡Ay, mis lumbares!', 'Esto de viajar ya no es lo que era.'],
+  MAN: ['¿Tú también andas perdido?', 'Pues somos dos.'],
+  MAN_1: ['Hace tanto calor que mi PSYDUCK se ha dormido.', 'Otra vez.'],
+  MAN_2: ['Estoy esperando a alguien.', '...Llevo aquí desde 1996.'],
+  MAN_3: ['Mi mujer me ha mandado a comprar leche.', 'Eso fue ayer. Hoy he traído POKÉ BALLS. Se va a enfadar.'],
+  OLD_MAN: ['¡Eh, joven! ¿Qué te trae por aquí?', 'Yo solo estoy descansando los huesos.'],
+  OLD_MAN_1: ['Esto antes era todo campo.', 'Ahora son todo CENTROS POKÉMON.'],
+  OLD_MAN_2: ['Mi nieto me regaló una POKÉDEX.', '...No tengo ni idea de cómo se enciende.'],
+  FAT_MAN: ['¡La tecnología es increíble!', 'Acabo de guardar mi sándwich en el PC.'],
+  BALDING_MAN: ['Hace años yo era todo un campeón.', 'Eso, o lo soñé. Ya no me acuerdo.'],
+  LITTLE_BOY: ['¡Cuando sea mayor seré el MEJOR ENTRENADOR!', '¡Si me dejan...!'],
+  LITTLE_GIRL: ['¿Has visto mi JIGGLYPUFF?', 'Se quedó dormido en mitad de su canción. Otra vez.'],
+  BOY: ['Mi hermano dice que soy un fracasado.', '¡Cuando sea CAMPEÓN se va a enterar!'],
+  GIRL: ['¿Cuál es tu POKÉMON favorito?', '¡El mío es CLEFAIRY! ¡Mira qué orejitas!'],
+  BEAUTY: ['Hola, guapo. ¿Quieres combatir?', '...Lo digo por los POKÉMON. ¡Por los POKÉMON!'],
+  ROCKET: ['¡El TEAM ROCKET dominará el mundo!', '...Después de la siesta.'],
+  ROCKET_M: ['¡Soy malo, malísimo!', '¡Mírame qué mal me porto!'],
+  ROCKET_F: ['¿El JEFE? Está reunido.', '...Comiéndose un bocadillo. Pero está MUY ocupado.'],
+  BIKER: ['¡VROOOOM! ¡VROOOOOM!', '...Sólo tengo el casco. Aún no he ahorrado para la moto.'],
+  CUE_BALL: ['¡Te voy a dar puré!', '...De patata. Que está muy bueno.'],
+  BLACK_BELT: ['¡HIIIYAAA!', 'Mi cinturón negro es de cuando aprobé judo en el cole.'],
+  CHANNELER: ['Veo POKÉMON... muertos...', '...Bueno, en realidad solo veo a mi GASTLY haciendo el tonto.'],
+  COOL_TRAINER_M: ['Soy un entrenador profesional.', 'Esto era mi pasatiempo. Ahora es mi tristeza.'],
+  COOL_TRAINER_F: ['¿Crees que puedes ganarme?', '¡JA! Adorable.'],
+  CRUSH_GIRL: ['¡HUYAH!', '¡Mi PRIMEAPE y yo somos invencibles!'],
+  JUGGLER: ['Hago malabares con POKÉ BALLS.', 'Una... dos... tres... ¡cuatro... ouch!'],
+  POKE_MANIAC: ['¡SOY EL MAYOR FAN DE LOS POKÉMON!', '¡Tengo 73 figuritas en casa! ¡Y un calcetín de PIKACHU!'],
+  PSYCHIC_M: ['Puedo leer tu mente...', 'Estás pensando en patatas fritas. Tenía razón.'],
+  PSYCHIC_F: ['Las energías están... alteradas hoy.', 'O es que me he tomado tres cafés.'],
+  SAILOR: ['¡El mar es mi vida!', '...Aunque me marea un poco. No se lo digas a nadie.'],
+  SCIENTIST: ['Estoy investigando algo MUY importante.', '...No te lo puedo contar. Pero confía: es importantísimo.'],
+  SUPER_NERD: ['¿Sabías que MAGNETON son tres MAGNEMITE pegados?', '¡FASCINANTE! ¿Adónde vas? ¡Espera, tengo más datos!'],
+  SWIMMER_M: ['¡Brrr! ¡El agua está fría!', '¿Te animas a nadar?'],
+  SWIMMER_F: ['¡El agua está deliciosa!', 'No, en serio, tiene un toque a sal MUY bueno.'],
+  TAMER: ['Mis POKÉMON me adoran.', '...Casi siempre. Hay días.'],
+  ROCKER: ['¡RUEEEEDA, GUITARRA!', '¡Mi banda se llama LOS ELECTRODE!'],
+  PROF_OAK_AIDE: ['¡Hola! Soy ayudante del PROF. OAK.', '...En realidad le hago el café.'],
+  POKEFAN_M: ['¡Adoro a los POKÉMON!', '¡Tengo un álbum con un cromo de cada uno!'],
+  POKEFAN_F: ['¡Mira qué mono es mi POKÉMON!', '¿A que sí? ¿A que sí? ¡Dilo!'],
+  WAITRESS: ['Bienvenido. ¿Qué le pongo?', 'Tenemos POKÉCAFÉ y POKÉCAFÉ con leche.'],
+  BIRD_KEEPER: ['¡Mis aves cortan el viento!', '...Bueno, el PIDGEY más bien lo respira despacito.'],
+  UNION_ROOM_RECEPTIONIST: ['Bienvenido. ¿Desea conectarse?', '...Yo todavía estoy intentando conectar el WiFi.'],
+  CLERK: ['¡Bienvenido a la TIENDA POKÉMON!', '¿Hoy le envuelvo la POCIÓN para regalo?'],
+  NURSE: ['¡Bienvenido al CENTRO POKÉMON!', '...Aunque hoy estamos sin café.'],
+  WORKER_M: ['¡Cuidado con la zona de obras!', '...Y con mi MACHOP, que está repartiendo cemento.'],
+  WORKER_F: ['Trabajando, trabajando, siempre trabajando.', 'A veces sueño con dormir.'],
+  // Pokémon-as-NPC sprites (zoo, talking pets)
+  CHANSEY: ['¡CHAN-sey!', '...¡CHAAAAAN!'],
+  KANGASKHAN: ['¡Kang-as-KHAN!', 'Su crío se asoma desde la bolsa y bosteza.'],
+  LAPRAS: ['¡Laaaa-pras!', 'Te mira con ojos enormes y tristones.'],
+  MACHOP: ['¡Mach-CHOP!', 'Está haciendo flexiones... con un solo dedo.'],
+  SLOWPOKE: ['...Slooo...', '...wpoke...'],
+  POLIWRATH: ['¡Poli! ¡Poli-wrath!', '¡POLI!'],
+  PIDGEOT: ['¡Piii-geoot!', 'Despliega las alas con orgullo.'],
+  CLEFAIRY: ['¡Clefa! ¡Clefa-fairy!', 'Tararea una melodía marciana.'],
+  NIDORAN_F: ['¡Nido-ran!', '¿Será peligrosa? Tiene pinchos por todas partes.'],
+  NIDORAN_M: ['¡Nido-RAN!', 'El cuerno parece afilado. Mejor no acercarse.'],
+  MEOWTH: ['¡Meeeowth!', '...¿Te ha mordido la cartera? ¡Comprueba la cartera!'],
+  VOLTORB: ['¡Vol-TORB!', 'Está vibrando un poco. Quizás demasiado.'],
+  CHARMANDER: ['¡Char! ¡Char-mander!', 'Mueve la cola con cuidado para no quemar nada.'],
+  SQUIRTLE: ['¡Squir-tle!', 'Sonríe enseñando los dientes.'],
+  BULBASAUR: ['¡Bulba!', 'El bulbo de la espalda parece a punto de florecer.'],
+  PIKACHU: ['¡Pika-pika!', 'Suelta una chispita. ¡Eso pica!'],
+  EEVEE: ['¡Vui!', '¡VUI-VUI!'],
+  PUSHABLE_BOULDER: ['Es una roca enorme.', 'Quizás se podría empujar con FUERZA.'],
+  METEORITE: ['Es un meteorito muy antiguo.', 'Vibra ligeramente al acercarse.'],
+  HO_OH: ['¡KYAAAA!', 'El POKÉMON legendario te observa.'],
+  LUGIA: ['¡GROOOO!', 'El guardián de los mares te mira fijamente.'],
+  ZAPDOS: ['¡ZAP-DOOOS!', 'El aire chisporrotea a su alrededor.'],
+  ARTICUNO: ['¡Articuno!', 'Una brisa helada recorre la sala.'],
+  MOLTRES: ['¡Mol-tres!', 'Hace mucho calor cerca de él.'],
+  MEWTWO: ['...', '...Su mirada te atraviesa el alma.'],
+  SS_ANNE: ['Es un barco de lujo gigantesco.', 'Apesta a sal y a perfume caro.'],
+  SEAGALLOP: ['Un barquito rápido y modernísimo.', '¿Te llevamos a otra isla?'],
+  TOWN_MAP: ['Es el MAPA DE PUEBLO.', '¡Te servirá para no perderte... mucho!'],
+  POKEDEX: ['Es una POKÉDEX.', '¡La enciclopedia POKÉMON definitiva!'],
+  OLD_AMBER: ['Un trozo de ámbar muy antiguo.', 'Hay algo atrapado dentro...'],
+  SAPPHIRE: ['Un zafiro pequeño y muy brillante.', '...y muy probablemente muy caro.'],
+  CITIZEN: ['Buenas tardes.', '...¿O eran buenos días? He perdido la cuenta.'],
 };

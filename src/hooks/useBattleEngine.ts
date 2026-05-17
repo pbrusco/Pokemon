@@ -42,7 +42,14 @@ export function useBattleEngine({
   setEnemyAnim,
   setBattleShake,
 }: UseBattleEngineParams) {
-  const store = useGameStore();
+  // Per-field selectors so this hook (consumed by App.tsx) doesn't subscribe
+  // to the entire store and force an overworld re-render on every mutation.
+  const activeBattle = useGameStore(s => s.activeBattle);
+  const catchResult = useGameStore(s => s.catchResult);
+  const setEnemyPokemon = useGameStore(s => s.setEnemyPokemon);
+  const setIsTrainerBattle = useGameStore(s => s.setIsTrainerBattle);
+  const setBattleLog = useGameStore(s => s.setBattleLog);
+  const setBattleLogs = useGameStore(s => s.setBattleLogs);
   const nextLogId = useRef(0);
   // True while a dispatch's effect-queue + cascade is still playing. Blocks
   // re-entrant dispatches so a player can't queue a second attack on top of
@@ -53,7 +60,6 @@ export function useBattleEngine({
   // Triggered when a cutscene's processBattle() sets activeBattle without
   // the React ref, and when a new battle starts after an old one finished
   // (stale finished state in the ref would block dispatchBattle).
-  const activeBattle = store.activeBattle;
   useEffect(() => {
     if (activeBattle && battleStateRef.current !== activeBattle) {
       battleStateRef.current = activeBattle;
@@ -396,10 +402,10 @@ export function useBattleEngine({
 
   return {
     dispatchBattle,
-    catchResult: store.catchResult,
-    setEnemyPokemon: store.setEnemyPokemon,
-    setIsTrainerBattle: store.setIsTrainerBattle,
-    setBattleLog: store.setBattleLog,
-    setBattleLogs: store.setBattleLogs,
+    catchResult,
+    setEnemyPokemon,
+    setIsTrainerBattle,
+    setBattleLog,
+    setBattleLogs,
   };
 }

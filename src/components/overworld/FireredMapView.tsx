@@ -41,6 +41,11 @@ export const FireredMapView = memo(({ layout, viewport, originX = 0, originY = 0
     maxY: viewport.maxY - originY,
   };
 
+  // Resize + full repaint whenever the layout swaps. We intentionally don't
+  // depend on `cache` itself — its identity changes on every version bump
+  // (progressive bitmap arrivals), and we don't want to wipe + redraw the
+  // whole layout each time. The viewport-paint effect below handles those
+  // incremental updates.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !cache) return;
@@ -52,7 +57,8 @@ export const FireredMapView = memo(({ layout, viewport, originX = 0, originY = 0
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawCells(ctx, layout, cache, 0, 0, layout.width - 1, layout.height - 1);
-  }, [cache, layout]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cache?.primary, cache?.secondary, layout]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -72,6 +78,9 @@ export const FireredMapView = memo(({ layout, viewport, originX = 0, originY = 0
         width: layout.width * TILE_SIZE,
         height: layout.height * TILE_SIZE,
         imageRendering: 'pixelated',
+        // Soft neutral fill so the first frame isn't a hard black flash before
+        // any metatile bitmaps land. Matches the muted FireRed palette.
+        background: '#5d7a52',
         zIndex: 0,
       }}
     />

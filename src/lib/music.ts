@@ -146,6 +146,26 @@ const state: AudioControllerState = {
 };
 
 let fadeInterval: ReturnType<typeof setInterval> | null = null;
+let gestureUnlockBound = false;
+
+// Browsers block .play() until the first user gesture. If a play() promise
+// rejects (or there's no current audio yet), arm a one-shot listener that
+// retries the current track on the next keydown / pointerdown / touchstart.
+function armGestureUnlock() {
+  if (gestureUnlockBound || typeof window === 'undefined') return;
+  gestureUnlockBound = true;
+  const unlock = () => {
+    window.removeEventListener('keydown', unlock);
+    window.removeEventListener('pointerdown', unlock);
+    window.removeEventListener('touchstart', unlock);
+    if (state.current && state.current.paused && !state.muted) {
+      state.current.play().catch(() => {});
+    }
+  };
+  window.addEventListener('keydown', unlock, { once: true });
+  window.addEventListener('pointerdown', unlock, { once: true });
+  window.addEventListener('touchstart', unlock, { once: true });
+}
 
 function resolvePath(track: MusicTrack): string {
   return BASE_PATH + MUSIC_FILES[track];
@@ -230,7 +250,7 @@ export const AudioController = {
       applyVolume(next);
     }
 
-    next.play().catch(() => {});
+    next.play().catch(() => { armGestureUnlock(); });
   },
 
   playJingle(jingle: MusicTrack, fallbackTrack?: MusicTrack) {
@@ -274,7 +294,7 @@ export const AudioController = {
         }
       }, FADE_STEP_MS);
 
-      jingleAudio.play().catch(() => {});
+      jingleAudio.play().catch(() => { armGestureUnlock(); });
 
       jingleAudio.onended = () => {
         jingleAudio.onended = null;
@@ -290,7 +310,7 @@ export const AudioController = {
       state.current = a;
       state.currentTrack = jingle;
       applyVolume(a);
-      a.play().catch(() => {});
+      a.play().catch(() => { armGestureUnlock(); });
       a.onended = () => {
         a.onended = null;
         if (fallbackTrack) {

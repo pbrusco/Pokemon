@@ -41,6 +41,10 @@ export const BattleScreen = memo(function BattleScreen({
 }: BattleScreenProps) {
 
   const playerPkmn = playerTeam[0];
+  const battleMenuCursor = useGameStore(s => s.battleMenuCursor);
+  const battleMoveCursor = useGameStore(s => s.battleMoveCursor);
+  const setBattleMenuCursor = useGameStore(s => s.setBattleMenuCursor);
+  const setBattleMoveCursor = useGameStore(s => s.setBattleMoveCursor);
   const trainerBattleSprite = useGameStore(s => s.trainerBattleSprite);
   const trainerName = useGameStore(s => s.activeBattle?.trainerName);
   const enemyTeamRaw = useGameStore(s => s.activeBattle?.enemyTeam);
@@ -344,34 +348,41 @@ export const BattleScreen = memo(function BattleScreen({
           {isPlayerTurn && !showMoves ? (
             <div className="grid grid-cols-2 h-full gap-1 sm:gap-2 text-[#2f2f2f] font-bold text-xs sm:text-lg items-center tracking-tight uppercase">
               {([
-                { label: 'LUCHAR', shortcut: '1', action: () => setShowMoves(true), disabled: false },
-                { label: 'POKÉMON', shortcut: '2', action: () => setShowTeam(true), disabled: false },
-                { label: 'BOLSA', shortcut: '3', action: () => setShowInventory(true), disabled: false },
-                { label: 'HUIR', shortcut: '4', action: onFlee, disabled: isTrainerBattle },
-              ]).map((entry) => (
-                <button
-                  key={entry.label}
-                  disabled={entry.disabled}
-                  className={`text-left px-2 py-1 rounded-sm border ${
-                    entry.disabled
-                      ? 'opacity-35 cursor-not-allowed border-transparent'
-                      : 'border-transparent hover:border-[#4f6e69] hover:bg-[#edf4ef]'
-                  }`}
-                  onClick={() => { if (!entry.disabled) entry.action(); }}
-                >
-                  <span className="inline-flex items-center gap-1">
-                    {!entry.disabled && <span className="text-red-500">▶</span>}
-                    {entry.label}
-                  </span>
-                  <span className="block text-[10px] text-slate-400 normal-case font-normal">[{entry.shortcut}]</span>
-                </button>
-              ))}
+                { label: 'LUCHAR', action: () => { setBattleMenuCursor(0); setShowMoves(true); }, disabled: false },
+                { label: 'POKÉMON', action: () => { setBattleMenuCursor(1); setShowTeam(true); }, disabled: false },
+                { label: 'BOLSA', action: () => { setBattleMenuCursor(2); setShowInventory(true); }, disabled: false },
+                { label: 'HUIR', action: () => { setBattleMenuCursor(3); onFlee(); }, disabled: isTrainerBattle },
+              ]).map((entry, i) => {
+                const isCursor = battleMenuCursor === i;
+                return (
+                  <button
+                    key={entry.label}
+                    disabled={entry.disabled}
+                    onMouseEnter={() => { if (!entry.disabled) setBattleMenuCursor(i); }}
+                    className={`text-left px-2 py-1 rounded-sm border ${
+                      entry.disabled
+                        ? 'opacity-35 cursor-not-allowed border-transparent'
+                        : isCursor
+                          ? 'border-[#4f6e69] bg-[#edf4ef]'
+                          : 'border-transparent hover:border-[#4f6e69] hover:bg-[#edf4ef]'
+                    }`}
+                    onClick={() => { if (!entry.disabled) entry.action(); }}
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      <span className={`text-red-500 transition-opacity ${isCursor && !entry.disabled ? 'opacity-100' : 'opacity-0'}`}>▶</span>
+                      {entry.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           ) : isPlayerTurn && showMoves ? (
             <MoveMenu
               moves={playerPkmn?.moves ?? []}
               onAttack={handleAttack}
               onBack={() => setShowMoves(false)}
+              cursor={battleMoveCursor}
+              setCursor={setBattleMoveCursor}
             />
           ) : null}
         </div>

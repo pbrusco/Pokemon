@@ -136,6 +136,10 @@ interface GameState extends GameSaveState {
   
   phase: GamePhase;
   showMoves: boolean;
+  /** 0..3 cursor over the 2×2 battle root menu (FIGHT/POKE/BAG/RUN). */
+  battleMenuCursor: number;
+  /** 0..3 cursor over the 2×2 move-select menu. */
+  battleMoveCursor: number;
   dialogue: string | null;
   dialogueCallback: (() => void) | null;
   /**
@@ -176,6 +180,8 @@ interface GameState extends GameSaveState {
   
   setPhase: (phase: SetStateAction<GamePhase>) => void;
   setShowMoves: (show: boolean) => void;
+  setBattleMenuCursor: (n: number) => void;
+  setBattleMoveCursor: (n: number) => void;
   
   setHasPokedex: (v: boolean) => void;
   setHasParcel: (v: boolean) => void;
@@ -294,6 +300,8 @@ export const useGameStore = create<GameState>()(
       
       phase: EXPLORING,
       showMoves: false,
+      battleMenuCursor: 0,
+      battleMoveCursor: 0,
       dialogue: null,
       dialogueCallback: null,
       confirm: null,
@@ -338,6 +346,8 @@ export const useGameStore = create<GameState>()(
       
       setPhase: (phase) => set((state) => ({ phase: typeof phase === 'function' ? phase(state.phase) : phase })),
       setShowMoves: (show) => set({ showMoves: show }),
+      setBattleMenuCursor: (n) => set({ battleMenuCursor: n }),
+      setBattleMoveCursor: (n) => set({ battleMoveCursor: n }),
       
       setHasPokedex: (v) => set({ hasPokedex: v }),
       setHasParcel: (v) => set({ hasParcel: v }),

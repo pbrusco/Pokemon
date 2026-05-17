@@ -11,6 +11,25 @@ interface WindowSize {
   height: number;
 }
 
+/** Tile margin around the camera viewport when culling NPCs / items. A few
+ *  extra tiles avoid pop-in for tall sprites (16×32 → 64×128 on screen). */
+const NPC_VIEWPORT_MARGIN = 4;
+
+/** Short label for a `KeyboardEvent.key` value, suitable for a small badge. */
+function formatKeyLabel(key: string): string {
+  if (key === ' ') return '␣';
+  if (key === 'Enter') return '↵';
+  if (key === 'Escape') return 'Esc';
+  if (key === 'Backspace') return '⌫';
+  if (key === 'Tab') return '⇥';
+  if (key === 'ArrowUp') return '↑';
+  if (key === 'ArrowDown') return '↓';
+  if (key === 'ArrowLeft') return '←';
+  if (key === 'ArrowRight') return '→';
+  if (key.length === 1) return key.toUpperCase();
+  return key.slice(0, 3).toUpperCase();
+}
+
 interface WorldViewProps {
   currentMap: MapID;
   maps: Record<MapID, MapData>;
@@ -39,8 +58,15 @@ export const WorldView = memo(({
   inBattle,
   dialogue,
 }: WorldViewProps) => {
-  const { playerPos, direction, isMoving, currentMap, wildPokemon } = useGameStore();
+  // Per-field selectors so unrelated store mutations (battle logs, dialogue
+  // text, etc.) don't re-render the entire viewport while the player walks.
+  const playerPos = useGameStore(s => s.playerPos);
+  const direction = useGameStore(s => s.direction);
+  const isMoving = useGameStore(s => s.isMoving);
+  const currentMap = useGameStore(s => s.currentMap);
+  const wildPokemon = useGameStore(s => s.wildPokemon);
   const isBiking = useGameStore(s => s.isBiking);
+  const interactKeyLabel = useGameStore(s => formatKeyLabel(s.keyBindings.interact));
   const mapData = maps[currentMap];
 
   const grid = mapData?.tiles ?? [];
@@ -76,8 +102,40 @@ export const WorldView = memo(({
       )
   , [npcs, currentMap, defeatedTrainers, cols, rows]);
 
-  const warpIndicators = useMemo(() =>
-    mapData?.warps?.map(warp => (
+  const warpIndicators = useMemo(() => {
+    const warps = mapData?.warps ?? [];
+    // FireRed registers a separate warp_event for every tile a door spans
+    // (so the player triggers the warp no matter which sub-tile they step
+    // on). Cluster adjacent warps that share the same destination into a
+    // single indicator so we don't show four arrows under a 2×2 door.
+    const used = new Set<number>();
+    const reps: typeof warps = [];
+    for (let i = 0; i < warps.length; i++) {
+      if (used.has(i)) continue;
+      const cluster = [i];
+      for (let j = 0; j < cluster.length; j++) {
+        const a = warps[cluster[j]];
+        for (let k = i + 1; k < warps.length; k++) {
+          if (used.has(k) || cluster.includes(k)) continue;
+          const b = warps[k];
+          if (b.targetMap !== a.targetMap) continue;
+          if (b.targetPos.x !== a.targetPos.x || b.targetPos.y !== a.targetPos.y) continue;
+          if (Math.abs(a.x - b.x) + Math.abs(a.y - b.y) > 1) continue;
+          cluster.push(k);
+        }
+      }
+      // Pick the bottom-most tile in the cluster — that's where the player
+      // typically approaches the door from.
+      let best = cluster[0];
+      for (const idx of cluster) {
+        used.add(idx);
+        const w = warps[idx];
+        const cur = warps[best];
+        if (w.y > cur.y || (w.y === cur.y && w.x > cur.x)) best = idx;
+      }
+      reps.push(warps[best]);
+    }
+    return reps.map(warp => (
       <div
         key={`warp-${warp.x}-${warp.y}`}
         className="absolute z-25 pointer-events-none flex items-end justify-center pb-1"
@@ -91,8 +149,8 @@ export const WorldView = memo(({
           {warp.targetDir === 'up' ? '▲' : warp.targetDir === 'down' ? '▼' : warp.targetDir === 'left' ? '◀' : '▶'}
         </motion.div>
       </div>
-    ))
-  , [mapData]);
+    ));
+  }, [mapData]);
 
   if (!mapData) return null;
 
@@ -162,16 +220,34 @@ export const WorldView = memo(({
           {visionIndicators}
           {warpIndicators}
 
-          {(npcs[currentMap] ?? []).map(npc => (
-            <NPCComponent
-              key={npc.id}
-              npc={(npc.id === spottedTrainerId && spottedTrainerPos ? { ...npc, position: spottedTrainerPos } : npc) as NPC}
-              isSpotted={npc.id === spottedTrainerId}
-              playerPos={playerPos}
-            />
-          ))}
+          {(npcs[currentMap] ?? []).map(npc => {
+            // Cull NPCs outside the visible viewport (with a small margin so
+            // tall sprites don't pop while scrolling in). For huge maps like
+            // Kanto with 1000+ NPCs this is the difference between a few
+            // dozen DOM nodes and a thousand.
+            const x = npc.position.x;
+            const y = npc.position.y;
+            if (x < minX - NPC_VIEWPORT_MARGIN || x > maxX + NPC_VIEWPORT_MARGIN ||
+                y < minY - NPC_VIEWPORT_MARGIN || y > maxY + NPC_VIEWPORT_MARGIN) {
+              return null;
+            }
+            return (
+              <NPCComponent
+                key={npc.id}
+                npc={(npc.id === spottedTrainerId && spottedTrainerPos ? { ...npc, position: spottedTrainerPos } : npc) as NPC}
+                isSpotted={npc.id === spottedTrainerId}
+                trackProximity
+              />
+            );
+          })}
 
           {(items[currentMap] ?? []).map(item => {
+            const x = item.position.x;
+            const y = item.position.y;
+            if (x < minX - NPC_VIEWPORT_MARGIN || x > maxX + NPC_VIEWPORT_MARGIN ||
+                y < minY - NPC_VIEWPORT_MARGIN || y > maxY + NPC_VIEWPORT_MARGIN) {
+              return null;
+            }
             // For native-rendered maps the canonical pokered block graphics
             // already draw furniture, TVs, computers, plants, etc. The
             // "object" overlay (brown signpost) would only duplicate them.
@@ -239,18 +315,26 @@ export const WorldView = memo(({
             )}
           </AnimatePresence>
 
-          {wildPokemon.map(wild => (
-            <NPCComponent
-              key={wild.id}
-              npc={{
-                ...wild,
-                name: wild.pokemon.name,
-                dialogue: [],
-                trainerClass: String(wild.pokemon.id),
-                sprite: wild.pokemon.sprite,
-              } as NPC}
-            />
-          ))}
+          {wildPokemon.map(wild => {
+            const x = wild.position.x;
+            const y = wild.position.y;
+            if (x < minX - NPC_VIEWPORT_MARGIN || x > maxX + NPC_VIEWPORT_MARGIN ||
+                y < minY - NPC_VIEWPORT_MARGIN || y > maxY + NPC_VIEWPORT_MARGIN) {
+              return null;
+            }
+            return (
+              <NPCComponent
+                key={wild.id}
+                npc={{
+                  ...wild,
+                  name: wild.pokemon.name,
+                  dialogue: [],
+                  trainerClass: String(wild.pokemon.id),
+                  sprite: wild.pokemon.sprite,
+                } as NPC}
+              />
+            );
+          })}
           <PlayerSprite position={playerPos} direction={direction} />
 
           {/* No overhead layer — FireRed pipeline draws everything in-place. */}
@@ -265,8 +349,8 @@ export const WorldView = memo(({
                 className="absolute z-30 pointer-events-none flex flex-col items-center"
                 style={{ left: interactTargetX * TILE_SIZE, top: interactTargetY * TILE_SIZE - 24, width: TILE_SIZE }}
               >
-                <div className="bg-white/90 backdrop-blur-sm rounded-full w-6 h-6 shadow-lg border-2 border-blue-500 flex items-center justify-center animate-bounce">
-                  <span className="text-[10px] font-black text-blue-600">A</span>
+                <div className="bg-white/90 backdrop-blur-sm rounded-full min-w-6 h-6 px-1.5 shadow-lg border-2 border-blue-500 flex items-center justify-center animate-bounce">
+                  <span className="text-[10px] font-black text-blue-600 leading-none">{interactKeyLabel}</span>
                 </div>
                 <div className="w-2 h-2 bg-blue-500 rotate-45 -mt-1 shadow-sm" />
               </motion.div>

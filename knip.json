@@ -8,7 +8,6 @@
   "ignoreDependencies": ["tailwindcss"],
   "ignore": [
     "src/lib/cutscenes/types.ts",
-    "src/lib/firered/tilesetLoader.ts",
     "src/lib/firered/bridge.ts",
     "src/data/firered/kantoZoneOffsets.generated.ts",
     "src/data/firered/firedTrainers.generated.ts"

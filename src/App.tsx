@@ -18,7 +18,6 @@ import { WorldView } from './components/WorldView';
 import { Minimap } from './components/Minimap';
 import { MobileControls } from './components/MobileControls';
 import { SideMenu } from './components/SideMenu';
-import { MenuButton } from './components/MenuButton';
 import { GameModals } from './components/GameModals';
 import { LoadGameModal } from './components/LoadGameModal';
 import { ScreenEffects } from './components/ScreenEffects';
@@ -75,6 +74,30 @@ export default function App() {
 
   const windowSize = useWindowSize();
   const { overworldShake, setOverworldShake } = useOverworldVFX();
+
+  // Prewarm the tilesets the early game touches so the first map paint hits
+  // a warm cache instead of flashing black while the PNGs decode. Runs once
+  // at app boot under idle priority (or via setTimeout fallback in browsers
+  // without requestIdleCallback).
+  useEffect(() => {
+    const prewarm = () => {
+      import('./lib/firered/tilesetLoader').then(({ prewarmTileset }) => {
+        for (const t of [
+          'gTileset_General',
+          'gTileset_PalletTown',
+          'gTileset_Building',
+          'gTileset_Lab',
+          'gTileset_PokemonCenter',
+          'gTileset_Mart',
+          'gTileset_GenericBuilding1',
+          'gTileset_GenericBuilding2',
+        ]) prewarmTileset(t);
+      });
+    };
+    const ric = (window as unknown as { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
+    if (typeof ric === 'function') ric(prewarm);
+    else setTimeout(prewarm, 300);
+  }, []);
 
   // ── Warp flash on map transition ──────────────────────────────────
   const [warpFlash, setWarpFlash] = useState(false);
@@ -395,8 +418,6 @@ export default function App() {
       <Minimap />
 
       <MobileControls onMove={handleMove} onDirChange={(dir) => { mobileDirRef.current = dir; }} onAction={handleAction} onBack={handleBack} onSelect={handleSelect} setPhase={setPhase} />
-
-      <MenuButton phase={phase} setPhase={setPhase} />
 
       <SideMenu
         phase={phase}

@@ -40,28 +40,79 @@ export function useInputHandler({
 
       if (inBattle) {
         const battleSubPhase = store.phase.type === 'BATTLE' ? store.phase.sub.type : null;
-        if (e.key === 'Escape' || e.key === 'Backspace') {
+        const isBackKey =
+          e.key === 'Escape' || e.key === 'Backspace' ||
+          e.key.toLowerCase() === kb.back.toLowerCase();
+        if (isBackKey) {
           if (battleSubPhase === 'BATTLE_INVENTORY' || battleSubPhase === 'BATTLE_TEAM') {
+            SfxController.play('menu_close');
             store.setPhase(battle(B_CHOOSING));
             return;
           }
           if (battleSubPhase === 'CHOOSING' && store.showMoves) {
+            SfxController.play('menu_close');
             store.setShowMoves(false);
             return;
           }
         }
         if (battleSubPhase === 'CHOOSING') {
+          if (e.key === 'w' || e.key === 'W') { dispatchBattle({ type: 'CHEAT_KO' }); return; }
+          const isInteract =
+            e.key === ' ' || e.key === 'Enter' ||
+            e.key.toLowerCase() === kb.interact.toLowerCase();
+          // 2×2 grid navigation: 0=TL, 1=TR, 2=BL, 3=BR.
+          const moveCursor = (c: number, dir: 'up' | 'down' | 'left' | 'right'): number => {
+            switch (dir) {
+              case 'up':    return c >= 2 ? c - 2 : c;
+              case 'down':  return c < 2  ? c + 2 : c;
+              case 'left':  return (c & 1) ? c - 1 : c;
+              case 'right': return (c & 1) ? c : c + 1;
+            }
+          };
+          let dirKey: 'up' | 'down' | 'left' | 'right' | null = null;
+          if (e.key.toLowerCase() === kb.up.toLowerCase()) dirKey = 'up';
+          else if (e.key.toLowerCase() === kb.down.toLowerCase()) dirKey = 'down';
+          else if (e.key.toLowerCase() === kb.left.toLowerCase()) dirKey = 'left';
+          else if (e.key.toLowerCase() === kb.right.toLowerCase()) dirKey = 'right';
+
           if (!store.showMoves) {
-            if (e.key === 'w' || e.key === 'W') { dispatchBattle({ type: 'CHEAT_KO' }); return; }
-            if (e.key === '1') { store.setShowMoves(true); return; }
-            if (e.key === '2') { store.setPhase(battle(B_BATTLE_TEAM)); return; }
-            if (e.key === '3') { store.setPhase(battle(B_BATTLE_INVENTORY)); return; }
-            if (e.key === '4' && !isTrainerBattle) { dispatchBattle({ type: 'FLEE' }); return; }
+            // Root menu: FIGHT(0), POKE(1), BAG(2), RUN(3).
+            if (dirKey) {
+              const next = moveCursor(store.battleMenuCursor, dirKey);
+              if (next !== store.battleMenuCursor) {
+                SfxController.play('menu_move');
+                store.setBattleMenuCursor(next);
+              }
+              return;
+            }
+            if (isInteract) {
+              SfxController.play('menu_select');
+              switch (store.battleMenuCursor) {
+                case 0: store.setShowMoves(true); break;
+                case 1: store.setPhase(battle(B_BATTLE_TEAM)); break;
+                case 2: store.setPhase(battle(B_BATTLE_INVENTORY)); break;
+                case 3: if (!isTrainerBattle) dispatchBattle({ type: 'FLEE' }); break;
+              }
+              return;
+            }
           } else {
-            const idx = parseInt(e.key) - 1;
-            if (idx >= 0 && idx <= 3) {
-              const mv = store.playerTeam[0]?.moves[idx];
-              if (mv && mv.pp > 0) dispatchBattle({ type: 'ATTACK', move: mv });
+            // Move menu: 4 slots, skip ones without a defined move or 0 PP.
+            const moves = store.playerTeam[0]?.moves ?? [];
+            if (dirKey) {
+              const next = moveCursor(store.battleMoveCursor, dirKey);
+              if (next !== store.battleMoveCursor && moves[next]) {
+                SfxController.play('menu_move');
+                store.setBattleMoveCursor(next);
+              }
+              return;
+            }
+            if (isInteract) {
+              const mv = moves[store.battleMoveCursor];
+              if (mv && mv.pp > 0) {
+                SfxController.play('menu_select');
+                dispatchBattle({ type: 'ATTACK', move: mv });
+              }
+              return;
             }
           }
         }

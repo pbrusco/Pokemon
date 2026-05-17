@@ -192,9 +192,11 @@ export function useMovementEngine({
     const inBounds = (x: number, y: number) => x >= 0 && x < mapW && y >= 0 && y < mapH;
 
     // Ledge jump: only passable if moving in the ledge's direction; land 2 tiles ahead.
+    // Approaching a ledge from any other side blocks movement — ledges are one-way fences.
     let isLedgeJump = false;
     if (inBounds(nextX, nextY)) {
       const t = grid[nextY][nextX].type;
+      const isLedge = t === 'ledge_down' || t === 'ledge_up' || t === 'ledge_left' || t === 'ledge_right';
       const ledgeMatch =
         (t === 'ledge_down'  && dir === 'down')  ||
         (t === 'ledge_up'    && dir === 'up')    ||
@@ -215,6 +217,10 @@ export function useMovementEngine({
         } else if (!ghostMode) {
           return;
         }
+      } else if (isLedge && !ghostMode) {
+        // Ledge approached from the wrong side: blocked.
+        SfxController.play('bump');
+        return;
       }
     }
 
