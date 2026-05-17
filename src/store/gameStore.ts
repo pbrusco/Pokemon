@@ -55,6 +55,35 @@ interface GameSaveState {
   lastSavedAt: number;
 }
 
+// Zustand persist serializes the partialized state and calls setItem on every
+// store change — including every player step. The save state is ~30 KB+, so
+// a synchronous JSON.stringify + localStorage.setItem per tile shows up in
+// the main-thread budget. Debounce the writes by ~400 ms so rapid mutations
+// (walking, battle log appends, animation frames) coalesce into one write,
+// and flush on pagehide so we never lose a save on tab close.
+const PERSIST_DEBOUNCE_MS = 400;
+let persistTimer: ReturnType<typeof setTimeout> | null = null;
+let pendingPersist: { name: string; value: string } | null = null;
+
+function flushPersist() {
+  if (!pendingPersist) return;
+  const { name, value } = pendingPersist;
+  pendingPersist = null;
+  if (persistTimer !== null) {
+    clearTimeout(persistTimer);
+    persistTimer = null;
+  }
+  if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.setItem === 'function') {
+    window.localStorage.setItem(name, value);
+  }
+}
+
+if (typeof window !== 'undefined') {
+  // Browsers don't always fire `beforeunload` (notably on mobile), but
+  // `pagehide` is reliable. Fire-and-forget the queued write here.
+  window.addEventListener('pagehide', flushPersist);
+}
+
 const safeLocalStorage = {
   getItem: (name: string): string | null => {
     if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.getItem === 'function') {
@@ -63,11 +92,17 @@ const safeLocalStorage = {
     return null;
   },
   setItem: (name: string, value: string): void => {
-    if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.setItem === 'function') {
-      window.localStorage.setItem(name, value);
-    }
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    pendingPersist = { name, value };
+    if (persistTimer !== null) clearTimeout(persistTimer);
+    persistTimer = setTimeout(flushPersist, PERSIST_DEBOUNCE_MS);
   },
   removeItem: (name: string): void => {
+    // Skip any pending write that would be overwritten anyway.
+    if (pendingPersist && pendingPersist.name === name) {
+      pendingPersist = null;
+      if (persistTimer !== null) { clearTimeout(persistTimer); persistTimer = null; }
+    }
     if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.removeItem === 'function') {
       window.localStorage.removeItem(name);
     }

@@ -78,48 +78,55 @@ const MinimapContent = () => {
     cachedMapRef.current = currentMap;
   }, [currentMap, mapData, cols, rows]);
 
-  // Draw player + NPCs on top of cached background
+  // Draw player + NPCs on top of cached background. Scheduled via rAF and
+  // throttled to at most one paint per frame so rapid store mutations
+  // (player steps, battle log appends) don't queue duplicate work — and we
+  // explicitly depend on the values we care about instead of running on
+  // every render.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !mapData) return;
+    let raf: number | null = null;
+    const paint = () => {
+      raf = null;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      const scale = Math.min(280 / cols, 240 / rows, 3);
+      const cw = cols * scale;
+      const ch = rows * scale;
+      if (canvas.width !== cw || canvas.height !== ch) {
+        canvas.width = cw;
+        canvas.height = ch;
+        canvas.style.width = `${cw}px`;
+        canvas.style.height = `${ch}px`;
+      }
+      ctx.imageSmoothingEnabled = false;
 
-    const ctx = canvas.getContext('2d')!;
-    const scale = Math.min(280 / cols, 240 / rows, 3);
-    const cw = cols * scale;
-    const ch = rows * scale;
-    canvas.width = cw;
-    canvas.height = ch;
-    canvas.style.width = `${cw}px`;
-    canvas.style.height = `${ch}px`;
+      if (bgCacheRef.current && cachedMapRef.current === currentMap) {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = cols;
+        tempCanvas.height = rows;
+        tempCanvas.getContext('2d')!.putImageData(bgCacheRef.current, 0, 0);
+        ctx.drawImage(tempCanvas, 0, 0, cw, ch);
+      }
 
-    ctx.imageSmoothingEnabled = false;
+      for (const npc of mapNpcs) {
+        const isTrainer = (npc as NPC).isTrainer;
+        ctx.fillStyle = isTrainer ? '#f8f8f8' : '#fbbf24';
+        ctx.fillRect(npc.position.x * scale, npc.position.y * scale, Math.max(2, scale), Math.max(2, scale));
+      }
 
-    // Stamp cached background, scaled
-    if (bgCacheRef.current && cachedMapRef.current === currentMap) {
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = cols;
-      tempCanvas.height = rows;
-      tempCanvas.getContext('2d')!.putImageData(bgCacheRef.current, 0, 0);
-      ctx.drawImage(tempCanvas, 0, 0, cw, ch);
-    }
-
-    // NPC dots
-    for (const npc of mapNpcs) {
-      const isTrainer = (npc as NPC).isTrainer;
-      ctx.fillStyle = isTrainer ? '#f8f8f8' : '#fbbf24';
-      ctx.fillRect(npc.position.x * scale, npc.position.y * scale, Math.max(2, scale), Math.max(2, scale));
-    }
-
-    // Player dot with outline
-    const px = playerPos.x * scale;
-    const py = playerPos.y * scale;
-    const ps = Math.max(3, scale + 1);
-
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(px - 1, py - 1, ps + 2, ps + 2);
-    ctx.fillStyle = '#ef4444';
-    ctx.fillRect(px, py, ps, ps);
-  });
+      const px = playerPos.x * scale;
+      const py = playerPos.y * scale;
+      const ps = Math.max(3, scale + 1);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(px - 1, py - 1, ps + 2, ps + 2);
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(px, py, ps, ps);
+    };
+    raf = requestAnimationFrame(paint);
+    return () => { if (raf !== null) cancelAnimationFrame(raf); };
+  }, [mapData, cols, rows, currentMap, mapNpcs, playerPos]);
 
   if (!mapData) return null;
 
