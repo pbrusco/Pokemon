@@ -198,7 +198,7 @@ export const WorldView = memo(({
           y: finalY,
           scale: 1
         }}
-        transition={{ type: "tween", duration: isBiking ? 0.06 : 0.11, ease: "linear" }}
+        transition={{ type: 'tween', duration: isBiking ? 0.06 : 0.11, ease: 'linear' }}
       >
         <div
           className="relative"

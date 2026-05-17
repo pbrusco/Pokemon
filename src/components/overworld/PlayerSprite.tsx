@@ -17,8 +17,10 @@ const ROW_PCT: Record<Direction, string> = {
 export const PlayerSprite = memo(({ position, direction }: { position: Position, direction: Direction }) => {
   const [walkStep, setWalkStep] = useState(0);
   const isSurfing = useGameStore(s => s.isSurfing);
+  const ghostMode = useGameStore(s => s.ghostMode);
   const playerTeam = useGameStore(s => s.playerTeam);
 
+  // Advance the walk-cycle frame each tile the player moves.
   useEffect(() => {
     setWalkStep(s => (s + 1) % WALK_FRAMES);
   }, [position.x, position.y]);
@@ -51,6 +53,38 @@ export const PlayerSprite = memo(({ position, direction }: { position: Position,
         >
           <ChevronDown size={32} strokeWidth={3} />
         </motion.div>
+
+        {/* Ghost-mode aura — Saiyan-style flickering glow behind the sprite. */}
+        {ghostMode && (
+          <>
+            <div
+              className="absolute pointer-events-none"
+              aria-hidden="true"
+              style={{
+                inset: '-22px',
+                background:
+                  'radial-gradient(circle at center, rgba(253,224,71,0.85) 0%, rgba(253,186,71,0.55) 30%, rgba(244,63,94,0.18) 60%, transparent 80%)',
+                filter: 'blur(6px)',
+                animation: 'ghost-aura 0.55s ease-in-out infinite',
+                mixBlendMode: 'screen',
+                zIndex: -1,
+              }}
+            />
+            <div
+              className="absolute pointer-events-none"
+              aria-hidden="true"
+              style={{
+                inset: '-10px',
+                background:
+                  'radial-gradient(circle at center, rgba(255,255,255,0.55) 0%, rgba(253,224,71,0.35) 40%, transparent 75%)',
+                filter: 'blur(2px)',
+                animation: 'ghost-aura-inner 0.32s ease-in-out infinite',
+                mixBlendMode: 'screen',
+                zIndex: -1,
+              }}
+            />
+          </>
+        )}
 
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-10 h-3 bg-black/40 rounded-full blur-sm" />
 
