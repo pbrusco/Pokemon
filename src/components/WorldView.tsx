@@ -178,10 +178,18 @@ export const WorldView = memo(({
   const finalY = viewportCenterY - playerScreenY;
 
   return (
-    <div className="relative flex-1 w-full overflow-hidden select-none bg-black">
+    // `contain: strict` tells the browser the viewport's layout, paint, and
+    // size are isolated from the rest of the page — anything that re-paints
+    // here (camera tween, NPC sprite sheets, animations) won't trigger
+    // recalcs elsewhere. Combined with the GPU-promoted translateZ(0) below,
+    // each frame is a cheap composite instead of a full repaint.
+    <div
+      className="relative flex-1 w-full overflow-hidden select-none bg-black"
+      style={{ contain: 'strict' }}
+    >
       <motion.div
         className="absolute origin-top-left"
-        style={{ willChange: 'transform' }}
+        style={{ willChange: 'transform', transform: 'translateZ(0)' }}
         initial={false}
         animate={{
           x: overworldShake
@@ -192,7 +200,19 @@ export const WorldView = memo(({
         }}
         transition={{ type: "tween", duration: isBiking ? 0.06 : 0.11, ease: "linear" }}
       >
-        <div className="relative" style={{ width: cols * TILE_SIZE, height: rows * TILE_SIZE }}>
+        <div
+          className="relative"
+          style={{
+            width: cols * TILE_SIZE,
+            height: rows * TILE_SIZE,
+            // `contain: layout paint` on the world canvas + sprite layer
+            // keeps the sprite layer's frequent re-layouts (NPCs / items
+            // appearing as the camera scrolls) from invalidating the
+            // parent. layout-only because we still want events to bubble
+            // through.
+            contain: 'layout paint',
+          }}
+        >
           {(() => {
             // Every map is FireRed-backed now. Multi-zone (KANTO_OVERWORLD)
             // renders each FireRed zone as its own canvas at its computed

@@ -17,12 +17,24 @@ const TILE_COLORS: Record<string, string> = {
   ledge_right: '#9a8b7a',
 };
 
+// Public wrapper: only one subscription (`showMinimap`) when collapsed, so we
+// don't re-render the heavy MinimapContent on every store mutation while the
+// player is walking and the minimap is hidden.
 export const Minimap = () => {
+  const showMinimap = useGameStore(s => s.showMinimap);
+  if (!showMinimap) return null;
+  return <MinimapContent />;
+};
+
+const MinimapContent = () => {
   const currentMap = useGameStore(s => s.currentMap);
   const worldMaps = useGameStore(s => s.worldMaps);
   const playerPos = useGameStore(s => s.playerPos);
   // Derive NPC deps needed to rebuild the database
-  const playerTeam    = useGameStore(s => s.playerTeam);
+  // Subscribe to a boolean (team-empty?) instead of the team array itself —
+  // buildNPCDatabase only cares about whether the team is empty, so HP/XP
+  // ticks shouldn't trigger a NPC database rebuild.
+  const teamEmpty      = useGameStore(s => s.playerTeam.length === 0);
   const hasParcel     = useGameStore(s => s.hasParcel);
   const hasPokedex    = useGameStore(s => s.hasPokedex);
   const badges        = useGameStore(s => s.badges);
@@ -36,7 +48,7 @@ export const Minimap = () => {
   const npcs = useMemo(
     () => useGameStore.getState().getNPCs(),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [playerTeam, hasParcel, hasPokedex, badges, storyStep, oakPos, oakDir, hasSilphScope, hasPokeFlute, hasSsTicket, clearedSnorlax]
+    [teamEmpty, hasParcel, hasPokedex, badges, storyStep, oakPos, oakDir, hasSilphScope, hasPokeFlute, hasSsTicket, clearedSnorlax]
   );
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgCacheRef = useRef<ImageData | null>(null);
@@ -109,8 +121,7 @@ export const Minimap = () => {
     ctx.fillRect(px, py, ps, ps);
   });
 
-  const showMinimap = useGameStore(s => s.showMinimap);
-  if (!mapData || !showMinimap) return null;
+  if (!mapData) return null;
 
   return (
     <div className="fixed top-2 left-2 lg:top-auto lg:bottom-4 lg:left-4 z-50 flex flex-col pointer-events-none">

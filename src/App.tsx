@@ -71,9 +71,14 @@ export default function App() {
   const inBattle = phase.type === 'BATTLE' || ('returnTo' in phase && phase.returnTo?.type === 'BATTLE');
   const battlePhase = phase.type === 'BATTLE' ? phase.sub : ('returnTo' in phase && phase.returnTo?.type === 'BATTLE' ? phase.returnTo.sub : null);
 
-  // getNPCs/getItems are stable store methods (use get() internally); extra deps signal when to recompute.
+  // getNPCs/getItems are stable store methods (use get() internally); extra
+  // deps signal when to recompute. Note: `buildNPCDatabase` only reads
+  // `playerTeam.length === 0` (to decide whether to show story NPCs), so
+  // depend on that boolean — not the team array itself — so HP/PP/XP ticks
+  // during battle don't trigger a full ~1700-entry NPC merge.
+  const teamEmpty = playerTeam.length === 0;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const npcs = useMemo(() => getNPCs(), [getNPCs, playerTeam, hasParcel, hasPokedex, badges, storyStep, oakCutscenePos, oakCutsceneDir, hasSilphScope, hasPokeFlute, hasSsTicket, clearedSnorlax]);
+  const npcs = useMemo(() => getNPCs(), [getNPCs, teamEmpty, hasParcel, hasPokedex, badges, storyStep, oakCutscenePos, oakCutsceneDir, hasSilphScope, hasPokeFlute, hasSsTicket, clearedSnorlax]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const items = useMemo(() => getItems(), [getItems, pickedItemIds, storyStep]);
 
