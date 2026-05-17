@@ -69,13 +69,26 @@ export function bridgeStitchedKanto(stitch: StitchedDescriptor): MultiZoneFirere
 
   for (const z of stitch.zones) {
     const behaviorGrid = z.layout.behavior;
+    // Set of local (x,y) positions that have an interactive sign bg_event in
+    // this zone. Sign-behavior tiles without a matching entry are phantom
+    // signs (block movement with no visible cue) and get downgraded to
+    // walkable floor below.
+    const signEvents = new Set(
+      z.bgs
+        .filter(e => e.type === 'sign')
+        .map(e => `${e.x},${e.y}`)
+    );
     for (let y = 0; y < z.height; y++) {
       for (let x = 0; x < z.width; x++) {
         const wx = z.offsetX + x;
         const wy = z.offsetY + y;
         if (wx < 0 || wy < 0 || wx >= stitch.width || wy >= stitch.height) continue;
         const behavior = behaviorGrid?.[y]?.[x] ?? 0;
-        tiles[wy][wx] = tileFromBehavior(behavior, true);
+        let t = tileFromBehavior(behavior, true);
+        if (t.type === 'sign' && !signEvents.has(`${x},${y}`)) {
+          t = { type: 'path', walkable: true };
+        }
+        tiles[wy][wx] = t;
 
         // Override with WALL if this metatile has collision AND isn't a
         // known "solid but functional" tile (door, sign, warp_pad, boulder, counter, ledge).

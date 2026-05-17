@@ -23,6 +23,8 @@ import { tileFromBehavior, WALL } from './behaviorMappings';
 type MapIdString = string;
 
 interface FireredEvent {
+  /** Discriminator on bg_events: 'sign' for interactive signposts, 'hidden_item' for buried items, etc. */
+  type?: string;
   x: number;
   y: number;
   elevation?: number;
@@ -124,12 +126,28 @@ export const FIRERED_EXIT_TO_KANTO_OVERWORLD: Record<string, { x: number; y: num
 
 export function bridgeFireredLayout(layout: FireredLayoutJson): FireredParsedMap {
   const behaviorGrid = layout.behavior;
+  // FireRed marks tiles as MB_SIGNPOST (→ 'sign', walkable: false) for any
+  // metatile drawn with a sign post — but only the ones with a `bg_events`
+  // entry are *interactive*. A phantom sign (signpost behavior with no
+  // bg_event) blocks movement without any visible cue and reads as an
+  // "invisible wall" on the path. Build the interactive-sign set from the
+  // layout's bg_events so we can downgrade phantoms to walkable floor.
+  const signEvents = new Set(
+    (layout.meta?.bg_events ?? [])
+      .filter(e => e.type === 'sign')
+      .map(e => `${e.x},${e.y}`)
+  );
   const tiles: Tile[][] = [];
   for (let y = 0; y < layout.height; y++) {
     const row: Tile[] = [];
     for (let x = 0; x < layout.width; x++) {
       const behavior = behaviorGrid?.[y]?.[x] ?? 0;
-      const t = tileFromBehavior(behavior, false);
+      let t = tileFromBehavior(behavior, false);
+      if (t.type === 'sign' && !signEvents.has(`${x},${y}`)) {
+        // Phantom sign — no interactive bg_event. Treat as a normal walkable
+        // floor tile so it doesn't silently block the player.
+        t = { type: 'floor', walkable: true };
+      }
       // Door / sign / warp_pad / counter / ledge metatiles have collision=1 but should NOT be WALL.
       // Same for tiles with directional blockFrom (MB_IMPASSABLE_<DIR>).
       const blocked = layout.collision[y][x] !== 0;
