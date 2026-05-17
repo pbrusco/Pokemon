@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { type NPC, TILE_SIZE } from '../../types';
 import { NPC_SPRITE_MAP } from '../../data/npcSpriteMap';
@@ -16,12 +16,11 @@ export const NPCComponent = memo(({ npc, isSpotted, trackProximity = false }: {
    *  Off for wild Pokémon (they don't get labels). */
   trackProximity?: boolean;
 }) => {
-  const [spriteError, setSpriteError] = useState(false);
   const entry = npc.trainerClass ? NPC_SPRITE_MAP[npc.trainerClass] : undefined;
   const url = entry?.overworld ?? '';
   const numFrames = entry?.overworldFrames ?? 0;
   const frameH = entry?.frameH ?? 32;
-  const hasSprite = url && numFrames > 0;
+  const hasSprite = !!url && numFrames > 0;
   const frame = hasSprite ? cssFrame(npc.direction, numFrames) : null;
   // Display dimensions: full tile wide; height scales with frame aspect ratio.
   // 16×32 portrait frames → 64×128 display. 16×16 square frames → 64×64 display.
@@ -80,38 +79,31 @@ export const NPCComponent = memo(({ npc, isSpotted, trackProximity = false }: {
         {/* Ground shadow */}
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-2 bg-black/20 rounded-full blur-sm" />
 
-        {/* Sprite */}
-        {hasSprite && !spriteError ? (
-          <>
-            <div
-              style={{
-                width: dispW,
-                height: dispH,
-                backgroundImage: `url('${url}')`,
-                backgroundSize: `${numFrames * 100}% 100%`,
-                backgroundRepeat: 'no-repeat',
-                backgroundPositionX: frame?.backgroundPositionX ?? '0%',
-                backgroundPositionY: '0%',
-                transform: frame?.transform ?? 'none',
-                imageRendering: 'pixelated',
-              }}
-              role="img"
-              aria-label={npc.name}
-            />
-            <img
-              src={url}
-              alt=""
-              aria-hidden="true"
-              style={{ display: 'none' }}
-              onError={() => setSpriteError(true)}
-            />
-          </>
-        ) : npc.sprite?.startsWith('http') && !spriteError ? (
+        {/* Sprite — render via CSS background-image. If the URL ever 404s the
+         *  browser shows the parent's background, never the placeholder box.
+         *  (Previously a hidden `<img onError>` flipped state and unmounted the
+         *  div in some browsers, making every NPC fall back to the placeholder.) */}
+        {hasSprite ? (
+          <div
+            style={{
+              width: dispW,
+              height: dispH,
+              backgroundImage: `url('${url}')`,
+              backgroundSize: `${numFrames * 100}% 100%`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPositionX: frame?.backgroundPositionX ?? '0%',
+              backgroundPositionY: '0%',
+              transform: frame?.transform ?? 'none',
+              imageRendering: 'pixelated',
+            }}
+            role="img"
+            aria-label={npc.name}
+          />
+        ) : npc.sprite?.startsWith('http') ? (
           <img
             src={npc.sprite}
             alt={npc.name}
             style={{ width: dispW, height: dispH, imageRendering: 'pixelated', objectFit: 'contain' }}
-            onError={() => setSpriteError(true)}
           />
         ) : (
           <div className="w-11 h-13 bg-white rounded-lg border-[3px] border-[#383838] shadow-md flex flex-col items-center overflow-hidden">
